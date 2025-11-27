@@ -337,16 +337,17 @@ const ReportGenerator = () => {
                   Widok poziomy dopasowany do szerokości ekranu komputera.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex items-center gap-2">
                 <Button
                   onClick={() => setIsLandscape(false)}
                   variant="outline"
                   size="sm"
                   className="border-zinc-700 text-white hover:bg-zinc-800"
                 >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  <ArrowLeft className="w-4 h-4 mr-1.5" />
                   Powrót
                 </Button>
+                <div className="h-6 w-px bg-zinc-700" />
                 <Button
                   onClick={downloadAsImage}
                   disabled={isGenerating}
@@ -354,8 +355,8 @@ const ReportGenerator = () => {
                   size="sm"
                   className="border-emerald-600 text-emerald-400 hover:bg-emerald-950"
                 >
-                  <FileImage className="w-4 h-4 mr-2" />
-                  {isGenerating ? "..." : "PNG 16:9"}
+                  <FileImage className="w-4 h-4 mr-1.5" />
+                  PNG
                 </Button>
                 <Button
                   onClick={generateLandscapePDF}
@@ -363,8 +364,8 @@ const ReportGenerator = () => {
                   size="sm"
                   className="bg-pink-600 hover:bg-pink-700"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  {isGenerating ? "..." : "PDF 16:9"}
+                  <Download className="w-4 h-4 mr-1.5" />
+                  PDF 16:9
                 </Button>
                 <Button
                   onClick={generatePDF}
@@ -373,8 +374,8 @@ const ReportGenerator = () => {
                   size="sm"
                   className="border-zinc-700 text-white hover:bg-zinc-800"
                 >
-                  <Download className="w-4 h-4 mr-2" />
-                  {isGenerating ? "..." : "PDF pionowy"}
+                  <Download className="w-4 h-4 mr-1.5" />
+                  Pionowy
                 </Button>
               </div>
             </div>
@@ -718,17 +719,18 @@ const ReportGenerator = () => {
 
             {reportData && (
               <div className="space-y-4">
-                <div className="flex justify-between items-center flex-wrap gap-3">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
                   <h2 className="text-2xl font-bold text-white">Podgląd</h2>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="grid grid-cols-2 sm:flex gap-2">
                     <Button
                       onClick={() => setIsLandscape(true)}
                       variant="outline"
                       size="sm"
                       className="border-zinc-700 text-white hover:bg-zinc-800"
                     >
-                      <Maximize2 className="w-4 h-4 mr-2" />
-                      Pełny ekran
+                      <Maximize2 className="w-4 h-4 mr-1.5" />
+                      <span className="hidden sm:inline">Pełny ekran</span>
+                      <span className="sm:hidden">16:9</span>
                     </Button>
                     <Button
                       onClick={generatePDF}
@@ -736,8 +738,8 @@ const ReportGenerator = () => {
                       size="sm"
                       className="bg-pink-600 hover:bg-pink-700"
                     >
-                      <Download className="w-4 h-4 mr-2" />
-                      {isGenerating ? "..." : "Pobierz PDF"}
+                      <Download className="w-4 h-4 mr-1.5" />
+                      {isGenerating ? "..." : "PDF"}
                     </Button>
                   </div>
                 </div>
