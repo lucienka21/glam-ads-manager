@@ -1,21 +1,27 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download } from "lucide-react";
+import { ArrowLeft, Download, FileImage, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
+import { ContractPreview } from "@/components/contract/ContractPreview";
+import jsPDF from "jspdf";
+import { toPng } from "html-to-image";
 
 const ContractGenerator = () => {
   const navigate = useNavigate();
+  const [showPreview, setShowPreview] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
     clientNIP: "",
     contractNumber: "",
     signDate: new Date().toISOString().split("T")[0],
-    serviceScope: "Kampanie reklamowe Facebook Ads dla salonu beauty",
+    serviceScope: "Prowadzenie kampanii reklamowych Facebook Ads, tworzenie kreacji, optymalizacja i raportowanie wyników.",
     contractValue: "",
     paymentTerms: "7 dni od wystawienia faktury",
     contractDuration: "3 miesiące",
@@ -26,17 +32,78 @@ const ContractGenerator = () => {
   };
 
   const handleGenerate = () => {
-    if (
-      !formData.clientName ||
-      !formData.contractNumber ||
-      !formData.contractValue
-    ) {
+    if (!formData.clientName || !formData.contractNumber || !formData.contractValue) {
       toast.error("Uzupełnij wszystkie wymagane pola");
       return;
     }
 
-    toast.success("Generowanie umowy...");
-    // TODO: Implement PDF generation
+    setShowPreview(true);
+    toast.success("Podgląd umowy gotowy!");
+  };
+
+  const generatePDF = async () => {
+    const element = document.getElementById("contract-preview");
+    if (!element) return;
+
+    setIsGenerating(true);
+
+    try {
+      const canvas = await toPng(element, {
+        cacheBust: true,
+        pixelRatio: 3,
+        backgroundColor: "#ffffff",
+      });
+
+      const img = new Image();
+      img.src = canvas;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "px",
+        format: [794, 1123],
+        compress: true,
+      });
+
+      pdf.addImage(canvas, "PNG", 0, 0, 794, 1123, undefined, "FAST");
+      pdf.save(`${formData.contractNumber.replace(/\//g, "-")}.pdf`);
+
+      toast.success("Umowa PDF pobrana!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast.error("Nie udało się wygenerować PDF");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const downloadAsImage = async () => {
+    const element = document.getElementById("contract-preview");
+    if (!element) return;
+
+    setIsGenerating(true);
+
+    try {
+      const imgData = await toPng(element, {
+        cacheBust: true,
+        pixelRatio: 2,
+        backgroundColor: "#ffffff",
+      });
+
+      const link = document.createElement("a");
+      link.download = `${formData.contractNumber.replace(/\//g, "-")}.png`;
+      link.href = imgData;
+      link.click();
+
+      toast.success("Umowa PNG pobrana!");
+    } catch (error) {
+      console.error("Error downloading image:", error);
+      toast.error("Nie udało się pobrać obrazu");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -54,7 +121,10 @@ const ContractGenerator = () => {
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-xl font-bold">Generator Umowy Marketingowej</h1>
+              <div>
+                <h1 className="text-xl font-bold">Generator Umów</h1>
+                <p className="text-sm text-zinc-400">Profesjonalne umowy marketingowe</p>
+              </div>
             </div>
           </div>
         </div>
@@ -62,144 +132,170 @@ const ContractGenerator = () => {
 
       {/* Main Content */}
       <main className="container mx-auto px-6 py-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8">
-            <h2 className="text-xl font-bold mb-6 text-white">
-              Dane umowy marketingowej
-            </h2>
+        <div className="grid lg:grid-cols-2 gap-8">
+          {/* Form */}
+          <div className="space-y-6">
+            <Card className="p-6 bg-zinc-900/50 border-zinc-800">
+              <h2 className="text-lg font-bold mb-4 text-pink-500">Dane klienta</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="clientName">Nazwa klienta *</Label>
+                  <Input
+                    id="clientName"
+                    value={formData.clientName}
+                    onChange={(e) => handleInputChange("clientName", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="Salon Beauty XYZ"
+                  />
+                </div>
 
-            <div className="grid md:grid-cols-2 gap-6">
-              <div>
-                <Label htmlFor="clientName">Nazwa klienta *</Label>
-                <Input
-                  id="clientName"
-                  value={formData.clientName}
-                  onChange={(e) => handleInputChange("clientName", e.target.value)}
-                  className="bg-black border-zinc-800"
-                  placeholder="Salon Beauty XYZ"
-                />
+                <div>
+                  <Label htmlFor="contractNumber">Numer umowy *</Label>
+                  <Input
+                    id="contractNumber"
+                    value={formData.contractNumber}
+                    onChange={(e) => handleInputChange("contractNumber", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="UM/2025/001"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="clientAddress">Adres klienta</Label>
+                  <Input
+                    id="clientAddress"
+                    value={formData.clientAddress}
+                    onChange={(e) => handleInputChange("clientAddress", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="ul. Przykładowa 123, 00-000 Warszawa"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="clientNIP">NIP klienta</Label>
+                  <Input
+                    id="clientNIP"
+                    value={formData.clientNIP}
+                    onChange={(e) => handleInputChange("clientNIP", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="1234567890"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="signDate">Data podpisania</Label>
+                  <Input
+                    id="signDate"
+                    type="date"
+                    value={formData.signDate}
+                    onChange={(e) => handleInputChange("signDate", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-6 bg-zinc-900/50 border-zinc-800">
+              <h2 className="text-lg font-bold mb-4 text-pink-500">Warunki umowy</h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="contractValue">Wartość umowy (PLN) *</Label>
+                  <Input
+                    id="contractValue"
+                    type="number"
+                    value={formData.contractValue}
+                    onChange={(e) => handleInputChange("contractValue", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="15000"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="contractDuration">Czas trwania</Label>
+                  <Input
+                    id="contractDuration"
+                    value={formData.contractDuration}
+                    onChange={(e) => handleInputChange("contractDuration", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="3 miesiące"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="paymentTerms">Warunki płatności</Label>
+                  <Input
+                    id="paymentTerms"
+                    value={formData.paymentTerms}
+                    onChange={(e) => handleInputChange("paymentTerms", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700"
+                    placeholder="7 dni od wystawienia faktury"
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="serviceScope">Zakres usług</Label>
+                  <Textarea
+                    id="serviceScope"
+                    value={formData.serviceScope}
+                    onChange={(e) => handleInputChange("serviceScope", e.target.value)}
+                    className="bg-zinc-950 border-zinc-700 min-h-[100px]"
+                    placeholder="Prowadzenie kampanii reklamowych Facebook Ads..."
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="contractNumber">Numer umowy *</Label>
-                <Input
-                  id="contractNumber"
-                  value={formData.contractNumber}
-                  onChange={(e) =>
-                    handleInputChange("contractNumber", e.target.value)
-                  }
-                  className="bg-black border-zinc-800"
-                  placeholder="UM/2025/001"
-                />
+              {/* Info */}
+              <div className="mt-6 p-4 bg-rose-500/10 border border-rose-500/30 rounded-lg">
+                <p className="text-sm text-rose-300">📄 Umowa zawiera standardowe klauzule prawne i zabezpieczenia</p>
               </div>
 
-              <div className="md:col-span-2">
-                <Label htmlFor="clientAddress">Adres klienta</Label>
-                <Input
-                  id="clientAddress"
-                  value={formData.clientAddress}
-                  onChange={(e) =>
-                    handleInputChange("clientAddress", e.target.value)
-                  }
-                  className="bg-black border-zinc-800"
-                  placeholder="ul. Przykładowa 123, 00-000 Warszawa"
-                />
+              {/* Generate Button */}
+              <div className="mt-6">
+                <Button
+                  onClick={handleGenerate}
+                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
+                >
+                  <Eye className="w-5 h-5 mr-2" />
+                  Generuj podgląd umowy
+                </Button>
               </div>
-
-              <div>
-                <Label htmlFor="clientNIP">NIP klienta</Label>
-                <Input
-                  id="clientNIP"
-                  value={formData.clientNIP}
-                  onChange={(e) => handleInputChange("clientNIP", e.target.value)}
-                  className="bg-black border-zinc-800"
-                  placeholder="1234567890"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="signDate">Data podpisania</Label>
-                <Input
-                  id="signDate"
-                  type="date"
-                  value={formData.signDate}
-                  onChange={(e) => handleInputChange("signDate", e.target.value)}
-                  className="bg-black border-zinc-800"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="contractValue">Wartość umowy (PLN) *</Label>
-                <Input
-                  id="contractValue"
-                  type="number"
-                  value={formData.contractValue}
-                  onChange={(e) =>
-                    handleInputChange("contractValue", e.target.value)
-                  }
-                  className="bg-black border-zinc-800"
-                  placeholder="15000"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="contractDuration">Czas trwania umowy</Label>
-                <Input
-                  id="contractDuration"
-                  value={formData.contractDuration}
-                  onChange={(e) =>
-                    handleInputChange("contractDuration", e.target.value)
-                  }
-                  className="bg-black border-zinc-800"
-                  placeholder="3 miesiące"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <Label htmlFor="serviceScope">Zakres usług</Label>
-                <Textarea
-                  id="serviceScope"
-                  value={formData.serviceScope}
-                  onChange={(e) =>
-                    handleInputChange("serviceScope", e.target.value)
-                  }
-                  className="bg-black border-zinc-800 min-h-[100px]"
-                  placeholder="Kampanie reklamowe Facebook Ads dla salonu beauty"
-                />
-              </div>
-
-              <div className="md:col-span-2">
-                <Label htmlFor="paymentTerms">Warunki płatności</Label>
-                <Input
-                  id="paymentTerms"
-                  value={formData.paymentTerms}
-                  onChange={(e) =>
-                    handleInputChange("paymentTerms", e.target.value)
-                  }
-                  className="bg-black border-zinc-800"
-                  placeholder="7 dni od wystawienia faktury"
-                />
-              </div>
-            </div>
-
-            {/* Info */}
-            <div className="mt-6 p-4 bg-rose-500/10 border border-rose-500/30 rounded-lg">
-              <p className="text-sm text-rose-300">
-                📄 Umowa będzie zawierała standardowe klauzule prawne i zabezpieczenia
-              </p>
-            </div>
-
-            {/* Generate Button */}
-            <div className="mt-8">
-              <Button
-                onClick={handleGenerate}
-                className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-lg py-6"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Wygeneruj umowę
-              </Button>
-            </div>
+            </Card>
           </div>
+
+          {/* Preview */}
+          {showPreview && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-white">Podgląd umowy</h2>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={downloadAsImage}
+                    disabled={isGenerating}
+                    variant="outline"
+                    size="sm"
+                    className="border-emerald-600 text-emerald-400 hover:bg-emerald-950"
+                  >
+                    <FileImage className="w-4 h-4 mr-2" />
+                    {isGenerating ? "..." : "PNG"}
+                  </Button>
+                  <Button
+                    onClick={generatePDF}
+                    disabled={isGenerating}
+                    size="sm"
+                    className="bg-pink-600 hover:bg-pink-700"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    {isGenerating ? "..." : "PDF"}
+                  </Button>
+                </div>
+              </div>
+              <div className="border-2 border-zinc-700 rounded-lg overflow-hidden bg-white">
+                <div className="transform scale-[0.6] origin-top-left w-[166%]">
+                  <ContractPreview data={formData} />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </main>
     </div>
