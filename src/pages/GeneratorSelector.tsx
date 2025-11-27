@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
-import { FileText, Receipt, FileSignature, Sparkles } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText, Receipt, FileSignature, Presentation, Sparkles } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 const GeneratorSelector = () => {
   const navigate = useNavigate();
@@ -9,139 +9,105 @@ const GeneratorSelector = () => {
     {
       id: "report",
       title: "Generator Raportów",
-      description: "Profesjonalne raporty Facebook Ads dla salonów beauty",
+      description: "Profesjonalne raporty kampanii Facebook Ads z wykresami i metrykami",
       icon: FileText,
       path: "/report-generator",
-      gradient: "from-pink-500/20 to-rose-500/20",
-      iconColor: "text-pink-500",
+      color: "from-pink-500 to-rose-600",
+      features: ["Wykresy KPI", "Rekomendacje AI", "PDF/PNG export"],
     },
     {
       id: "invoice",
       title: "Generator Faktur",
-      description: "Faktury: zaliczka, końcowa, pełna kwota (zwolnione z VAT)",
+      description: "Faktury zaliczkowe, końcowe i pełne zwolnione z VAT",
       icon: Receipt,
       path: "/invoice-generator",
-      gradient: "from-purple-500/20 to-pink-500/20",
-      iconColor: "text-purple-500",
+      color: "from-purple-500 to-violet-600",
+      features: ["3 typy faktur", "Auto-kalkulacja", "PDF export"],
     },
     {
       id: "contract",
-      title: "Generator Umowy",
-      description: "Profesjonalne umowy marketingowe dla klientów",
+      title: "Generator Umów",
+      description: "Umowy o świadczenie usług marketingowych",
       icon: FileSignature,
       path: "/contract-generator",
-      gradient: "from-rose-500/20 to-orange-500/20",
-      iconColor: "text-rose-500",
+      color: "from-blue-500 to-cyan-600",
+      features: ["Klauzule prawne", "RODO", "PDF export"],
+    },
+    {
+      id: "presentation",
+      title: "Generator Prezentacji",
+      description: "Spersonalizowane prezentacje do cold maili",
+      icon: Presentation,
+      path: "/presentation-generator",
+      color: "from-amber-500 to-orange-600",
+      features: ["7 slajdów", "Case study", "Animacje"],
     },
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      {/* Header */}
-      <header className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-rose-500 bg-clip-text text-transparent">
-              Aurine
-            </span>
+    <div className="min-h-screen bg-black">
+      {/* Hero */}
+      <header className="relative py-20 px-6 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-500/20 via-transparent to-transparent" />
+        
+        <div className="relative z-10 max-w-4xl mx-auto text-center">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-2xl shadow-pink-500/30">
+            <Sparkles className="w-10 h-10 text-white" />
           </div>
+          <h1 className="text-5xl font-bold text-white mb-4">
+            Aurine Document Generator
+          </h1>
+          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+            Profesjonalne narzędzia do generowania dokumentów dla agencji marketingowej specjalizującej się w salonach beauty
+          </p>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-6 py-16">
-        <div className="max-w-4xl mx-auto">
-          {/* Title Section */}
-          <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 bg-clip-text text-transparent">
-              Centrum Generatorów
-            </h1>
-            <p className="text-zinc-400 text-lg">
-              Wybierz narzędzie do generowania profesjonalnych dokumentów
-            </p>
-          </div>
-
-          {/* Generator Cards */}
-          <div className="grid md:grid-cols-3 gap-6">
-            {generators.map((generator, index) => {
-              const Icon = generator.icon;
-              return (
-                <div
-                  key={generator.id}
-                  className="group relative animate-fade-in"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 to-purple-500/10 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                  <div className={`relative bg-gradient-to-br ${generator.gradient} border border-zinc-800 rounded-2xl p-8 hover:border-pink-500/50 transition-all duration-300 hover:scale-105 cursor-pointer h-full flex flex-col`}
-                    onClick={() => navigate(generator.path)}
-                  >
-                    {/* Icon */}
-                    <div className="mb-6">
-                      <div className="w-16 h-16 rounded-xl bg-black/50 border border-zinc-800 flex items-center justify-center group-hover:border-pink-500/50 transition-colors">
-                        <Icon className={`w-8 h-8 ${generator.iconColor}`} />
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold mb-3 text-white">
-                        {generator.title}
-                      </h3>
-                      <p className="text-zinc-400 text-sm leading-relaxed">
-                        {generator.description}
-                      </p>
-                    </div>
-
-                    {/* Button */}
-                    <div className="mt-6">
-                      <Button
-                        className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-0"
-                        onClick={() => navigate(generator.path)}
-                      >
-                        Otwórz Generator
-                      </Button>
-                    </div>
-                  </div>
+      {/* Generators Grid */}
+      <main className="max-w-6xl mx-auto px-6 pb-20">
+        <div className="grid md:grid-cols-2 gap-6">
+          {generators.map((gen) => (
+            <Card
+              key={gen.id}
+              onClick={() => navigate(gen.path)}
+              className="group relative p-8 bg-zinc-900/50 border-zinc-800 cursor-pointer transition-all duration-300 hover:border-pink-500/50 hover:shadow-xl hover:shadow-pink-500/10 overflow-hidden"
+            >
+              {/* Gradient overlay on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${gen.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+              
+              <div className="relative z-10">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gen.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                  <gen.icon className="w-7 h-7 text-white" />
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Info Section */}
-          <div className="mt-16 text-center animate-fade-in" style={{ animationDelay: "300ms" }}>
-            <p className="text-zinc-500 text-sm">
-              Wszystkie generatory tworzone przez{" "}
-              <span className="text-pink-500 font-semibold">Aurine Agency</span>
-              <br />
-              Profesjonalne narzędzia dla salonów beauty
-            </p>
-          </div>
+                
+                <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-pink-400 transition-colors">
+                  {gen.title}
+                </h2>
+                <p className="text-zinc-400 mb-6">{gen.description}</p>
+                
+                <div className="flex flex-wrap gap-2">
+                  {gen.features.map((feature, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700"
+                    >
+                      {feature}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
+
+        {/* Footer */}
+        <footer className="mt-16 text-center">
+          <p className="text-zinc-600 text-sm">
+            Aurine Agency • Profesjonalny marketing dla salonów beauty
+          </p>
+          <p className="text-zinc-700 text-xs mt-2">aurine.pl</p>
+        </footer>
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-zinc-800 mt-20">
-        <div className="container mx-auto px-6 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-zinc-500">
-            <div>
-              <p>© 2025 Aurine Agency · Kampanie Facebook ads dla salonów beauty</p>
-            </div>
-            <div className="flex items-center gap-4">
-              <a href="https://aurine.pl" target="_blank" rel="noopener noreferrer" className="hover:text-pink-500 transition-colors">
-                aurine.pl
-              </a>
-              <span>·</span>
-              <a href="https://wa.me/48731856524" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-pink-500 transition-colors">
-                <span>+48 731 856 524</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
