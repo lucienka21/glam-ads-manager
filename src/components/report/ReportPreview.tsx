@@ -323,7 +323,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             <p className="text-[10px] text-emerald-300">Konkretne kolejne kroki</p>
           </div>
         </div>
-        <div className="space-y-2">
+      <div className="space-y-1.5">
           {data.recommendations ? (
             data.recommendations
               .split("\n")
@@ -331,56 +331,56 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
               .slice(0, 5)
               .map((rec, idx) => {
                 const shortRec =
-                  rec.length > 165 ? `${rec.slice(0, 162)}...` : rec;
+                  rec.length > 80 ? `${rec.slice(0, 77)}...` : rec;
                 return (
                   <div key={idx} className="flex gap-2">
-                    <div className="w-5 h-5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                      <span className="text-[9px] font-bold text-emerald-400">{idx + 1}</span>
+                    <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
                     </div>
-                    <p className="text-[11px] text-zinc-300 leading-relaxed">{shortRec}</p>
+                    <p className="text-[10px] text-zinc-300 leading-snug">{shortRec}</p>
                   </div>
                 );
               })
           ) : (
             <>
               <div className="flex gap-2">
-                <div className="w-5 h-5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[9px] font-bold text-emerald-400">1</span>
+                <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[8px] font-bold text-emerald-400">1</span>
                 </div>
-                <p className="text-[11px] text-zinc-300 leading-relaxed">
-                  Zwiększ budżet w godzinach popołudniowych (16-20), kiedy najwięcej klientek rezerwuje wizyty.
+                <p className="text-[10px] text-zinc-300 leading-snug">
+                  Zwiększ budżet w godzinach 16-20 (peak rezerwacji).
                 </p>
               </div>
               <div className="flex gap-2">
-                <div className="w-5 h-5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[9px] font-bold text-emerald-400">2</span>
+                <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[8px] font-bold text-emerald-400">2</span>
                 </div>
-                <p className="text-[11px] text-zinc-300 leading-relaxed">
-                  Dodaj kampanię remarketingową do osób, które kliknęły reklamę, ale nie dokończyły rezerwacji.
+                <p className="text-[10px] text-zinc-300 leading-snug">
+                  Dodaj remarketing dla osób bez dokończonej rezerwacji.
                 </p>
               </div>
               <div className="flex gap-2">
-                <div className="w-5 h-5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[9px] font-bold text-emerald-400">3</span>
+                <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[8px] font-bold text-emerald-400">3</span>
                 </div>
-                <p className="text-[11px] text-zinc-300 leading-relaxed">
-                  Pokaż w kreacjach efekt "przed i po" oraz opinie zadowolonych klientek, żeby zwiększyć zaufanie.
+                <p className="text-[10px] text-zinc-300 leading-snug">
+                  Pokaż efekt "przed i po" oraz opinie klientek.
                 </p>
               </div>
               <div className="flex gap-2">
-                <div className="w-5 h-5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[9px] font-bold text-emerald-400">4</span>
+                <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[8px] font-bold text-emerald-400">4</span>
                 </div>
-                <p className="text-[11px] text-zinc-300 leading-relaxed">
-                  Testuj różne formaty kreacji (karuzele, video) i śledź, które generują najwyższe zaangażowanie.
+                <p className="text-[10px] text-zinc-300 leading-snug">
+                  Testuj karuzele i video formaty kreacji.
                 </p>
               </div>
               <div className="flex gap-2">
-                <div className="w-5 h-5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[9px] font-bold text-emerald-400">5</span>
+                <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <span className="text-[8px] font-bold text-emerald-400">5</span>
                 </div>
-                <p className="text-[11px] text-zinc-300 leading-relaxed">
-                  Wprowadź promocje sezonowe i limitowane oferty, aby zwiększyć pilność i współczynnik konwersji.
+                <p className="text-[10px] text-zinc-300 leading-snug">
+                  Wprowadź limitowane promocje sezonowe.
                 </p>
               </div>
             </>
