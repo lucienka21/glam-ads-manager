@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
-import { FileText, Receipt, FileSignature, Presentation, Sparkles } from "lucide-react";
+import { FileText, Receipt, FileSignature, Presentation } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import agencyLogo from "@/assets/agency-logo.png";
 
 const GeneratorSelector = () => {
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const GeneratorSelector = () => {
       icon: Presentation,
       path: "/presentation-generator",
       color: "from-amber-500 to-orange-600",
-      features: ["7 slajdów", "Case study", "Animacje"],
+      features: ["6 slajdów", "Case study", "Animacje"],
     },
   ];
 
@@ -51,9 +52,11 @@ const GeneratorSelector = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-500/20 via-transparent to-transparent" />
         
         <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <div className="w-20 h-20 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-2xl shadow-pink-500/30">
-            <Sparkles className="w-10 h-10 text-white" />
-          </div>
+          <img 
+            src={agencyLogo} 
+            alt="Aurine Agency" 
+            className="w-24 h-24 mx-auto mb-6 object-contain"
+          />
           <h1 className="text-5xl font-bold text-white mb-4">
             Aurine Document Generator
           </h1>
@@ -102,8 +105,14 @@ const GeneratorSelector = () => {
 
         {/* Footer */}
         <footer className="mt-16 text-center">
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
+            <p className="text-zinc-500 text-sm font-medium">
+              Aurine Agency
+            </p>
+          </div>
           <p className="text-zinc-600 text-sm">
-            Aurine Agency • Profesjonalny marketing dla salonów beauty
+            Profesjonalny marketing dla salonów beauty
           </p>
           <p className="text-zinc-700 text-xs mt-2">aurine.pl</p>
         </footer>
