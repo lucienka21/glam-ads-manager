@@ -70,7 +70,7 @@ const PresentationGenerator = () => {
         const imgData = await toPng(element, {
           cacheBust: true,
           pixelRatio: 2,
-          backgroundColor: "#fff9f9",
+          backgroundColor: "#000000",
         });
 
         if (i > 0) {
