@@ -1,22 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, ChevronLeft, ChevronRight, Play, Pause } from "lucide-react";
+import { ArrowLeft, Download, ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { PresentationPreview, getTotalSlides } from "@/components/presentation/PresentationPreview";
+import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
+
+const TOTAL_SLIDES = 6;
 
 const PresentationGenerator = () => {
   const navigate = useNavigate();
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const totalSlides = getTotalSlides();
+  const [currentSlide, setCurrentSlide] = useState(1);
 
   const [formData, setFormData] = useState({
     ownerName: "",
@@ -35,17 +35,28 @@ const PresentationGenerator = () => {
     }
 
     setShowPreview(true);
-    setCurrentSlide(0);
+    setCurrentSlide(1);
     toast.success("Prezentacja gotowa!");
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    setCurrentSlide((prev) => (prev % TOTAL_SLIDES) + 1);
   };
 
   const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+    setCurrentSlide((prev) => ((prev - 2 + TOTAL_SLIDES) % TOTAL_SLIDES) + 1);
   };
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showPreview) return;
+      if (e.key === "ArrowRight") nextSlide();
+      if (e.key === "ArrowLeft") prevSlide();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [showPreview]);
 
   const generatePDF = async () => {
     setIsGenerating(true);
@@ -58,11 +69,11 @@ const PresentationGenerator = () => {
         compress: true,
       });
 
-      for (let i = 0; i < totalSlides; i++) {
+      for (let i = 1; i <= TOTAL_SLIDES; i++) {
         setCurrentSlide(i);
         
         // Wait for slide to render
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 600));
         
         const element = document.getElementById("presentation-preview");
         if (!element) continue;
@@ -73,7 +84,7 @@ const PresentationGenerator = () => {
           backgroundColor: "#000000",
         });
 
-        if (i > 0) {
+        if (i > 1) {
           pdf.addPage([1600, 900], "landscape");
         }
 
@@ -97,11 +108,9 @@ const PresentationGenerator = () => {
 
   const slideNames = [
     "Wprowadzenie",
-    "Wyzwania salonów",
-    "Marketing w social media",
+    "Błędy salonów w reklamie",
+    "Dlaczego reklamy działają",
     "Proces współpracy",
-    "Co otrzymujesz",
-    "Przykładowe wyniki",
     "Opinie klientek",
     "Kontakt"
   ];
@@ -152,7 +161,7 @@ const PresentationGenerator = () => {
                   <Play className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Stwórz spersonalizowaną prezentację</h2>
-                <p className="text-zinc-400">Prezentacja będzie zawierać 8 profesjonalnych slajdów</p>
+                <p className="text-zinc-400">Prezentacja będzie zawierać 6 profesjonalnych slajdów</p>
               </div>
 
               <div className="space-y-4">
@@ -185,7 +194,7 @@ const PresentationGenerator = () => {
                     value={formData.city}
                     onChange={(e) => handleInputChange("city", e.target.value)}
                     className="bg-zinc-950 border-zinc-700"
-                    placeholder="np. Warszawa"
+                    placeholder="np. Nowy Sącz"
                   />
                 </div>
               </div>
@@ -196,11 +205,11 @@ const PresentationGenerator = () => {
                 <ul className="space-y-2 text-sm text-zinc-400">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Wyzwania salonów beauty
+                    Najczęstsze błędy salonów w reklamie
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Dlaczego marketing w social media działa
+                    Dlaczego płatna reklama działa
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
@@ -208,11 +217,7 @@ const PresentationGenerator = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Kompleksowa obsługa kampanii
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Przykładowe wyniki i opinie
+                    Opinie właścicielek salonów
                   </li>
                 </ul>
               </div>
@@ -243,8 +248,8 @@ const PresentationGenerator = () => {
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 <div className="text-center min-w-[200px]">
-                  <p className="text-sm text-zinc-400">Slajd {currentSlide + 1} z {totalSlides}</p>
-                  <p className="text-white font-medium">{slideNames[currentSlide]}</p>
+                  <p className="text-sm text-zinc-400">Slajd {currentSlide} z {TOTAL_SLIDES}</p>
+                  <p className="text-white font-medium">{slideNames[currentSlide - 1]}</p>
                 </div>
                 <Button
                   onClick={nextSlide}
@@ -261,9 +266,9 @@ const PresentationGenerator = () => {
                 {slideNames.map((_, idx) => (
                   <button
                     key={idx}
-                    onClick={() => setCurrentSlide(idx)}
+                    onClick={() => setCurrentSlide(idx + 1)}
                     className={`w-3 h-3 rounded-full transition-all ${
-                      currentSlide === idx 
+                      currentSlide === idx + 1
                         ? "bg-pink-500 scale-125" 
                         : "bg-zinc-700 hover:bg-zinc-600"
                     }`}
