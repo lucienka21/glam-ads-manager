@@ -19,28 +19,84 @@ serve(async (req) => {
     const { campaignData } = await req.json();
     console.log('Generating recommendations for:', campaignData);
 
-    const prompt = `Jesteś ekspertem od kampanii Facebook Ads dla salonów beauty. Na podstawie poniższych danych kampanii wygeneruj dokładnie 5 krótkich, konkretnych rekomendacji.
+    // Parse numeric values for analysis
+    const budget = parseFloat(campaignData.budget?.replace(/[^0-9.]/g, '') || '0');
+    const impressions = parseFloat(campaignData.impressions?.replace(/[^0-9.]/g, '') || '0');
+    const reach = parseFloat(campaignData.reach?.replace(/[^0-9.]/g, '') || '0');
+    const clicks = parseFloat(campaignData.clicks?.replace(/[^0-9.]/g, '') || '0');
+    const ctr = parseFloat(campaignData.ctr?.replace(/[^0-9.]/g, '') || '0');
+    const conversions = parseFloat(campaignData.conversions?.replace(/[^0-9.]/g, '') || '0');
+    const costPerConversion = parseFloat(campaignData.costPerConversion?.replace(/[^0-9.]/g, '') || '0');
+    const bookings = parseFloat(campaignData.bookings?.replace(/[^0-9.]/g, '') || '0');
 
-DANE KAMPANII:
-- Salon: ${campaignData.clientName || 'Salon beauty'}
-- Miasto: ${campaignData.city || 'Nieznane'}
-- Okres: ${campaignData.period || 'Nieznany'}
-- Budżet: ${campaignData.budget || '0'} PLN
-- Wyświetlenia: ${campaignData.impressions || '0'}
-- Zasięg: ${campaignData.reach || '0'}
-- Kliknięcia: ${campaignData.clicks || '0'}
-- CTR: ${campaignData.ctr || '0'}%
-- Konwersje: ${campaignData.conversions || '0'}
-- Koszt/konwersja: ${campaignData.costPerConversion || '0'} PLN
-- Rezerwacje: ${campaignData.bookings || '0'}
+    // Calculate derived metrics
+    const cpc = clicks > 0 ? budget / clicks : 0;
+    const conversionRate = clicks > 0 ? (conversions / clicks) * 100 : 0;
+    const bookingRate = conversions > 0 ? (bookings / conversions) * 100 : 0;
+    const frequency = reach > 0 ? impressions / reach : 0;
 
-ZASADY:
-1. Każda rekomendacja MUSI zaczynać się od czasownika w trybie rozkazującym: "Zwiększ", "Dodaj", "Przetestuj", "Uruchom", "Zmień", "Ogranicz", "Stwórz", "Włącz"
-2. Każda rekomendacja musi być maksymalnie 80 znaków
-3. Pisz prostym językiem, konkretnie i bez ogólników
-4. Rekomendacje muszą odnosić się do danych - jeśli CTR jest niski, sugeruj poprawę kreacji, jeśli koszt/konwersja wysoki - sugeruj optymalizację
+    // Build analysis context
+    let analysisContext = `
+ANALIZA DANYCH KAMPANII:
+- Budżet: ${budget} PLN
+- Wyświetlenia: ${impressions}
+- Zasięg: ${reach}
+- Kliknięcia: ${clicks}
+- CTR: ${ctr}%
+- Konwersje: ${conversions}
+- Koszt/konwersja: ${costPerConversion} PLN
+- Rezerwacje: ${bookings}
 
-Odpowiedz TYLKO listą 5 rekomendacji, każda w nowej linii, bez numeracji i punktorów.`;
+OBLICZONE METRYKI:
+- CPC (koszt kliknięcia): ${cpc.toFixed(2)} PLN
+- Współczynnik konwersji: ${conversionRate.toFixed(1)}%
+- % rezerwacji z konwersji: ${bookingRate.toFixed(1)}%
+- Częstotliwość wyświetlania: ${frequency.toFixed(1)}x
+
+BENCHMARKI DLA BEAUTY:
+- Średni CTR branży: 1.5-3%
+- Dobry CPC: 0.30-1.00 PLN
+- Dobry koszt/konwersja: 15-40 PLN
+- Optymalna częstotliwość: 2-4x
+`;
+
+    // Identify specific issues
+    let issues = [];
+    if (ctr < 1.5) issues.push("NISKI CTR - kreacje nie przyciągają uwagi");
+    if (ctr > 5) issues.push("BARDZO WYSOKI CTR - sprawdź jakość ruchu");
+    if (cpc > 1.5) issues.push("WYSOKI CPC - optymalizuj targetowanie");
+    if (costPerConversion > 50) issues.push("WYSOKI KOSZT KONWERSJI - landing page wymaga poprawy");
+    if (bookingRate < 50) issues.push("NISKA KONWERSJA NA REZERWACJE - uprość proces rezerwacji");
+    if (frequency > 5) issues.push("WYSOKA CZĘSTOTLIWOŚĆ - zmień lub rozszerz grupę docelową");
+    if (frequency < 1.5) issues.push("NISKA CZĘSTOTLIWOŚĆ - zwiększ budżet dla lepszego dotarcia");
+
+    const prompt = `Jesteś ekspertem od kampanii Facebook Ads dla salonów beauty w Polsce. Przeanalizuj dane kampanii i wygeneruj 5 KONKRETNYCH, SPERSONALIZOWANYCH rekomendacji.
+
+${analysisContext}
+
+ZIDENTYFIKOWANE PROBLEMY:
+${issues.length > 0 ? issues.map(i => `- ${i}`).join('\n') : '- Brak krytycznych problemów'}
+
+SALON: ${campaignData.clientName || 'Salon beauty'}
+MIASTO: ${campaignData.city || 'Polska'}
+CEL KAMPANII: ${campaignData.campaignObjective || 'Rezerwacje wizyt'}
+STATUS: ${campaignData.campaignStatus || 'Aktywna'}
+
+ZASADY PISANIA REKOMENDACJI:
+1. KAŻDA rekomendacja MUSI zaczynać się od CZASOWNIKA: "Zwiększ", "Dodaj", "Przetestuj", "Uruchom", "Zmień", "Stwórz", "Włącz", "Ogranicz", "Skonfiguruj"
+2. Każda rekomendacja: 50-75 znaków (max 75!)
+3. Rekomendacje MUSZĄ być oparte na analizie danych - odnosić się do konkretnych problemów
+4. Pisz konkretnie: zamiast "popraw reklamy" napisz "Dodaj zdjęcia przed/po do karuzeli"
+5. Używaj języka branży beauty: zabiegi, stylizacje, pielęgnacja, rezerwacje
+
+PRZYKŁADY DOBRYCH REKOMENDACJI:
+- "Zwiększ budżet w piątki o 30% (peak rezerwacji)"
+- "Dodaj retargeting 3-dniowy dla porzuconych rezerwacji"
+- "Stwórz karuzelę z efektami przed/po zabiegów"
+- "Przetestuj grupy 25-35 lat zamiast 18-45"
+- "Włącz lokalizację 10km od salonu zamiast całego miasta"
+
+Odpowiedz TYLKO 5 rekomendacjami, każda w nowej linii. BEZ numeracji, punktorów, gwiazdek.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -77,7 +133,15 @@ Odpowiedz TYLKO listą 5 rekomendacji, każda w nowej linii, bez numeracji i pun
     }
 
     const data = await response.json();
-    const recommendations = data.choices?.[0]?.message?.content || '';
+    let recommendations = data.choices?.[0]?.message?.content || '';
+    
+    // Clean up the response - remove any asterisks, bullet points, numbers
+    recommendations = recommendations
+      .split('\n')
+      .map((line: string) => line.replace(/^[\d\.\-\*\•]+\s*/, '').trim())
+      .filter((line: string) => line.length > 0)
+      .slice(0, 5)
+      .join('\n');
     
     console.log('Generated recommendations:', recommendations);
 
