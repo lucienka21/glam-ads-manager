@@ -70,7 +70,7 @@ const PresentationGenerator = () => {
         const imgData = await toPng(element, {
           cacheBust: true,
           pixelRatio: 2,
-          backgroundColor: "#050509",
+          backgroundColor: "#fff9f9",
         });
 
         if (i > 0) {
@@ -96,11 +96,12 @@ const PresentationGenerator = () => {
   };
 
   const slideNames = [
-    "Strona tytułowa",
-    "Najczęstsze błędy",
-    "Dlaczego Facebook Ads?",
-    "Co zapewniamy",
-    "Case Study",
+    "Wprowadzenie",
+    "Wyzwania salonów",
+    "Marketing w social media",
+    "Proces współpracy",
+    "Co otrzymujesz",
+    "Przykładowe wyniki",
     "Opinie klientek",
     "Kontakt"
   ];
@@ -151,7 +152,7 @@ const PresentationGenerator = () => {
                   <Play className="w-8 h-8 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-white mb-2">Stwórz spersonalizowaną prezentację</h2>
-                <p className="text-zinc-400">Prezentacja będzie zawierać 7 profesjonalnych slajdów</p>
+                <p className="text-zinc-400">Prezentacja będzie zawierać 8 profesjonalnych slajdów</p>
               </div>
 
               <div className="space-y-4">
@@ -195,23 +196,23 @@ const PresentationGenerator = () => {
                 <ul className="space-y-2 text-sm text-zinc-400">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Dlaczego Facebook Ads dla beauty?
+                    Wyzwania salonów beauty
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Najczęstsze błędy salonów
+                    Dlaczego marketing w social media działa
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Co zapewniamy
+                    Proces współpracy krok po kroku
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Case study z wynikami
+                    Kompleksowa obsługa kampanii
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Opinie klientek
+                    Przykładowe wyniki i opinie
                   </li>
                 </ul>
               </div>
