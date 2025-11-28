@@ -7,7 +7,7 @@ import {
   XCircle, Eye, DollarSign, Megaphone,
   Scissors, Palette, UserCheck, Send, Play,
   Gift, Shield, Rocket, ThumbsUp, Coffee,
-  MapPin, Sparkle, CheckCircle, AlertCircle
+  MapPin, Sparkle, CheckCircle, AlertCircle, Quote
 } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
 
@@ -25,387 +25,412 @@ interface PresentationPreviewProps {
 export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewProps) => {
   const totalSlides = 6;
 
-  // Slide 1: Welcome - warm, personal introduction
-  const Slide1 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0">
-        {/* Main gradient glow */}
-        <div className="absolute top-1/4 right-1/4 w-[900px] h-[900px] bg-gradient-to-br from-pink-500/25 via-fuchsia-500/15 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-gradient-to-tr from-rose-500/20 via-pink-500/10 to-transparent rounded-full blur-3xl" />
-        
-        {/* Floating beauty icons - decorative */}
-        <div className="absolute top-20 right-32 w-16 h-16 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center animate-pulse">
-          <Flower2 className="w-8 h-8 text-pink-400/60" />
+  // Common header component
+  const Header = ({ subtitle }: { subtitle: string }) => (
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-3">
+        <img src={agencyLogo} alt="Aurine" className="w-12 h-12 object-contain" />
+        <div>
+          <p className="text-pink-400 font-semibold text-sm">AURINE AGENCY</p>
+          <p className="text-zinc-500 text-xs">{subtitle}</p>
         </div>
-        <div className="absolute top-40 right-56 w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
-          <Sparkle className="w-6 h-6 text-fuchsia-400/60" />
-        </div>
-        <div className="absolute bottom-32 right-40 w-14 h-14 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-          <Heart className="w-7 h-7 text-rose-400/60" />
-        </div>
-        <div className="absolute top-32 left-[55%] w-10 h-10 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-          <Scissors className="w-5 h-5 text-pink-400/50" />
-        </div>
-        <div className="absolute bottom-48 left-[60%] w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
-          <Palette className="w-6 h-6 text-fuchsia-400/50" />
-        </div>
-        
-        {/* Grid pattern */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
       </div>
-
-      <div className="relative z-10 h-full flex flex-col px-20 py-14">
-        {/* Header with logo */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <img src={agencyLogo} alt="Aurine" className="w-14 h-14 object-contain" />
-            <div>
-              <p className="text-pink-400 font-bold text-lg tracking-wide">AURINE AGENCY</p>
-              <p className="text-zinc-500 text-sm">Marketing dla branży beauty</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-blue-600/15 rounded-xl border border-blue-500/30 flex items-center gap-2">
-              <Facebook className="w-5 h-5 text-blue-400" />
-              <span className="text-blue-300 text-sm font-medium">Facebook Ads</span>
-            </div>
-            <div className="px-4 py-2 bg-gradient-to-r from-pink-600/15 to-fuchsia-600/15 rounded-xl border border-pink-500/30 flex items-center gap-2">
-              <Instagram className="w-5 h-5 text-pink-400" />
-              <span className="text-pink-300 text-sm font-medium">Instagram Ads</span>
-            </div>
-          </div>
+      <div className="flex items-center gap-2">
+        <div className="w-8 h-8 rounded-lg bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+          <Flower2 className="w-4 h-4 text-pink-400/60" />
         </div>
-
-        {/* Main content */}
-        <div className="flex-1 flex items-center">
-          <div className="w-full max-w-3xl">
-            {/* Warm greeting */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500/15 rounded-full border border-pink-500/30 mb-8">
-              <Coffee className="w-4 h-4 text-pink-400" />
-              <span className="text-pink-300 text-sm font-medium">Cześć {data.ownerName || "Droga Właścicielko"}!</span>
-            </div>
-
-            {/* Main headline - warm tone */}
-            <h1 className="text-6xl font-black text-white leading-[1.15] mb-8">
-              Wiemy, że prowadzenie salonu<br />
-              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
-                to nie lada wyzwanie
-              </span>
-            </h1>
-
-            <p className="text-xl text-zinc-300 leading-relaxed mb-10 max-w-2xl">
-              Codziennie dbasz o to, żeby Twoje klientki wychodziły zadowolone. 
-              Zabiegi, grafik, zamówienia, prowadzenie social mediów... 
-              <span className="text-pink-300 font-medium"> A skąd brać nowe klientki?</span>
-            </p>
-
-            {/* Personal info card */}
-            <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 backdrop-blur rounded-2xl p-8 border border-pink-500/20 shadow-2xl shadow-pink-500/10 max-w-lg">
-              <p className="text-zinc-400 text-sm mb-2 flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-pink-400" />
-                Ta prezentacja jest dla Ciebie
-              </p>
-              <p className="text-4xl font-bold text-white mb-2">{data.ownerName || "Właścicielka"}</p>
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-px flex-1 bg-gradient-to-r from-pink-500/50 to-transparent" />
-              </div>
-              <p className="text-pink-400 font-semibold text-xl mb-1">{data.salonName || "Twój Salon"}</p>
-              <p className="text-zinc-400 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-pink-400/70" />
-                {data.city || "Twoje miasto"}
-              </p>
-            </div>
-          </div>
+        <div className="w-8 h-8 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+          <Heart className="w-4 h-4 text-fuchsia-400/60" />
         </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-6 border-t border-zinc-800/50">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <span className="text-zinc-500 text-sm">aurine.pl</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 0 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2.5 bg-zinc-700'}`} />
-            ))}
-          </div>
-          <span className="text-zinc-500 text-sm">Marketing dla branży beauty</span>
+        <div className="w-8 h-8 rounded-lg bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+          <Sparkle className="w-4 h-4 text-rose-400/60" />
         </div>
       </div>
     </div>
   );
 
-  // Slide 2: Understanding the challenge - empathetic tone
+  // Common footer component
+  const Footer = ({ activeSlide }: { activeSlide: number }) => (
+    <div className="flex items-center justify-between mt-auto pt-4">
+      <div className="flex items-center gap-2">
+        <img src={agencyLogo} alt="Aurine" className="w-6 h-6 object-contain opacity-60" />
+        <span className="text-zinc-600 text-xs">aurine.pl</span>
+      </div>
+      <div className="flex items-center gap-1.5">
+        {[...Array(totalSlides)].map((_, i) => (
+          <div key={i} className={`h-2 rounded-full transition-all ${i === activeSlide ? 'w-8 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2 bg-zinc-700/50'}`} />
+        ))}
+      </div>
+      <span className="text-zinc-600 text-xs">Marketing dla branży beauty</span>
+    </div>
+  );
+
+  // Beauty decoration elements
+  const BeautyDecorations = () => (
+    <>
+      {/* Floating beauty icons */}
+      <div className="absolute top-16 right-20 w-20 h-20 rounded-3xl bg-gradient-to-br from-pink-500/15 to-rose-500/10 border border-pink-500/20 flex items-center justify-center backdrop-blur-sm">
+        <div className="relative">
+          <Flower2 className="w-10 h-10 text-pink-400/70" />
+          <Sparkle className="w-4 h-4 text-pink-300 absolute -top-1 -right-1" />
+        </div>
+      </div>
+      <div className="absolute top-40 right-48 w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Heart className="w-7 h-7 text-fuchsia-400/70" />
+      </div>
+      <div className="absolute bottom-32 right-24 w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/10 border border-rose-500/20 flex items-center justify-center">
+        <Scissors className="w-8 h-8 text-rose-400/70" />
+      </div>
+      <div className="absolute bottom-48 right-56 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 border border-amber-500/20 flex items-center justify-center">
+        <Palette className="w-6 h-6 text-amber-400/70" />
+      </div>
+      <div className="absolute top-28 right-72 w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/10 to-fuchsia-500/10 border border-pink-500/15 flex items-center justify-center">
+        <Sparkles className="w-5 h-5 text-pink-400/50" />
+      </div>
+    </>
+  );
+
+  // Slide 1: Welcome - warm, personal introduction with lots of graphics
+  const Slide1 = () => (
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+      {/* Rich background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-pink-500/20 via-fuchsia-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-rose-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+
+      {/* Decorative beauty elements on the right side */}
+      <BeautyDecorations />
+
+      {/* Large decorative salon image placeholder */}
+      <div className="absolute top-24 right-16 w-[420px] h-[320px] rounded-3xl bg-gradient-to-br from-pink-900/40 via-zinc-900/60 to-fuchsia-900/30 border border-pink-500/20 overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(236,72,153,0.3),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(217,70,239,0.2),transparent_50%)]" />
+        
+        {/* Beauty salon elements inside */}
+        <div className="absolute top-8 left-8 w-24 h-24 rounded-2xl bg-gradient-to-br from-pink-500/25 to-rose-500/15 border border-pink-500/30 flex items-center justify-center">
+          <Flower2 className="w-12 h-12 text-pink-400" />
+        </div>
+        <div className="absolute top-12 right-12 w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500/25 to-purple-500/15 border border-fuchsia-500/30 flex items-center justify-center">
+          <Scissors className="w-8 h-8 text-fuchsia-400" />
+        </div>
+        <div className="absolute bottom-16 left-12 w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500/25 to-pink-500/15 border border-rose-500/30 flex items-center justify-center">
+          <Palette className="w-10 h-10 text-rose-400" />
+        </div>
+        <div className="absolute bottom-8 right-8 w-28 h-28 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30 flex items-center justify-center">
+          <div className="text-center">
+            <Heart className="w-10 h-10 text-amber-400 mx-auto mb-1" />
+            <span className="text-amber-300/80 text-xs font-medium">Beauty</span>
+          </div>
+        </div>
+        
+        {/* Floating sparkles */}
+        <Sparkle className="absolute top-1/2 left-1/2 w-6 h-6 text-pink-400/50" />
+        <Star className="absolute top-1/3 right-1/3 w-5 h-5 text-amber-400/40" />
+      </div>
+
+      {/* Social media badges floating */}
+      <div className="absolute top-[360px] right-24 flex gap-3">
+        <div className="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-blue-500/10 rounded-xl border border-blue-500/30 flex items-center gap-2 backdrop-blur-sm">
+          <Facebook className="w-5 h-5 text-blue-400" />
+          <span className="text-blue-300 text-sm font-medium">Facebook Ads</span>
+        </div>
+        <div className="px-4 py-2 bg-gradient-to-r from-pink-600/20 to-fuchsia-500/10 rounded-xl border border-pink-500/30 flex items-center gap-2 backdrop-blur-sm">
+          <Instagram className="w-5 h-5 text-pink-400" />
+          <span className="text-pink-300 text-sm font-medium">Instagram Ads</span>
+        </div>
+      </div>
+
+      <div className="relative z-10 h-full flex flex-col px-16 py-10">
+        <Header subtitle="Prezentacja dla Twojego salonu" />
+
+        {/* Main content */}
+        <div className="flex-1 flex flex-col justify-center max-w-[55%]">
+          {/* Warm greeting */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500/15 to-fuchsia-500/10 rounded-full border border-pink-500/25 mb-6 w-fit">
+            <Coffee className="w-4 h-4 text-pink-400" />
+            <span className="text-pink-300 text-sm font-medium">Cześć {data.ownerName || "Droga Właścicielko"}!</span>
+            <Heart className="w-4 h-4 text-pink-400" />
+          </div>
+
+          {/* Main headline - warm tone */}
+          <h1 className="text-5xl font-black text-white leading-[1.2] mb-6">
+            Wiemy, że prowadzenie<br />
+            <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
+              salonu to prawdziwe wyzwanie
+            </span>
+          </h1>
+
+          <p className="text-lg text-zinc-300 leading-relaxed mb-8 max-w-xl">
+            Codziennie dbasz o to, żeby Twoje klientki wychodziły szczęśliwe. 
+            Zabiegi, grafik, zamówienia, media społecznościowe... 
+            <span className="text-pink-300 font-medium"> A co z pozyskiwaniem nowych klientek?</span>
+          </p>
+
+          {/* Personal info card */}
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 backdrop-blur rounded-2xl p-6 border border-pink-500/25 shadow-2xl shadow-pink-500/10 max-w-md">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-pink-400" />
+              </div>
+              <div>
+                <p className="text-zinc-400 text-xs">Ta prezentacja jest dla</p>
+                <p className="text-2xl font-bold text-white">{data.ownerName || "Ciebie"}</p>
+              </div>
+            </div>
+            <div className="h-px bg-gradient-to-r from-pink-500/40 via-fuchsia-500/30 to-transparent mb-3" />
+            <div className="flex items-center gap-4">
+              <div>
+                <p className="text-pink-400 font-semibold text-lg">{data.salonName || "Twój Salon"}</p>
+                <p className="text-zinc-400 text-sm flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-pink-400/70" />
+                  {data.city || "Twoje miasto"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Footer activeSlide={0} />
+      </div>
+    </div>
+  );
+
+  // Slide 2: Understanding challenges - empathetic, with graphics
   const Slide2 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/15 via-transparent to-rose-500/10 rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/15 via-transparent to-rose-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col px-20 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-12 h-12 object-contain" />
-            <div>
-              <p className="text-pink-400 font-semibold">Aurine Agency</p>
-              <p className="text-zinc-500 text-xs">Rozumiemy Twoje wyzwania</p>
+      {/* Right side visual - social media frustration illustration */}
+      <div className="absolute top-20 right-12 w-[380px]">
+        {/* Phone mockup showing low reach */}
+        <div className="relative">
+          <div className="w-52 h-80 bg-zinc-900 rounded-[32px] p-1.5 shadow-2xl shadow-pink-500/10 border border-zinc-700 mx-auto">
+            <div className="w-full h-full bg-black rounded-[26px] overflow-hidden relative">
+              <div className="bg-zinc-900 px-3 py-2 flex items-center justify-between border-b border-zinc-800">
+                <Instagram className="w-4 h-4 text-zinc-400" />
+                <span className="text-xs text-zinc-400">Statystyki posta</span>
+              </div>
+              <div className="p-4 space-y-3">
+                <div className="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800">
+                  <p className="text-zinc-500 text-xs mb-1">Zasięg organiczny</p>
+                  <p className="text-2xl font-bold text-zinc-400">47</p>
+                  <p className="text-xs text-zinc-600">z 1,200 obserwujących</p>
+                </div>
+                <div className="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800">
+                  <p className="text-zinc-500 text-xs mb-1">Reakcje</p>
+                  <p className="text-xl font-bold text-zinc-400">12</p>
+                </div>
+                <div className="bg-red-500/10 rounded-xl p-3 border border-red-500/20">
+                  <p className="text-red-400 text-xs flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Tylko 4% osób zobaczyło
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Flower2 className="w-5 h-5 text-pink-400/50" />
-            <Sparkle className="w-4 h-4 text-fuchsia-400/50" />
-            <Heart className="w-5 h-5 text-rose-400/50" />
+          
+          {/* Floating sad stats */}
+          <div className="absolute -left-16 top-8 bg-zinc-900/95 backdrop-blur rounded-xl p-3 border border-zinc-700">
+            <p className="text-xs text-zinc-500 mb-1">Zasięgi spadły o</p>
+            <p className="text-xl font-bold text-rose-400">-80%</p>
+          </div>
+          <div className="absolute -right-8 bottom-20 bg-zinc-900/95 backdrop-blur rounded-xl p-3 border border-zinc-700">
+            <Eye className="w-5 h-5 text-zinc-500 mb-1" />
+            <p className="text-xs text-zinc-400">5-10%</p>
+            <p className="text-[10px] text-zinc-600">widzi post</p>
           </div>
         </div>
+      </div>
 
-        {/* Title - empathetic */}
-        <div className="mb-8">
-          <h2 className="text-5xl font-black text-white mb-4">
+      <div className="relative z-10 h-full flex flex-col px-16 py-10">
+        <Header subtitle="Rozumiemy Twoje wyzwania" />
+
+        {/* Title */}
+        <div className="mb-6">
+          <h2 className="text-4xl font-black text-white mb-3">
             Czy to brzmi <span className="text-pink-400">znajomo</span>?
           </h2>
-          <p className="text-xl text-zinc-300">
-            Wiele salonów w mniejszych miastach zmaga się z tymi samymi problemami...
+          <p className="text-lg text-zinc-300">
+            Wiele właścicielek salonów w mniejszych miastach zmaga się z tymi samymi problemami...
           </p>
         </div>
 
-        {/* Problems grid - 2 columns, more visual */}
-        <div className="flex-1 grid grid-cols-2 gap-6">
-          {/* Left column */}
-          <div className="space-y-5">
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-6 border border-pink-500/20 h-[calc(50%-10px)]">
-              <div className="flex items-start gap-4 h-full">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 flex items-center justify-center border border-pink-500/40 flex-shrink-0">
-                  <Instagram className="w-7 h-7 text-pink-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white mb-2">Post ≠ Reklama</h3>
-                  <p className="text-zinc-300 leading-relaxed">
-                    Wrzucasz piękne zdjęcia zabiegów, ale algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących. 
-                    Reszta nawet nie wie, że coś publikujesz.
-                  </p>
-                  <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
-                    <Eye className="w-4 h-4" />
-                    <span>Organiczne zasięgi spadły o 80% w ostatnich latach</span>
-                  </div>
-                </div>
+        {/* Problems - left side, more human */}
+        <div className="flex-1 max-w-[55%] grid grid-cols-1 gap-4">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-pink-500/25">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
+                <Instagram className="w-6 h-6 text-pink-400" />
               </div>
-            </div>
-
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-6 border border-zinc-700/50 h-[calc(50%-10px)]">
-              <div className="flex items-start gap-4 h-full">
-                <div className="w-14 h-14 rounded-2xl bg-zinc-800/80 flex items-center justify-center border border-zinc-700 flex-shrink-0">
-                  <DollarSign className="w-7 h-7 text-zinc-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white mb-2">"Próbowałam, nie działa"</h3>
-                  <p className="text-zinc-300 leading-relaxed">
-                    Kliknęłaś "Promuj post", wydałaś 50-100 zł i... nic. 
-                    Bez strategii i odpowiednich ustawień to często przepalone pieniądze.
-                  </p>
-                  <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
-                    <AlertCircle className="w-4 h-4" />
-                    <span>Przycisk "Promuj" to nie jest prawdziwa reklama</span>
-                  </div>
-                </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1.5">Post to nie reklama</h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Wrzucasz piękne zdjęcia zabiegów, ale algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących. 
+                  Cała reszta nawet nie wie, że coś publikujesz.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Right column */}
-          <div className="space-y-5">
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-6 border border-zinc-700/50 h-[calc(50%-10px)]">
-              <div className="flex items-start gap-4 h-full">
-                <div className="w-14 h-14 rounded-2xl bg-zinc-800/80 flex items-center justify-center border border-zinc-700 flex-shrink-0">
-                  <Target className="w-7 h-7 text-zinc-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white mb-2">Brak precyzji w reklamie</h3>
-                  <p className="text-zinc-300 leading-relaxed">
-                    Twoja reklama trafia do przypadkowych osób zamiast do kobiet w wieku 25-45 lat, 
-                    zainteresowanych urodą, mieszkających w promieniu 15 km od Twojego salonu.
-                  </p>
-                  <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
-                    <MapPin className="w-4 h-4" />
-                    <span>Targetowanie to klucz do skutecznej reklamy</span>
-                  </div>
-                </div>
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-6 h-6 text-zinc-400 rotate-180" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1.5">Organiczne zasięgi to przeszłość</h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Kiedyś wystarczyło regularnie postować. Dziś zasięgi organiczne <span className="text-rose-400 font-semibold">spadły o 80%</span> — 
+                  bez płatnej promocji trudno dotrzeć do nowych osób.
+                </p>
               </div>
             </div>
+          </div>
 
-            <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-6 border border-zinc-700/50 h-[calc(50%-10px)]">
-              <div className="flex items-start gap-4 h-full">
-                <div className="w-14 h-14 rounded-2xl bg-zinc-800/80 flex items-center justify-center border border-zinc-700 flex-shrink-0">
-                  <Clock className="w-7 h-7 text-zinc-400" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-white mb-2">Brak czasu i wiedzy</h3>
-                  <p className="text-zinc-300 leading-relaxed">
-                    Między zabiegami, zamówieniami i prowadzeniem grafiku nie ma czasu na naukę 
-                    skomplikowanego Menedżera reklam Facebooka.
-                  </p>
-                  <div className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
-                    <Coffee className="w-4 h-4" />
-                    <span>Dlatego możemy to zrobić za Ciebie</span>
-                  </div>
-                </div>
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-6 h-6 text-zinc-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy technicznej</h3>
+                <p className="text-zinc-300 text-sm leading-relaxed">
+                  Między zabiegami, zamówieniami i grafiku nie ma czasu na naukę 
+                  Menedżera reklam. A kliknięcie "Promuj post" to często <span className="text-zinc-400">przepalone pieniądze</span>.
+                </p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom message - hopeful */}
-        <div className="mt-6 bg-gradient-to-r from-pink-500/15 via-fuchsia-500/10 to-pink-500/15 rounded-2xl p-5 border border-pink-500/30">
-          <p className="text-lg text-center text-zinc-200">
-            <span className="text-pink-400 font-bold">Dobra wiadomość:</span> W {data.city || "Twoim mieście"} wciąż mało salonów 
-            korzysta z płatnych reklam — <span className="text-white font-semibold">to Twoja szansa, żeby być pierwsza!</span>
+        {/* Hopeful message */}
+        <div className="mt-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 rounded-2xl p-4 border border-emerald-500/25 max-w-[55%]">
+          <p className="text-base text-zinc-200 flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <span>
+              <span className="text-emerald-400 font-bold">Dobra wiadomość:</span> W {data.city || "Twoim mieście"} wciąż mało salonów 
+              korzysta z płatnych reklam — <span className="text-white font-semibold">to Twoja szansa!</span>
+            </span>
           </p>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <span className="text-zinc-500 text-sm">aurine.pl</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 1 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2.5 bg-zinc-700'}`} />
-            ))}
-          </div>
-          <span className="text-zinc-500 text-sm">Marketing dla branży beauty</span>
-        </div>
+        <Footer activeSlide={1} />
       </div>
     </div>
   );
 
-  // Slide 3: How we help - the solution
+  // Slide 3: How we help - the solution with testimonials
   const Slide3 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 left-1/3 w-[800px] h-[800px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-[900px] h-[900px] bg-gradient-to-tl from-pink-500/15 to-transparent rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
+        <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-gradient-to-tl from-pink-500/15 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col px-20 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-12 h-12 object-contain" />
-            <div>
-              <p className="text-pink-400 font-semibold">Aurine Agency</p>
-              <p className="text-zinc-500 text-xs">Jak możemy Ci pomóc</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="px-4 py-2 bg-blue-600/15 rounded-xl border border-blue-500/30 flex items-center gap-2">
-              <Facebook className="w-5 h-5 text-blue-400" />
-              <span className="text-blue-300 text-sm">Ads</span>
-            </div>
-            <div className="px-4 py-2 bg-pink-600/15 rounded-xl border border-pink-500/30 flex items-center gap-2">
-              <Instagram className="w-5 h-5 text-pink-400" />
-              <span className="text-pink-300 text-sm">Ads</span>
-            </div>
-          </div>
-        </div>
+      <div className="relative z-10 h-full flex flex-col px-16 py-10">
+        <Header subtitle="Jak możemy Ci pomóc" />
 
         {/* Title */}
-        <div className="mb-8">
-          <h2 className="text-5xl font-black text-white mb-4">
-            Reklamy, które <span className="text-pink-400">działają</span>
+        <div className="mb-5">
+          <h2 className="text-4xl font-black text-white mb-2">
+            Reklamy, które <span className="text-pink-400">naprawdę działają</span>
           </h2>
-          <p className="text-xl text-zinc-300">
-            Zajmujemy się Twoimi reklamami od A do Z, a Ty możesz skupić się na tym, co robisz najlepiej — 
-            <span className="text-pink-300 font-medium"> dbaniu o klientki.</span>
+          <p className="text-lg text-zinc-300">
+            Zajmujemy się Twoimi reklamami od A do Z — Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
           </p>
         </div>
 
-        {/* Main content - 2 columns */}
-        <div className="flex-1 flex gap-8">
-          {/* Left - benefits */}
-          <div className="flex-1 space-y-4">
+        {/* Main content - 3 columns */}
+        <div className="flex-1 grid grid-cols-3 gap-5">
+          {/* Column 1: Benefits */}
+          <div className="space-y-3">
             {[
               { 
                 icon: Target, 
                 title: "Precyzyjne dotarcie", 
-                desc: "Twoje reklamy trafiają dokładnie do kobiet zainteresowanych urodą, w odpowiednim wieku, mieszkających w pobliżu salonu.",
-                color: "from-pink-500/30 to-rose-500/20"
+                desc: "Reklamy trafiają do kobiet 25-45 lat, zainteresowanych urodą, w promieniu 15 km od Ciebie",
+                color: "from-pink-500/30 to-rose-500/20",
+                borderColor: "border-pink-500/30"
               },
               { 
                 icon: Eye, 
                 title: "Tysiące wyświetleń", 
-                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek miesięcznie.",
-                color: "from-blue-500/30 to-indigo-500/20"
+                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek",
+                color: "from-blue-500/30 to-indigo-500/20",
+                borderColor: "border-blue-500/30"
               },
               { 
                 icon: Sparkles, 
-                title: "Piękne kreacje reklamowe", 
-                desc: "Projektujemy grafiki i teksty, które przyciągają uwagę i zachęcają do rezerwacji — zgodne z estetyką Twojego salonu.",
-                color: "from-fuchsia-500/30 to-purple-500/20"
+                title: "Piękne kreacje", 
+                desc: "Projektujemy grafiki i teksty zgodne z estetyką Twojego salonu",
+                color: "from-fuchsia-500/30 to-purple-500/20",
+                borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
                 title: "Przejrzyste raporty", 
-                desc: "Co miesiąc dostajesz jasny raport: ile osób zobaczyło, ile kliknęło, ile to kosztowało. Zero zagadek.",
-                color: "from-emerald-500/30 to-teal-500/20"
+                desc: "Co miesiąc jasny raport: zasięgi, kliknięcia, koszty. Zero zagadek",
+                color: "from-emerald-500/30 to-teal-500/20",
+                borderColor: "border-emerald-500/30"
               },
             ].map((item, idx) => (
-              <div key={idx} className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/50 hover:border-pink-500/30 transition-all">
-                <div className="flex items-start gap-4">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center border border-white/10 flex-shrink-0`}>
-                    <item.icon className="w-6 h-6 text-white" />
+              <div key={idx} className={`bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-xl p-4 border ${item.borderColor}`}>
+                <div className="flex items-start gap-3">
+                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center border border-white/10 flex-shrink-0`}>
+                    <item.icon className="w-5 h-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-lg text-white font-bold mb-1">{item.title}</p>
-                    <p className="text-zinc-400 text-sm leading-relaxed">{item.desc}</p>
+                    <p className="text-sm text-white font-bold mb-0.5">{item.title}</p>
+                    <p className="text-zinc-400 text-xs leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* Right - Phone mockup with ad example */}
-          <div className="w-[340px] flex items-center justify-center relative">
+          {/* Column 2: Phone mockup with successful ad */}
+          <div className="flex items-center justify-center">
             <div className="relative">
-              {/* Phone */}
-              <div className="w-64 h-[440px] bg-zinc-900 rounded-[40px] p-2 shadow-2xl shadow-pink-500/20 border border-zinc-700">
-                <div className="w-full h-full bg-black rounded-[32px] overflow-hidden relative">
-                  {/* Instagram header */}
-                  <div className="bg-zinc-900 px-3 py-2 flex items-center justify-between border-b border-zinc-800">
+              <div className="w-56 h-[380px] bg-zinc-900 rounded-[36px] p-1.5 shadow-2xl shadow-pink-500/15 border border-zinc-700">
+                <div className="w-full h-full bg-black rounded-[30px] overflow-hidden relative">
+                  <div className="bg-gradient-to-r from-pink-600/20 to-fuchsia-600/20 px-3 py-2 flex items-center justify-between border-b border-pink-500/20">
                     <Instagram className="w-4 h-4 text-pink-400" />
-                    <span className="text-xs font-semibold text-white truncate max-w-[120px]">{data.salonName || 'Twój Salon'}</span>
-                    <Heart className="w-4 h-4 text-zinc-600" />
+                    <span className="text-xs font-semibold text-white truncate max-w-[100px]">{data.salonName || 'Twój Salon'}</span>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400" />
+                    </div>
                   </div>
                   
-                  {/* Sponsored post */}
                   <div className="px-3 py-1.5 flex items-center justify-between bg-zinc-900/50">
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
                         <Flower2 className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <span className="text-xs text-white font-medium truncate max-w-[100px]">{data.salonName || 'Salon'}</span>
+                      <span className="text-xs text-white font-medium">{data.salonName || 'Salon'}</span>
                     </div>
-                    <span className="text-[10px] text-zinc-500">Sponsorowane</span>
+                    <span className="text-[10px] text-pink-400 font-medium">Sponsorowane</span>
                   </div>
                   
-                  {/* Ad content */}
                   <div className="aspect-square bg-gradient-to-br from-pink-900/50 via-zinc-900 to-fuchsia-900/40 flex items-center justify-center relative">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.25),transparent_60%)]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(236,72,153,0.3),transparent_60%)]" />
                     <div className="text-center p-4 relative z-10">
                       <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/40">
                         <Sparkles className="w-7 h-7 text-white" />
                       </div>
-                      <p className="text-pink-300 font-bold text-lg mb-1">-20% na pierwszy zabieg</p>
+                      <p className="text-pink-300 font-bold text-base mb-1">-20% na pierwszy zabieg</p>
                       <p className="text-zinc-400 text-xs">Zarezerwuj online</p>
                     </div>
                   </div>
                   
-                  {/* Engagement */}
                   <div className="p-3 space-y-1.5">
                     <div className="flex items-center gap-3">
                       <Heart className="w-5 h-5 text-pink-500 fill-pink-500" />
@@ -417,145 +442,177 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 </div>
               </div>
 
-              {/* Floating stats */}
-              <div className="absolute -left-16 top-8 bg-zinc-900/95 backdrop-blur rounded-xl p-3 shadow-lg border border-pink-500/30">
+              {/* Floating positive stats */}
+              <div className="absolute -left-20 top-10 bg-gradient-to-br from-emerald-500/15 to-emerald-500/5 backdrop-blur rounded-xl p-3 border border-emerald-500/30">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                    <UserCheck className="w-5 h-5 text-emerald-400" />
-                  </div>
+                  <UserCheck className="w-6 h-6 text-emerald-400" />
                   <div>
-                    <p className="text-[10px] text-zinc-500">Nowe klientki</p>
-                    <p className="text-base font-bold text-emerald-400">+24</p>
+                    <p className="text-[10px] text-zinc-400">Nowe klientki</p>
+                    <p className="text-lg font-bold text-emerald-400">+24</p>
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-16 top-32 bg-zinc-900/95 backdrop-blur rounded-xl p-3 shadow-lg border border-pink-500/30">
+              <div className="absolute -right-16 top-28 bg-gradient-to-br from-blue-500/15 to-blue-500/5 backdrop-blur rounded-xl p-3 border border-blue-500/30">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                    <Eye className="w-5 h-5 text-blue-400" />
-                  </div>
+                  <Eye className="w-6 h-6 text-blue-400" />
                   <div>
-                    <p className="text-[10px] text-zinc-500">Zasięg</p>
-                    <p className="text-base font-bold text-white">12,400</p>
+                    <p className="text-[10px] text-zinc-400">Zasięg</p>
+                    <p className="text-lg font-bold text-white">12,400</p>
                   </div>
                 </div>
               </div>
-              <div className="absolute -left-12 bottom-16 bg-zinc-900/95 backdrop-blur rounded-xl p-3 shadow-lg border border-pink-500/30">
+              <div className="absolute -left-16 bottom-16 bg-gradient-to-br from-pink-500/15 to-pink-500/5 backdrop-blur rounded-xl p-3 border border-pink-500/30">
                 <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-pink-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-pink-400" />
-                  </div>
+                  <TrendingUp className="w-6 h-6 text-pink-400" />
                   <div>
-                    <p className="text-[10px] text-zinc-500">CTR</p>
-                    <p className="text-base font-bold text-pink-400">4.2%</p>
+                    <p className="text-[10px] text-zinc-400">CTR</p>
+                    <p className="text-lg font-bold text-pink-400">4.2%</p>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <span className="text-zinc-500 text-sm">aurine.pl</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 2 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2.5 bg-zinc-700'}`} />
+          {/* Column 3: Testimonials */}
+          <div className="space-y-3">
+            <p className="text-sm text-pink-400 font-semibold mb-2 flex items-center gap-2">
+              <Star className="w-4 h-4 fill-pink-400" />
+              Co mówią nasze klientki
+            </p>
+            
+            {[
+              {
+                name: "Magda",
+                salon: "Studio Urody Magda",
+                city: "Nowy Sącz",
+                text: "Po 2 miesiącach współpracy mam pełny grafik! Polecam każdej właścicielce salonu.",
+                avatar: "M"
+              },
+              {
+                name: "Karolina",
+                salon: "Beauty by Karo",
+                city: "Tarnów",
+                text: "Wreszcie ktoś, kto rozumie branżę beauty. Reklamy są piękne i skuteczne!",
+                avatar: "K"
+              },
+              {
+                name: "Anna",
+                salon: "Salon Piękności Anna",
+                city: "Gorlice",
+                text: "Bałam się płatnych reklam, ale ekipa Aurine wszystko wytłumaczyła. Teraz co tydzień mam nowe klientki.",
+                avatar: "A"
+              }
+            ].map((testimonial, idx) => (
+              <div key={idx} className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/15">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-fuchsia-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    {testimonial.avatar}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
+                      ))}
+                    </div>
+                    <p className="text-zinc-300 text-xs leading-relaxed mb-2 italic">"{testimonial.text}"</p>
+                    <div>
+                      <p className="text-white text-xs font-semibold">{testimonial.name}</p>
+                      <p className="text-zinc-500 text-[10px]">{testimonial.salon}, {testimonial.city}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-          <span className="text-zinc-500 text-sm">Marketing dla branży beauty</span>
         </div>
+
+        <Footer activeSlide={2} />
       </div>
     </div>
   );
 
-  // Slide 4: Cooperation process
+  // Slide 4: Cooperation process with visuals
   const Slide4 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/10 via-transparent to-fuchsia-500/10 rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-gradient-to-br from-pink-500/10 via-transparent to-fuchsia-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col px-20 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-12 h-12 object-contain" />
-            <div>
-              <p className="text-pink-400 font-semibold">Aurine Agency</p>
-              <p className="text-zinc-500 text-xs">Jak wygląda współpraca</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Flower2 className="w-5 h-5 text-pink-400/50" />
-            <Sparkle className="w-4 h-4 text-fuchsia-400/50" />
-            <Heart className="w-5 h-5 text-rose-400/50" />
-          </div>
-        </div>
+      {/* Decorative elements */}
+      <div className="absolute top-20 right-20 w-16 h-16 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Flower2 className="w-8 h-8 text-pink-400/50" />
+      </div>
+      <div className="absolute bottom-32 right-28 w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Heart className="w-6 h-6 text-fuchsia-400/50" />
+      </div>
+
+      <div className="relative z-10 h-full flex flex-col px-16 py-10">
+        <Header subtitle="Jak wygląda współpraca" />
 
         {/* Title */}
-        <div className="mb-8">
-          <h2 className="text-5xl font-black text-white mb-3">
-            Przebieg <span className="text-pink-400">współpracy</span>
+        <div className="mb-6">
+          <h2 className="text-4xl font-black text-white mb-2">
+            Prosty i <span className="text-pink-400">przejrzysty</span> proces
           </h2>
-          <p className="text-xl text-zinc-300">Prosty i przejrzysty proces od początku do końca</p>
+          <p className="text-lg text-zinc-300">Bez skomplikowanych umów i niezrozumiałych terminów</p>
         </div>
 
-        {/* Process steps - horizontal with connection */}
+        {/* Process steps - horizontal */}
         <div className="flex-1 flex items-center">
-          <div className="w-full grid grid-cols-4 gap-5 relative">
+          <div className="w-full grid grid-cols-4 gap-4 relative">
             {/* Connection line */}
-            <div className="absolute top-16 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-pink-500/50 via-fuchsia-500/50 to-pink-500/50" />
+            <div className="absolute top-14 left-[8%] right-[8%] h-0.5 bg-gradient-to-r from-pink-500/40 via-fuchsia-500/40 to-pink-500/40" />
 
             {[
               { 
                 num: "01", 
-                icon: Search, 
+                icon: Coffee, 
                 title: "Rozmowa", 
-                desc: "Poznajemy Twój salon, klientki i cele. Sprawdzamy co do tej pory działało, a co nie.", 
-                details: ["Analiza profilu", "Określenie grupy docelowej", "Ustalenie budżetu"]
+                desc: "Poznajemy Twój salon, klientki i cele. Bez zobowiązań.", 
+                details: ["Analiza profilu", "Określenie grupy", "Ustalenie budżetu"],
+                color: "from-pink-500/30 to-rose-500/20"
               },
               { 
                 num: "02", 
                 icon: FileText, 
                 title: "Strategia", 
-                desc: "Przygotowujemy plan kampanii dopasowany specjalnie do Twojego salonu.", 
-                details: ["Kreacje reklamowe", "Teksty i grafiki", "Harmonogram działań"]
+                desc: "Przygotowujemy plan dopasowany do Twojego salonu.", 
+                details: ["Kreacje reklamowe", "Teksty i grafiki", "Harmonogram"],
+                color: "from-fuchsia-500/30 to-purple-500/20"
               },
               { 
                 num: "03", 
-                icon: Play, 
-                title: "Uruchomienie", 
-                desc: "Konfigurujemy i uruchamiamy kampanie. Ty nie musisz nic robić.", 
-                details: ["Konfiguracja reklam", "Targetowanie", "Optymalizacja"]
+                icon: Rocket, 
+                title: "Start", 
+                desc: "Uruchamiamy kampanie. Ty nie musisz nic robić.", 
+                details: ["Konfiguracja", "Targetowanie", "Optymalizacja"],
+                color: "from-blue-500/30 to-indigo-500/20"
               },
               { 
                 num: "04", 
                 icon: LineChart, 
-                title: "Raportowanie", 
-                desc: "Co miesiąc dostajesz jasny raport z wynikami i rekomendacjami.", 
-                details: ["Zasięgi i kliknięcia", "Koszt pozyskania", "Kolejne kroki"]
+                title: "Wyniki", 
+                desc: "Co miesiąc raport z wynikami i rekomendacjami.", 
+                details: ["Zasięgi", "Koszty", "Kolejne kroki"],
+                color: "from-emerald-500/30 to-teal-500/20"
               },
             ].map((step, idx) => (
               <div key={idx} className="relative">
-                {/* Step number circle */}
-                <div className="w-14 h-14 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-pink-500/30 to-fuchsia-500/20 border border-pink-500/50 flex items-center justify-center relative z-10">
-                  <step.icon className="w-7 h-7 text-pink-400" />
+                {/* Step icon circle */}
+                <div className={`w-14 h-14 mx-auto mb-4 rounded-2xl bg-gradient-to-br ${step.color} border border-white/20 flex items-center justify-center relative z-10`}>
+                  <step.icon className="w-7 h-7 text-white" />
                 </div>
                 
                 {/* Card */}
-                <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/50 hover:border-pink-500/30 transition-all h-[calc(100%-76px)]">
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xs font-bold text-pink-500 bg-pink-500/10 px-2 py-1 rounded-full">{step.num}</span>
-                    <h3 className="text-lg font-bold text-white">{step.title}</h3>
+                <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-xl p-4 border border-zinc-700/50 h-[calc(100%-72px)]">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs font-bold text-pink-500 bg-pink-500/15 px-2 py-0.5 rounded-full">{step.num}</span>
+                    <h3 className="text-base font-bold text-white">{step.title}</h3>
                   </div>
-                  <p className="text-sm text-zinc-300 mb-4 leading-relaxed">{step.desc}</p>
-                  <div className="space-y-2">
+                  <p className="text-xs text-zinc-300 mb-3 leading-relaxed">{step.desc}</p>
+                  <div className="space-y-1.5">
                     {step.details.map((detail, didx) => (
                       <div key={didx} className="flex items-center gap-2 text-xs text-zinc-400">
                         <CheckCircle className="w-3.5 h-3.5 text-pink-400" />
@@ -570,102 +627,84 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         </div>
 
         {/* Bottom - no contracts message */}
-        <div className="mt-6 bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/15 rounded-2xl p-5 border border-emerald-500/30">
-          <p className="text-lg text-center text-zinc-200">
-            <span className="text-emerald-400 font-bold">Bez umów na rok</span> — współpracujemy miesiąc do miesiąca. 
-            <span className="text-white font-medium"> Jeśli nie będziesz zadowolona, możesz zrezygnować.</span>
+        <div className="mt-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 rounded-xl p-4 border border-emerald-500/25">
+          <p className="text-base text-center text-zinc-200 flex items-center justify-center gap-3">
+            <Shield className="w-5 h-5 text-emerald-400" />
+            <span>
+              <span className="text-emerald-400 font-bold">Bez umów na rok</span> — współpracujemy miesiąc do miesiąca. 
+              <span className="text-white font-medium"> Możesz zrezygnować kiedy chcesz.</span>
+            </span>
           </p>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <span className="text-zinc-500 text-sm">aurine.pl</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 3 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2.5 bg-zinc-700'}`} />
-            ))}
-          </div>
-          <span className="text-zinc-500 text-sm">Marketing dla branży beauty</span>
-        </div>
+        <Footer activeSlide={3} />
       </div>
     </div>
   );
 
-  // Slide 5: Special offer - irresistible
+  // Slide 5: Special offer - irresistible with more graphics
   const Slide5 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      {/* Background - more celebratory */}
+      {/* Rich celebratory background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
-        <div className="absolute top-20 right-40 w-[400px] h-[400px] bg-gradient-to-br from-amber-500/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear_gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
-        
-        {/* Celebratory icons */}
-        <Sparkle className="absolute top-24 left-32 w-8 h-8 text-pink-400/30" />
-        <Star className="absolute top-32 right-48 w-6 h-6 text-amber-400/30" />
-        <Sparkle className="absolute bottom-40 left-48 w-6 h-6 text-fuchsia-400/30" />
-        <Star className="absolute bottom-32 right-32 w-8 h-8 text-pink-400/30" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-10 right-20 w-[300px] h-[300px] bg-gradient-to-br from-amber-500/15 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col px-20 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-12 h-12 object-contain" />
-            <div>
-              <p className="text-pink-400 font-semibold">Aurine Agency</p>
-              <p className="text-zinc-500 text-xs">Specjalna oferta</p>
-            </div>
-          </div>
-          <div className="px-4 py-2 bg-amber-500/15 rounded-xl border border-amber-500/30 flex items-center gap-2">
-            <Gift className="w-5 h-5 text-amber-400" />
-            <span className="text-amber-300 text-sm font-medium">Limitowana oferta</span>
-          </div>
-        </div>
+      {/* Celebratory decorations */}
+      <Sparkle className="absolute top-20 left-24 w-8 h-8 text-pink-400/40" />
+      <Star className="absolute top-28 right-32 w-6 h-6 text-amber-400/40 fill-amber-400/40" />
+      <Sparkle className="absolute bottom-36 left-36 w-6 h-6 text-fuchsia-400/40" />
+      <Star className="absolute bottom-28 right-24 w-8 h-8 text-pink-400/40 fill-pink-400/40" />
+      <Gift className="absolute top-1/3 right-16 w-10 h-10 text-amber-400/30" />
+      <Heart className="absolute bottom-1/3 left-20 w-8 h-8 text-pink-400/30" />
+
+      <div className="relative z-10 h-full flex flex-col px-16 py-10">
+        <Header subtitle="Specjalna oferta" />
 
         {/* Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500/15 rounded-full border border-pink-500/30 mb-4">
-            <Sparkles className="w-4 h-4 text-pink-400" />
-            <span className="text-pink-300 text-sm font-medium">Oferta nie do odrzucenia</span>
+        <div className="text-center mb-5">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/10 rounded-full border border-amber-500/30 mb-3">
+            <Gift className="w-4 h-4 text-amber-400" />
+            <span className="text-amber-300 text-sm font-medium">Propozycja nie do odrzucenia</span>
+            <Sparkles className="w-4 h-4 text-amber-400" />
           </div>
-          <h2 className="text-5xl font-black text-white mb-4">
-            Specjalnie dla <span className="text-pink-400">{data.city || "Twojego miasta"}</span>
+          <h2 className="text-4xl font-black text-white mb-2">
+            Specjalnie dla <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">{data.city || "Twojego miasta"}</span>
           </h2>
-          <p className="text-xl text-zinc-300 max-w-2xl mx-auto">
-            Chcemy, żebyś mogła sprawdzić jak działamy bez żadnego ryzyka
+          <p className="text-lg text-zinc-300">
+            Chcemy, żebyś mogła sprawdzić jak działamy — <span className="text-pink-300">bez żadnego ryzyka</span>
           </p>
         </div>
 
-        {/* Main offers - 2 big cards */}
-        <div className="flex-1 flex gap-8 items-center justify-center">
+        {/* Two offers */}
+        <div className="flex-1 flex gap-6 items-center justify-center">
           {/* Free audit */}
-          <div className="w-[420px] bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-3xl p-8 border-2 border-pink-500/30 shadow-2xl shadow-pink-500/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-pink-500/20 to-transparent rounded-full blur-2xl" />
+          <div className="w-[380px] bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border-2 border-pink-500/30 shadow-2xl shadow-pink-500/10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-pink-500/20 to-transparent rounded-full blur-2xl" />
             
             <div className="relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/30 to-fuchsia-500/20 border border-pink-500/40 flex items-center justify-center mb-6">
-                <Search className="w-8 h-8 text-pink-400" />
-              </div>
-              
               <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-pink-500/20 rounded-full text-pink-400 text-sm font-bold">GRATIS</span>
-                <span className="text-zinc-500 text-sm line-through">wartość 300 zł</span>
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500/30 to-fuchsia-500/20 border border-pink-500/40 flex items-center justify-center">
+                  <Search className="w-7 h-7 text-pink-400" />
+                </div>
+                <div>
+                  <span className="px-2.5 py-1 bg-pink-500/20 rounded-full text-pink-400 text-xs font-bold">GRATIS</span>
+                  <p className="text-zinc-500 text-xs mt-1 line-through">wartość 300 zł</p>
+                </div>
               </div>
               
-              <h3 className="text-2xl font-bold text-white mb-3">Darmowy audyt profilu</h3>
-              <p className="text-zinc-300 leading-relaxed mb-6">
-                Przeanalizujemy Twój Instagram i Facebook — pokażemy co możesz poprawić, 
-                żeby Twoje posty były bardziej widoczne. Bez zobowiązań.
+              <h3 className="text-xl font-bold text-white mb-2">Darmowy audyt profilu</h3>
+              <p className="text-zinc-300 text-sm leading-relaxed mb-4">
+                Przeanalizujemy Twój Instagram i Facebook — pokażemy co poprawić, 
+                żeby Twoje posty były bardziej widoczne. <span className="text-pink-300">Bez zobowiązań.</span>
               </p>
               
-              <div className="space-y-3">
-                {["Analiza profilu i postów", "Wskazówki do poprawy bio", "Rekomendacje hashtagów", "Propozycja content planu"].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 text-sm text-zinc-300">
-                    <CheckCircle className="w-5 h-5 text-pink-400" />
+              <div className="space-y-2">
+                {["Analiza profilu i postów", "Wskazówki do poprawy", "Rekomendacje hashtagów", "Propozycja content planu"].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm text-zinc-300">
+                    <CheckCircle className="w-4 h-4 text-pink-400" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -674,35 +713,36 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           </div>
 
           {/* Free trial week */}
-          <div className="w-[420px] bg-gradient-to-br from-amber-500/10 via-zinc-900/95 to-zinc-900/80 rounded-3xl p-8 border-2 border-amber-500/40 shadow-2xl shadow-amber-500/10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/20 to-transparent rounded-full blur-2xl" />
-            <div className="absolute -top-2 -right-2 w-24 h-24 bg-amber-500/10 rounded-full blur-xl" />
+          <div className="w-[380px] bg-gradient-to-br from-amber-500/10 via-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border-2 border-amber-500/40 shadow-2xl shadow-amber-500/10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-500/25 to-transparent rounded-full blur-2xl" />
             
             {/* Special badge */}
-            <div className="absolute -top-3 right-6 px-4 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-black text-xs font-bold shadow-lg">
+            <div className="absolute -top-3 right-4 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-black text-xs font-bold shadow-lg flex items-center gap-1.5">
+              <Star className="w-3.5 h-3.5 fill-black" />
               TYLKO 2 SALONY Z MIASTA
             </div>
             
-            <div className="relative z-10">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 border border-amber-500/40 flex items-center justify-center mb-6">
-                <Gift className="w-8 h-8 text-amber-400" />
-              </div>
-              
+            <div className="relative z-10 mt-2">
               <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-amber-500/20 rounded-full text-amber-400 text-sm font-bold">GRATIS</span>
-                <span className="text-zinc-500 text-sm line-through">wartość 500 zł</span>
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 border border-amber-500/40 flex items-center justify-center">
+                  <Gift className="w-7 h-7 text-amber-400" />
+                </div>
+                <div>
+                  <span className="px-2.5 py-1 bg-amber-500/20 rounded-full text-amber-400 text-xs font-bold">GRATIS</span>
+                  <p className="text-zinc-500 text-xs mt-1 line-through">wartość 500 zł</p>
+                </div>
               </div>
               
-              <h3 className="text-2xl font-bold text-white mb-3">Darmowy tydzień próbny</h3>
-              <p className="text-zinc-300 leading-relaxed mb-6">
+              <h3 className="text-xl font-bold text-white mb-2">Darmowy tydzień próbny</h3>
+              <p className="text-zinc-300 text-sm leading-relaxed mb-4">
                 Dla <span className="text-amber-400 font-semibold">dwóch pierwszych salonów z {data.city || "Twojego miasta"}</span> uruchamiamy 
-                kampanię na tydzień całkowicie za darmo. Zobaczysz efekty, zanim zapłacisz choćby złotówkę.
+                kampanię na tydzień za darmo. <span className="text-amber-300">Zobaczysz efekty przed zapłatą.</span>
               </p>
               
-              <div className="space-y-3">
-                {["Pełna konfiguracja kampanii", "Profesjonalne kreacje reklamowe", "7 dni aktywnej promocji", "Raport z wynikami"].map((item, idx) => (
-                  <div key={idx} className="flex items-center gap-3 text-sm text-zinc-300">
-                    <CheckCircle className="w-5 h-5 text-amber-400" />
+              <div className="space-y-2">
+                {["Pełna konfiguracja kampanii", "Profesjonalne kreacje", "7 dni aktywnej promocji", "Raport z wynikami"].map((item, idx) => (
+                  <div key={idx} className="flex items-center gap-2 text-sm text-zinc-300">
+                    <CheckCircle className="w-4 h-4 text-amber-400" />
                     <span>{item}</span>
                   </div>
                 ))}
@@ -711,110 +751,105 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           </div>
         </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-6 bg-gradient-to-r from-pink-500/10 via-fuchsia-500/15 to-pink-500/10 rounded-2xl p-5 border border-pink-500/30 text-center">
-          <p className="text-lg text-zinc-200">
+        {/* Bottom message */}
+        <div className="mt-4 bg-gradient-to-r from-pink-500/10 via-fuchsia-500/10 to-pink-500/10 rounded-xl p-4 border border-pink-500/25 text-center">
+          <p className="text-base text-zinc-200">
+            <Heart className="w-4 h-4 text-pink-400 inline mr-2" />
             <span className="text-white font-semibold">Nie masz nic do stracenia</span> — sprawdź, jak możemy pomóc Twojemu salonowi!
           </p>
         </div>
 
-        {/* Footer */}
-        <div className="mt-6 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <span className="text-zinc-500 text-sm">aurine.pl</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 4 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2.5 bg-zinc-700'}`} />
-            ))}
-          </div>
-          <span className="text-zinc-500 text-sm">Marketing dla branży beauty</span>
-        </div>
+        <Footer activeSlide={4} />
       </div>
     </div>
   );
 
-  // Slide 6: Contact & CTA
+  // Slide 6: Contact & CTA - warm and inviting
   const Slide6 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1400px] h-[1400px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:80px_80px]" />
-        
-        {/* Decorative beauty elements */}
-        <div className="absolute top-20 left-24 w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-          <Flower2 className="w-10 h-10 text-pink-400/40" />
-        </div>
-        <div className="absolute bottom-28 left-32 w-16 h-16 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
-          <Sparkle className="w-8 h-8 text-fuchsia-400/40" />
-        </div>
-        <div className="absolute top-32 right-28 w-14 h-14 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
-          <Heart className="w-7 h-7 text-rose-400/40" />
-        </div>
-        <div className="absolute bottom-40 right-40 w-18 h-18 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
-          <Scissors className="w-8 h-8 text-pink-400/40" />
-        </div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      <div className="relative z-10 h-full flex flex-col items-center justify-center px-20 py-12">
+      {/* Decorative beauty elements */}
+      <div className="absolute top-16 left-20 w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Flower2 className="w-10 h-10 text-pink-400/50" />
+      </div>
+      <div className="absolute bottom-24 left-28 w-14 h-14 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Sparkle className="w-7 h-7 text-fuchsia-400/50" />
+      </div>
+      <div className="absolute top-28 right-24 w-16 h-16 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+        <Heart className="w-8 h-8 text-rose-400/50" />
+      </div>
+      <div className="absolute bottom-32 right-32 w-18 h-18 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+        <Scissors className="w-8 h-8 text-amber-400/50" />
+      </div>
+      <div className="absolute top-1/2 right-16 w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Palette className="w-6 h-6 text-pink-400/50" />
+      </div>
+      <div className="absolute top-1/3 left-32 w-10 h-10 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Star className="w-5 h-5 text-fuchsia-400/50 fill-fuchsia-400/50" />
+      </div>
+
+      <div className="relative z-10 h-full flex flex-col items-center justify-center px-16 py-10">
         {/* Logo */}
-        <img src={agencyLogo} alt="Aurine" className="w-24 h-24 object-contain mb-6" />
+        <img src={agencyLogo} alt="Aurine" className="w-20 h-20 object-contain mb-4" />
         
-        {/* Main headline */}
-        <h2 className="text-5xl font-black text-white text-center mb-4">
+        {/* Main headline - warm */}
+        <h2 className="text-4xl font-black text-white text-center mb-3">
           Porozmawiajmy o <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">Twoim salonie</span>
         </h2>
         
-        <p className="text-xl text-zinc-300 text-center max-w-2xl mb-10">
-          Chętnie opowiemy więcej o tym, jak możemy pomóc {data.salonName || "Twojemu salonowi"} 
-          w pozyskiwaniu nowych klientek. Napisz lub zadzwoń — odpowiemy na wszystkie pytania!
+        <p className="text-lg text-zinc-300 text-center max-w-2xl mb-8">
+          Chętnie opowiemy więcej o tym, jak możemy pomóc {data.salonName || "Twojemu salonowi"}. 
+          Napisz lub zadzwoń — <span className="text-pink-300">odpowiemy na wszystkie pytania!</span>
         </p>
 
         {/* Contact cards */}
-        <div className="flex gap-6 mb-10">
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border border-pink-500/30 flex items-center gap-5 min-w-[280px]">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
-              <Mail className="w-7 h-7 text-pink-400" />
+        <div className="flex gap-5 mb-8">
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-5 border border-pink-500/25 flex items-center gap-4 min-w-[240px]">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
+              <Mail className="w-6 h-6 text-pink-400" />
             </div>
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Email</p>
-              <p className="text-white font-semibold text-lg">kontakt@aurine.pl</p>
+              <p className="text-zinc-400 text-xs mb-0.5">Email</p>
+              <p className="text-white font-semibold">kontakt@aurine.pl</p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border border-pink-500/30 flex items-center gap-5 min-w-[280px]">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/20 border border-blue-500/40 flex items-center justify-center">
-              <Phone className="w-7 h-7 text-blue-400" />
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-5 border border-blue-500/25 flex items-center gap-4 min-w-[240px]">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/20 border border-blue-500/40 flex items-center justify-center">
+              <Phone className="w-6 h-6 text-blue-400" />
             </div>
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Telefon</p>
-              <p className="text-white font-semibold text-lg">+48 XXX XXX XXX</p>
+              <p className="text-zinc-400 text-xs mb-0.5">Telefon</p>
+              <p className="text-white font-semibold">+48 XXX XXX XXX</p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border border-pink-500/30 flex items-center gap-5 min-w-[280px]">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-purple-500/20 border border-fuchsia-500/40 flex items-center justify-center">
-              <Globe className="w-7 h-7 text-fuchsia-400" />
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-5 border border-fuchsia-500/25 flex items-center gap-4 min-w-[240px]">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-purple-500/20 border border-fuchsia-500/40 flex items-center justify-center">
+              <Globe className="w-6 h-6 text-fuchsia-400" />
             </div>
             <div>
-              <p className="text-zinc-400 text-sm mb-1">Strona</p>
-              <p className="text-white font-semibold text-lg">aurine.pl</p>
+              <p className="text-zinc-400 text-xs mb-0.5">Strona</p>
+              <p className="text-white font-semibold">aurine.pl</p>
             </div>
           </div>
         </div>
 
         {/* CTA Button */}
-        <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-rose-500 rounded-2xl p-1 mb-10">
-          <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-rose-500 rounded-xl px-12 py-5 flex items-center gap-3">
-            <span className="text-white font-bold text-xl">Umów się na darmową rozmowę</span>
-            <ArrowRight className="w-6 h-6 text-white" />
+        <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-rose-500 rounded-xl p-0.5 mb-8">
+          <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-rose-500 rounded-[10px] px-10 py-4 flex items-center gap-3">
+            <span className="text-white font-bold text-lg">Umów się na darmową rozmowę</span>
+            <ArrowRight className="w-5 h-5 text-white" />
           </div>
         </div>
 
         {/* Bottom reminder */}
-        <div className="flex items-center gap-6 text-zinc-400 text-sm">
+        <div className="flex items-center gap-5 text-zinc-400 text-sm">
           <div className="flex items-center gap-2">
             <Gift className="w-4 h-4 text-amber-400" />
             <span>Darmowy tydzień próbny</span>
@@ -831,18 +866,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="absolute bottom-6 left-20 right-20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <span className="text-zinc-500 text-sm">aurine.pl</span>
-          </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 5 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2.5 bg-zinc-700'}`} />
-            ))}
-          </div>
-          <span className="text-zinc-500 text-sm">Marketing dla branży beauty</span>
+        {/* Footer positioned at bottom */}
+        <div className="absolute bottom-6 left-16 right-16">
+          <Footer activeSlide={5} />
         </div>
       </div>
     </div>
