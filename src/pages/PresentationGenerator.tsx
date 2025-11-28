@@ -241,9 +241,8 @@ const PresentationGenerator = () => {
               <div className="flex items-center gap-4">
                 <Button
                   onClick={prevSlide}
-                  variant="outline"
                   size="icon"
-                  className="border-zinc-700 hover:bg-zinc-800"
+                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
@@ -253,9 +252,8 @@ const PresentationGenerator = () => {
                 </div>
                 <Button
                   onClick={nextSlide}
-                  variant="outline"
                   size="icon"
-                  className="border-zinc-700 hover:bg-zinc-800"
+                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </Button>
@@ -278,8 +276,7 @@ const PresentationGenerator = () => {
 
               <Button
                 onClick={() => setShowPreview(false)}
-                variant="outline"
-                className="border-zinc-700 hover:bg-zinc-800"
+                className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
               >
                 Edytuj dane
               </Button>

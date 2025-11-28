@@ -214,16 +214,16 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
           <div className="flex flex-col">
             <span className="text-[9px] text-zinc-400">Współczynnik konwersji</span>
             <span className="text-sm font-bold text-pink-300">
-              {data.conversions && data.reach && parseNumber(data.reach) > 0 ?
-                `${((parseNumber(data.conversions) / parseNumber(data.reach)) * 100).toFixed(2)}%`
+              {data.conversions && data.clicks && parseNumber(data.clicks) > 0 ?
+                `${((parseNumber(data.conversions) / parseNumber(data.clicks)) * 100).toFixed(1)}%`
                 : "—"}
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[9px] text-zinc-400">ROI kampanii</span>
+            <span className="text-[9px] text-zinc-400">ROAS</span>
             <span className="text-sm font-bold text-emerald-300">
-              {data.bookings && data.costPerConversion && data.budget && parseNumber(data.budget) > 0 ?
-                `${(((parseNumber(data.bookings) * parseNumber(data.costPerConversion) * 5) - parseNumber(data.budget)) / parseNumber(data.budget) * 100).toFixed(0)}%`
+              {data.bookings && data.budget && parseNumber(data.budget) > 0 ?
+                `${((parseNumber(data.bookings) * 200) / parseNumber(data.budget)).toFixed(1)}x`
                 : "—"}
             </span>
           </div>
