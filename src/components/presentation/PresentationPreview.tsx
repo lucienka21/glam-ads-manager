@@ -65,113 +65,68 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
     </div>
   );
 
-  // Elegant background component - no grid, flowing gradients
-  const ElegantBackground = ({ variant = 'default' }: { variant?: 'default' | 'warm' | 'celebration' }) => {
-    const bgVariants = {
-      default: (
-        <>
-          <div className="absolute top-0 right-0 w-[900px] h-[900px] bg-gradient-to-bl from-pink-500/15 via-fuchsia-500/8 to-transparent rounded-full blur-[100px]" />
-          <div className="absolute bottom-0 left-0 w-[700px] h-[700px] bg-gradient-to-tr from-rose-500/12 via-pink-500/6 to-transparent rounded-full blur-[100px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-gradient-to-br from-fuchsia-500/5 to-transparent rounded-full blur-[80px]" />
-        </>
-      ),
-      warm: (
-        <>
-          <div className="absolute top-1/3 right-1/4 w-[800px] h-[800px] bg-gradient-to-bl from-pink-500/18 via-rose-500/10 to-transparent rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 left-1/3 w-[600px] h-[600px] bg-gradient-to-tr from-fuchsia-500/12 to-transparent rounded-full blur-[100px]" />
-        </>
-      ),
-      celebration: (
-        <>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1100px] h-[1100px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/12 to-rose-500/15 rounded-full blur-[120px]" />
-          <div className="absolute top-10 right-1/4 w-[400px] h-[400px] bg-gradient-to-bl from-amber-500/15 to-transparent rounded-full blur-[80px]" />
-          <div className="absolute bottom-10 left-1/4 w-[300px] h-[300px] bg-gradient-to-tr from-pink-500/10 to-transparent rounded-full blur-[80px]" />
-        </>
-      )
-    };
-    
-    return (
-      <div className="absolute inset-0">
-        {bgVariants[variant]}
-        {/* Subtle noise texture overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/10" />
+  // Centered beauty graphics cluster component
+  const CenteredBeautyGraphics = () => (
+    <div className="absolute top-1/2 right-[15%] -translate-y-1/2 w-[400px] h-[400px]">
+      {/* Central large icon */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-3xl bg-gradient-to-br from-pink-500/25 to-rose-500/15 border border-pink-500/30 flex items-center justify-center shadow-xl shadow-pink-500/10">
+        <Flower2 className="w-14 h-14 text-pink-400" />
       </div>
-    );
-  };
-
-  // Beauty graphics integrated into slide layout
-  const SlideGraphics = ({ position }: { position: 'right' | 'scattered' | 'center-right' }) => {
-    if (position === 'right') {
-      return (
-        <div className="absolute right-12 top-1/2 -translate-y-1/2 flex flex-col items-center gap-6">
-          {/* Main central cluster */}
-          <div className="relative">
-            <div className="w-32 h-32 rounded-[2rem] bg-gradient-to-br from-pink-500/20 to-rose-500/10 border border-pink-500/25 flex items-center justify-center shadow-2xl shadow-pink-500/15">
-              <Flower2 className="w-16 h-16 text-pink-400" />
-            </div>
-            {/* Orbiting elements */}
-            <div className="absolute -top-4 -right-4 w-14 h-14 rounded-xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/10 border border-fuchsia-500/25 flex items-center justify-center">
-              <Heart className="w-7 h-7 text-fuchsia-400" />
-            </div>
-            <div className="absolute -bottom-4 -left-4 w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/25 flex items-center justify-center">
-              <Star className="w-7 h-7 text-amber-400" />
-            </div>
-          </div>
-          
-          {/* Secondary icons */}
-          <div className="flex gap-4">
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-rose-500/15 to-pink-500/10 border border-rose-500/20 flex items-center justify-center">
-              <Scissors className="w-8 h-8 text-rose-400/80" />
-            </div>
-            <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/15 to-fuchsia-500/10 border border-purple-500/20 flex items-center justify-center">
-              <Palette className="w-8 h-8 text-purple-400/80" />
-            </div>
-          </div>
-          
-          {/* Social media badges */}
-          <div className="flex flex-col gap-2 mt-2">
-            <div className="px-5 py-2.5 bg-gradient-to-r from-blue-600/15 to-blue-500/8 rounded-xl border border-blue-500/25 flex items-center gap-2">
-              <Facebook className="w-5 h-5 text-blue-400" />
-              <span className="text-blue-300 text-sm font-medium">Facebook Ads</span>
-            </div>
-            <div className="px-5 py-2.5 bg-gradient-to-r from-pink-600/15 to-fuchsia-500/8 rounded-xl border border-pink-500/25 flex items-center gap-2">
-              <Instagram className="w-5 h-5 text-pink-400" />
-              <span className="text-pink-300 text-sm font-medium">Instagram Ads</span>
-            </div>
-          </div>
+      
+      {/* Surrounding icons - evenly distributed */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/10 border border-fuchsia-500/25 flex items-center justify-center">
+        <Heart className="w-8 h-8 text-fuchsia-400" />
+      </div>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/25 flex items-center justify-center">
+        <Star className="w-8 h-8 text-amber-400" />
+      </div>
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/10 border border-rose-500/25 flex items-center justify-center">
+        <Scissors className="w-8 h-8 text-rose-400" />
+      </div>
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-fuchsia-500/10 border border-purple-500/25 flex items-center justify-center">
+        <Palette className="w-8 h-8 text-purple-400" />
+      </div>
+      
+      {/* Diagonal corners */}
+      <div className="absolute top-12 left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/15 to-rose-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Sparkle className="w-6 h-6 text-pink-400/80" />
+      </div>
+      <div className="absolute top-12 right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/15 to-pink-500/10 border border-rose-500/20 flex items-center justify-center">
+        <Sparkles className="w-6 h-6 text-rose-400/80" />
+      </div>
+      <div className="absolute bottom-12 left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Award className="w-6 h-6 text-fuchsia-400/80" />
+      </div>
+      <div className="absolute bottom-12 right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500/15 to-emerald-500/10 border border-teal-500/20 flex items-center justify-center">
+        <ThumbsUp className="w-6 h-6 text-teal-400/80" />
+      </div>
+      
+      {/* Social media badges centered below */}
+      <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 flex gap-3">
+        <div className="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-blue-500/10 rounded-xl border border-blue-500/30 flex items-center gap-2 backdrop-blur-sm">
+          <Facebook className="w-5 h-5 text-blue-400" />
+          <span className="text-blue-300 text-sm font-medium">Facebook Ads</span>
         </div>
-      );
-    }
-    
-    if (position === 'scattered') {
-      return (
-        <>
-          <div className="absolute top-24 right-32 w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500/15 to-rose-500/8 border border-pink-500/20 flex items-center justify-center">
-            <Flower2 className="w-10 h-10 text-pink-400/60" />
-          </div>
-          <div className="absolute top-1/3 right-16 w-14 h-14 rounded-xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/8 border border-fuchsia-500/20 flex items-center justify-center">
-            <Heart className="w-7 h-7 text-fuchsia-400/60" />
-          </div>
-          <div className="absolute bottom-1/3 right-28 w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/8 border border-amber-500/20 flex items-center justify-center">
-            <Star className="w-8 h-8 text-amber-400/60" />
-          </div>
-          <div className="absolute bottom-24 right-20 w-12 h-12 rounded-lg bg-gradient-to-br from-rose-500/15 to-pink-500/8 border border-rose-500/20 flex items-center justify-center">
-            <Sparkle className="w-6 h-6 text-rose-400/60" />
-          </div>
-        </>
-      );
-    }
-    
-    return null;
-  };
+        <div className="px-4 py-2 bg-gradient-to-r from-pink-600/20 to-fuchsia-500/10 rounded-xl border border-pink-500/30 flex items-center gap-2 backdrop-blur-sm">
+          <Instagram className="w-5 h-5 text-pink-400" />
+          <span className="text-pink-300 text-sm font-medium">Instagram Ads</span>
+        </div>
+      </div>
+    </div>
+  );
 
   // Slide 1: Welcome - warm, personal introduction with lots of graphics
   const Slide1 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      <ElegantBackground variant="default" />
-      
-      {/* Integrated beauty graphics on right side */}
-      <SlideGraphics position="right" />
+      {/* Rich background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-pink-500/20 via-fuchsia-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-rose-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+
+      {/* Centered beauty graphics cluster */}
+      <CenteredBeautyGraphics />
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
         <Header subtitle="Prezentacja dla Twojego salonu" />
@@ -231,7 +186,11 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
   // Slide 2: Understanding challenges - empathetic, with graphics
   const Slide2 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      <ElegantBackground variant="warm" />
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/15 via-transparent to-rose-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
 
       {/* Right side visual - social media frustration illustration */}
       <div className="absolute top-20 right-12 w-[380px]">
@@ -358,9 +317,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-gradient-to-tl from-pink-500/15 to-transparent rounded-full blur-[100px]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/5 to-black/10" />
+        <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-gradient-to-tl from-pink-500/15 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
@@ -561,10 +520,19 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
   // Slide 4: Cooperation process with visuals
   const Slide4 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      <ElegantBackground variant="default" />
-      
-      {/* Scattered decorative elements */}
-      <SlideGraphics position="scattered" />
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-gradient-to-br from-pink-500/10 via-transparent to-fuchsia-500/10 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
+
+      {/* Decorative elements */}
+      <div className="absolute top-20 right-20 w-16 h-16 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Flower2 className="w-8 h-8 text-pink-400/50" />
+      </div>
+      <div className="absolute bottom-32 right-28 w-12 h-12 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Heart className="w-6 h-6 text-fuchsia-400/50" />
+      </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
         <Header subtitle="Jak wygląda współpraca" />
@@ -663,27 +631,20 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
   // Slide 5: Special offer - irresistible with more graphics
   const Slide5 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      <ElegantBackground variant="celebration" />
+      {/* Rich celebratory background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-10 right-20 w-[300px] h-[300px] bg-gradient-to-br from-amber-500/15 to-transparent rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
 
-      {/* Celebration decorations - well distributed */}
-      <div className="absolute top-20 left-24 w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/15 to-rose-500/8 border border-pink-500/20 flex items-center justify-center">
-        <Sparkle className="w-8 h-8 text-pink-400/60" />
-      </div>
-      <div className="absolute top-28 right-32 w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/8 border border-amber-500/20 flex items-center justify-center">
-        <Star className="w-7 h-7 text-amber-400/60 fill-amber-400/60" />
-      </div>
-      <div className="absolute bottom-36 left-32 w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/8 border border-fuchsia-500/20 flex items-center justify-center">
-        <Sparkle className="w-6 h-6 text-fuchsia-400/60" />
-      </div>
-      <div className="absolute bottom-28 right-28 w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500/15 to-rose-500/8 border border-pink-500/20 flex items-center justify-center">
-        <Heart className="w-7 h-7 text-pink-400/60" />
-      </div>
-      <div className="absolute top-1/3 right-16 w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/15 to-orange-500/8 border border-amber-500/20 flex items-center justify-center">
-        <Gift className="w-8 h-8 text-amber-400/60" />
-      </div>
-      <div className="absolute bottom-1/3 left-20 w-14 h-14 rounded-xl bg-gradient-to-br from-rose-500/15 to-pink-500/8 border border-rose-500/20 flex items-center justify-center">
-        <Flower2 className="w-7 h-7 text-rose-400/60" />
-      </div>
+      {/* Celebratory decorations */}
+      <Sparkle className="absolute top-20 left-24 w-8 h-8 text-pink-400/40" />
+      <Star className="absolute top-28 right-32 w-6 h-6 text-amber-400/40 fill-amber-400/40" />
+      <Sparkle className="absolute bottom-36 left-36 w-6 h-6 text-fuchsia-400/40" />
+      <Star className="absolute bottom-28 right-24 w-8 h-8 text-pink-400/40 fill-pink-400/40" />
+      <Gift className="absolute top-1/3 right-16 w-10 h-10 text-amber-400/30" />
+      <Heart className="absolute bottom-1/3 left-20 w-8 h-8 text-pink-400/30" />
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
         <Header subtitle="Specjalna oferta" />
@@ -792,26 +753,30 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
   // Slide 6: Contact & CTA - warm and inviting
   const Slide6 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
-      <ElegantBackground variant="celebration" />
+      {/* Background */}
+      <div className="absolute inset-0">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+      </div>
 
-      {/* Beauty elements - symmetrically distributed around center */}
-      <div className="absolute top-20 left-24 w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500/15 to-rose-500/8 border border-pink-500/20 flex items-center justify-center">
-        <Flower2 className="w-10 h-10 text-pink-400/60" />
+      {/* Decorative beauty elements */}
+      <div className="absolute top-16 left-20 w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Flower2 className="w-10 h-10 text-pink-400/50" />
       </div>
-      <div className="absolute top-20 right-24 w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/8 border border-rose-500/20 flex items-center justify-center">
-        <Heart className="w-10 h-10 text-rose-400/60" />
+      <div className="absolute bottom-24 left-28 w-14 h-14 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Sparkle className="w-7 h-7 text-fuchsia-400/50" />
       </div>
-      <div className="absolute bottom-28 left-28 w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/8 border border-fuchsia-500/20 flex items-center justify-center">
-        <Sparkle className="w-8 h-8 text-fuchsia-400/60" />
+      <div className="absolute top-28 right-24 w-16 h-16 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
+        <Heart className="w-8 h-8 text-rose-400/50" />
       </div>
-      <div className="absolute bottom-28 right-28 w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/8 border border-amber-500/20 flex items-center justify-center">
-        <Star className="w-8 h-8 text-amber-400/60 fill-amber-400/60" />
+      <div className="absolute bottom-32 right-32 w-18 h-18 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+        <Scissors className="w-8 h-8 text-amber-400/50" />
       </div>
-      <div className="absolute top-1/2 left-16 -translate-y-1/2 w-14 h-14 rounded-xl bg-gradient-to-br from-purple-500/15 to-fuchsia-500/8 border border-purple-500/20 flex items-center justify-center">
-        <Scissors className="w-7 h-7 text-purple-400/60" />
+      <div className="absolute top-1/2 right-16 w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Palette className="w-6 h-6 text-pink-400/50" />
       </div>
-      <div className="absolute top-1/2 right-16 -translate-y-1/2 w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500/15 to-rose-500/8 border border-pink-500/20 flex items-center justify-center">
-        <Palette className="w-7 h-7 text-pink-400/60" />
+      <div className="absolute top-1/3 left-32 w-10 h-10 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Star className="w-5 h-5 text-fuchsia-400/50 fill-fuchsia-400/50" />
       </div>
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-16 py-10">
