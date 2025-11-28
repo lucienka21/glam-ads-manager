@@ -107,11 +107,11 @@ const PresentationGenerator = () => {
   };
 
   const slideNames = [
-    "Wprowadzenie",
-    "Błędy salonów w reklamie",
-    "Dlaczego reklamy działają",
-    "Proces współpracy",
-    "Opinie klientek",
+    "Powitanie",
+    "Wyzwania salonów",
+    "Jak pomagamy",
+    "Przebieg współpracy",
+    "Specjalna oferta",
     "Kontakt"
   ];
 
@@ -205,19 +205,19 @@ const PresentationGenerator = () => {
                 <ul className="space-y-2 text-sm text-zinc-400">
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Najczęstsze błędy salonów w reklamie
+                    Wyzwania salonów beauty w reklamie
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Dlaczego płatna reklama działa
+                    Jak możemy pomóc Twojemu salonowi
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Proces współpracy krok po kroku
+                    Przebieg współpracy krok po kroku
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
-                    Opinie właścicielek salonów
+                    Specjalna oferta: darmowy audyt + tydzień próbny
                   </li>
                 </ul>
               </div>
