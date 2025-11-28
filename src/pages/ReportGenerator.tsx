@@ -340,9 +340,8 @@ const ReportGenerator = () => {
               <div className="flex items-center gap-2">
                 <Button
                   onClick={() => setIsLandscape(false)}
-                  variant="outline"
                   size="sm"
-                  className="border-zinc-700 text-white hover:bg-zinc-800"
+                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1.5" />
                   Powrót
@@ -351,9 +350,8 @@ const ReportGenerator = () => {
                 <Button
                   onClick={downloadAsImage}
                   disabled={isGenerating}
-                  variant="outline"
                   size="sm"
-                  className="border-emerald-600 text-emerald-400 hover:bg-emerald-950"
+                  className="bg-emerald-900 border border-emerald-600 text-emerald-400 hover:bg-emerald-800"
                 >
                   <FileImage className="w-4 h-4 mr-1.5" />
                   PNG
@@ -362,7 +360,7 @@ const ReportGenerator = () => {
                   onClick={generateLandscapePDF}
                   disabled={isGenerating}
                   size="sm"
-                  className="bg-pink-600 hover:bg-pink-700"
+                  className="bg-pink-600 hover:bg-pink-700 text-white"
                 >
                   <Download className="w-4 h-4 mr-1.5" />
                   PDF 16:9
@@ -370,9 +368,8 @@ const ReportGenerator = () => {
                 <Button
                   onClick={generatePDF}
                   disabled={isGenerating}
-                  variant="outline"
                   size="sm"
-                  className="border-zinc-700 text-white hover:bg-zinc-800"
+                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
                 >
                   <Download className="w-4 h-4 mr-1.5" />
                   Pionowy

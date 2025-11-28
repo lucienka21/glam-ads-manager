@@ -157,7 +157,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-zinc-400">Średni koszt kliknięcia</span>
                     <span className="text-[11px] font-bold text-purple-300">
-                      {data.clicks && data.budget ?
+                      {data.clicks && data.budget && parseNumber(data.clicks) > 0 ?
                         `${(parseNumber(data.budget) / parseNumber(data.clicks)).toFixed(2)} PLN`
                         : "—"}
                     </span>
@@ -165,16 +165,16 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-zinc-400">Współczynnik konwersji</span>
                     <span className="text-[11px] font-bold text-pink-300">
-                      {data.conversions && data.clicks ?
-                        `${((parseNumber(data.conversions) / parseNumber(data.clicks)) * 100).toFixed(1)}%`
+                      {data.conversions && data.reach && parseNumber(data.reach) > 0 ?
+                        `${((parseNumber(data.conversions) / parseNumber(data.reach)) * 100).toFixed(2)}%`
                         : "—"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-[10px] text-zinc-400">ROI kampanii</span>
                     <span className="text-[11px] font-bold text-emerald-300">
-                      {data.bookings && data.budget ?
-                        `${((parseNumber(data.bookings) * 150) / parseNumber(data.budget) * 100).toFixed(0)}%`
+                      {data.bookings && data.costPerConversion && data.budget && parseNumber(data.budget) > 0 ?
+                        `${(((parseNumber(data.bookings) * parseNumber(data.costPerConversion) * 5) - parseNumber(data.budget)) / parseNumber(data.budget) * 100).toFixed(0)}%`
                         : "—"}
                     </span>
                   </div>
