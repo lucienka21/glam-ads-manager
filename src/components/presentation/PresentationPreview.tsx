@@ -539,8 +539,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <p className="text-base text-zinc-200 flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>
-              <span className="text-emerald-400 font-bold">Dobra wiadomość:</span> W {getCityInLocative(data.city)} wciąż mało salonów 
-              korzysta z płatnych reklam. <span className="text-white font-semibold">To Twoja szansa!</span>
+              <span className="text-emerald-400 font-bold">Dobra wiadomość:</span> W {getCityInLocative(data.city)} niewiele salonów 
+              korzysta z płatnych reklam. <span className="text-white font-semibold">Wyróżnij się, zanim zrobi to konkurencja!</span>
             </span>
           </p>
         </div>
@@ -569,7 +569,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             Reklamy, które <span className="text-pink-400">naprawdę działają</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Zajmujemy się Twoimi reklamami od A do Z — Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
+            Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
           </p>
         </div>
 
@@ -915,13 +915,12 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 </div>
                 <div>
                   <span className="px-2.5 py-1 bg-pink-500/20 rounded-full text-pink-400 text-xs font-bold">GRATIS</span>
-                  <p className="text-zinc-500 text-xs mt-1 line-through">wartość 300 zł</p>
                 </div>
               </div>
               
               <h3 className="text-xl font-bold text-white mb-2">Darmowy audyt profilu</h3>
               <p className="text-zinc-300 text-sm leading-relaxed mb-4">
-                Przeanalizujemy Twój Instagram i Facebook — pokażemy co poprawić, 
+                Przeanalizujemy Twój Instagram i Facebook, pokażemy co poprawić, 
                 żeby Twoje posty były bardziej widoczne. <span className="text-pink-300">Bez zobowiązań.</span>
               </p>
               
@@ -953,7 +952,6 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 </div>
                 <div>
                   <span className="px-2.5 py-1 bg-amber-500/20 rounded-full text-amber-400 text-xs font-bold">GRATIS</span>
-                  <p className="text-zinc-500 text-xs mt-1 line-through">wartość 500 zł</p>
                 </div>
               </div>
               
@@ -979,7 +977,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         <div className="mt-4 bg-gradient-to-r from-pink-500/10 via-fuchsia-500/10 to-pink-500/10 rounded-xl p-4 border border-pink-500/25 text-center">
           <p className="text-base text-zinc-200">
             <Heart className="w-4 h-4 text-pink-400 inline mr-2" />
-            <span className="text-white font-semibold">Nie masz nic do stracenia</span> — sprawdź, jak możemy pomóc Twojemu salonowi!
+            <span className="text-white font-semibold">Nie masz nic do stracenia.</span> Sprawdź, jak możemy pomóc Twojemu salonowi!
           </p>
         </div>
 
@@ -1028,38 +1026,48 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         
         <p className="text-lg text-zinc-300 text-center max-w-2xl mb-8">
           Chętnie opowiemy więcej o tym, jak możemy pomóc {data.salonName || "Twojemu salonowi"}. 
-          Napisz lub zadzwoń — <span className="text-pink-300">odpowiemy na wszystkie pytania!</span>
+          Napisz lub zadzwoń. <span className="text-pink-300">Odpowiemy na wszystkie pytania!</span>
         </p>
 
         {/* Contact cards */}
-        <div className="flex gap-5 mb-8">
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-5 border border-pink-500/25 flex items-center gap-4 min-w-[240px]">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
-              <Mail className="w-6 h-6 text-pink-400" />
+        <div className="flex gap-4 mb-8">
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/25 flex items-center gap-3 min-w-[200px]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
+              <Mail className="w-5 h-5 text-pink-400" />
             </div>
             <div>
               <p className="text-zinc-400 text-xs mb-0.5">Email</p>
-              <p className="text-white font-semibold">kontakt@aurine.pl</p>
+              <p className="text-white font-semibold text-sm">kontakt@aurine.pl</p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-5 border border-blue-500/25 flex items-center gap-4 min-w-[240px]">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/20 border border-blue-500/40 flex items-center justify-center">
-              <Phone className="w-6 h-6 text-blue-400" />
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-blue-500/25 flex items-center gap-3 min-w-[200px]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-500/30 to-indigo-500/20 border border-blue-500/40 flex items-center justify-center">
+              <Phone className="w-5 h-5 text-blue-400" />
             </div>
             <div>
               <p className="text-zinc-400 text-xs mb-0.5">Telefon</p>
-              <p className="text-white font-semibold">+48 XXX XXX XXX</p>
+              <p className="text-white font-semibold text-sm">+48 731 856 524</p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-5 border border-fuchsia-500/25 flex items-center gap-4 min-w-[240px]">
-            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-purple-500/20 border border-fuchsia-500/40 flex items-center justify-center">
-              <Globe className="w-6 h-6 text-fuchsia-400" />
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-emerald-500/25 flex items-center gap-3 min-w-[200px]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/30 to-green-500/20 border border-emerald-500/40 flex items-center justify-center">
+              <MessageCircle className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-zinc-400 text-xs mb-0.5">WhatsApp</p>
+              <p className="text-white font-semibold text-sm">+48 731 856 524</p>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-fuchsia-500/25 flex items-center gap-3 min-w-[200px]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-purple-500/20 border border-fuchsia-500/40 flex items-center justify-center">
+              <Globe className="w-5 h-5 text-fuchsia-400" />
             </div>
             <div>
               <p className="text-zinc-400 text-xs mb-0.5">Strona</p>
-              <p className="text-white font-semibold">aurine.pl</p>
+              <p className="text-white font-semibold text-sm">aurine.pl</p>
             </div>
           </div>
         </div>
