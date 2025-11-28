@@ -22,6 +22,137 @@ interface PresentationPreviewProps {
   currentSlide: number;
 }
 
+// Helper function to convert Polish city names to locative case (miejscownik)
+const getCityInLocative = (city: string): string => {
+  if (!city) return "Twoim mieście";
+  
+  const cityLower = city.toLowerCase().trim();
+  
+  // Common exceptions and irregular forms
+  const exceptions: Record<string, string> = {
+    "warszawa": "Warszawie",
+    "kraków": "Krakowie",
+    "łódź": "Łodzi",
+    "wrocław": "Wrocławiu",
+    "poznań": "Poznaniu",
+    "gdańsk": "Gdańsku",
+    "szczecin": "Szczecinie",
+    "bydgoszcz": "Bydgoszczy",
+    "lublin": "Lublinie",
+    "białystok": "Białymstoku",
+    "katowice": "Katowicach",
+    "gdynia": "Gdyni",
+    "częstochowa": "Częstochowie",
+    "radom": "Radomiu",
+    "sosnowiec": "Sosnowcu",
+    "toruń": "Toruniu",
+    "kielce": "Kielcach",
+    "rzeszów": "Rzeszowie",
+    "gliwice": "Gliwicach",
+    "zabrze": "Zabrzu",
+    "olsztyn": "Olsztynie",
+    "bielsko-biała": "Bielsku-Białej",
+    "bytom": "Bytomiu",
+    "zielona góra": "Zielonej Górze",
+    "rybnik": "Rybniku",
+    "ruda śląska": "Rudzie Śląskiej",
+    "tychy": "Tychach",
+    "opole": "Opolu",
+    "gorzów wielkopolski": "Gorzowie Wielkopolskim",
+    "elbląg": "Elblągu",
+    "płock": "Płocku",
+    "tarnów": "Tarnowie",
+    "chorzów": "Chorzowie",
+    "koszalin": "Koszalinie",
+    "kalisz": "Kaliszu",
+    "legnica": "Legnicy",
+    "grudziądz": "Grudziądzu",
+    "jaworzno": "Jaworznie",
+    "słupsk": "Słupsku",
+    "jastrzębie-zdrój": "Jastrzębiu-Zdroju",
+    "nowy sącz": "Nowym Sączu",
+    "jelenia góra": "Jeleniej Górze",
+    "siedlce": "Siedlcach",
+    "mysłowice": "Mysłowicach",
+    "piła": "Pile",
+    "brodnica": "Brodnicy",
+    "ostrów wielkopolski": "Ostrowie Wielkopolskim",
+    "stargard": "Stargardzie",
+    "gniezno": "Gnieźnie",
+    "ostrołęka": "Ostrołęce",
+    "inowrocław": "Inowrocławiu",
+    "piotrków trybunalski": "Piotrkowie Trybunalskim",
+    "lubin": "Lubinie",
+    "otwock": "Otwocku",
+    "suwałki": "Suwałkach",
+    "starachowice": "Starachowicach",
+    "gorlice": "Gorlicach",
+  };
+  
+  if (exceptions[cityLower]) {
+    return exceptions[cityLower];
+  }
+  
+  // Apply general rules for Polish city name declension
+  const firstLetter = city.charAt(0);
+  const isUpperCase = firstLetter === firstLetter.toUpperCase();
+  
+  // Cities ending in -a (feminine)
+  if (cityLower.endsWith("ica") || cityLower.endsWith("yca")) {
+    // -ica/-yca → -icy (Brodnica → Brodnicy)
+    const base = city.slice(0, -1);
+    return base + "y";
+  }
+  if (cityLower.endsWith("ca")) {
+    // -ca → -cy (Łomża is exception but generally)
+    const base = city.slice(0, -1);
+    return base + "y";
+  }
+  if (cityLower.endsWith("ga") || cityLower.endsWith("ka")) {
+    // -ga/-ka → -dze/-ce (softening)
+    const base = city.slice(0, -2);
+    if (cityLower.endsWith("ga")) return base + "dze";
+    if (cityLower.endsWith("ka")) return base + "ce";
+  }
+  if (cityLower.endsWith("wa") || cityLower.endsWith("awa")) {
+    // -wa/-awa → -wie (Warszawa → Warszawie)
+    const base = city.slice(0, -1);
+    return base + "ie";
+  }
+  if (cityLower.endsWith("a")) {
+    // General -a → -ie
+    const base = city.slice(0, -1);
+    return base + "ie";
+  }
+  
+  // Cities ending in consonants (masculine)
+  if (cityLower.endsWith("ów")) {
+    // -ów → -owie (Kraków → Krakowie)
+    const base = city.slice(0, -2);
+    return base + "owie";
+  }
+  if (cityLower.endsWith("ń")) {
+    // -ń → -niu (Poznań → Poznaniu)
+    const base = city.slice(0, -1);
+    return base + "niu";
+  }
+  if (cityLower.endsWith("w") || cityLower.endsWith("aw") || cityLower.endsWith("ław")) {
+    // -w → -wiu (Wrocław → Wrocławiu)
+    return city + "iu";
+  }
+  if (cityLower.endsWith("k") || cityLower.endsWith("g")) {
+    // -k/-g → -ku/-gu (Gdańsk → Gdańsku)
+    return city + "u";
+  }
+  if (cityLower.endsWith("n") || cityLower.endsWith("m") || cityLower.endsWith("l")) {
+    // consonants → +ie (Lublin → Lublinie)
+    return city + "ie";
+  }
+  
+  // Default: add -ie
+  return city + "ie";
+};
+
 export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewProps) => {
   const totalSlides = 6;
 
@@ -380,8 +511,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               <div>
                 <h3 className="text-lg font-bold text-white mb-1.5">Organiczne zasięgi to przeszłość</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Kiedyś wystarczyło regularnie postować. Dziś zasięgi organiczne <span className="text-rose-400 font-semibold">spadły o 80%</span> — 
-                  bez płatnej promocji trudno dotrzeć do nowych osób.
+                  Kiedyś wystarczyło regularnie postować. Dziś zasięgi organiczne <span className="text-rose-400 font-semibold">spadły o 80%</span>. 
+                  Bez płatnej promocji trudno dotrzeć do nowych osób.
                 </p>
               </div>
             </div>
@@ -408,8 +539,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <p className="text-base text-zinc-200 flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>
-              <span className="text-emerald-400 font-bold">Dobra wiadomość:</span> W {data.city || "Twoim mieście"} wciąż mało salonów 
-              korzysta z płatnych reklam — <span className="text-white font-semibold">to Twoja szansa!</span>
+              <span className="text-emerald-400 font-bold">Dobra wiadomość:</span> W {getCityInLocative(data.city)} wciąż mało salonów 
+              korzysta z płatnych reklam. <span className="text-white font-semibold">To Twoja szansa!</span>
             </span>
           </p>
         </div>
@@ -724,7 +855,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <p className="text-base text-center text-zinc-200 flex items-center justify-center gap-3">
             <Shield className="w-5 h-5 text-emerald-400" />
             <span>
-              <span className="text-emerald-400 font-bold">Bez umów na rok</span> — współpracujemy miesiąc do miesiąca. 
+              <span className="text-emerald-400 font-bold">Bez umów na rok.</span> Współpracujemy miesiąc do miesiąca. 
               <span className="text-white font-medium"> Możesz zrezygnować kiedy chcesz.</span>
             </span>
           </p>
@@ -767,7 +898,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             Specjalnie dla <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">{data.city || "Twojego miasta"}</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Chcemy, żebyś mogła sprawdzić jak działamy — <span className="text-pink-300">bez żadnego ryzyka</span>
+            Chcemy, żebyś mogła sprawdzić jak działamy. <span className="text-pink-300">Bez żadnego ryzyka</span>
           </p>
         </div>
 
