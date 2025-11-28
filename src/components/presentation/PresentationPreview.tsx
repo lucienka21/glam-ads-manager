@@ -65,29 +65,54 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
     </div>
   );
 
-  // Beauty decoration elements
-  const BeautyDecorations = () => (
-    <>
-      {/* Floating beauty icons */}
-      <div className="absolute top-16 right-20 w-20 h-20 rounded-3xl bg-gradient-to-br from-pink-500/15 to-rose-500/10 border border-pink-500/20 flex items-center justify-center backdrop-blur-sm">
-        <div className="relative">
-          <Flower2 className="w-10 h-10 text-pink-400/70" />
-          <Sparkle className="w-4 h-4 text-pink-300 absolute -top-1 -right-1" />
+  // Centered beauty graphics cluster component
+  const CenteredBeautyGraphics = () => (
+    <div className="absolute top-1/2 right-[15%] -translate-y-1/2 w-[400px] h-[400px]">
+      {/* Central large icon */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-3xl bg-gradient-to-br from-pink-500/25 to-rose-500/15 border border-pink-500/30 flex items-center justify-center shadow-xl shadow-pink-500/10">
+        <Flower2 className="w-14 h-14 text-pink-400" />
+      </div>
+      
+      {/* Surrounding icons - evenly distributed */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/10 border border-fuchsia-500/25 flex items-center justify-center">
+        <Heart className="w-8 h-8 text-fuchsia-400" />
+      </div>
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/25 flex items-center justify-center">
+        <Star className="w-8 h-8 text-amber-400" />
+      </div>
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/20 to-pink-500/10 border border-rose-500/25 flex items-center justify-center">
+        <Scissors className="w-8 h-8 text-rose-400" />
+      </div>
+      <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500/20 to-fuchsia-500/10 border border-purple-500/25 flex items-center justify-center">
+        <Palette className="w-8 h-8 text-purple-400" />
+      </div>
+      
+      {/* Diagonal corners */}
+      <div className="absolute top-12 left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/15 to-rose-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Sparkle className="w-6 h-6 text-pink-400/80" />
+      </div>
+      <div className="absolute top-12 right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/15 to-pink-500/10 border border-rose-500/20 flex items-center justify-center">
+        <Sparkles className="w-6 h-6 text-rose-400/80" />
+      </div>
+      <div className="absolute bottom-12 left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/10 border border-fuchsia-500/20 flex items-center justify-center">
+        <Award className="w-6 h-6 text-fuchsia-400/80" />
+      </div>
+      <div className="absolute bottom-12 right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-teal-500/15 to-emerald-500/10 border border-teal-500/20 flex items-center justify-center">
+        <ThumbsUp className="w-6 h-6 text-teal-400/80" />
+      </div>
+      
+      {/* Social media badges centered below */}
+      <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 flex gap-3">
+        <div className="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-blue-500/10 rounded-xl border border-blue-500/30 flex items-center gap-2 backdrop-blur-sm">
+          <Facebook className="w-5 h-5 text-blue-400" />
+          <span className="text-blue-300 text-sm font-medium">Facebook Ads</span>
+        </div>
+        <div className="px-4 py-2 bg-gradient-to-r from-pink-600/20 to-fuchsia-500/10 rounded-xl border border-pink-500/30 flex items-center gap-2 backdrop-blur-sm">
+          <Instagram className="w-5 h-5 text-pink-400" />
+          <span className="text-pink-300 text-sm font-medium">Instagram Ads</span>
         </div>
       </div>
-      <div className="absolute top-40 right-48 w-14 h-14 rounded-2xl bg-gradient-to-br from-fuchsia-500/15 to-purple-500/10 border border-fuchsia-500/20 flex items-center justify-center">
-        <Heart className="w-7 h-7 text-fuchsia-400/70" />
-      </div>
-      <div className="absolute bottom-32 right-24 w-16 h-16 rounded-2xl bg-gradient-to-br from-rose-500/15 to-pink-500/10 border border-rose-500/20 flex items-center justify-center">
-        <Scissors className="w-8 h-8 text-rose-400/70" />
-      </div>
-      <div className="absolute bottom-48 right-56 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 border border-amber-500/20 flex items-center justify-center">
-        <Palette className="w-6 h-6 text-amber-400/70" />
-      </div>
-      <div className="absolute top-28 right-72 w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/10 to-fuchsia-500/10 border border-pink-500/15 flex items-center justify-center">
-        <Sparkles className="w-5 h-5 text-pink-400/50" />
-      </div>
-    </>
+    </div>
   );
 
   // Slide 1: Welcome - warm, personal introduction with lots of graphics
@@ -100,47 +125,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      {/* Decorative beauty elements on the right side */}
-      <BeautyDecorations />
-
-      {/* Large decorative salon image placeholder */}
-      <div className="absolute top-24 right-16 w-[420px] h-[320px] rounded-3xl bg-gradient-to-br from-pink-900/40 via-zinc-900/60 to-fuchsia-900/30 border border-pink-500/20 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_40%,rgba(236,72,153,0.3),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_60%,rgba(217,70,239,0.2),transparent_50%)]" />
-        
-        {/* Beauty salon elements inside */}
-        <div className="absolute top-8 left-8 w-24 h-24 rounded-2xl bg-gradient-to-br from-pink-500/25 to-rose-500/15 border border-pink-500/30 flex items-center justify-center">
-          <Flower2 className="w-12 h-12 text-pink-400" />
-        </div>
-        <div className="absolute top-12 right-12 w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500/25 to-purple-500/15 border border-fuchsia-500/30 flex items-center justify-center">
-          <Scissors className="w-8 h-8 text-fuchsia-400" />
-        </div>
-        <div className="absolute bottom-16 left-12 w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500/25 to-pink-500/15 border border-rose-500/30 flex items-center justify-center">
-          <Palette className="w-10 h-10 text-rose-400" />
-        </div>
-        <div className="absolute bottom-8 right-8 w-28 h-28 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30 flex items-center justify-center">
-          <div className="text-center">
-            <Heart className="w-10 h-10 text-amber-400 mx-auto mb-1" />
-            <span className="text-amber-300/80 text-xs font-medium">Beauty</span>
-          </div>
-        </div>
-        
-        {/* Floating sparkles */}
-        <Sparkle className="absolute top-1/2 left-1/2 w-6 h-6 text-pink-400/50" />
-        <Star className="absolute top-1/3 right-1/3 w-5 h-5 text-amber-400/40" />
-      </div>
-
-      {/* Social media badges floating */}
-      <div className="absolute top-[360px] right-24 flex gap-3">
-        <div className="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-blue-500/10 rounded-xl border border-blue-500/30 flex items-center gap-2 backdrop-blur-sm">
-          <Facebook className="w-5 h-5 text-blue-400" />
-          <span className="text-blue-300 text-sm font-medium">Facebook Ads</span>
-        </div>
-        <div className="px-4 py-2 bg-gradient-to-r from-pink-600/20 to-fuchsia-500/10 rounded-xl border border-pink-500/30 flex items-center gap-2 backdrop-blur-sm">
-          <Instagram className="w-5 h-5 text-pink-400" />
-          <span className="text-pink-300 text-sm font-medium">Instagram Ads</span>
-        </div>
-      </div>
+      {/* Centered beauty graphics cluster */}
+      <CenteredBeautyGraphics />
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
         <Header subtitle="Prezentacja dla Twojego salonu" />
