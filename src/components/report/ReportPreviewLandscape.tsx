@@ -365,21 +365,21 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                   <p className="text-[10px] text-emerald-300">Dalsze działania</p>
                 </div>
               </div>
-              <div className="space-y-1.5 flex-1 overflow-hidden">
+              <div className="space-y-1 flex-1 overflow-hidden">
                 {data.recommendations ? (
                   data.recommendations
                     .split("\n")
                     .filter((line) => line.trim())
-                    .slice(0, 5)
+                    .slice(0, 7)
                     .map((rec, idx) => {
                       const shortRec =
-                        rec.length > 70 ? `${rec.slice(0, 67)}...` : rec;
+                        rec.length > 85 ? `${rec.slice(0, 82)}...` : rec;
                       return (
                         <div key={idx} className="flex gap-2">
                           <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
                           </div>
-                          <p className="text-[10px] text-zinc-300 leading-snug">{shortRec}</p>
+                          <p className="text-[9px] text-zinc-300 leading-snug">{shortRec}</p>
                         </div>
                       );
                     })
@@ -389,40 +389,56 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                       <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-[8px] font-bold text-emerald-400">1</span>
                       </div>
-                      <p className="text-[10px] text-zinc-300 leading-snug">
-                        Zwiększ budżet w godzinach 16-20 (peak).
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Zwiększ budżet w piątki i soboty o 40% (peak rezerwacji)
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-[8px] font-bold text-emerald-400">2</span>
                       </div>
-                      <p className="text-[10px] text-zinc-300 leading-snug">
-                        Dodaj remarketing dla niedokończonych.
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Dodaj remarketing 3-dniowy dla niedokończonych rezerwacji
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-[8px] font-bold text-emerald-400">3</span>
                       </div>
-                      <p className="text-[10px] text-zinc-300 leading-snug">
-                        Pokaż efekt "przed i po" w kreacjach.
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Stwórz karuzelę z efektami przed/po z 3 zabiegów
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-[8px] font-bold text-emerald-400">4</span>
                       </div>
-                      <p className="text-[10px] text-zinc-300 leading-snug">
-                        Testuj karuzele i video formaty.
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Przetestuj grupy 25-40 lat zamiast szerokiej 18-55
                       </p>
                     </div>
                     <div className="flex gap-2">
                       <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <span className="text-[8px] font-bold text-emerald-400">5</span>
                       </div>
-                      <p className="text-[10px] text-zinc-300 leading-snug">
-                        Wprowadź limitowane promocje sezonowe.
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Włącz lokalizację 10km od salonu zamiast miasta
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[8px] font-bold text-emerald-400">6</span>
+                      </div>
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Uruchom kampanię lookalike 1% na bazie klientek
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[8px] font-bold text-emerald-400">7</span>
+                      </div>
+                      <p className="text-[9px] text-zinc-300 leading-snug">
+                        Dodaj pilność: "ostatnie miejsca na ten tydzień"
                       </p>
                     </div>
                   </>

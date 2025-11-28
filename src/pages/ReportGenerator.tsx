@@ -679,8 +679,7 @@ const ReportGenerator = () => {
                             onClick={generateAIRecommendations}
                             disabled={isGeneratingAI}
                             size="sm"
-                            variant="outline"
-                            className="border-purple-500 text-purple-400 hover:bg-purple-950 h-7 text-xs"
+                            className="bg-purple-900 border border-purple-500 text-purple-300 hover:bg-purple-800 h-7 text-xs"
                           >
                             <Sparkles className="w-3 h-3 mr-1" />
                             {isGeneratingAI ? "Generuję..." : "Generuj AI"}
@@ -721,9 +720,8 @@ const ReportGenerator = () => {
                   <div className="grid grid-cols-2 sm:flex gap-2">
                     <Button
                       onClick={() => setIsLandscape(true)}
-                      variant="outline"
                       size="sm"
-                      className="border-zinc-700 text-white hover:bg-zinc-800"
+                      className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
                     >
                       <Maximize2 className="w-4 h-4 mr-1.5" />
                       <span className="hidden sm:inline">Pełny ekran</span>

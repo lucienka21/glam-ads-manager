@@ -65,7 +65,109 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
     </div>
   );
 
-  // Centered beauty graphics cluster component
+  // Phone mockup with Facebook Ads for slide 1
+  const PhoneFacebookAds = () => (
+    <div className="absolute top-1/2 right-[12%] -translate-y-1/2">
+      {/* Phone frame */}
+      <div className="relative w-[280px] h-[560px] bg-gradient-to-b from-zinc-800 to-zinc-900 rounded-[40px] p-3 shadow-2xl shadow-pink-500/20 border border-zinc-700">
+        {/* Phone notch */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 w-24 h-6 bg-black rounded-full z-20" />
+        
+        {/* Screen */}
+        <div className="w-full h-full bg-gradient-to-b from-zinc-950 to-black rounded-[32px] overflow-hidden relative">
+          {/* Status bar */}
+          <div className="h-10 bg-black/50 flex items-center justify-between px-6 pt-2">
+            <span className="text-white text-[10px]">9:41</span>
+            <div className="flex items-center gap-1">
+              <div className="w-4 h-2 border border-white/60 rounded-sm">
+                <div className="w-3/4 h-full bg-white/60 rounded-sm" />
+              </div>
+            </div>
+          </div>
+          
+          {/* Facebook header */}
+          <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-3 flex items-center gap-3">
+            <Facebook className="w-6 h-6 text-white" />
+            <span className="text-white font-bold text-sm">Menedżer reklam</span>
+          </div>
+          
+          {/* Ad preview card */}
+          <div className="p-3 space-y-3">
+            <div className="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                  <Flower2 className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="text-white text-[10px] font-semibold">{data.salonName || "Twój Salon"}</p>
+                  <p className="text-zinc-500 text-[8px]">Sponsorowane</p>
+                </div>
+              </div>
+              
+              {/* Ad image placeholder */}
+              <div className="w-full h-32 bg-gradient-to-br from-pink-500/30 via-fuchsia-500/20 to-rose-500/30 rounded-lg flex items-center justify-center mb-2 relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2240%22%20height%3D%2240%22%20viewBox%3D%220%200%2040%2040%22%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%2220%22%20r%3D%221%22%20fill%3D%22rgba(255%2C255%2C255%2C0.1)%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+                <div className="text-center z-10">
+                  <Scissors className="w-8 h-8 text-pink-300 mx-auto mb-1" />
+                  <p className="text-white text-xs font-medium">Zabieg marzeń</p>
+                  <p className="text-pink-300 text-[10px]">-30% do końca tygodnia</p>
+                </div>
+              </div>
+              
+              <p className="text-white text-[9px] mb-2">✨ Umów wizytę już dziś i odkryj prawdziwe piękno!</p>
+              
+              <div className="bg-gradient-to-r from-pink-600 to-rose-600 rounded-lg py-2 text-center">
+                <span className="text-white text-[10px] font-bold">Zarezerwuj teraz</span>
+              </div>
+            </div>
+            
+            {/* Stats preview */}
+            <div className="bg-zinc-900/60 rounded-xl p-3 border border-emerald-500/20">
+              <p className="text-emerald-400 text-[9px] font-medium mb-2">📊 Wyniki kampanii</p>
+              <div className="grid grid-cols-2 gap-2">
+                <div className="text-center">
+                  <p className="text-white text-sm font-bold">2,547</p>
+                  <p className="text-zinc-500 text-[8px]">Kliknięcia</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-pink-400 text-sm font-bold">142</p>
+                  <p className="text-zinc-500 text-[8px]">Rezerwacje</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Floating elements around phone */}
+      <div className="absolute -top-6 -left-6 w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500/30 to-blue-600/20 border border-blue-500/40 flex items-center justify-center shadow-lg">
+        <Facebook className="w-7 h-7 text-blue-400" />
+      </div>
+      <div className="absolute -bottom-4 -left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center shadow-lg">
+        <Instagram className="w-6 h-6 text-pink-400" />
+      </div>
+      <div className="absolute top-20 -right-6 w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/30 to-teal-500/20 border border-emerald-500/40 flex items-center justify-center shadow-lg">
+        <TrendingUp className="w-5 h-5 text-emerald-400" />
+      </div>
+      <div className="absolute bottom-24 -right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-500/20 border border-amber-500/40 flex items-center justify-center shadow-lg">
+        <Star className="w-6 h-6 text-amber-400" />
+      </div>
+      
+      {/* Social media badges */}
+      <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="px-3 py-1.5 bg-gradient-to-r from-blue-600/25 to-blue-500/15 rounded-lg border border-blue-500/35 flex items-center gap-1.5 backdrop-blur-sm">
+          <Facebook className="w-4 h-4 text-blue-400" />
+          <span className="text-blue-300 text-xs font-medium">Facebook</span>
+        </div>
+        <div className="px-3 py-1.5 bg-gradient-to-r from-pink-600/25 to-fuchsia-500/15 rounded-lg border border-pink-500/35 flex items-center gap-1.5 backdrop-blur-sm">
+          <Instagram className="w-4 h-4 text-pink-400" />
+          <span className="text-pink-300 text-xs font-medium">Instagram</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // Centered beauty graphics cluster component for other slides
   const CenteredBeautyGraphics = () => (
     <div className="absolute top-1/2 right-[15%] -translate-y-1/2 w-[400px] h-[400px]">
       {/* Central large icon */}
@@ -115,18 +217,18 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
     </div>
   );
 
-  // Slide 1: Welcome - warm, personal introduction with lots of graphics
+  // Slide 1: Welcome - warm, personal introduction with phone mockup
   const Slide1 = () => (
     <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Rich background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-pink-500/20 via-fuchsia-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-rose-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-blue-600/10 to-transparent rounded-full blur-3xl" />
       </div>
 
-      {/* Centered beauty graphics cluster */}
-      <CenteredBeautyGraphics />
+      {/* Phone with Facebook Ads mockup */}
+      <PhoneFacebookAds />
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
         <Header subtitle="Prezentacja dla Twojego salonu" />
