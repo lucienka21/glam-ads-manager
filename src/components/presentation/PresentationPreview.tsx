@@ -192,45 +192,50 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
-      {/* Right side visual - social media frustration illustration */}
-      <div className="absolute top-20 right-12 w-[380px]">
-        {/* Phone mockup showing low reach */}
-        <div className="relative">
-          <div className="w-52 h-80 bg-zinc-900 rounded-[32px] p-1.5 shadow-2xl shadow-pink-500/10 border border-zinc-700 mx-auto">
-            <div className="w-full h-full bg-black rounded-[26px] overflow-hidden relative">
-              <div className="bg-zinc-900 px-3 py-2 flex items-center justify-between border-b border-zinc-800">
-                <Instagram className="w-4 h-4 text-zinc-400" />
-                <span className="text-xs text-zinc-400">Statystyki posta</span>
-              </div>
-              <div className="p-4 space-y-3">
-                <div className="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800">
-                  <p className="text-zinc-500 text-xs mb-1">Zasięg organiczny</p>
-                  <p className="text-2xl font-bold text-zinc-400">47</p>
-                  <p className="text-xs text-zinc-600">z 1,200 obserwujących</p>
-                </div>
-                <div className="bg-zinc-900/80 rounded-xl p-3 border border-zinc-800">
-                  <p className="text-zinc-500 text-xs mb-1">Reakcje</p>
-                  <p className="text-xl font-bold text-zinc-400">12</p>
-                </div>
-                <div className="bg-red-500/10 rounded-xl p-3 border border-red-500/20">
-                  <p className="text-red-400 text-xs flex items-center gap-1.5">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    Tylko 4% osób zobaczyło
-                  </p>
-                </div>
-              </div>
-            </div>
+      {/* Centered graphics cluster for challenges */}
+      <div className="absolute top-1/2 right-[15%] -translate-y-1/2 w-[400px] h-[400px]">
+        {/* Central large icon - showing frustration/challenge */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-3xl bg-gradient-to-br from-rose-500/25 to-pink-500/15 border border-rose-500/30 flex items-center justify-center shadow-xl shadow-rose-500/10">
+          <Instagram className="w-14 h-14 text-rose-400" />
+        </div>
+        
+        {/* Surrounding icons - evenly distributed */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-zinc-700/40 to-zinc-800/20 border border-zinc-600/25 flex items-center justify-center">
+          <TrendingUp className="w-8 h-8 text-zinc-400 rotate-180" />
+        </div>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/25 flex items-center justify-center">
+          <Clock className="w-8 h-8 text-amber-400" />
+        </div>
+        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500/20 to-rose-500/10 border border-pink-500/25 flex items-center justify-center">
+          <Eye className="w-8 h-8 text-pink-400" />
+        </div>
+        <div className="absolute top-1/2 right-0 -translate-y-1/2 w-16 h-16 rounded-2xl bg-gradient-to-br from-fuchsia-500/20 to-purple-500/10 border border-fuchsia-500/25 flex items-center justify-center">
+          <XCircle className="w-8 h-8 text-fuchsia-400" />
+        </div>
+        
+        {/* Diagonal corners */}
+        <div className="absolute top-12 left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-rose-500/15 to-pink-500/10 border border-rose-500/20 flex items-center justify-center">
+          <AlertCircle className="w-6 h-6 text-rose-400/80" />
+        </div>
+        <div className="absolute top-12 right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-zinc-600/15 to-zinc-700/10 border border-zinc-600/20 flex items-center justify-center">
+          <Megaphone className="w-6 h-6 text-zinc-400/80" />
+        </div>
+        <div className="absolute bottom-12 left-8 w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/15 to-fuchsia-500/10 border border-pink-500/20 flex items-center justify-center">
+          <Flower2 className="w-6 h-6 text-pink-400/80" />
+        </div>
+        <div className="absolute bottom-12 right-8 w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500/15 to-orange-500/10 border border-amber-500/20 flex items-center justify-center">
+          <DollarSign className="w-6 h-6 text-amber-400/80" />
+        </div>
+        
+        {/* Stats badges centered below */}
+        <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 flex gap-3">
+          <div className="px-4 py-2 bg-gradient-to-r from-rose-600/20 to-red-500/10 rounded-xl border border-rose-500/30 flex items-center gap-2 backdrop-blur-sm">
+            <TrendingUp className="w-5 h-5 text-rose-400 rotate-180" />
+            <span className="text-rose-300 text-sm font-medium">-80% zasięgów</span>
           </div>
-          
-          {/* Floating sad stats */}
-          <div className="absolute -left-16 top-8 bg-zinc-900/95 backdrop-blur rounded-xl p-3 border border-zinc-700">
-            <p className="text-xs text-zinc-500 mb-1">Zasięgi spadły o</p>
-            <p className="text-xl font-bold text-rose-400">-80%</p>
-          </div>
-          <div className="absolute -right-8 bottom-20 bg-zinc-900/95 backdrop-blur rounded-xl p-3 border border-zinc-700">
-            <Eye className="w-5 h-5 text-zinc-500 mb-1" />
-            <p className="text-xs text-zinc-400">5-10%</p>
-            <p className="text-[10px] text-zinc-600">widzi post</p>
+          <div className="px-4 py-2 bg-gradient-to-r from-zinc-600/20 to-zinc-500/10 rounded-xl border border-zinc-500/30 flex items-center gap-2 backdrop-blur-sm">
+            <Eye className="w-5 h-5 text-zinc-400" />
+            <span className="text-zinc-300 text-sm font-medium">5-10% widzi</span>
           </div>
         </div>
       </div>
