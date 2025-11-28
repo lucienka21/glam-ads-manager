@@ -539,8 +539,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <p className="text-base text-zinc-200 flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>
-              <span className="text-emerald-400 font-bold">Dobra wiadomość:</span> W {getCityInLocative(data.city)} niewiele salonów 
-              korzysta z płatnych reklam. <span className="text-white font-semibold">Wyróżnij się, zanim zrobi to konkurencja!</span>
+              Wiesz co? W {getCityInLocative(data.city)} wciąż <span className="text-emerald-400 font-semibold">niewiele salonów</span> korzysta 
+              z reklam na Facebooku. To idealna okazja, żeby się wyróżnić i <span className="text-white font-semibold">przyciągnąć nowe klientki zanim zrobi to konkurencja</span>.
             </span>
           </p>
         </div>
@@ -999,20 +999,23 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       <div className="absolute top-16 left-20 w-20 h-20 rounded-2xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
         <Flower2 className="w-10 h-10 text-pink-400/50" />
       </div>
-      <div className="absolute bottom-24 left-28 w-14 h-14 rounded-xl bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
-        <Sparkle className="w-7 h-7 text-fuchsia-400/50" />
+      <div className="absolute bottom-24 left-28 w-14 h-14 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center">
+        <Facebook className="w-7 h-7 text-blue-400/50" />
       </div>
       <div className="absolute top-28 right-24 w-16 h-16 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
         <Heart className="w-8 h-8 text-rose-400/50" />
       </div>
-      <div className="absolute bottom-32 right-32 w-18 h-18 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
-        <Scissors className="w-8 h-8 text-amber-400/50" />
+      <div className="absolute bottom-32 right-32 w-18 h-18 rounded-2xl bg-gradient-to-br from-pink-500/10 to-fuchsia-500/10 border border-pink-500/20 flex items-center justify-center">
+        <Instagram className="w-8 h-8 text-pink-400/50" />
       </div>
       <div className="absolute top-1/2 right-16 w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
         <Palette className="w-6 h-6 text-pink-400/50" />
       </div>
       <div className="absolute top-1/3 left-32 w-10 h-10 rounded-lg bg-fuchsia-500/10 border border-fuchsia-500/20 flex items-center justify-center">
         <Star className="w-5 h-5 text-fuchsia-400/50 fill-fuchsia-400/50" />
+      </div>
+      <div className="absolute bottom-1/3 left-16 w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center">
+        <Scissors className="w-6 h-6 text-amber-400/50" />
       </div>
 
       <div className="relative z-10 h-full flex flex-col items-center justify-center px-16 py-10">
@@ -1046,18 +1049,18 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               <Phone className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-zinc-400 text-xs mb-0.5">Telefon</p>
+              <p className="text-zinc-400 text-xs mb-0.5">Telefon / WhatsApp</p>
               <p className="text-white font-semibold text-sm">+48 731 856 524</p>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-emerald-500/25 flex items-center gap-3 min-w-[200px]">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-emerald-500/30 to-green-500/20 border border-emerald-500/40 flex items-center justify-center">
-              <MessageCircle className="w-5 h-5 text-emerald-400" />
+          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/25 flex items-center gap-3 min-w-[200px]">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
+              <Instagram className="w-5 h-5 text-pink-400" />
             </div>
             <div>
-              <p className="text-zinc-400 text-xs mb-0.5">WhatsApp</p>
-              <p className="text-white font-semibold text-sm">+48 731 856 524</p>
+              <p className="text-zinc-400 text-xs mb-0.5">Instagram</p>
+              <p className="text-white font-semibold text-sm">@aurine.agency</p>
             </div>
           </div>
 
