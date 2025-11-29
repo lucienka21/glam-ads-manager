@@ -7,7 +7,7 @@ import { ArrowLeft, Sparkles, Download, Maximize2, FileImage } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ReportPreview } from "@/components/report/ReportPreview";
@@ -49,7 +49,7 @@ const ReportGenerator = () => {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const { history, saveReport, deleteReport, clearHistory } = useReportHistory();
-  const containerClass = isLandscape ? "mx-auto" : "max-w-7xl mx-auto";
+  const containerClass = isLandscape ? "mx-auto" : "max-w-6xl mx-auto";
 
   const parseReportPeriod = (period: string): string => {
     const monthMap: { [key: string]: string } = {
@@ -305,53 +305,55 @@ const ReportGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black p-8">
-      <div className={containerClass}>
+    <div className="min-h-screen bg-background dark">
+      {/* Subtle background */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" />
+
+      <div className={`relative z-10 ${containerClass} px-6 py-8`}>
         <div className="flex items-center gap-4 mb-8">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => navigate("/")}
-            className="hover:bg-zinc-800 text-white"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-4xl font-bold text-white">
+            <h1 className="text-2xl font-semibold text-foreground font-sans">
               Generator Raportów Facebook Ads
             </h1>
-            <p className="text-zinc-400 text-lg">
+            <p className="text-muted-foreground">
               Profesjonalne raporty dla salonów beauty - Aurine Agency
             </p>
           </div>
         </div>
 
         {isLandscape && reportData ? (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
             <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
               <div>
-                <h2 className="text-2xl font-bold text-white">
-                  Podgląd - tryb pełnoekranowy (poziomy)
+                <h2 className="text-xl font-semibold text-foreground font-sans">
+                  Podgląd - tryb pełnoekranowy
                 </h2>
-                <p className="text-zinc-400 text-sm">
-                  Widok poziomy dopasowany do szerokości ekranu komputera.
+                <p className="text-muted-foreground text-sm">
+                  Widok poziomy dopasowany do szerokości ekranu.
                 </p>
               </div>
               <div className="flex items-center gap-2">
                 <Button
                   onClick={() => setIsLandscape(false)}
                   size="sm"
-                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
+                  variant="outline"
                 >
                   <ArrowLeft className="w-4 h-4 mr-1.5" />
                   Powrót
                 </Button>
-                <div className="h-6 w-px bg-zinc-700" />
+                <div className="h-6 w-px bg-border" />
                 <Button
                   onClick={downloadAsImage}
                   disabled={isGenerating}
                   size="sm"
-                  className="bg-emerald-900 border border-emerald-600 text-emerald-400 hover:bg-emerald-800"
+                  variant="success"
                 >
                   <FileImage className="w-4 h-4 mr-1.5" />
                   PNG
@@ -360,7 +362,6 @@ const ReportGenerator = () => {
                   onClick={generateLandscapePDF}
                   disabled={isGenerating}
                   size="sm"
-                  className="bg-pink-600 hover:bg-pink-700 text-white"
                 >
                   <Download className="w-4 h-4 mr-1.5" />
                   PDF 16:9
@@ -369,7 +370,7 @@ const ReportGenerator = () => {
                   onClick={generatePDF}
                   disabled={isGenerating}
                   size="sm"
-                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
+                  variant="outline"
                 >
                   <Download className="w-4 h-4 mr-1.5" />
                   Pionowy
@@ -377,7 +378,7 @@ const ReportGenerator = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border border-zinc-700 bg-zinc-950/70 p-4 flex items-center justify-center">
+            <div className="rounded-xl border border-border/50 bg-card/50 p-4 flex items-center justify-center">
               <div className="w-full max-w-[1920px]">
                 <ReportPreviewLandscape data={reportData} />
               </div>
@@ -390,223 +391,194 @@ const ReportGenerator = () => {
         ) : (
           <div className="grid lg:grid-cols-2 gap-8">
             <div className="space-y-6">
-              <Card className="p-8 bg-zinc-900/50 border-zinc-800">
-                <h2 className="text-2xl font-bold text-white mb-6">
-                  Dane kampanii Facebook Ads
-                </h2>
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                  <div>
-                    <Label htmlFor="clientName" className="text-white">
-                      Nazwa salonu
-                    </Label>
-                    <Input
-                      id="clientName"
-                      {...register("clientName")}
-                      placeholder="np. Beauty Studio"
-                      className="bg-zinc-950 border-zinc-700 text-white"
-                    />
-                    {errors.clientName && (
-                      <p className="text-red-400 text-sm mt-1">
-                        {errors.clientName.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="city" className="text-white">
-                      Miasto salonu
-                    </Label>
-                    <Input
-                      id="city"
-                      {...register("city")}
-                      placeholder="np. Warszawa"
-                      className="bg-zinc-950 border-zinc-700 text-white"
-                    />
-                    {errors.city && (
-                      <p className="text-red-400 text-sm mt-1">
-                        {errors.city.message}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+              <FormCard title="Dane kampanii Facebook Ads">
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                  <FormRow cols={1}>
                     <div>
-                      <Label htmlFor="period" className="text-white">
-                        Okres
-                      </Label>
+                      <Label htmlFor="clientName">Nazwa salonu</Label>
+                      <Input
+                        id="clientName"
+                        {...register("clientName")}
+                        placeholder="np. Beauty Studio"
+                      />
+                      {errors.clientName && (
+                        <p className="text-destructive text-sm mt-1">
+                          {errors.clientName.message}
+                        </p>
+                      )}
+                    </div>
+                  </FormRow>
+
+                  <FormRow cols={1}>
+                    <div>
+                      <Label htmlFor="city">Miasto salonu</Label>
+                      <Input
+                        id="city"
+                        {...register("city")}
+                        placeholder="np. Warszawa"
+                      />
+                      {errors.city && (
+                        <p className="text-destructive text-sm mt-1">
+                          {errors.city.message}
+                        </p>
+                      )}
+                    </div>
+                  </FormRow>
+
+                  <FormRow>
+                    <div>
+                      <Label htmlFor="period">Okres</Label>
                       <Input
                         id="period"
                         {...register("period")}
                         placeholder="Styczeń 2024"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.period && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.period.message}
                         </p>
                       )}
                     </div>
-
                     <div>
-                      <Label htmlFor="budget" className="text-white">
-                        Budżet (PLN)
-                      </Label>
+                      <Label htmlFor="budget">Budżet (PLN)</Label>
                       <Input
                         id="budget"
                         {...register("budget")}
                         placeholder="5,000"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.budget && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.budget.message}
                         </p>
                       )}
                     </div>
+                  </FormRow>
 
+                  <FormRow>
                     <div>
-                      <Label htmlFor="impressions" className="text-white">
-                        Wyświetlenia
-                      </Label>
+                      <Label htmlFor="impressions">Wyświetlenia</Label>
                       <Input
                         id="impressions"
                         {...register("impressions")}
                         placeholder="150,000"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.impressions && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.impressions.message}
                         </p>
                       )}
                     </div>
-
                     <div>
-                      <Label htmlFor="reach" className="text-white">
-                        Zasięg
-                      </Label>
+                      <Label htmlFor="reach">Zasięg</Label>
                       <Input
                         id="reach"
                         {...register("reach")}
                         placeholder="85,000"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.reach && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.reach.message}
                         </p>
                       )}
                     </div>
+                  </FormRow>
 
+                  <FormRow>
                     <div>
-                      <Label htmlFor="clicks" className="text-white">
-                        Kliknięcia
-                      </Label>
+                      <Label htmlFor="clicks">Kliknięcia</Label>
                       <Input
                         id="clicks"
                         {...register("clicks")}
                         placeholder="3,500"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.clicks && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.clicks.message}
                         </p>
                       )}
                     </div>
-
                     <div>
-                      <Label htmlFor="ctr" className="text-white">
-                        CTR (%)
-                      </Label>
+                      <Label htmlFor="ctr">CTR (%)</Label>
                       <Input
                         id="ctr"
                         {...register("ctr")}
                         placeholder="2.33"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.ctr && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.ctr.message}
                         </p>
                       )}
                     </div>
+                  </FormRow>
 
+                  <FormRow>
                     <div>
-                      <Label htmlFor="conversions" className="text-white">
-                        Konwersje
-                      </Label>
+                      <Label htmlFor="conversions">Konwersje</Label>
                       <Input
                         id="conversions"
                         {...register("conversions")}
                         placeholder="245"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.conversions && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.conversions.message}
                         </p>
                       )}
                     </div>
-
                     <div>
-                      <Label htmlFor="costPerConversion" className="text-white">
-                        Koszt / konwersja (PLN)
-                      </Label>
+                      <Label htmlFor="costPerConversion">Koszt / konwersja (PLN)</Label>
                       <Input
                         id="costPerConversion"
                         {...register("costPerConversion")}
                         placeholder="20.41"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.costPerConversion && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.costPerConversion.message}
                         </p>
                       )}
                     </div>
+                  </FormRow>
 
-                    <div className="col-span-2">
-                      <Label htmlFor="bookings" className="text-white">
-                        Rezerwacje wizyt
-                      </Label>
+                  <FormRow cols={1}>
+                    <div>
+                      <Label htmlFor="bookings">Rezerwacje wizyt</Label>
                       <Input
                         id="bookings"
                         {...register("bookings")}
                         placeholder="178"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                       {errors.bookings && (
-                        <p className="text-red-400 text-sm mt-1">
+                        <p className="text-destructive text-sm mt-1">
                           {errors.bookings.message}
                         </p>
                       )}
                     </div>
+                  </FormRow>
 
-                    <div className="col-span-2">
-                      <Label htmlFor="campaignObjective" className="text-white">
-                        Cel kampanii (opcjonalnie)
-                      </Label>
+                  <FormRow cols={1}>
+                    <div>
+                      <Label htmlFor="campaignObjective">Cel kampanii (opcjonalnie)</Label>
                       <Input
                         id="campaignObjective"
                         {...register("campaignObjective")}
                         placeholder="np. Zwiększenie rezerwacji wizyt"
-                        className="bg-zinc-950 border-zinc-700 text-white"
                       />
                     </div>
+                  </FormRow>
 
-                    <div className="col-span-2">
-                      <Label htmlFor="campaignStatus" className="text-white">
-                        Status kampanii (opcjonalnie)
-                      </Label>
+                  <FormRow cols={1}>
+                    <div>
+                      <Label htmlFor="campaignStatus">Status kampanii (opcjonalnie)</Label>
                       <Select
                         value={watch("campaignStatus") || ""}
                         onValueChange={(value) => setValue("campaignStatus", value, { shouldValidate: true })}
                       >
-                        <SelectTrigger className="bg-zinc-950 border-zinc-700 text-white">
+                        <SelectTrigger className="bg-secondary/30 border-border/50">
                           <SelectValue placeholder="Wybierz status kampanii" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-950 border-zinc-700 text-white">
+                        <SelectContent className="bg-card border-border">
                           <SelectItem value="Aktywna">Aktywna</SelectItem>
                           <SelectItem value="Zakończona">Zakończona</SelectItem>
                           <SelectItem value="Wstrzymana">Wstrzymana</SelectItem>
@@ -614,72 +586,59 @@ const ReportGenerator = () => {
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
+                  </FormRow>
 
-                  <div className="pt-4 border-t border-zinc-700">
-                    <h3 className="text-white font-semibold mb-4 text-sm">
+                  <div className="pt-5 border-t border-border/50">
+                    <h3 className="text-foreground font-semibold mb-4 text-sm">
                       Dane opcjonalne (wykresy)
                     </h3>
                     <div className="space-y-4">
                       <div>
-                        <Label htmlFor="engagementRate" className="text-zinc-300 text-sm">
-                          Współczynnik zaangażowania (%)
-                        </Label>
+                        <Label htmlFor="engagementRate">Współczynnik zaangażowania (%)</Label>
                         <Input
                           id="engagementRate"
                           {...register("engagementRate")}
                           placeholder="np. 65"
-                          className="bg-zinc-950 border-zinc-700 text-white"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="weeklyReachData" className="text-zinc-300 text-sm">
-                          Zasięg tygodniowy (4 wartości, oddziel przecinkami)
-                        </Label>
+                        <Label htmlFor="weeklyReachData">Zasięg tygodniowy (4 wartości, oddziel przecinkami)</Label>
                         <Input
                           id="weeklyReachData"
                           {...register("weeklyReachData")}
                           placeholder="np. 15000,19000,25000,26000"
-                          className="bg-zinc-950 border-zinc-700 text-white"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="weeklyClicksData" className="text-zinc-300 text-sm">
-                          Kliknięcia tygodniowe (4 wartości, oddziel przecinkami)
-                        </Label>
+                        <Label htmlFor="weeklyClicksData">Kliknięcia tygodniowe (4 wartości, oddziel przecinkami)</Label>
                         <Input
                           id="weeklyClicksData"
                           {...register("weeklyClicksData")}
                           placeholder="np. 650,820,1100,930"
-                          className="bg-zinc-950 border-zinc-700 text-white"
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="dailyBookingsData" className="text-zinc-300 text-sm">
-                          Rezerwacje dzienne (7 dni, oddziel przecinkami)
-                        </Label>
+                        <Label htmlFor="dailyBookingsData">Rezerwacje dzienne (7 dni, oddziel przecinkami)</Label>
                         <Input
                           id="dailyBookingsData"
                           {...register("dailyBookingsData")}
                           placeholder="np. 22,28,32,35,38,42,25"
-                          className="bg-zinc-950 border-zinc-700 text-white"
                         />
                       </div>
 
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <Label htmlFor="recommendations" className="text-zinc-300 text-sm">
-                            Rekomendacje marketingowe
-                          </Label>
+                          <Label htmlFor="recommendations">Rekomendacje marketingowe</Label>
                           <Button
                             type="button"
                             onClick={generateAIRecommendations}
                             disabled={isGeneratingAI}
                             size="sm"
-                            className="bg-purple-900 border border-purple-500 text-purple-300 hover:bg-purple-800 h-7 text-xs"
+                            variant="secondary"
+                            className="h-7 text-xs"
                           >
                             <Sparkles className="w-3 h-3 mr-1" />
                             {isGeneratingAI ? "Generuję..." : "Generuj AI"}
@@ -690,20 +649,17 @@ const ReportGenerator = () => {
                           {...register("recommendations")}
                           rows={5}
                           placeholder="Wpisz rekomendacje lub kliknij 'Generuj AI'"
-                          className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 text-white rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"
+                          className="w-full px-4 py-2.5 bg-secondary/30 border border-border/50 text-foreground rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all"
                         />
                       </div>
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-pink-600 hover:bg-pink-700 text-white"
-                  >
+                  <Button type="submit" className="w-full">
                     Generuj podgląd raportu
                   </Button>
                 </form>
-              </Card>
+              </FormCard>
 
               <ReportHistory
                 history={history}
@@ -714,14 +670,14 @@ const ReportGenerator = () => {
             </div>
 
             {reportData && (
-              <div className="space-y-4">
+              <div className="space-y-4 animate-fade-in">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-                  <h2 className="text-2xl font-bold text-white">Podgląd</h2>
+                  <h2 className="text-xl font-semibold text-foreground font-sans">Podgląd</h2>
                   <div className="grid grid-cols-2 sm:flex gap-2">
                     <Button
                       onClick={() => setIsLandscape(true)}
                       size="sm"
-                      className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
+                      variant="outline"
                     >
                       <Maximize2 className="w-4 h-4 mr-1.5" />
                       <span className="hidden sm:inline">Pełny ekran</span>
@@ -731,14 +687,13 @@ const ReportGenerator = () => {
                       onClick={generatePDF}
                       disabled={isGenerating}
                       size="sm"
-                      className="bg-pink-600 hover:bg-pink-700"
                     >
                       <Download className="w-4 h-4 mr-1.5" />
                       {isGenerating ? "..." : "PDF"}
                     </Button>
                   </div>
                 </div>
-                <div className="border-2 border-zinc-700 rounded-lg overflow-hidden">
+                <div className="border border-border/50 rounded-xl overflow-hidden shadow-lg">
                   <ReportPreview data={reportData} />
                 </div>
               </div>

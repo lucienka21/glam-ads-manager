@@ -1,6 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { FileText, Receipt, FileSignature, Presentation } from "lucide-react";
-import { Card } from "@/components/ui/card";
+import { FileText, Receipt, FileSignature, Presentation, ArrowRight } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
 
 const GeneratorSelector = () => {
@@ -13,7 +12,6 @@ const GeneratorSelector = () => {
       description: "Profesjonalne raporty kampanii Facebook Ads z wykresami i metrykami",
       icon: FileText,
       path: "/report-generator",
-      color: "from-pink-500 to-rose-600",
       features: ["Wykresy KPI", "Rekomendacje AI", "PDF/PNG export"],
     },
     {
@@ -22,7 +20,6 @@ const GeneratorSelector = () => {
       description: "Faktury zaliczkowe, końcowe i pełne zwolnione z VAT",
       icon: Receipt,
       path: "/invoice-generator",
-      color: "from-purple-500 to-violet-600",
       features: ["3 typy faktur", "Auto-kalkulacja", "PDF export"],
     },
     {
@@ -31,7 +28,6 @@ const GeneratorSelector = () => {
       description: "Umowy o świadczenie usług marketingowych",
       icon: FileSignature,
       path: "/contract-generator",
-      color: "from-blue-500 to-cyan-600",
       features: ["Klauzule prawne", "RODO", "PDF export"],
     },
     {
@@ -40,83 +36,106 @@ const GeneratorSelector = () => {
       description: "Spersonalizowane prezentacje do cold maili",
       icon: Presentation,
       path: "/presentation-generator",
-      color: "from-amber-500 to-orange-600",
       features: ["6 slajdów", "Case study", "Animacje"],
     },
   ];
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Hero */}
-      <header className="relative py-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pink-500/20 via-transparent to-transparent" />
-        
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          <img 
-            src={agencyLogo} 
-            alt="Aurine Agency" 
-            className="w-24 h-24 mx-auto mb-6 object-contain"
-          />
-          <h1 className="text-5xl font-bold text-white mb-4">
-            Aurine Document Generator
-          </h1>
-          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-            Profesjonalne narzędzia do generowania dokumentów dla agencji marketingowej specjalizującej się w salonach beauty
-          </p>
-        </div>
-      </header>
-
-      {/* Generators Grid */}
-      <main className="max-w-6xl mx-auto px-6 pb-20">
-        <div className="grid md:grid-cols-2 gap-6">
-          {generators.map((gen) => (
-            <Card
-              key={gen.id}
-              onClick={() => navigate(gen.path)}
-              className="group relative p-8 bg-zinc-900/50 border-zinc-800 cursor-pointer transition-all duration-300 hover:border-pink-500/50 hover:shadow-xl hover:shadow-pink-500/10 overflow-hidden"
-            >
-              {/* Gradient overlay on hover */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${gen.color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-              
-              <div className="relative z-10">
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${gen.color} flex items-center justify-center mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                  <gen.icon className="w-7 h-7 text-white" />
-                </div>
-                
-                <h2 className="text-2xl font-bold text-white mb-2 group-hover:text-pink-400 transition-colors">
-                  {gen.title}
-                </h2>
-                <p className="text-zinc-400 mb-6">{gen.description}</p>
-                
-                <div className="flex flex-wrap gap-2">
-                  {gen.features.map((feature, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 rounded-full text-xs font-medium bg-zinc-800 text-zinc-300 border border-zinc-700"
-                    >
-                      {feature}
-                    </span>
-                  ))}
-                </div>
+    <div className="min-h-screen bg-background dark">
+      {/* Subtle background pattern */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.15),transparent)]" />
+      
+      {/* Content */}
+      <div className="relative z-10">
+        {/* Hero Section */}
+        <header className="pt-16 pb-12 px-6">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col items-center text-center mb-12 animate-fade-in">
+              <div className="mb-8 p-4 rounded-2xl bg-card/50 border border-border/30 backdrop-blur-sm">
+                <img 
+                  src={agencyLogo} 
+                  alt="Aurine Agency" 
+                  className="w-20 h-20 object-contain"
+                />
               </div>
-            </Card>
-          ))}
-        </div>
-
-        {/* Footer */}
-        <footer className="mt-16 text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
-            <p className="text-zinc-500 text-sm font-medium">
-              Aurine Agency
-            </p>
+              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4 tracking-tight">
+                Aurine Document Studio
+              </h1>
+              <p className="text-lg text-muted-foreground max-w-xl leading-relaxed">
+                Profesjonalne narzędzia do generowania dokumentów dla agencji marketingowej specjalizującej się w branży beauty
+              </p>
+            </div>
           </div>
-          <p className="text-zinc-600 text-sm">
-            Profesjonalny marketing dla salonów beauty
-          </p>
-          <p className="text-zinc-700 text-xs mt-2">aurine.pl</p>
-        </footer>
-      </main>
+        </header>
+
+        {/* Generators Grid */}
+        <main className="max-w-5xl mx-auto px-6 pb-20">
+          <div className="grid md:grid-cols-2 gap-5">
+            {generators.map((gen, index) => (
+              <button
+                key={gen.id}
+                onClick={() => navigate(gen.path)}
+                className="group relative p-6 bg-card border border-border/50 rounded-2xl text-left
+                         transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5
+                         animate-slide-up"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                {/* Hover gradient overlay */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                
+                <div className="relative z-10">
+                  {/* Icon */}
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5 
+                               group-hover:bg-primary/20 transition-colors duration-300">
+                    <gen.icon className="w-6 h-6 text-primary" />
+                  </div>
+                  
+                  {/* Title & Description */}
+                  <h2 className="text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300 font-sans">
+                    {gen.title}
+                  </h2>
+                  <p className="text-muted-foreground text-sm mb-5 leading-relaxed">
+                    {gen.description}
+                  </p>
+                  
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {gen.features.map((feature, idx) => (
+                      <span
+                        key={idx}
+                        className="px-3 py-1 rounded-full text-xs font-medium 
+                                 bg-secondary text-secondary-foreground border border-border/50"
+                      >
+                        {feature}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Arrow indicator */}
+                  <div className="flex items-center text-primary text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 group-hover:translate-x-1">
+                    <span className="mr-2">Otwórz</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Footer */}
+          <footer className="mt-20 text-center">
+            <div className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-card/50 border border-border/30 backdrop-blur-sm">
+              <img src={agencyLogo} alt="Aurine" className="w-6 h-6 object-contain opacity-70" />
+              <span className="text-muted-foreground text-sm font-medium">
+                Aurine Agency
+              </span>
+              <span className="w-px h-4 bg-border" />
+              <span className="text-muted-foreground/60 text-sm">
+                aurine.pl
+              </span>
+            </div>
+          </footer>
+        </main>
+      </div>
     </div>
   );
 };
