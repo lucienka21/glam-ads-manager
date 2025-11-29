@@ -77,7 +77,8 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
   return (
     <div
       id="report-preview"
-      className="bg-black text-white w-[794px] min-h-[1123px] p-8 mx-auto"
+      className="bg-zinc-950 text-white w-[794px] p-6 mx-auto"
+      style={{ backgroundColor: '#09090b' }}
     >
       {/* Header */}
       <header className="flex items-start justify-between mb-6 border-b border-zinc-800 pb-4">
@@ -233,78 +234,78 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       {/* Charts */}
       <section className="space-y-3 mb-4">
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gradient-to-br from-pink-950/20 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-pink-800/20 p-4 flex flex-col gap-3 backdrop-blur shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-br from-pink-950/20 via-zinc-950/50 to-zinc-950/50 rounded-xl border border-pink-800/20 p-3 flex flex-col gap-2 overflow-hidden">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-pink-500/30 flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-white" />
+              <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-white truncate">Efektywność rezerwacji</h4>
-                <p className="text-[9px] text-pink-300">
+                <h4 className="text-[11px] font-semibold text-white truncate">Efektywność rezerwacji</h4>
+                <p className="text-[8px] text-pink-300">
                   {bookingsNum} z {conversionsNum} konwersji
                 </p>
               </div>
             </div>
             <div className="flex justify-center">
-              <SimplePieChart data={conversionData} size={130} />
+              <SimplePieChart data={conversionData} size={110} />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-950/20 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-blue-800/20 p-4 flex flex-col gap-3 backdrop-blur shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-br from-blue-950/20 via-zinc-950/50 to-zinc-950/50 rounded-xl border border-blue-800/20 p-3 flex flex-col gap-2 overflow-hidden">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/30 flex-shrink-0">
-                <Target className="w-4 h-4 text-white" />
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Target className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-white truncate">Zaangażowanie</h4>
-                <p className="text-[9px] text-blue-300">
+                <h4 className="text-[11px] font-semibold text-white truncate">Zaangażowanie</h4>
+                <p className="text-[8px] text-blue-300">
                   {engagementValue}% zaangażowanych odbiorców
                 </p>
               </div>
             </div>
             <div className="flex justify-center">
-              <SimplePieChart data={engagementData} size={130} />
+              <SimplePieChart data={engagementData} size={110} />
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-gradient-to-br from-purple-950/20 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-purple-800/20 p-4 flex flex-col gap-3 backdrop-blur shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-br from-purple-950/20 via-zinc-950/50 to-zinc-950/50 rounded-xl border border-purple-800/20 p-3 flex flex-col gap-2 overflow-hidden">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/30 flex-shrink-0">
-                <TrendingUp className="w-4 h-4 text-white" />
+              <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-white truncate">Trend tygodniowy</h4>
-                <p className="text-[9px] text-purple-300">Zasięg i kliknięcia</p>
+                <h4 className="text-[11px] font-semibold text-white truncate">Trend tygodniowy</h4>
+                <p className="text-[8px] text-purple-300">Zasięg i kliknięcia</p>
               </div>
             </div>
             <div className="flex justify-center w-full">
               <SimpleLineChart
                 data={weeklyData}
-                width={280}
-                height={120}
+                width={260}
+                height={100}
                 color1="#ec4899"
                 color2="#3b82f6"
               />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-rose-950/20 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-rose-800/20 p-4 flex flex-col gap-3 backdrop-blur shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-br from-rose-950/20 via-zinc-950/50 to-zinc-950/50 rounded-xl border border-rose-800/20 p-3 flex flex-col gap-2 overflow-hidden">
             <div className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-rose-500 to-pink-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-rose-500/30 flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4 text-white" />
+              <div className="bg-gradient-to-br from-rose-500 to-pink-600 w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0">
+                <CheckCircle2 className="w-3.5 h-3.5 text-white" />
               </div>
               <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-white truncate">Rezerwacje dzienne</h4>
-                <p className="text-[9px] text-rose-300">Rozkład tygodniowy</p>
+                <h4 className="text-[11px] font-semibold text-white truncate">Rezerwacje dzienne</h4>
+                <p className="text-[8px] text-rose-300">Rozkład tygodniowy</p>
               </div>
             </div>
             <div className="flex justify-center w-full">
               <SimpleBarChart
                 data={dailyBookings}
-                width={280}
-                height={120}
+                width={260}
+                height={100}
                 color="#ec4899"
               />
             </div>
