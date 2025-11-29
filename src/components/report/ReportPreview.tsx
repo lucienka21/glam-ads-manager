@@ -77,8 +77,8 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
   return (
     <div
       id="report-preview"
-      className="bg-zinc-950 text-white w-[794px] p-6 mx-auto"
-      style={{ backgroundColor: '#09090b' }}
+      className="bg-zinc-950 text-white w-[794px] min-h-[1123px] p-6 mx-auto"
+      style={{ backgroundColor: '#09090b', minHeight: '1123px' }}
     >
       {/* Header */}
       <header className="flex items-start justify-between mb-6 border-b border-zinc-800 pb-4">
