@@ -78,6 +78,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
     <div
       id="report-preview-landscape"
       className="w-[1600px] h-[900px] bg-black text-white rounded-3xl shadow-2xl overflow-hidden"
+      style={{ backgroundColor: '#000000' }}
     >
       <div className="flex h-full">
         {/* Sidebar */}
