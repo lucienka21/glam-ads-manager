@@ -22,13 +22,11 @@ interface PresentationPreviewProps {
   currentSlide: number;
 }
 
-// Helper function to convert Polish city names to locative case (miejscownik)
-const getCityInLocative = (city: string): string => {
-  if (!city) return "Twoim mieście";
+// Helper function to convert a single Polish word to locative case
+const declineSingleWord = (word: string): string => {
+  const wordLower = word.toLowerCase().trim();
   
-  const cityLower = city.toLowerCase().trim();
-  
-  // Common exceptions and irregular forms
+  // Common exceptions and irregular forms for single words
   const exceptions: Record<string, string> = {
     "warszawa": "Warszawie",
     "kraków": "Krakowie",
@@ -51,14 +49,10 @@ const getCityInLocative = (city: string): string => {
     "gliwice": "Gliwicach",
     "zabrze": "Zabrzu",
     "olsztyn": "Olsztynie",
-    "bielsko-biała": "Bielsku-Białej",
     "bytom": "Bytomiu",
-    "zielona góra": "Zielonej Górze",
     "rybnik": "Rybniku",
-    "ruda śląska": "Rudzie Śląskiej",
     "tychy": "Tychach",
     "opole": "Opolu",
-    "gorzów wielkopolski": "Gorzowie Wielkopolskim",
     "elbląg": "Elblągu",
     "płock": "Płocku",
     "tarnów": "Tarnowie",
@@ -69,88 +63,138 @@ const getCityInLocative = (city: string): string => {
     "grudziądz": "Grudziądzu",
     "jaworzno": "Jaworznie",
     "słupsk": "Słupsku",
-    "jastrzębie-zdrój": "Jastrzębiu-Zdroju",
-    "nowy sącz": "Nowym Sączu",
-    "jelenia góra": "Jeleniej Górze",
     "siedlce": "Siedlcach",
     "mysłowice": "Mysłowicach",
     "piła": "Pile",
     "brodnica": "Brodnicy",
-    "ostrów wielkopolski": "Ostrowie Wielkopolskim",
     "stargard": "Stargardzie",
     "gniezno": "Gnieźnie",
     "ostrołęka": "Ostrołęce",
     "inowrocław": "Inowrocławiu",
-    "piotrków trybunalski": "Piotrkowie Trybunalskim",
     "lubin": "Lubinie",
     "otwock": "Otwocku",
     "suwałki": "Suwałkach",
     "starachowice": "Starachowicach",
     "gorlice": "Gorlicach",
+    "ostrów": "Ostrowie",
+    "mazowiecka": "Mazowieckim",
+    "wielkopolski": "Wielkopolskim",
+    "wielkopolska": "Wielkopolskim",
+    "mazowiecki": "Mazowieckim",
+    "śląska": "Śląskiej",
+    "śląski": "Śląskim",
+    "trybunalski": "Trybunalskim",
+    "biała": "Białej",
+    "góra": "Górze",
+    "zdrój": "Zdroju",
+    "sącz": "Sączu",
+    "nowy": "Nowym",
+    "nowa": "Nowej",
+    "zielona": "Zielonej",
+    "jelenia": "Jeleniej",
+    "gorzów": "Gorzowie",
+    "piotrków": "Piotrkowie",
+    "ruda": "Rudzie",
+    "bielsko": "Bielsku",
+    "jastrzębie": "Jastrzębiu",
   };
   
-  if (exceptions[cityLower]) {
-    return exceptions[cityLower];
+  if (exceptions[wordLower]) {
+    // Preserve original capitalization
+    const result = exceptions[wordLower];
+    if (word.charAt(0) === word.charAt(0).toUpperCase()) {
+      return result.charAt(0).toUpperCase() + result.slice(1);
+    }
+    return result;
   }
   
-  // Apply general rules for Polish city name declension
-  const firstLetter = city.charAt(0);
-  const isUpperCase = firstLetter === firstLetter.toUpperCase();
-  
-  // Cities ending in -a (feminine)
-  if (cityLower.endsWith("ica") || cityLower.endsWith("yca")) {
-    // -ica/-yca → -icy (Brodnica → Brodnicy)
-    const base = city.slice(0, -1);
+  // Apply general rules for Polish word declension
+  if (wordLower.endsWith("ica") || wordLower.endsWith("yca")) {
+    const base = word.slice(0, -1);
     return base + "y";
   }
-  if (cityLower.endsWith("ca")) {
-    // -ca → -cy (Łomża is exception but generally)
-    const base = city.slice(0, -1);
+  if (wordLower.endsWith("ca")) {
+    const base = word.slice(0, -1);
     return base + "y";
   }
-  if (cityLower.endsWith("ga") || cityLower.endsWith("ka")) {
-    // -ga/-ka → -dze/-ce (softening)
-    const base = city.slice(0, -2);
-    if (cityLower.endsWith("ga")) return base + "dze";
-    if (cityLower.endsWith("ka")) return base + "ce";
+  if (wordLower.endsWith("ga") || wordLower.endsWith("ka")) {
+    const base = word.slice(0, -2);
+    if (wordLower.endsWith("ga")) return base + "dze";
+    if (wordLower.endsWith("ka")) return base + "ce";
   }
-  if (cityLower.endsWith("wa") || cityLower.endsWith("awa")) {
-    // -wa/-awa → -wie (Warszawa → Warszawie)
-    const base = city.slice(0, -1);
+  if (wordLower.endsWith("wa") || wordLower.endsWith("awa")) {
+    const base = word.slice(0, -1);
     return base + "ie";
   }
-  if (cityLower.endsWith("a")) {
-    // General -a → -ie
-    const base = city.slice(0, -1);
+  if (wordLower.endsWith("a")) {
+    const base = word.slice(0, -1);
     return base + "ie";
   }
-  
-  // Cities ending in consonants (masculine)
-  if (cityLower.endsWith("ów")) {
-    // -ów → -owie (Kraków → Krakowie)
-    const base = city.slice(0, -2);
+  if (wordLower.endsWith("ów")) {
+    const base = word.slice(0, -2);
     return base + "owie";
   }
-  if (cityLower.endsWith("ń")) {
-    // -ń → -niu (Poznań → Poznaniu)
-    const base = city.slice(0, -1);
+  if (wordLower.endsWith("ń")) {
+    const base = word.slice(0, -1);
     return base + "niu";
   }
-  if (cityLower.endsWith("w") || cityLower.endsWith("aw") || cityLower.endsWith("ław")) {
-    // -w → -wiu (Wrocław → Wrocławiu)
-    return city + "iu";
+  if (wordLower.endsWith("w") || wordLower.endsWith("aw") || wordLower.endsWith("ław")) {
+    return word + "iu";
   }
-  if (cityLower.endsWith("k") || cityLower.endsWith("g")) {
-    // -k/-g → -ku/-gu (Gdańsk → Gdańsku)
-    return city + "u";
+  if (wordLower.endsWith("k") || wordLower.endsWith("g")) {
+    return word + "u";
   }
-  if (cityLower.endsWith("n") || cityLower.endsWith("m") || cityLower.endsWith("l")) {
-    // consonants → +ie (Lublin → Lublinie)
-    return city + "ie";
+  if (wordLower.endsWith("n") || wordLower.endsWith("m") || wordLower.endsWith("l")) {
+    return word + "ie";
+  }
+  if (wordLower.endsWith("i") || wordLower.endsWith("y")) {
+    // Adjectives ending in -i/-y → -im/-ym
+    const base = word.slice(0, -1);
+    return base + "im";
   }
   
-  // Default: add -ie
-  return city + "ie";
+  return word + "ie";
+};
+
+// Helper function to convert Polish city names to locative case (miejscownik)
+const getCityInLocative = (city: string): string => {
+  if (!city) return "Twoim mieście";
+  
+  const cityTrimmed = city.trim();
+  
+  // Full multi-word city exceptions
+  const fullExceptions: Record<string, string> = {
+    "bielsko-biała": "Bielsku-Białej",
+    "jastrzębie-zdrój": "Jastrzębiu-Zdroju",
+    "nowy sącz": "Nowym Sączu",
+    "jelenia góra": "Jeleniej Górze",
+    "zielona góra": "Zielonej Górze",
+    "gorzów wielkopolski": "Gorzowie Wielkopolskim",
+    "ostrów wielkopolski": "Ostrowie Wielkopolskim",
+    "ostrów mazowiecka": "Ostrowie Mazowieckim",
+    "piotrków trybunalski": "Piotrkowie Trybunalskim",
+    "ruda śląska": "Rudzie Śląskiej",
+  };
+  
+  const cityLower = cityTrimmed.toLowerCase();
+  if (fullExceptions[cityLower]) {
+    return fullExceptions[cityLower];
+  }
+  
+  // Handle hyphenated cities
+  if (cityTrimmed.includes("-")) {
+    const parts = cityTrimmed.split("-");
+    return parts.map(part => declineSingleWord(part)).join("-");
+  }
+  
+  // Handle multi-word cities (space separated)
+  if (cityTrimmed.includes(" ")) {
+    const words = cityTrimmed.split(" ");
+    return words.map(word => declineSingleWord(word)).join(" ");
+  }
+  
+  // Single word city
+  return declineSingleWord(cityTrimmed);
 };
 
 export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewProps) => {
@@ -539,8 +583,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <p className="text-base text-zinc-200 flex items-center gap-3">
             <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
             <span>
-              Wiesz co? W {getCityInLocative(data.city)} wciąż <span className="text-emerald-400 font-semibold">niewiele salonów</span> korzysta 
-              z reklam na Facebooku. To idealna okazja, żeby się wyróżnić i <span className="text-white font-semibold">przyciągnąć nowe klientki zanim zrobi to konkurencja</span>.
+              W {getCityInLocative(data.city)} wciąż <span className="text-emerald-400 font-semibold">niewiele salonów</span> korzysta 
+              z reklam na Facebooku. To idealna okazja, żeby się wyróżnić i <span className="text-white font-semibold">przyciągnąć nowe klientki, zanim zrobi to konkurencja</span>.
             </span>
           </p>
         </div>
@@ -1005,8 +1049,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       <div className="absolute top-28 right-24 w-16 h-16 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center">
         <Heart className="w-8 h-8 text-rose-400/50" />
       </div>
-      <div className="absolute bottom-32 right-32 w-18 h-18 rounded-2xl bg-gradient-to-br from-pink-500/10 to-fuchsia-500/10 border border-pink-500/20 flex items-center justify-center">
-        <Instagram className="w-8 h-8 text-pink-400/50" />
+      <div className="absolute bottom-32 right-32 w-18 h-18 rounded-2xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20 flex items-center justify-center">
+        <Sparkle className="w-8 h-8 text-amber-400/50" />
       </div>
       <div className="absolute top-1/2 right-16 w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center">
         <Palette className="w-6 h-6 text-pink-400/50" />
@@ -1054,15 +1098,6 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/25 flex items-center gap-3 min-w-[200px]">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center">
-              <Instagram className="w-5 h-5 text-pink-400" />
-            </div>
-            <div>
-              <p className="text-zinc-400 text-xs mb-0.5">Instagram</p>
-              <p className="text-white font-semibold text-sm">@aurine.agency</p>
-            </div>
-          </div>
 
           <div className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-fuchsia-500/25 flex items-center gap-3 min-w-[200px]">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-fuchsia-500/30 to-purple-500/20 border border-fuchsia-500/40 flex items-center justify-center">

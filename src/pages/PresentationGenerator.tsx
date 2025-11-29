@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import jsPDF from "jspdf";
-import { toPng } from "html-to-image";
+import { toJpeg } from "html-to-image";
 
 const TOTAL_SLIDES = 6;
 
@@ -73,22 +73,23 @@ const PresentationGenerator = () => {
         setCurrentSlide(i);
         
         // Wait for slide to render
-        await new Promise(resolve => setTimeout(resolve, 600));
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         const element = document.getElementById("presentation-preview");
         if (!element) continue;
 
-        const imgData = await toPng(element, {
+        const imgData = await toJpeg(element, {
           cacheBust: true,
-          pixelRatio: 2,
+          pixelRatio: 1.5,
           backgroundColor: "#000000",
+          quality: 0.85,
         });
 
         if (i > 1) {
           pdf.addPage([1600, 900], "landscape");
         }
 
-        pdf.addImage(imgData, "PNG", 0, 0, 1600, 900, undefined, "FAST");
+        pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
       }
 
       const sanitizedName = formData.salonName
