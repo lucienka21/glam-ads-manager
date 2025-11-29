@@ -1,6 +1,6 @@
 {
   "name": "Aurine Document Generator",
-  "short_name": "Aurine Docs",
+  "short_name": "Aurine",
   "description": "Profesjonalne narzędzia do generowania dokumentów dla branży beauty",
   "theme_color": "#09090b",
   "background_color": "#09090b",
@@ -8,18 +8,31 @@
   "orientation": "portrait",
   "scope": "/",
   "start_url": "/",
+  "id": "/",
   "icons": [
     {
       "src": "/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
