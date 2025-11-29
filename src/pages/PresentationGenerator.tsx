@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, ChevronLeft, ChevronRight, Play } from "lucide-react";
+import { ArrowLeft, Download, ChevronLeft, ChevronRight, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { FormCard } from "@/components/ui/FormCard";
 import { toast } from "sonner";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import jsPDF from "jspdf";
@@ -117,62 +117,60 @@ const PresentationGenerator = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background dark">
+      {/* Subtle background */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" />
+
       {/* Header */}
-      <header className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
+      <header className="relative z-10 border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/")}
-                className="hover:bg-zinc-800"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-xl font-bold">Generator Prezentacji</h1>
-                <p className="text-sm text-zinc-400">Profesjonalne prezentacje cold mail</p>
+                <h1 className="text-xl font-semibold text-foreground font-sans">Generator Prezentacji</h1>
+                <p className="text-sm text-muted-foreground">Profesjonalne prezentacje cold mail</p>
               </div>
             </div>
             {showPreview && (
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={generatePDF}
-                  disabled={isGenerating}
-                  className="bg-pink-600 hover:bg-pink-700"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  {isGenerating ? "Generuję..." : "Pobierz PDF"}
-                </Button>
-              </div>
+              <Button
+                onClick={generatePDF}
+                disabled={isGenerating}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                {isGenerating ? "Generuję..." : "Pobierz PDF"}
+              </Button>
             )}
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="relative z-10 max-w-6xl mx-auto px-6 py-8">
         {!showPreview ? (
-          <div className="max-w-xl mx-auto">
-            <Card className="p-8 bg-zinc-900/50 border-zinc-800">
+          <div className="max-w-lg mx-auto">
+            <FormCard>
               <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center mb-4">
-                  <Play className="w-8 h-8 text-white" />
+                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+                  <Sparkles className="w-8 h-8 text-primary" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">Stwórz spersonalizowaną prezentację</h2>
-                <p className="text-zinc-400">Prezentacja będzie zawierać 6 profesjonalnych slajdów</p>
+                <h2 className="text-2xl font-semibold text-foreground font-sans mb-2">Stwórz spersonalizowaną prezentację</h2>
+                <p className="text-muted-foreground">Prezentacja będzie zawierać 6 profesjonalnych slajdów</p>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div>
                   <Label htmlFor="ownerName">Imię właścicielki salonu *</Label>
                   <Input
                     id="ownerName"
                     value={formData.ownerName}
                     onChange={(e) => handleInputChange("ownerName", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
                     placeholder="np. Anna"
                   />
                 </div>
@@ -183,7 +181,6 @@ const PresentationGenerator = () => {
                     id="salonName"
                     value={formData.salonName}
                     onChange={(e) => handleInputChange("salonName", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
                     placeholder="np. Beauty Studio Anna"
                   />
                 </div>
@@ -194,30 +191,29 @@ const PresentationGenerator = () => {
                     id="city"
                     value={formData.city}
                     onChange={(e) => handleInputChange("city", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
                     placeholder="np. Nowy Sącz"
                   />
                 </div>
               </div>
 
               {/* What's included */}
-              <div className="mt-8 p-4 bg-pink-500/10 border border-pink-500/30 rounded-lg">
-                <p className="text-sm text-pink-300 font-medium mb-3">Prezentacja zawiera:</p>
-                <ul className="space-y-2 text-sm text-zinc-400">
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+              <div className="mt-8 p-5 bg-secondary/50 border border-border/50 rounded-xl">
+                <p className="text-sm text-foreground font-medium mb-3">Prezentacja zawiera:</p>
+                <ul className="space-y-2.5 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                     Wyzwania salonów beauty w reklamie
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+                  <li className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                     Jak możemy pomóc Twojemu salonowi
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+                  <li className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                     Przebieg współpracy krok po kroku
                   </li>
-                  <li className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500"></span>
+                  <li className="flex items-center gap-3">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
                     Specjalna oferta: darmowy audyt + tydzień próbny
                   </li>
                 </ul>
@@ -225,37 +221,26 @@ const PresentationGenerator = () => {
 
               {/* Generate Button */}
               <div className="mt-8">
-                <Button
-                  onClick={handleGenerate}
-                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white text-lg py-6"
-                >
+                <Button onClick={handleGenerate} className="w-full" size="lg">
                   <Play className="w-5 h-5 mr-2" />
                   Generuj prezentację
                 </Button>
               </div>
-            </Card>
+            </FormCard>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in">
             {/* Slide Navigator */}
-            <div className="flex items-center justify-between bg-zinc-900/50 border border-zinc-800 rounded-xl p-4">
+            <div className="flex items-center justify-between bg-card border border-border/50 rounded-xl p-4">
               <div className="flex items-center gap-4">
-                <Button
-                  onClick={prevSlide}
-                  size="icon"
-                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
-                >
+                <Button onClick={prevSlide} size="icon" variant="outline">
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
                 <div className="text-center min-w-[200px]">
-                  <p className="text-sm text-zinc-400">Slajd {currentSlide} z {TOTAL_SLIDES}</p>
-                  <p className="text-white font-medium">{slideNames[currentSlide - 1]}</p>
+                  <p className="text-sm text-muted-foreground">Slajd {currentSlide} z {TOTAL_SLIDES}</p>
+                  <p className="text-foreground font-medium">{slideNames[currentSlide - 1]}</p>
                 </div>
-                <Button
-                  onClick={nextSlide}
-                  size="icon"
-                  className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
-                >
+                <Button onClick={nextSlide} size="icon" variant="outline">
                   <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
@@ -266,25 +251,22 @@ const PresentationGenerator = () => {
                   <button
                     key={idx}
                     onClick={() => setCurrentSlide(idx + 1)}
-                    className={`w-3 h-3 rounded-full transition-all ${
+                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
                       currentSlide === idx + 1
-                        ? "bg-pink-500 scale-125" 
-                        : "bg-zinc-700 hover:bg-zinc-600"
+                        ? "bg-primary scale-125" 
+                        : "bg-muted hover:bg-muted-foreground/30"
                     }`}
                   />
                 ))}
               </div>
 
-              <Button
-                onClick={() => setShowPreview(false)}
-                className="bg-zinc-800 border border-zinc-700 text-white hover:bg-zinc-700"
-              >
+              <Button onClick={() => setShowPreview(false)} variant="outline">
                 Edytuj dane
               </Button>
             </div>
 
             {/* Preview */}
-            <div className="border-2 border-zinc-700 rounded-xl overflow-hidden">
+            <div className="border border-border/50 rounded-xl overflow-hidden shadow-lg">
               <div className="aspect-video bg-black flex items-center justify-center overflow-hidden">
                 <div className="transform scale-[0.55] origin-center">
                   <PresentationPreview data={formData} currentSlide={currentSlide} />
@@ -293,7 +275,7 @@ const PresentationGenerator = () => {
             </div>
 
             {/* Keyboard hint */}
-            <div className="text-center text-sm text-zinc-500">
+            <div className="text-center text-sm text-muted-foreground">
               Użyj strzałek ← → do nawigacji między slajdami
             </div>
           </div>

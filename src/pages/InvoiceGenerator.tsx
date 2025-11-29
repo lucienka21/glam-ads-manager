@@ -4,7 +4,7 @@ import { ArrowLeft, Download, FileImage, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
+import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { toast } from "sonner";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import jsPDF from "jspdf";
@@ -32,17 +32,17 @@ const InvoiceGenerator = () => {
   const invoiceTypes = [
     {
       id: "advance" as InvoiceType,
-      label: "Faktura Zaliczkowa",
-      description: "Płatność zaliczki przed rozpoczęciem kampanii",
+      label: "Zaliczkowa",
+      description: "Płatność zaliczki",
     },
     {
       id: "final" as InvoiceType,
-      label: "Faktura Końcowa",
-      description: "Rozliczenie końcowe po zaliczce",
+      label: "Końcowa",
+      description: "Rozliczenie po zaliczce",
     },
     {
       id: "full" as InvoiceType,
-      label: "Faktura Pełna",
+      label: "Pełna",
       description: "Pełna kwota usługi",
     },
   ];
@@ -132,138 +132,133 @@ const InvoiceGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-background dark">
+      {/* Subtle background */}
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" />
+
       {/* Header */}
-      <header className="border-b border-zinc-800 bg-black/50 backdrop-blur-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/")}
-                className="hover:bg-zinc-800"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </Button>
-              <div>
-                <h1 className="text-xl font-bold">Generator Faktur</h1>
-                <p className="text-sm text-zinc-400">Profesjonalne faktury dla Aurine Agency</p>
-              </div>
+      <header className="relative z-10 border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground font-sans">Generator Faktur</h1>
+              <p className="text-sm text-muted-foreground">Profesjonalne faktury dla Aurine Agency</p>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">
+      <main className="relative z-10 max-w-6xl mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Form */}
           <div className="space-y-6">
             {/* Invoice Type Selection */}
-            <Card className="p-6 bg-zinc-900/50 border-zinc-800">
-              <h2 className="text-lg font-bold mb-4 text-pink-500">Typ faktury</h2>
+            <FormCard title="Typ faktury">
               <div className="grid grid-cols-3 gap-3">
                 {invoiceTypes.map((type) => (
-                  <div
+                  <button
                     key={type.id}
+                    type="button"
                     onClick={() => setInvoiceType(type.id)}
-                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                    className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
                       invoiceType === type.id
-                        ? "border-pink-500 bg-pink-500/10"
-                        : "border-zinc-800 hover:border-pink-500/50"
+                        ? "border-primary bg-primary/10"
+                        : "border-border/50 hover:border-primary/30 bg-secondary/30"
                     }`}
                   >
-                    <h3 className="font-bold text-sm mb-1">{type.label}</h3>
-                    <p className="text-xs text-zinc-400">{type.description}</p>
-                  </div>
+                    <h3 className="font-semibold text-sm mb-1 text-foreground">{type.label}</h3>
+                    <p className="text-xs text-muted-foreground">{type.description}</p>
+                  </button>
                 ))}
               </div>
-            </Card>
+            </FormCard>
 
             {/* Form Fields */}
-            <Card className="p-6 bg-zinc-900/50 border-zinc-800">
-              <h2 className="text-lg font-bold mb-4 text-white">Dane faktury</h2>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="clientName">Nazwa klienta *</Label>
-                  <Input
-                    id="clientName"
-                    value={formData.clientName}
-                    onChange={(e) => handleInputChange("clientName", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
-                    placeholder="Salon Beauty XYZ"
-                  />
-                </div>
+            <FormCard title="Dane faktury">
+              <div className="space-y-5">
+                <FormRow>
+                  <div>
+                    <Label htmlFor="clientName">Nazwa klienta *</Label>
+                    <Input
+                      id="clientName"
+                      value={formData.clientName}
+                      onChange={(e) => handleInputChange("clientName", e.target.value)}
+                      placeholder="Salon Beauty XYZ"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="invoiceNumber">Numer faktury *</Label>
+                    <Input
+                      id="invoiceNumber"
+                      value={formData.invoiceNumber}
+                      onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
+                      placeholder="FV/2025/001"
+                    />
+                  </div>
+                </FormRow>
 
                 <div>
-                  <Label htmlFor="invoiceNumber">Numer faktury *</Label>
-                  <Input
-                    id="invoiceNumber"
-                    value={formData.invoiceNumber}
-                    onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
-                    placeholder="FV/2025/001"
-                  />
-                </div>
-
-                <div className="md:col-span-2">
                   <Label htmlFor="clientAddress">Adres klienta</Label>
                   <Input
                     id="clientAddress"
                     value={formData.clientAddress}
                     onChange={(e) => handleInputChange("clientAddress", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
                     placeholder="ul. Przykładowa 123, 00-000 Warszawa"
                   />
                 </div>
 
-                <div>
-                  <Label htmlFor="clientNIP">NIP klienta</Label>
-                  <Input
-                    id="clientNIP"
-                    value={formData.clientNIP}
-                    onChange={(e) => handleInputChange("clientNIP", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
-                    placeholder="1234567890"
-                  />
-                </div>
+                <FormRow>
+                  <div>
+                    <Label htmlFor="clientNIP">NIP klienta</Label>
+                    <Input
+                      id="clientNIP"
+                      value={formData.clientNIP}
+                      onChange={(e) => handleInputChange("clientNIP", e.target.value)}
+                      placeholder="1234567890"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="issueDate">Data wystawienia</Label>
+                    <Input
+                      id="issueDate"
+                      type="date"
+                      value={formData.issueDate}
+                      onChange={(e) => handleInputChange("issueDate", e.target.value)}
+                    />
+                  </div>
+                </FormRow>
 
-                <div>
-                  <Label htmlFor="issueDate">Data wystawienia</Label>
-                  <Input
-                    id="issueDate"
-                    type="date"
-                    value={formData.issueDate}
-                    onChange={(e) => handleInputChange("issueDate", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="paymentDue">Termin płatności</Label>
-                  <Input
-                    id="paymentDue"
-                    type="date"
-                    value={formData.paymentDue}
-                    onChange={(e) => handleInputChange("paymentDue", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="amount">
-                    {invoiceType === "final" ? "Kwota całkowita" : "Kwota"} (PLN) *
-                  </Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => handleInputChange("amount", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
-                    placeholder="5000"
-                  />
-                </div>
+                <FormRow>
+                  <div>
+                    <Label htmlFor="paymentDue">Termin płatności</Label>
+                    <Input
+                      id="paymentDue"
+                      type="date"
+                      value={formData.paymentDue}
+                      onChange={(e) => handleInputChange("paymentDue", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="amount">
+                      {invoiceType === "final" ? "Kwota całkowita" : "Kwota"} (PLN) *
+                    </Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={formData.amount}
+                      onChange={(e) => handleInputChange("amount", e.target.value)}
+                      placeholder="5000"
+                    />
+                  </div>
+                </FormRow>
 
                 {invoiceType === "final" && (
                   <div>
@@ -273,53 +268,48 @@ const InvoiceGenerator = () => {
                       type="number"
                       value={formData.advanceAmount}
                       onChange={(e) => handleInputChange("advanceAmount", e.target.value)}
-                      className="bg-zinc-950 border-zinc-700"
                       placeholder="2000"
                     />
                   </div>
                 )}
 
-                <div className="md:col-span-2">
+                <div>
                   <Label htmlFor="serviceDescription">Opis usługi</Label>
                   <Input
                     id="serviceDescription"
                     value={formData.serviceDescription}
                     onChange={(e) => handleInputChange("serviceDescription", e.target.value)}
-                    className="bg-zinc-950 border-zinc-700"
                     placeholder="Usługi marketingowe Facebook Ads"
                   />
                 </div>
-              </div>
 
-              {/* Info */}
-              <div className="mt-6 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                <p className="text-sm text-purple-300">ℹ️ Wszystkie faktury są zwolnione z VAT</p>
-              </div>
+                {/* Info */}
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
+                  <p className="text-sm text-muted-foreground">
+                    <span className="text-primary font-medium">Info:</span> Wszystkie faktury są zwolnione z VAT
+                  </p>
+                </div>
 
-              {/* Generate Button */}
-              <div className="mt-6">
-                <Button
-                  onClick={handleGenerate}
-                  className="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white"
-                >
+                {/* Generate Button */}
+                <Button onClick={handleGenerate} className="w-full">
                   <Eye className="w-5 h-5 mr-2" />
                   Generuj podgląd faktury
                 </Button>
               </div>
-            </Card>
+            </FormCard>
           </div>
 
           {/* Preview */}
           {showPreview && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-white">Podgląd faktury</h2>
+                <h2 className="text-lg font-semibold text-foreground font-sans">Podgląd faktury</h2>
                 <div className="flex gap-2">
                   <Button
                     onClick={downloadAsImage}
                     disabled={isGenerating}
                     size="sm"
-                    className="bg-emerald-900 border border-emerald-600 text-emerald-400 hover:bg-emerald-800"
+                    variant="success"
                   >
                     <FileImage className="w-4 h-4 mr-2" />
                     {isGenerating ? "..." : "PNG"}
@@ -328,14 +318,13 @@ const InvoiceGenerator = () => {
                     onClick={generatePDF}
                     disabled={isGenerating}
                     size="sm"
-                    className="bg-pink-600 hover:bg-pink-700 text-white"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     {isGenerating ? "..." : "PDF"}
                   </Button>
                 </div>
               </div>
-              <div className="border-2 border-zinc-700 rounded-lg overflow-hidden bg-white">
+              <div className="border border-border/50 rounded-xl overflow-hidden bg-white shadow-lg">
                 <div className="transform scale-[0.6] origin-top-left w-[166%]">
                   <InvoicePreview data={{ ...formData, invoiceType }} />
                 </div>
