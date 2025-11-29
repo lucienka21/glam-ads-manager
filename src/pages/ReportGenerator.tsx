@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -48,8 +48,26 @@ const ReportGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [scale, setScale] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { history, saveReport, deleteReport, clearHistory } = useReportHistory();
   const containerClass = isLandscape ? "mx-auto" : "max-w-6xl mx-auto";
+
+  useEffect(() => {
+    if (!isLandscape || !containerRef.current) return;
+    
+    const updateScale = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth;
+        const newScale = Math.min(containerWidth / 1600, 1);
+        setScale(newScale);
+      }
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, [isLandscape]);
 
   const parseReportPeriod = (period: string): string => {
     const monthMap: { [key: string]: string } = {
@@ -305,11 +323,11 @@ const ReportGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background dark">
+    <div className="min-h-screen bg-background dark" style={{ backgroundColor: 'hsl(var(--background))' }}>
       {/* Subtle background */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" />
+      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" style={{ backgroundColor: 'hsl(var(--background))' }} />
 
-      <div className={`relative z-10 ${containerClass} px-6 py-8`}>
+      <div className={`relative z-10 ${containerClass} px-6 py-8`} style={{ minHeight: '100vh', backgroundColor: 'transparent' }}>
         <div className="flex items-center gap-4 mb-8">
           <Button
             variant="ghost"
@@ -329,7 +347,7 @@ const ReportGenerator = () => {
         </div>
 
         {isLandscape && reportData ? (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-fade-in pb-8" style={{ backgroundColor: 'hsl(var(--background))' }}>
             <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
               <div>
                 <h2 className="text-xl font-semibold text-foreground font-sans">
@@ -378,10 +396,27 @@ const ReportGenerator = () => {
               </div>
             </div>
 
-            <div className="relative group">
-              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-3xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-              <div className="relative border-2 border-border/60 rounded-3xl overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/5" style={{ backgroundColor: '#000000' }}>
-                <div className="w-full max-w-[1920px]">
+            <div 
+              ref={containerRef}
+              className="w-full pb-8" 
+              style={{ backgroundColor: '#0a0a0f' }}
+            >
+              <div 
+                className="relative mx-auto rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5"
+                style={{ 
+                  backgroundColor: '#000000',
+                  width: '100%',
+                  maxWidth: '1600px',
+                  height: `${900 * scale}px`
+                }}
+              >
+                <div 
+                  className="w-[1600px] h-[900px] origin-top-left"
+                  style={{
+                    backgroundColor: '#000000',
+                    transform: `scale(${scale})`
+                  }}
+                >
                   <ReportPreviewLandscape data={reportData} />
                 </div>
               </div>
