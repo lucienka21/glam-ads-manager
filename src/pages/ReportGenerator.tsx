@@ -378,9 +378,12 @@ const ReportGenerator = () => {
               </div>
             </div>
 
-            <div className="rounded-xl border border-border/50 bg-card/50 p-4 flex items-center justify-center">
-              <div className="w-full max-w-[1920px]">
-                <ReportPreviewLandscape data={reportData} />
+            <div className="relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-3xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+              <div className="relative border-2 border-border/60 rounded-3xl overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/5 bg-card/30 p-4">
+                <div className="w-full max-w-[1920px]">
+                  <ReportPreviewLandscape data={reportData} />
+                </div>
               </div>
             </div>
 
@@ -693,8 +696,11 @@ const ReportGenerator = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="border border-border/50 rounded-xl overflow-hidden shadow-lg">
-                  <ReportPreview data={reportData} />
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+                  <div className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5">
+                    <ReportPreview data={reportData} />
+                  </div>
                 </div>
               </div>
             )}
