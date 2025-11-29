@@ -80,9 +80,9 @@ const PresentationGenerator = () => {
 
         const imgData = await toJpeg(element, {
           cacheBust: true,
-          pixelRatio: 1.5,
+          pixelRatio: 1.8,
           backgroundColor: "#000000",
-          quality: 0.85,
+          quality: 0.92,
         });
 
         if (i > 1) {

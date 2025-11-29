@@ -28,6 +28,7 @@ const declineSingleWord = (word: string): string => {
   
   // Common exceptions and irregular forms for single words
   const exceptions: Record<string, string> = {
+    // Duże miasta
     "warszawa": "Warszawie",
     "kraków": "Krakowie",
     "łódź": "Łodzi",
@@ -66,7 +67,6 @@ const declineSingleWord = (word: string): string => {
     "siedlce": "Siedlcach",
     "mysłowice": "Mysłowicach",
     "piła": "Pile",
-    "brodnica": "Brodnicy",
     "stargard": "Stargardzie",
     "gniezno": "Gnieźnie",
     "ostrołęka": "Ostrołęce",
@@ -76,20 +76,84 @@ const declineSingleWord = (word: string): string => {
     "suwałki": "Suwałkach",
     "starachowice": "Starachowicach",
     "gorlice": "Gorlicach",
+    // Mniejsze miasta
+    "brodnica": "Brodnicy",
+    "mława": "Mławie",
+    "ciechanów": "Ciechanowie",
+    "działdowo": "Działdowie",
+    "przasnysz": "Przasnyszu",
+    "żuromin": "Żurominie",
+    "sierpc": "Sierpcu",
+    "płońsk": "Płońsku",
+    "pułtusk": "Pułtusku",
+    "wyszków": "Wyszkowie",
     "ostrów": "Ostrowie",
+    "węgrów": "Węgrowie",
+    "sokołów": "Sokołowie",
+    "łosice": "Łosicach",
+    "mińsk": "Mińsku",
+    "garwolin": "Garwolinie",
+    "kozienice": "Kozienicach",
+    "zwoleń": "Zwoleniu",
+    "lipsko": "Lipsku",
+    "radomsko": "Radomsku",
+    "tomaszów": "Tomaszowie",
+    "skierniewice": "Skierniewicach",
+    "łowicz": "Łowiczu",
+    "kutno": "Kutnie",
+    "łęczyca": "Łęczycy",
+    "zgierz": "Zgierzu",
+    "pabianice": "Pabianicach",
+    "bełchatów": "Bełchatowie",
+    "sieradz": "Sieradzu",
+    "wieluń": "Wieluniu",
+    "zduńska": "Zduńskiej",
+    "wola": "Woli",
+    "łask": "Łasku",
+    "poddębice": "Poddębicach",
+    "turek": "Turku",
+    "konin": "Koninie",
+    "koło": "Kole",
+    "słupca": "Słupcy",
+    "września": "Wrześni",
+    "wągrowiec": "Wągrowcu",
+    "chodzież": "Chodzieży",
+    "czarnków": "Czarnkowie",
+    "trzcianka": "Trzciance",
+    "złotów": "Złotowie",
+    "wałcz": "Wałczu",
+    "szczecinek": "Szczecinku",
+    "drawsko": "Drawsku",
+    "białogard": "Białogardzie",
+    "kołobrzeg": "Kołobrzegu",
+    "gryfice": "Gryficach",
+    "kamień": "Kamieniu",
+    "świnoujście": "Świnoujściu",
+    "goleniów": "Goleniowie",
+    "myślibórz": "Myśliborzu",
+    "gryfino": "Gryfinie",
+    "police": "Policach",
+    // Człony nazw wieloczłonowych
+    "nowy": "Nowym",
+    "nowa": "Nowej",
+    "nowe": "Nowym",
+    "stary": "Starym",
+    "stara": "Starej",
+    "stare": "Starym",
     "mazowiecka": "Mazowieckim",
+    "mazowiecki": "Mazowieckim",
+    "mazowieckie": "Mazowieckim",
     "wielkopolski": "Wielkopolskim",
     "wielkopolska": "Wielkopolskim",
-    "mazowiecki": "Mazowieckim",
+    "wielkopolskie": "Wielkopolskim",
     "śląska": "Śląskiej",
     "śląski": "Śląskim",
+    "śląskie": "Śląskim",
     "trybunalski": "Trybunalskim",
     "biała": "Białej",
     "góra": "Górze",
     "zdrój": "Zdroju",
     "sącz": "Sączu",
-    "nowy": "Nowym",
-    "nowa": "Nowej",
     "zielona": "Zielonej",
     "jelenia": "Jeleniej",
     "gorzów": "Gorzowie",
@@ -97,6 +161,23 @@ const declineSingleWord = (word: string): string => {
     "ruda": "Rudzie",
     "bielsko": "Bielsku",
     "jastrzębie": "Jastrzębiu",
+    "podlaski": "Podlaskim",
+    "podlaska": "Podlaskiej",
+    "podlaskie": "Podlaskim",
+    "kujawski": "Kujawskim",
+    "pomorski": "Pomorskim",
+    "pomorska": "Pomorskiej",
+    "pomorskie": "Pomorskim",
+    "lubelski": "Lubelskim",
+    "lubelska": "Lubelskiej",
+    "dolny": "Dolnym",
+    "dolna": "Dolnej",
+    "górny": "Górnym",
+    "górna": "Górnej",
+    "świętokrzyski": "Świętokrzyskim",
+    "świętokrzyska": "Świętokrzyskiej",
+    "warmińsko": "Warmińsko",
+    "mazurski": "Mazurskim",
   };
   
   if (exceptions[wordLower]) {
@@ -980,13 +1061,13 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           </div>
 
           {/* Free trial week */}
-          <div className="w-[380px] bg-gradient-to-br from-amber-500/10 via-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border-2 border-amber-500/40 shadow-2xl shadow-amber-500/10 relative overflow-hidden">
+          <div className="w-[380px] bg-gradient-to-br from-amber-500/10 via-zinc-900/95 to-zinc-900/80 rounded-2xl p-6 border-2 border-amber-500/40 shadow-2xl shadow-amber-500/10 relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-amber-500/25 to-transparent rounded-full blur-2xl" />
             
-            {/* Special badge */}
-            <div className="absolute -top-3 right-4 px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-black text-xs font-bold shadow-lg flex items-center gap-1.5">
+            {/* Special badge - positioned to be visible */}
+            <div className="absolute -top-4 right-6 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full text-black text-xs font-bold shadow-lg flex items-center gap-1.5 z-20">
               <Star className="w-3.5 h-3.5 fill-black" />
-              TYLKO 2 SALONY Z MIASTA
+              <span>TYLKO 2 SALONY Z MIASTA</span>
             </div>
             
             <div className="relative z-10 mt-2">
