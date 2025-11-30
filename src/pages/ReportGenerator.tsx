@@ -765,7 +765,6 @@ const ReportGenerator = () => {
                 </div>
               </div>
             )}
-          </div>
         </div>
       </div>
     </AppLayout>
