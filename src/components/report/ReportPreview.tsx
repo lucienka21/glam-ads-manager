@@ -1,5 +1,6 @@
 import { TrendingUp, Target, CheckCircle2, Sparkles, Phone, MessageCircle } from "lucide-react";
 import { SimplePieChart, SimpleBarChart, SimpleLineChart } from "./SimpleCharts";
+import agencyLogo from "@/assets/agency-logo.png";
 
 interface ReportData {
   clientName?: string;
@@ -84,9 +85,11 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       <header className="flex items-start justify-between mb-6 border-b border-zinc-800 pb-4">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 p-2 flex items-center justify-center shadow-lg shadow-pink-500/30">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src={agencyLogo} 
+              alt="Aurine" 
+              className="w-12 h-12 object-contain"
+            />
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-light">
                 Aurine Agency
@@ -324,21 +327,21 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             <p className="text-[10px] text-emerald-300">Konkretne kolejne kroki</p>
           </div>
         </div>
-      <div className="space-y-1.5">
+      <div className="space-y-1">
           {data.recommendations ? (
             data.recommendations
               .split("\n")
               .filter((line) => line.trim())
-              .slice(0, 5)
+              .slice(0, 4)
               .map((rec, idx) => {
                 const shortRec =
-                  rec.length > 80 ? `${rec.slice(0, 77)}...` : rec;
+                  rec.length > 70 ? `${rec.slice(0, 67)}...` : rec;
                 return (
                   <div key={idx} className="flex gap-2">
-                    <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
+                    <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-[7px] font-bold text-emerald-400">{idx + 1}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-300 leading-snug">{shortRec}</p>
+                    <p className="text-[9px] text-zinc-300 leading-snug line-clamp-1">{shortRec}</p>
                   </div>
                 );
               })
