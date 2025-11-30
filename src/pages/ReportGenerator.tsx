@@ -92,23 +92,29 @@ const ReportGenerator = () => {
     return () => window.removeEventListener('resize', updateScale);
   }, [isLandscape]);
 
-  // Scale for portrait preview
+  // Scale for portrait preview - auto-fit to available space
   useEffect(() => {
-    if (!reportData || isLandscape) return;
+    if (!reportData || isLandscape || !portraitContainerRef.current) return;
     
     const updatePortraitScale = () => {
-      // Calculate based on available viewport width for the right column
-      // In a 2-column grid, we have roughly 50% of the viewport minus some padding
-      const availableWidth = Math.min(window.innerWidth * 0.45, 600);
-      // Portrait document: 794x1123
-      const newScale = Math.max(Math.min(availableWidth / 794, 0.7), 0.35);
-      setPortraitScale(newScale);
+      const container = portraitContainerRef.current;
+      if (!container) return;
+      
+      // Get parent container width (the right column of the grid)
+      const parentWidth = container.parentElement?.clientWidth || window.innerWidth * 0.45;
+      // Portrait document width is 794px
+      const newScale = Math.min(parentWidth / 794, 0.8);
+      setPortraitScale(Math.max(newScale, 0.3));
     };
 
-    // Small delay to ensure DOM is ready
-    setTimeout(updatePortraitScale, 100);
-    window.addEventListener('resize', updatePortraitScale);
-    return () => window.removeEventListener('resize', updatePortraitScale);
+    // Use ResizeObserver for better responsiveness
+    const resizeObserver = new ResizeObserver(updatePortraitScale);
+    resizeObserver.observe(portraitContainerRef.current.parentElement || portraitContainerRef.current);
+    
+    // Initial calculation
+    setTimeout(updatePortraitScale, 50);
+    
+    return () => resizeObserver.disconnect();
   }, [reportData, isLandscape]);
 
   const parseReportPeriod = (period: string): string => {
@@ -245,8 +251,8 @@ const ReportGenerator = () => {
       
       const canvas = await toPng(element, {
         cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#09090b",
+        pixelRatio: 3,
+        backgroundColor: "#000000",
         width: actualWidth,
         height: actualHeight,
       });
@@ -797,16 +803,14 @@ const ReportGenerator = () => {
                 </div>
                 <div 
                   ref={portraitContainerRef} 
-                  className="relative flex justify-center"
-                  style={{
-                    height: `calc(1200px * ${portraitScale})`,
-                  }}
+                  className="relative w-full flex justify-center"
                 >
                   <div 
-                    className="absolute top-0 left-1/2 border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5 origin-top" 
+                    className="border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5 origin-top-left" 
                     style={{ 
-                      backgroundColor: '#09090b',
-                      transform: `translateX(-50%) scale(${portraitScale})`,
+                      backgroundColor: '#000000',
+                      transform: `scale(${portraitScale})`,
+                      width: '794px',
                     }}
                   >
                     <ReportPreview data={reportData} />
