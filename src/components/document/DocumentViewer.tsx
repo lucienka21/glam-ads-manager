@@ -21,7 +21,7 @@ const TOTAL_SLIDES = 6;
 
 export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(0.4);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(1);
   const { toast } = useToast();
@@ -34,34 +34,33 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
   }, [document?.id]);
 
   useEffect(() => {
-    if (!open || !containerRef.current || !document) return;
+    if (!open || !document) return;
 
     const updateScale = () => {
-      if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth - 160;
-        const containerHeight = containerRef.current.clientHeight - 160;
-        
-        let docWidth = 1600;
-        let docHeight = 900;
-        
-        if (document.type === "invoice" || document.type === "contract") {
-          docWidth = 794;
-          docHeight = 1123;
-        } else if (document.type === "presentation" || document.type === "report") {
-          docWidth = 1600;
-          docHeight = 900;
-        }
-        
-        const scaleByWidth = containerWidth / docWidth;
-        const scaleByHeight = containerHeight / docHeight;
-        const newScale = Math.min(scaleByWidth, scaleByHeight, 0.38);
-        setScale(newScale);
+      const viewportWidth = window.innerWidth * 0.85;
+      const viewportHeight = window.innerHeight * 0.7;
+      
+      let docWidth = 1600;
+      let docHeight = 900;
+      
+      if (document.type === "invoice" || document.type === "contract") {
+        docWidth = 794;
+        docHeight = 1123;
       }
+      
+      const scaleByWidth = viewportWidth / docWidth;
+      const scaleByHeight = viewportHeight / docHeight;
+      const newScale = Math.min(scaleByWidth, scaleByHeight);
+      setScale(newScale);
     };
 
-    updateScale();
+    // Delay to ensure dialog is rendered
+    const timer = setTimeout(updateScale, 100);
     window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', updateScale);
+    };
   }, [open, document]);
 
   // Keyboard navigation for presentations
@@ -278,7 +277,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         {/* Document Container */}
         <div 
           ref={containerRef}
-          className="w-full h-full flex items-center justify-center overflow-hidden pt-20 pb-16 px-6"
+          className="w-full h-full flex items-center justify-center overflow-hidden py-20 px-8"
         >
           <div
             style={{
@@ -286,6 +285,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
               transformOrigin: 'center center',
               width: dims.width,
               height: dims.height,
+              flexShrink: 0,
             }}
           >
             {document.type === "report" && (
