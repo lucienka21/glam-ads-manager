@@ -12,8 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import { ReportPreview } from "@/components/report/ReportPreview";
 import { ReportPreviewLandscape } from "@/components/report/ReportPreviewLandscape";
-import { ReportHistory } from "@/components/report/ReportHistory";
-import { useReportHistory } from "@/hooks/useReportHistory";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { useDocumentHistory } from "@/hooks/useDocumentHistory";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
@@ -50,8 +50,24 @@ const ReportGenerator = () => {
   const [isLandscape, setIsLandscape] = useState(false);
   const [scale, setScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { history, saveReport, deleteReport, clearHistory } = useReportHistory();
-  const containerClass = isLandscape ? "mx-auto" : "max-w-6xl mx-auto";
+  const { saveDocument, updateThumbnail } = useDocumentHistory();
+
+  // Load document from session storage if coming from history
+  useEffect(() => {
+    const stored = sessionStorage.getItem("loadDocument");
+    if (stored) {
+      try {
+        const doc = JSON.parse(stored);
+        if (doc.type === "report") {
+          reset(doc.data);
+          setReportData(doc.data);
+        }
+      } catch (e) {
+        console.error("Error loading document:", e);
+      }
+      sessionStorage.removeItem("loadDocument");
+    }
+  }, []);
 
   useEffect(() => {
     if (!isLandscape || !containerRef.current) return;
@@ -153,11 +169,32 @@ const ReportGenerator = () => {
 
   const onSubmit = async (data: ReportFormData) => {
     setReportData(data);
-    saveReport(data as Record<string, string>);
+    
+    // Save to new document history
+    const docId = saveDocument(
+      "report",
+      data.clientName,
+      `Raport ${data.period}`,
+      data as Record<string, string>
+    );
+    
     toast({
       title: "Podgląd gotowy!",
       description: "Sprawdź podgląd raportu poniżej i pobierz PDF",
     });
+    
+    // Generate thumbnail after preview shows
+    setTimeout(async () => {
+      const element = document.getElementById("report-preview");
+      if (element && docId) {
+        try {
+          const thumbnail = await toPng(element, { cacheBust: true, pixelRatio: 0.2, backgroundColor: "#050509" });
+          updateThumbnail(docId, thumbnail);
+        } catch (e) {
+          console.error("Error generating thumbnail:", e);
+        }
+      }
+    }, 500);
   };
 
   const loadFromHistory = (data: Record<string, string>) => {
@@ -416,27 +453,11 @@ const ReportGenerator = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background dark" style={{ backgroundColor: 'hsl(var(--background))' }}>
-      {/* Subtle background */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" style={{ backgroundColor: 'hsl(var(--background))' }} />
-
-      <div className={`relative z-10 ${containerClass} px-6 py-8`}>
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground font-sans">
-              Generator Raportów Facebook Ads
-            </h1>
-            <p className="text-muted-foreground">
-              Profesjonalne raporty dla salonów beauty - Aurine Agency
-            </p>
-          </div>
+    <AppLayout>
+      <div className="p-6 lg:p-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Generator Raportów</h1>
+          <p className="text-muted-foreground">Profesjonalne raporty kampanii Facebook Ads</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -710,13 +731,6 @@ const ReportGenerator = () => {
                   </Button>
                 </form>
               </FormCard>
-
-              <ReportHistory
-                history={history}
-                onSelect={loadFromHistory}
-                onDelete={deleteReport}
-                onClear={clearHistory}
-              />
             </div>
 
             {reportData && (
@@ -752,8 +766,9 @@ const ReportGenerator = () => {
               </div>
             )}
           </div>
+        </div>
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
