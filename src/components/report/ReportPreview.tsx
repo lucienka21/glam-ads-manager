@@ -91,11 +91,11 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
   return (
     <div
       id="report-preview"
-      className="bg-zinc-950 text-white w-[794px] h-[1123px] p-5 mx-auto overflow-hidden"
+      className="bg-zinc-950 text-white w-[794px] h-[1123px] p-5 mx-auto overflow-hidden flex flex-col"
       style={{ backgroundColor: '#09090b' }}
     >
       {/* Header */}
-      <header className="flex items-start justify-between mb-4 border-b border-zinc-800 pb-3">
+      <header className="flex items-start justify-between mb-4 border-b border-zinc-800 pb-3 flex-shrink-0">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
             <img src={agencyLogo} alt="Aurine" className="w-10 h-10 object-contain" />
@@ -120,7 +120,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </header>
 
       {/* KPI Cards */}
-      <section className="grid grid-cols-4 gap-2 mb-3">
+      <section className="grid grid-cols-4 gap-2 mb-3 flex-shrink-0">
         <div className="bg-zinc-950 rounded-xl border border-zinc-800/50 p-3">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[9px] text-zinc-500 uppercase">Wyświetlenia</span>
@@ -152,7 +152,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </section>
 
       {/* Secondary metrics */}
-      <section className="grid grid-cols-3 gap-2 mb-3">
+      <section className="grid grid-cols-3 gap-2 mb-3 flex-shrink-0">
         <div className="bg-zinc-950/50 rounded-lg border border-zinc-800/30 px-3 py-2">
           <p className="text-[8px] text-zinc-500 uppercase mb-0.5">Konwersje</p>
           <p className="text-base font-bold text-white">{data.conversions || "—"}</p>
@@ -168,7 +168,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </section>
 
       {/* Campaign Info Row */}
-      <section className="grid grid-cols-3 gap-2 mb-3">
+      <section className="grid grid-cols-3 gap-2 mb-3 flex-shrink-0">
         <div className="bg-zinc-900/50 rounded-lg p-2 border border-zinc-800/50">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-5 h-5 rounded bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
@@ -210,7 +210,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </section>
 
       {/* Charts 2x2 */}
-      <section className="grid grid-cols-2 gap-2 mb-3">
+      <section className="grid grid-cols-2 gap-2 mb-3 flex-shrink-0">
         <div className="bg-gradient-to-br from-pink-950/20 to-zinc-950/50 rounded-lg border border-pink-800/20 p-2">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-5 h-5 rounded flex items-center justify-center">
@@ -296,7 +296,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </section>
 
       {/* Footer */}
-      <footer className="mt-3 pt-2 border-t border-zinc-900 flex items-center justify-between text-[8px] text-zinc-600">
+      <footer className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[8px] text-zinc-600 flex-shrink-0 mt-auto">
         <p>© 2025 Aurine Agency • aurine.pl</p>
         <div className="flex items-center gap-1.5">
           <MessageCircle className="w-3 h-3 text-pink-400" />
