@@ -195,9 +195,9 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 h-full bg-black p-6 flex flex-col gap-3 overflow-hidden">
+        <main className="flex-1 h-full bg-black p-6 flex flex-col overflow-hidden">
           {/* Header */}
-          <header className="flex items-start justify-between">
+          <header className="flex items-start justify-between mb-3">
             <div>
               <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
                 Analytics Dashboard
@@ -219,7 +219,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </header>
 
           {/* KPI Cards */}
-          <section className="grid grid-cols-4 gap-4">
+          <section className="grid grid-cols-4 gap-4 mb-3">
             <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-5 backdrop-blur">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs text-zinc-500 uppercase tracking-wider">Wyświetlenia</span>
@@ -258,7 +258,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </section>
 
           {/* Secondary metrics */}
-          <section className="grid grid-cols-3 gap-4">
+          <section className="grid grid-cols-3 gap-4 mb-3">
             <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 px-5 py-3 backdrop-blur">
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-1">Konwersje</p>
               <p className="text-xl font-bold text-white">{data.conversions || "—"}</p>
@@ -273,10 +273,10 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
             </div>
           </section>
 
-          {/* Charts and recommendations grid */}
-          <div className="grid grid-cols-[1fr,340px] gap-4 flex-1 min-h-0" style={{ flex: '1 1 auto' }}>
+          {/* Charts and recommendations row */}
+          <div className="flex gap-4 mb-3 flex-1 min-h-0">
             {/* Charts grid 2x2 */}
-            <div className="grid grid-cols-2 gap-4 min-h-0">
+            <div className="grid grid-cols-2 gap-4 min-h-0 flex-1">
               {/* Left column */}
               <div className="flex flex-col gap-4 min-h-0">
                 <div className="bg-gradient-to-br from-pink-950/20 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-pink-800/20 p-4 flex flex-col flex-1 min-h-0 backdrop-blur shadow-lg">
@@ -360,7 +360,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
             </div>
 
             {/* Recommendations panel */}
-            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-5 flex flex-col backdrop-blur shadow-xl overflow-hidden h-full">
+            <div className="w-[340px] flex-shrink-0 bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-5 flex flex-col backdrop-blur shadow-xl overflow-hidden">
               <div className="flex items-center gap-3 mb-4 flex-shrink-0">
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   <Sparkles className="w-5 h-5 text-white" />
@@ -449,7 +449,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </div>
 
           {/* Footer */}
-          <footer className="pt-1 border-t border-zinc-900 flex items-center justify-between text-[9px] text-zinc-700 flex-shrink-0">
+          <footer className="border-t border-zinc-900 flex items-center justify-between text-[9px] text-zinc-700 flex-shrink-0 pt-2 mt-auto">
             <p>© 2025 Aurine Agency · Kampanie Facebook ads dla salonów beauty</p>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
