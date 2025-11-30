@@ -339,7 +339,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
                     <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                       <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
                     </div>
-                    <p className="text-[10px] text-zinc-300 leading-relaxed">{rec}</p>
+                    <p className="text-[9px] text-zinc-300 leading-snug line-clamp-2">{rec}</p>
                   </div>
                 );
               })

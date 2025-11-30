@@ -359,8 +359,8 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
             </div>
 
             {/* Recommendations panel */}
-            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-4 flex flex-col min-h-0 backdrop-blur shadow-xl overflow-hidden">
-              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-4 flex flex-col min-h-0 max-h-full backdrop-blur shadow-xl overflow-hidden">
+              <div className="flex items-center gap-2 mb-2 flex-shrink-0">
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
@@ -369,20 +369,19 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                   <p className="text-[9px] text-emerald-300">Dalsze działania</p>
                 </div>
               </div>
-              <div className="space-y-1.5 flex-1 overflow-hidden">
+              <div className="space-y-1 flex-1 overflow-hidden">
                 {data.recommendations ? (
                   data.recommendations
                     .split("\n")
                     .filter((line) => line.trim())
                     .slice(0, 7)
                     .map((rec, idx) => {
-                      const truncatedRec = rec.length > 55 ? rec.slice(0, 55) + "..." : rec;
                       return (
                         <div key={idx} className="flex gap-1.5">
                           <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-[7px] font-bold text-emerald-400">{idx + 1}</span>
                           </div>
-                          <p className="text-[9px] text-zinc-300 leading-snug line-clamp-2 overflow-hidden">{truncatedRec}</p>
+                          <p className="text-[8px] text-zinc-300 leading-tight line-clamp-2">{rec}</p>
                         </div>
                       );
                     })

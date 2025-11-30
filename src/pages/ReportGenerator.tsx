@@ -785,11 +785,11 @@ const ReportGenerator = () => {
                 <div ref={portraitContainerRef} className="relative group w-full">
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div 
-                    className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5 mx-auto" 
+                    className="relative border-2 border-border/60 rounded-2xl overflow-auto shadow-2xl shadow-black/40 ring-1 ring-white/5 mx-auto" 
                     style={{ 
                       backgroundColor: '#09090b',
                       width: 794 * portraitScale,
-                      height: 1123 * portraitScale,
+                      maxHeight: '80vh',
                     }}
                   >
                     <div
@@ -797,7 +797,6 @@ const ReportGenerator = () => {
                         transform: `scale(${portraitScale})`,
                         transformOrigin: 'top left',
                         width: 794,
-                        height: 1123,
                       }}
                     >
                       <ReportPreview data={reportData} />
