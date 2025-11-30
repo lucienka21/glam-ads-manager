@@ -77,113 +77,97 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
 
   // Get recommendations - either from data or defaults
   const recommendations = data.recommendations
-    ? data.recommendations.split("\n").filter((line) => line.trim()).slice(0, 5)
+    ? data.recommendations.split("\n").filter((line) => line.trim()).slice(0, 6)
     : [
-        "Zwiększ budżet w piątki i soboty o 40% - to szczytowe dni rezerwacji",
-        "Dodaj kampanię remarketingową dla osób które nie dokończyły rezerwacji",
-        "Przetestuj węższą grupę 25-40 lat zamiast szerokiego targetowania",
-        "Włącz targetowanie geograficzne 10km od salonu dla lepszego ROI",
-        "Stwórz karuzelę z efektami przed/po z najpopularniejszych zabiegów",
+        "Zwiększ budżet w piątki i soboty o 40% - dane pokazują że to szczytowe dni rezerwacji w branży beauty",
+        "Dodaj kampanię remarketingową 3-7 dni dla osób które nie dokończyły rezerwacji - odzyskasz utracone konwersje",
+        "Przetestuj węższą grupę docelową 25-40 lat zamiast szerokiego targetowania - lepsza konwersja i niższy CPC",
+        "Włącz targetowanie geograficzne 10km od salonu zamiast całego miasta dla lepszego ROI kampanii",
+        "Stwórz karuzelę z efektami przed/po z 3 najpopularniejszych zabiegów - zwiększa zaangażowanie o 40%",
+        "Uruchom kampanię lookalike 1% na bazie obecnych klientek - najlepsza jakość ruchu w branży beauty",
       ];
 
   return (
     <div
       id="report-preview"
-      className="bg-zinc-950 text-white w-[794px] h-[1123px] p-4 mx-auto overflow-hidden"
+      className="bg-zinc-950 text-white w-[794px] h-[1123px] p-5 mx-auto overflow-hidden"
       style={{ backgroundColor: '#09090b' }}
     >
-      {/* Header - compact */}
-      <header className="flex items-start justify-between mb-3 border-b border-zinc-800 pb-2">
+      {/* Header */}
+      <header className="flex items-start justify-between mb-4 border-b border-zinc-800 pb-3">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <img 
-              src={agencyLogo} 
-              alt="Aurine" 
-              className="w-10 h-10 object-contain"
-            />
+          <div className="flex items-center gap-3">
+            <img src={agencyLogo} alt="Aurine" className="w-10 h-10 object-contain" />
             <div>
-              <p className="text-[9px] uppercase tracking-[0.25em] text-zinc-500 font-light">
-                Aurine Agency
-              </p>
-              <p className="text-sm font-semibold text-white">
-                Raport kampanii Facebook Ads
-              </p>
+              <p className="text-[9px] uppercase tracking-[0.25em] text-zinc-500 font-light">Aurine Agency</p>
+              <p className="text-sm font-semibold text-white">Raport kampanii Facebook Ads</p>
             </div>
           </div>
           <div>
             <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
               {data.clientName || "Salon Beauty"}
             </h1>
-            <p className="text-xs text-zinc-500">
-              {data.city || "Lokalizacja"} • {data.period || "Okres kampanii"}
-            </p>
+            <p className="text-xs text-zinc-500">{data.city || "Lokalizacja"} • {data.period || "Okres kampanii"}</p>
           </div>
         </div>
         <div className="text-right">
           <div className="inline-flex flex-col items-end gap-0.5 px-4 py-2 rounded-xl bg-gradient-to-br from-pink-600 to-rose-700 shadow-lg shadow-pink-500/25">
-            <span className="text-[8px] uppercase tracking-[0.2em] text-pink-100 font-light">
-              Budżet
-            </span>
-            <p className="text-xl font-bold text-white">
-              {data.budget ? `${data.budget} PLN` : "—"}
-            </p>
+            <span className="text-[8px] uppercase tracking-[0.2em] text-pink-100 font-light">Budżet</span>
+            <p className="text-xl font-bold text-white">{data.budget ? `${data.budget} PLN` : "—"}</p>
           </div>
         </div>
       </header>
 
-      {/* KPI Cards - compact */}
-      <section className="grid grid-cols-4 gap-2 mb-2">
+      {/* KPI Cards */}
+      <section className="grid grid-cols-4 gap-2 mb-3">
         <div className="bg-zinc-950 rounded-xl border border-zinc-800/50 p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] text-zinc-500 uppercase tracking-wider">Wyświetlenia</span>
+            <span className="text-[9px] text-zinc-500 uppercase">Wyświetlenia</span>
             <TrendingUp className="w-3 h-3 text-pink-400" />
           </div>
           <p className="text-lg font-bold text-white">{data.impressions || "—"}</p>
         </div>
-
         <div className="bg-zinc-950 rounded-xl border border-zinc-800/50 p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] text-zinc-500 uppercase tracking-wider">Zasięg</span>
+            <span className="text-[9px] text-zinc-500 uppercase">Zasięg</span>
             <Target className="w-3 h-3 text-blue-400" />
           </div>
           <p className="text-lg font-bold text-white">{data.reach || "—"}</p>
         </div>
-
         <div className="bg-zinc-950 rounded-xl border border-zinc-800/50 p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] text-zinc-500 uppercase tracking-wider">Kliknięcia</span>
+            <span className="text-[9px] text-zinc-500 uppercase">Kliknięcia</span>
             <CheckCircle2 className="w-3 h-3 text-emerald-400" />
           </div>
           <p className="text-lg font-bold text-white">{data.clicks || "—"}</p>
         </div>
-
-        <div className="bg-gradient-to-br from-pink-600/20 to-rose-600/20 rounded-xl border border-pink-500/30 p-3 shadow-lg shadow-pink-500/10">
+        <div className="bg-gradient-to-br from-pink-600/20 to-rose-600/20 rounded-xl border border-pink-500/30 p-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[9px] text-pink-300 uppercase tracking-wider">CTR</span>
+            <span className="text-[9px] text-pink-300 uppercase">CTR</span>
             <TrendingUp className="w-3 h-3 text-pink-300" />
           </div>
           <p className="text-lg font-bold text-white">{data.ctr ? `${data.ctr}%` : "—"}</p>
         </div>
       </section>
 
-      {/* Secondary metrics - compact */}
-      <section className="grid grid-cols-3 gap-2 mb-2">
+      {/* Secondary metrics */}
+      <section className="grid grid-cols-3 gap-2 mb-3">
         <div className="bg-zinc-950/50 rounded-lg border border-zinc-800/30 px-3 py-2">
-          <p className="text-[8px] text-zinc-500 uppercase tracking-wider mb-0.5">Konwersje</p>
+          <p className="text-[8px] text-zinc-500 uppercase mb-0.5">Konwersje</p>
           <p className="text-base font-bold text-white">{data.conversions || "—"}</p>
         </div>
         <div className="bg-zinc-950/50 rounded-lg border border-zinc-800/30 px-3 py-2">
-          <p className="text-[8px] text-zinc-500 uppercase tracking-wider mb-0.5">Koszt / konwersja</p>
+          <p className="text-[8px] text-zinc-500 uppercase mb-0.5">Koszt / konwersja</p>
           <p className="text-base font-bold text-pink-400">{data.costPerConversion ? `${data.costPerConversion} PLN` : "—"}</p>
         </div>
         <div className="bg-zinc-950/50 rounded-lg border border-zinc-800/30 px-3 py-2">
-          <p className="text-[8px] text-zinc-500 uppercase tracking-wider mb-0.5">Rezerwacje</p>
+          <p className="text-[8px] text-zinc-500 uppercase mb-0.5">Rezerwacje</p>
           <p className="text-base font-bold text-white">{data.bookings || "—"}</p>
         </div>
       </section>
 
-      {/* Campaign Details + Key Metrics in one row */}
-      <section className="grid grid-cols-3 gap-2 mb-2">
+      {/* Campaign Info Row */}
+      <section className="grid grid-cols-3 gap-2 mb-3">
         <div className="bg-zinc-900/50 rounded-lg p-2 border border-zinc-800/50">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="w-5 h-5 rounded bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
@@ -191,9 +175,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             </div>
             <p className="text-[9px] font-semibold text-white">Cel kampanii</p>
           </div>
-          <p className="text-[8px] text-zinc-400 leading-tight line-clamp-2">
-            {data.campaignObjective || "Zwiększenie rezerwacji wizyt"}
-          </p>
+          <p className="text-[8px] text-zinc-400 leading-tight line-clamp-2">{data.campaignObjective || "Zwiększenie rezerwacji"}</p>
         </div>
         <div className="bg-zinc-900/50 rounded-lg p-2 border border-zinc-800/50">
           <div className="flex items-center gap-1.5 mb-1">
@@ -203,44 +185,32 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             <p className="text-[9px] font-semibold text-white">Status</p>
           </div>
           <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span className="text-[8px] text-emerald-300 font-medium">{data.campaignStatus || "Aktywna"}</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+            <span className="text-[8px] text-emerald-300">{data.campaignStatus || "Aktywna"}</span>
           </div>
         </div>
-        <div className="bg-gradient-to-br from-purple-950/30 via-purple-900/20 to-transparent rounded-lg p-2 border border-purple-700/30">
-          <p className="text-[8px] uppercase tracking-wider text-purple-300 mb-1">Kluczowe wskaźniki</p>
-          <div className="space-y-0.5">
-            <div className="flex justify-between items-center">
-              <span className="text-[7px] text-zinc-400">CPC</span>
-              <span className="text-[9px] font-bold text-purple-300">
-                {data.clicks && data.budget && parseNumber(data.clicks) > 0 ?
-                  `${(parseNumber(data.budget) / parseNumber(data.clicks)).toFixed(2)} PLN`
-                  : "—"}
+        <div className="bg-gradient-to-br from-purple-950/30 to-transparent rounded-lg p-2 border border-purple-700/30">
+          <p className="text-[8px] uppercase text-purple-300 mb-1">Wskaźniki</p>
+          <div className="space-y-0.5 text-[8px]">
+            <div className="flex justify-between">
+              <span className="text-zinc-400">CPC</span>
+              <span className="font-bold text-purple-300">
+                {data.clicks && data.budget && parseNumber(data.clicks) > 0 ? `${(parseNumber(data.budget) / parseNumber(data.clicks)).toFixed(2)} PLN` : "—"}
               </span>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[7px] text-zinc-400">Conv. Rate</span>
-              <span className="text-[9px] font-bold text-pink-300">
-                {data.conversions && data.clicks && parseNumber(data.clicks) > 0 ?
-                  `${((parseNumber(data.conversions) / parseNumber(data.clicks)) * 100).toFixed(1)}%`
-                  : "—"}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-[7px] text-zinc-400">ROAS</span>
-              <span className="text-[9px] font-bold text-emerald-300">
-                {data.bookings && data.budget && parseNumber(data.budget) > 0 ?
-                  `${((parseNumber(data.bookings) * 200) / parseNumber(data.budget)).toFixed(1)}x`
-                  : "—"}
+            <div className="flex justify-between">
+              <span className="text-zinc-400">Conv.</span>
+              <span className="font-bold text-pink-300">
+                {data.conversions && data.clicks && parseNumber(data.clicks) > 0 ? `${((parseNumber(data.conversions) / parseNumber(data.clicks)) * 100).toFixed(1)}%` : "—"}
               </span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Charts - 2x2 compact grid */}
-      <section className="grid grid-cols-2 gap-2 mb-2">
-        <div className="bg-gradient-to-br from-pink-950/20 via-zinc-950/50 to-zinc-950/50 rounded-lg border border-pink-800/20 p-2">
+      {/* Charts 2x2 */}
+      <section className="grid grid-cols-2 gap-2 mb-3">
+        <div className="bg-gradient-to-br from-pink-950/20 to-zinc-950/50 rounded-lg border border-pink-800/20 p-2">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-5 h-5 rounded flex items-center justify-center">
               <CheckCircle2 className="w-2.5 h-2.5 text-white" />
@@ -251,11 +221,11 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             </div>
           </div>
           <div className="flex justify-center">
-            <SimplePieChart data={conversionData} size={90} />
+            <SimplePieChart data={conversionData} size={85} />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-950/20 via-zinc-950/50 to-zinc-950/50 rounded-lg border border-blue-800/20 p-2">
+        <div className="bg-gradient-to-br from-blue-950/20 to-zinc-950/50 rounded-lg border border-blue-800/20 p-2">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-5 h-5 rounded flex items-center justify-center">
               <Target className="w-2.5 h-2.5 text-white" />
@@ -266,11 +236,11 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             </div>
           </div>
           <div className="flex justify-center">
-            <SimplePieChart data={engagementData} size={90} />
+            <SimplePieChart data={engagementData} size={85} />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-950/20 via-zinc-950/50 to-zinc-950/50 rounded-lg border border-purple-800/20 p-2">
+        <div className="bg-gradient-to-br from-purple-950/20 to-zinc-950/50 rounded-lg border border-purple-800/20 p-2">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="bg-gradient-to-br from-purple-500 to-purple-600 w-5 h-5 rounded flex items-center justify-center">
               <TrendingUp className="w-2.5 h-2.5 text-white" />
@@ -280,12 +250,12 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
               <p className="text-[7px] text-purple-300">Zasięg i kliknięcia</p>
             </div>
           </div>
-          <div className="flex justify-center w-full">
-            <SimpleLineChart data={weeklyData} width={220} height={80} color1="#ec4899" color2="#3b82f6" />
+          <div className="flex justify-center">
+            <SimpleLineChart data={weeklyData} width={200} height={70} color1="#ec4899" color2="#3b82f6" />
           </div>
         </div>
 
-        <div className="bg-gradient-to-br from-rose-950/20 via-zinc-950/50 to-zinc-950/50 rounded-lg border border-rose-800/20 p-2">
+        <div className="bg-gradient-to-br from-rose-950/20 to-zinc-950/50 rounded-lg border border-rose-800/20 p-2">
           <div className="flex items-center gap-1.5 mb-1">
             <div className="bg-gradient-to-br from-rose-500 to-pink-600 w-5 h-5 rounded flex items-center justify-center">
               <CheckCircle2 className="w-2.5 h-2.5 text-white" />
@@ -295,50 +265,42 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
               <p className="text-[7px] text-rose-300">Rozkład tygodniowy</p>
             </div>
           </div>
-          <div className="flex justify-center w-full">
-            <SimpleBarChart data={dailyBookings} width={220} height={80} color="#ec4899" />
+          <div className="flex justify-center">
+            <SimpleBarChart data={dailyBookings} width={200} height={70} color="#ec4899" />
           </div>
         </div>
       </section>
 
-      {/* Recommendations - ALWAYS VISIBLE */}
-      <section className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-lg border border-emerald-800/30 p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-7 h-7 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
+      {/* RECOMMENDATIONS - Main section */}
+      <section className="bg-gradient-to-br from-emerald-950/40 via-zinc-950/70 to-zinc-950/60 rounded-xl border border-emerald-800/40 p-4 flex-1">
+        <div className="flex items-center gap-2 mb-3">
+          <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30">
+            <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h4 className="text-xs font-semibold text-white">Rekomendacje marketingowe</h4>
-            <p className="text-[8px] text-emerald-300">Konkretne kolejne kroki</p>
+            <h4 className="text-sm font-semibold text-white">Rekomendacje marketingowe</h4>
+            <p className="text-[9px] text-emerald-300">Konkretne kolejne kroki oparte na danych</p>
           </div>
         </div>
-        <div className="space-y-1">
+        <div className="space-y-2">
           {recommendations.map((rec, idx) => (
-            <div key={idx} className="flex gap-1.5">
-              <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                <span className="text-[7px] font-bold text-emerald-400">{idx + 1}</span>
+            <div key={idx} className="flex gap-2">
+              <div className="w-5 h-5 rounded bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
+                <span className="text-[9px] font-bold text-emerald-400">{idx + 1}</span>
               </div>
-              <p className="text-[8px] text-zinc-300 leading-tight line-clamp-2">{rec}</p>
+              <p className="text-[10px] text-zinc-200 leading-relaxed">{rec}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="mt-2 pt-1.5 border-t border-zinc-900 flex items-center justify-between text-[8px] text-zinc-700">
-        <div className="flex items-center gap-2">
-          <p>© 2025 Aurine Agency</p>
-          <span className="text-zinc-800">•</span>
-          <p className="text-zinc-600">aurine.pl</p>
-        </div>
+      <footer className="mt-3 pt-2 border-t border-zinc-900 flex items-center justify-between text-[8px] text-zinc-600">
+        <p>© 2025 Aurine Agency • aurine.pl</p>
         <div className="flex items-center gap-1.5">
-          <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-pink-500/10 border border-pink-500/40">
-            <MessageCircle className="w-2 h-2 text-pink-400" />
-          </span>
-          <span className="inline-flex items-center justify-center w-3.5 h-3.5 rounded-full bg-pink-500/10 border border-pink-500/40">
-            <Phone className="w-2 h-2 text-pink-400" />
-          </span>
-          <p className="text-zinc-600">+48 731 856 524</p>
+          <MessageCircle className="w-3 h-3 text-pink-400" />
+          <Phone className="w-3 h-3 text-pink-400" />
+          <span>+48 731 856 524</span>
         </div>
       </footer>
     </div>
