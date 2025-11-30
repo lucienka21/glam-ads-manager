@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Download, FileImage, Eye } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Download, FileImage, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,13 +7,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { toast } from "sonner";
 import { ContractPreview } from "@/components/contract/ContractPreview";
+import { AppLayout } from "@/components/layout/AppLayout";
+import { useDocumentHistory } from "@/hooks/useDocumentHistory";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
 const ContractGenerator = () => {
-  const navigate = useNavigate();
+  const { saveDocument, updateThumbnail } = useDocumentHistory();
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
@@ -27,18 +29,63 @@ const ContractGenerator = () => {
     contractDuration: "3 miesiące",
   });
 
+  // Load document from session storage if coming from history
+  useEffect(() => {
+    const stored = sessionStorage.getItem("loadDocument");
+    if (stored) {
+      try {
+        const doc = JSON.parse(stored);
+        if (doc.type === "contract") {
+          setFormData(doc.data as typeof formData);
+          setShowPreview(true);
+        }
+      } catch (e) {
+        console.error("Error loading document:", e);
+      }
+      sessionStorage.removeItem("loadDocument");
+    }
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleGenerate = () => {
+  const generateThumbnail = async () => {
+    const element = document.getElementById("contract-preview");
+    if (!element) return null;
+    try {
+      return await toPng(element, { cacheBust: true, pixelRatio: 0.3, backgroundColor: "#ffffff" });
+    } catch {
+      return null;
+    }
+  };
+
+  const handleGenerate = async () => {
     if (!formData.clientName || !formData.contractNumber || !formData.contractValue) {
       toast.error("Uzupełnij wszystkie wymagane pola");
       return;
     }
 
     setShowPreview(true);
+
+    // Save to history
+    const docId = saveDocument(
+      "contract",
+      formData.clientName,
+      `Umowa ${formData.contractNumber}`,
+      formData
+    );
+    setCurrentDocId(docId);
+
     toast.success("Podgląd umowy gotowy!");
+
+    // Generate thumbnail after preview is shown
+    setTimeout(async () => {
+      const thumbnail = await generateThumbnail();
+      if (thumbnail && docId) {
+        updateThumbnail(docId, thumbnail);
+      }
+    }, 500);
   };
 
   const generatePDF = async () => {
@@ -48,25 +95,13 @@ const ContractGenerator = () => {
     setIsGenerating(true);
 
     try {
-      const canvas = await toPng(element, {
-        cacheBust: true,
-        pixelRatio: 3,
-        backgroundColor: "#ffffff",
-      });
+      const canvas = await toPng(element, { cacheBust: true, pixelRatio: 3, backgroundColor: "#ffffff" });
 
       const img = new Image();
       img.src = canvas;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
+      await new Promise((resolve) => { img.onload = resolve; });
 
-      const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "px",
-        format: [794, 1123],
-        compress: true,
-      });
-
+      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
       pdf.addImage(canvas, "PNG", 0, 0, 794, 1123, undefined, "FAST");
       pdf.save(`${formData.contractNumber.replace(/\//g, "-")}.pdf`);
 
@@ -86,11 +121,7 @@ const ContractGenerator = () => {
     setIsGenerating(true);
 
     try {
-      const imgData = await toPng(element, {
-        cacheBust: true,
-        pixelRatio: 2,
-        backgroundColor: "#ffffff",
-      });
+      const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#ffffff" });
 
       const link = document.createElement("a");
       link.download = `${formData.contractNumber.replace(/\//g, "-")}.png`;
@@ -107,31 +138,13 @@ const ContractGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background dark">
-      {/* Subtle background */}
-      <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" />
-
-      {/* Header */}
-      <header className="relative z-10 border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-xl font-semibold text-foreground font-sans">Generator Umów</h1>
-              <p className="text-sm text-muted-foreground">Profesjonalne umowy marketingowe</p>
-            </div>
-          </div>
+    <AppLayout>
+      <div className="p-6 lg:p-8">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-foreground">Generator Umów</h1>
+          <p className="text-muted-foreground">Profesjonalne umowy marketingowe</p>
         </div>
-      </header>
 
-      {/* Main Content */}
-      <main className="relative z-10 max-w-6xl mx-auto px-6 py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Form */}
           <div className="space-y-6">
@@ -236,14 +249,12 @@ const ContractGenerator = () => {
                   />
                 </div>
 
-                {/* Info */}
                 <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
                   <p className="text-sm text-muted-foreground">
                     <span className="text-primary font-medium">Info:</span> Umowa zawiera standardowe klauzule prawne i zabezpieczenia
                   </p>
                 </div>
 
-                {/* Generate Button */}
                 <Button onClick={handleGenerate} className="w-full">
                   <Eye className="w-5 h-5 mr-2" />
                   Generuj podgląd umowy
@@ -258,20 +269,11 @@ const ContractGenerator = () => {
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-foreground font-sans">Podgląd umowy</h2>
                 <div className="flex gap-2">
-                  <Button
-                    onClick={downloadAsImage}
-                    disabled={isGenerating}
-                    size="sm"
-                    variant="success"
-                  >
+                  <Button onClick={downloadAsImage} disabled={isGenerating} size="sm" variant="success">
                     <FileImage className="w-4 h-4 mr-2" />
                     {isGenerating ? "..." : "PNG"}
                   </Button>
-                  <Button
-                    onClick={generatePDF}
-                    disabled={isGenerating}
-                    size="sm"
-                  >
+                  <Button onClick={generatePDF} disabled={isGenerating} size="sm">
                     <Download className="w-4 h-4 mr-2" />
                     {isGenerating ? "..." : "PDF"}
                   </Button>
@@ -285,8 +287,8 @@ const ContractGenerator = () => {
             </div>
           )}
         </div>
-      </main>
-    </div>
+      </div>
+    </AppLayout>
   );
 };
 
