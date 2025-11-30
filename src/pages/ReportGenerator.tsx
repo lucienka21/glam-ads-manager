@@ -239,12 +239,16 @@ const ReportGenerator = () => {
     setIsGenerating(true);
 
     try {
+      // Get actual content height
+      const actualHeight = element.scrollHeight || element.offsetHeight;
+      const actualWidth = 794;
+      
       const canvas = await toPng(element, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#09090b",
-        width: 794,
-        height: 1123,
+        width: actualWidth,
+        height: actualHeight,
       });
 
       const img = new Image();
@@ -256,7 +260,7 @@ const ReportGenerator = () => {
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "px",
-        format: [794, 1123],
+        format: [actualWidth, actualHeight],
         compress: true,
       });
 
@@ -265,8 +269,8 @@ const ReportGenerator = () => {
         "PNG",
         0,
         0,
-        794,
-        1123,
+        actualWidth,
+        actualHeight,
         undefined,
         "FAST"
       );
@@ -476,7 +480,6 @@ const ReportGenerator = () => {
             id="report-preview-pdf" 
             style={{ 
               width: 794, 
-              height: 1123,
               backgroundColor: '#09090b'
             }}
           >
@@ -824,7 +827,6 @@ const ReportGenerator = () => {
                     id="report-preview-pdf" 
                     style={{ 
                       width: 794, 
-                      height: 1123,
                       backgroundColor: '#09090b'
                     }}
                   >
