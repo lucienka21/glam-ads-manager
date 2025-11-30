@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Download, ChevronLeft, ChevronRight, Play, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +19,8 @@ const PresentationGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(1);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
+  const [previewScale, setPreviewScale] = useState(0.4);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     ownerName: "",
@@ -42,6 +44,21 @@ const PresentationGenerator = () => {
       sessionStorage.removeItem("loadDocument");
     }
   }, []);
+
+  // Calculate preview scale based on container width
+  useEffect(() => {
+    const calculateScale = () => {
+      if (previewContainerRef.current) {
+        const containerWidth = previewContainerRef.current.offsetWidth;
+        const scale = containerWidth / 1600;
+        setPreviewScale(Math.min(scale * 0.95, 1));
+      }
+    };
+
+    calculateScale();
+    window.addEventListener('resize', calculateScale);
+    return () => window.removeEventListener('resize', calculateScale);
+  }, [showPreview]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -272,10 +289,25 @@ const PresentationGenerator = () => {
               </Button>
             </div>
 
-            <div className="border border-border/50 rounded-xl overflow-hidden shadow-lg">
-              <div className="aspect-video bg-black flex items-center justify-center overflow-hidden">
-                <div className="transform scale-[0.55] origin-center">
-                  <PresentationPreview data={formData} currentSlide={currentSlide} />
+            <div 
+              ref={previewContainerRef}
+              className="border border-border/50 rounded-xl overflow-hidden shadow-lg bg-black"
+            >
+              <div 
+                className="relative w-full bg-black"
+                style={{ paddingBottom: '56.25%' }}
+              >
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div 
+                    className="origin-center"
+                    style={{
+                      width: '1600px',
+                      height: '900px',
+                      transform: `scale(${previewScale})`,
+                    }}
+                  >
+                    <PresentationPreview data={formData} currentSlide={currentSlide} />
+                  </div>
                 </div>
               </div>
             </div>
