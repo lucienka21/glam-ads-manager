@@ -94,18 +94,19 @@ const ReportGenerator = () => {
 
   // Scale for portrait preview
   useEffect(() => {
-    if (!reportData || isLandscape || !portraitContainerRef.current) return;
+    if (!reportData || isLandscape) return;
     
     const updatePortraitScale = () => {
-      if (portraitContainerRef.current) {
-        const containerWidth = portraitContainerRef.current.clientWidth;
-        // Portrait document: 794x1123
-        const newScale = Math.min(containerWidth / 794, 1);
-        setPortraitScale(newScale);
-      }
+      // Calculate based on available viewport width for the right column
+      // In a 2-column grid, we have roughly 50% of the viewport minus some padding
+      const availableWidth = Math.min(window.innerWidth * 0.45, 600);
+      // Portrait document: 794x1123
+      const newScale = Math.max(Math.min(availableWidth / 794, 0.7), 0.35);
+      setPortraitScale(newScale);
     };
 
-    updatePortraitScale();
+    // Small delay to ensure DOM is ready
+    setTimeout(updatePortraitScale, 100);
     window.addEventListener('resize', updatePortraitScale);
     return () => window.removeEventListener('resize', updatePortraitScale);
   }, [reportData, isLandscape]);
@@ -242,6 +243,14 @@ const ReportGenerator = () => {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#09090b",
+        width: 794,
+        height: 1123,
+      });
+
+      const img = new Image();
+      img.src = canvas;
+      await new Promise((resolve) => {
+        img.onload = resolve;
       });
 
       const pdf = new jsPDF({
@@ -458,9 +467,19 @@ const ReportGenerator = () => {
           </div>
         </div>
 
-        {/* Hidden portrait preview for PDF generation */}
-        <div className="fixed -left-[3000px] top-0">
-          <div id="report-preview-pdf">
+        {/* Hidden portrait preview for PDF generation - must match exact report dimensions */}
+        <div 
+          className="fixed pointer-events-none" 
+          style={{ left: '-9999px', top: 0 }}
+        >
+          <div 
+            id="report-preview-pdf" 
+            style={{ 
+              width: 794, 
+              height: 1123,
+              backgroundColor: '#09090b'
+            }}
+          >
             <ReportPreview data={reportData} />
           </div>
         </div>
@@ -773,14 +792,14 @@ const ReportGenerator = () => {
                     </Button>
                   </div>
                 </div>
-                <div ref={portraitContainerRef} className="relative group w-full">
+                <div ref={portraitContainerRef} className="relative group flex justify-center">
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div 
-                    className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5 mx-auto" 
+                    className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5" 
                     style={{ 
                       backgroundColor: '#09090b',
-                      width: 794 * portraitScale,
-                      height: 1123 * portraitScale,
+                      width: Math.round(794 * portraitScale),
+                      height: Math.round(1123 * portraitScale),
                     }}
                   >
                     <div
@@ -796,9 +815,19 @@ const ReportGenerator = () => {
                   </div>
                 </div>
                 
-                {/* Hidden full-size element for PDF generation */}
-                <div className="fixed -left-[3000px] top-0">
-                  <div id="report-preview-pdf">
+                {/* Hidden full-size element for PDF generation - must match exact report dimensions */}
+                <div 
+                  className="fixed pointer-events-none" 
+                  style={{ left: '-9999px', top: 0 }}
+                >
+                  <div 
+                    id="report-preview-pdf" 
+                    style={{ 
+                      width: 794, 
+                      height: 1123,
+                      backgroundColor: '#09090b'
+                    }}
+                  >
                     <ReportPreview data={reportData} />
                   </div>
                 </div>
