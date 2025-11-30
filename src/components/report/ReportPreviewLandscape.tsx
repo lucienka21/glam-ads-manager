@@ -195,7 +195,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 h-full bg-black p-6 flex flex-col gap-4 overflow-hidden">
+        <main className="flex-1 h-full bg-black p-6 flex flex-col gap-3 overflow-hidden">
           {/* Header */}
           <header className="flex items-start justify-between">
             <div>
@@ -274,7 +274,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </section>
 
           {/* Charts and recommendations grid */}
-          <div className="grid grid-cols-[1fr,340px] gap-4 flex-1 min-h-0">
+          <div className="grid grid-cols-[1fr,340px] gap-4 flex-1 min-h-0" style={{ flex: '1 1 auto' }}>
             {/* Charts grid 2x2 */}
             <div className="grid grid-cols-2 gap-4 min-h-0">
               {/* Left column */}
@@ -360,7 +360,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
             </div>
 
             {/* Recommendations panel */}
-            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-5 flex flex-col min-h-0 max-h-full backdrop-blur shadow-xl overflow-hidden">
+            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-5 flex flex-col backdrop-blur shadow-xl overflow-hidden h-full">
               <div className="flex items-center gap-3 mb-4 flex-shrink-0">
                 <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
                   <Sparkles className="w-5 h-5 text-white" />
@@ -370,7 +370,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                   <p className="text-[10px] text-emerald-300">Dalsze działania oparte na danych</p>
                 </div>
               </div>
-              <div className="space-y-3 flex-1 overflow-hidden">
+              <div className="space-y-3 flex-1 overflow-hidden flex flex-col justify-start">
                 {data.recommendations ? (
                   data.recommendations
                     .split("\n")
@@ -449,7 +449,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </div>
 
           {/* Footer */}
-          <footer className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[9px] text-zinc-700">
+          <footer className="pt-1 border-t border-zinc-900 flex items-center justify-between text-[9px] text-zinc-700 flex-shrink-0">
             <p>© 2025 Aurine Agency · Kampanie Facebook ads dla salonów beauty</p>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
