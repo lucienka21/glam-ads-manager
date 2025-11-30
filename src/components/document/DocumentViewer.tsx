@@ -54,7 +54,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         
         const scaleByWidth = containerWidth / docWidth;
         const scaleByHeight = containerHeight / docHeight;
-        const newScale = Math.min(scaleByWidth, scaleByHeight, 0.9);
+        const newScale = Math.min(scaleByWidth, scaleByHeight, 0.55);
         setScale(newScale);
       }
     };
