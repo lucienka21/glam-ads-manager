@@ -798,23 +798,13 @@ const ReportGenerator = () => {
                 <div ref={portraitContainerRef} className="relative group flex justify-center">
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
                   <div 
-                    className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5" 
+                    className="relative border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5 overflow-hidden" 
                     style={{ 
                       backgroundColor: '#09090b',
-                      width: Math.round(794 * portraitScale),
-                      height: Math.round(1123 * portraitScale),
+                      zoom: portraitScale,
                     }}
                   >
-                    <div
-                      style={{
-                        transform: `scale(${portraitScale})`,
-                        transformOrigin: 'top left',
-                        width: 794,
-                        height: 1123,
-                      }}
-                    >
-                      <ReportPreview data={reportData} />
-                    </div>
+                    <ReportPreview data={reportData} />
                   </div>
                 </div>
                 
