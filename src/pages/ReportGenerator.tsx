@@ -322,136 +322,142 @@ const ReportGenerator = () => {
     }
   };
 
+  // Landscape mode - completely different layout to avoid scrolling issues
+  if (isLandscape && reportData) {
+    return (
+      <div 
+        className="fixed inset-0 bg-background overflow-hidden"
+        style={{ backgroundColor: 'hsl(var(--background))' }}
+      >
+        <div className="h-full flex flex-col px-4 py-3">
+          {/* Header */}
+          <div className="flex justify-between items-center flex-wrap gap-2 mb-3 flex-shrink-0">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground font-sans">
+                Podgląd pełnoekranowy
+              </h2>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setIsLandscape(false)}
+                size="sm"
+                variant="outline"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1.5" />
+                Powrót
+              </Button>
+              <div className="h-6 w-px bg-border" />
+              <Button
+                onClick={downloadAsImage}
+                disabled={isGenerating}
+                size="sm"
+                variant="success"
+              >
+                <FileImage className="w-4 h-4 mr-1.5" />
+                PNG
+              </Button>
+              <Button
+                onClick={generateLandscapePDF}
+                disabled={isGenerating}
+                size="sm"
+              >
+                <Download className="w-4 h-4 mr-1.5" />
+                PDF 16:9
+              </Button>
+              <Button
+                onClick={generatePDF}
+                disabled={isGenerating}
+                size="sm"
+                variant="outline"
+              >
+                <Download className="w-4 h-4 mr-1.5" />
+                Pionowy
+              </Button>
+            </div>
+          </div>
+
+          {/* Report container - takes remaining space */}
+          <div 
+            ref={containerRef}
+            className="flex-1 flex items-center justify-center overflow-hidden"
+          >
+            <div 
+              className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5"
+              style={{ 
+                backgroundColor: '#000000',
+                width: `${1600 * scale}px`,
+                height: `${900 * scale}px`
+              }}
+            >
+              <div 
+                className="w-[1600px] h-[900px] origin-top-left"
+                style={{
+                  backgroundColor: '#000000',
+                  transform: `scale(${scale})`
+                }}
+              >
+                <ReportPreviewLandscape data={reportData} />
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center py-2 text-xs text-muted-foreground flex-shrink-0">
+            <p>Powered by <span className="text-pink-400 font-medium">Aurine</span> · aurine.pl</p>
+          </div>
+        </div>
+
+        {/* Hidden portrait preview for PDF generation */}
+        <div className="fixed -left-[3000px] top-0">
+          <ReportPreview data={reportData} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`${isLandscape ? '' : 'min-h-screen'} bg-background dark`} style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <div className="min-h-screen bg-background dark" style={{ backgroundColor: 'hsl(var(--background))' }}>
       {/* Subtle background */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" style={{ backgroundColor: 'hsl(var(--background))' }} />
 
-      <div className={`relative z-10 ${containerClass} px-6 ${isLandscape ? 'py-4' : 'py-8'}`}>
-        {!isLandscape && (
-          <div className="flex items-center gap-4 mb-8">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div>
-              <h1 className="text-2xl font-semibold text-foreground font-sans">
-                Generator Raportów Facebook Ads
-              </h1>
-              <p className="text-muted-foreground">
-                Profesjonalne raporty dla salonów beauty - Aurine Agency
-              </p>
-            </div>
+      <div className={`relative z-10 ${containerClass} px-6 py-8`}>
+        <div className="flex items-center gap-4 mb-8">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate("/")}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground font-sans">
+              Generator Raportów Facebook Ads
+            </h1>
+            <p className="text-muted-foreground">
+              Profesjonalne raporty dla salonów beauty - Aurine Agency
+            </p>
           </div>
-        )}
+        </div>
 
-        {isLandscape && reportData ? (
-          <div className="animate-fade-in">
-            <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground font-sans">
-                  Podgląd - tryb pełnoekranowy
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Widok poziomy dopasowany do szerokości ekranu.
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setIsLandscape(false)}
-                  size="sm"
-                  variant="outline"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-1.5" />
-                  Powrót
-                </Button>
-                <div className="h-6 w-px bg-border" />
-                <Button
-                  onClick={downloadAsImage}
-                  disabled={isGenerating}
-                  size="sm"
-                  variant="success"
-                >
-                  <FileImage className="w-4 h-4 mr-1.5" />
-                  PNG
-                </Button>
-                <Button
-                  onClick={generateLandscapePDF}
-                  disabled={isGenerating}
-                  size="sm"
-                >
-                  <Download className="w-4 h-4 mr-1.5" />
-                  PDF 16:9
-                </Button>
-                <Button
-                  onClick={generatePDF}
-                  disabled={isGenerating}
-                  size="sm"
-                  variant="outline"
-                >
-                  <Download className="w-4 h-4 mr-1.5" />
-                  Pionowy
-                </Button>
-              </div>
-            </div>
-
-            <div 
-              ref={containerRef}
-              className="w-full" 
-            >
-              <div 
-                className="relative mx-auto rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5"
-                style={{ 
-                  backgroundColor: '#000000',
-                  width: '100%',
-                  maxWidth: '1600px',
-                  height: `${900 * scale}px`
-                }}
-              >
-                <div 
-                  className="w-[1600px] h-[900px] origin-top-left"
-                  style={{
-                    backgroundColor: '#000000',
-                    transform: `scale(${scale})`
-                  }}
-                >
-                  <ReportPreviewLandscape data={reportData} />
-                </div>
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div className="text-center py-3 text-xs text-muted-foreground">
-              <p>Powered by <span className="text-pink-400 font-medium">Aurine</span> · aurine.pl</p>
-            </div>
-
-            <div className="fixed -left-[3000px] top-0">
-              <ReportPreview data={reportData} />
-            </div>
-          </div>
-        ) : (
-          <div className="grid lg:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <FormCard title="Dane kampanii Facebook Ads">
-                <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-                  <FormRow cols={1}>
-                    <div>
-                      <Label htmlFor="clientName">Nazwa salonu</Label>
-                      <Input
-                        id="clientName"
-                        {...register("clientName")}
-                        placeholder="np. Beauty Studio"
-                      />
-                      {errors.clientName && (
-                        <p className="text-destructive text-sm mt-1">
-                          {errors.clientName.message}
-                        </p>
-                      )}
-                    </div>
-                  </FormRow>
+        <div className="grid lg:grid-cols-2 gap-8">
+          <div className="space-y-6">
+            <FormCard title="Dane kampanii Facebook Ads">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+                <FormRow cols={1}>
+                  <div>
+                    <Label htmlFor="clientName">Nazwa salonu</Label>
+                    <Input
+                      id="clientName"
+                      {...register("clientName")}
+                      placeholder="np. Beauty Studio"
+                    />
+                    {errors.clientName && (
+                      <p className="text-destructive text-sm mt-1">
+                        {errors.clientName.message}
+                      </p>
+                    )}
+                  </div>
+                </FormRow>
 
                   <FormRow cols={1}>
                     <div>
@@ -746,7 +752,6 @@ const ReportGenerator = () => {
               </div>
             )}
           </div>
-        )}
       </div>
     </div>
   );
