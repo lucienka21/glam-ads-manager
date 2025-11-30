@@ -274,7 +274,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </section>
 
           {/* Charts and recommendations row */}
-          <div className="flex gap-4 mb-3 flex-1 min-h-0">
+          <div className="flex gap-4 flex-1 min-h-0">
             {/* Charts grid 2x2 */}
             <div className="grid grid-cols-2 gap-4 min-h-0 flex-1">
               {/* Left column */}
@@ -449,7 +449,7 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
           </div>
 
           {/* Footer */}
-          <footer className="border-t border-zinc-900 flex items-center justify-between text-[9px] text-zinc-700 flex-shrink-0 pt-2 mt-auto">
+          <footer className="border-t border-zinc-900 flex items-center justify-between text-[9px] text-zinc-700 flex-shrink-0 pt-2">
             <p>© 2025 Aurine Agency · Kampanie Facebook ads dla salonów beauty</p>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1.5">
