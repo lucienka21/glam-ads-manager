@@ -91,7 +91,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
   return (
     <div
       id="report-preview"
-      className="bg-zinc-950 text-white w-[794px] h-[1123px] p-5 mx-auto overflow-hidden flex flex-col"
+      className="bg-zinc-950 text-white w-[794px] p-5 mx-auto overflow-hidden flex flex-col"
       style={{ backgroundColor: '#09090b' }}
     >
       {/* Header */}
