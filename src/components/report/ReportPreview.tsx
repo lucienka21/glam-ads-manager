@@ -41,7 +41,8 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
 
   const bookingsNum = parseNumber(data.bookings) || 33;
   const conversionsNum = parseNumber(data.conversions) || 50;
-  const conversionPercentage = conversionsNum > 0 ? (bookingsNum / conversionsNum) * 100 : 66;
+  // Cap at 100% to handle edge cases where bookings > conversions
+  const conversionPercentage = conversionsNum > 0 ? Math.min((bookingsNum / conversionsNum) * 100, 100) : 66;
   const conversionData = [
     { name: "Rezerwacje", value: conversionPercentage, color: "#ec4899" },
     { name: "Pozostałe", value: 100 - conversionPercentage, color: "#27272a" },
