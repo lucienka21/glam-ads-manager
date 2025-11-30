@@ -376,14 +376,12 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                     .filter((line) => line.trim())
                     .slice(0, 7)
                     .map((rec, idx) => {
-                      // Truncate each recommendation to max 80 characters
-                      const truncated = rec.length > 80 ? rec.substring(0, 77) + "..." : rec;
                       return (
                         <div key={idx} className="flex gap-1.5">
                           <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-[7px] font-bold text-emerald-400">{idx + 1}</span>
                           </div>
-                          <p className="text-[8px] text-zinc-300 leading-snug line-clamp-2">{truncated}</p>
+                          <p className="text-[9px] text-zinc-300 leading-snug">{rec}</p>
                         </div>
                       );
                     })

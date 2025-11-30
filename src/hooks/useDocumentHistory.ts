@@ -48,9 +48,8 @@ export const useDocumentHistory = () => {
       createdAt: new Date().toISOString(),
     };
 
-    const updated = [newItem, ...history.filter(item => 
-      !(item.type === type && item.title === title && item.subtitle === subtitle)
-    )].slice(0, MAX_ITEMS);
+    // Save all documents without filtering duplicates
+    const updated = [newItem, ...history].slice(0, MAX_ITEMS);
     
     setHistory(updated);
     saveToStorage(updated);

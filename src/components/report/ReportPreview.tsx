@@ -327,21 +327,19 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             <p className="text-[10px] text-emerald-300">Konkretne kolejne kroki</p>
           </div>
         </div>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
           {data.recommendations ? (
             data.recommendations
               .split("\n")
               .filter((line) => line.trim())
               .slice(0, 4)
               .map((rec, idx) => {
-                const shortRec =
-                  rec.length > 70 ? `${rec.slice(0, 67)}...` : rec;
                 return (
                   <div key={idx} className="flex gap-2">
-                    <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-[7px] font-bold text-emerald-400">{idx + 1}</span>
+                    <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
                     </div>
-                    <p className="text-[9px] text-zinc-300 leading-snug line-clamp-1">{shortRec}</p>
+                    <p className="text-[10px] text-zinc-300 leading-relaxed">{rec}</p>
                   </div>
                 );
               })
