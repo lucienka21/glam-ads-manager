@@ -38,8 +38,8 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
 
     const updateScale = () => {
       if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth - 80;
-        const containerHeight = containerRef.current.clientHeight - 80;
+        const containerWidth = containerRef.current.clientWidth - 120;
+        const containerHeight = containerRef.current.clientHeight - 120;
         
         let docWidth = 1600;
         let docHeight = 900;
@@ -54,7 +54,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         
         const scaleByWidth = containerWidth / docWidth;
         const scaleByHeight = containerHeight / docHeight;
-        const newScale = Math.min(scaleByWidth, scaleByHeight, 0.55);
+        const newScale = Math.min(scaleByWidth, scaleByHeight, 0.45);
         setScale(newScale);
       }
     };
