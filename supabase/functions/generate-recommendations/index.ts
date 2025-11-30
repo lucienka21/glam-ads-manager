@@ -70,7 +70,7 @@ BENCHMARKI DLA BEAUTY:
     if (frequency > 5) issues.push("WYSOKA CZĘSTOTLIWOŚĆ - zmień lub rozszerz grupę docelową");
     if (frequency < 1.5) issues.push("NISKA CZĘSTOTLIWOŚĆ - zwiększ budżet dla lepszego dotarcia");
 
-    const prompt = `Jesteś ekspertem od kampanii Facebook Ads dla salonów beauty. Przeanalizuj dane i napisz 7 KRÓTKICH rekomendacji.
+    const prompt = `Jesteś ekspertem od kampanii Facebook Ads dla salonów beauty. Przeanalizuj dane i napisz 7 konkretnych rekomendacji.
 
 ${analysisContext}
 
@@ -82,18 +82,18 @@ MIASTO: ${campaignData.city || 'Polska'}
 
 ZASADY:
 1. Każda rekomendacja MUSI zaczynać się od CZASOWNIKA: "Zwiększ", "Dodaj", "Przetestuj", "Uruchom", "Stwórz", "Włącz", "Rozważ"
-2. MAKSYMALNIE 80-95 znaków na rekomendację - to KRYTYCZNE!
+2. Długość rekomendacji: 100-140 znaków każda - wystarczająco długie żeby były konkretne
 3. Rekomendacje oparte na DANYCH z analizy - odwołuj się do konkretnych liczb i metryk
-4. Pisz zwięźle ale konkretnie
+4. Pisz konkretnie z uzasadnieniem dlaczego
 
-PRZYKŁADY (zauważ KRÓTKĄ długość):
-- "Zwiększ budżet w piątki o 40% - to szczytowy dzień rezerwacji"
-- "Dodaj remarketing 3-dniowy dla osób bez dokończonej rezerwacji"
-- "Przetestuj grupę 25-40 lat zamiast szerokiego targetowania 18-55"
-- "Włącz targetowanie 10km od salonu zamiast całego miasta"
-- "Stwórz karuzelę przed/po z 3 najpopularniejszych zabiegów"
+PRZYKŁADY (zauważ odpowiednią długość):
+- "Zwiększ budżet w piątki i soboty o 40% - dane pokazują że to szczytowe dni rezerwacji w branży beauty"
+- "Dodaj kampanię remarketingową 3-7 dni dla osób które nie dokończyły rezerwacji - odzyskasz utracone konwersje"
+- "Przetestuj węższą grupę docelową 25-40 lat zamiast szerokiego targetowania - lepsza konwersja"
+- "Włącz targetowanie geograficzne 10km od salonu zamiast całego miasta dla lepszego ROI"
+- "Stwórz karuzelę z efektami przed/po z 3 najpopularniejszych zabiegów - zwiększa zaangażowanie"
 
-Odpowiedz TYLKO 7 rekomendacjami (max 95 znaków każda), każda w nowej linii. BEZ numeracji, punktorów, gwiazdek.`;
+Odpowiedz TYLKO 7 rekomendacjami (100-140 znaków każda), każda w nowej linii. BEZ numeracji, punktorów, gwiazdek.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
