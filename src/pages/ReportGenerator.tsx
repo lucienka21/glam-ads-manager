@@ -98,17 +98,34 @@ const ReportGenerator = () => {
     
     const updatePortraitScale = () => {
       // Calculate based on available viewport width for the right column
-      // In a 2-column grid, we have roughly 50% of the viewport minus some padding
-      const availableWidth = Math.min(window.innerWidth * 0.45, 600);
-      // Portrait document: 794x1123
-      const newScale = Math.max(Math.min(availableWidth / 794, 0.7), 0.35);
+      // Use more space - approximately 45% of viewport with better min/max
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      
+      // For larger screens, allow bigger previews
+      let maxScale = 0.55;
+      if (viewportWidth >= 1400) maxScale = 0.65;
+      if (viewportWidth >= 1600) maxScale = 0.75;
+      
+      // Calculate available width (right column is roughly 50% minus padding)
+      const availableWidth = Math.min(viewportWidth * 0.42, 550);
+      const availableHeight = viewportHeight - 250; // Account for header/buttons
+      
+      // Scale based on both width and height to fit properly
+      const scaleByWidth = availableWidth / 794;
+      const scaleByHeight = availableHeight / 1123;
+      
+      const newScale = Math.max(Math.min(scaleByWidth, scaleByHeight, maxScale), 0.3);
       setPortraitScale(newScale);
     };
 
-    // Small delay to ensure DOM is ready
-    setTimeout(updatePortraitScale, 100);
+    // Initial calculation with delay
+    const timeoutId = setTimeout(updatePortraitScale, 50);
     window.addEventListener('resize', updatePortraitScale);
-    return () => window.removeEventListener('resize', updatePortraitScale);
+    return () => {
+      clearTimeout(timeoutId);
+      window.removeEventListener('resize', updatePortraitScale);
+    };
   }, [reportData, isLandscape]);
 
   const parseReportPeriod = (period: string): string => {
@@ -239,18 +256,11 @@ const ReportGenerator = () => {
     setIsGenerating(true);
 
     try {
+      // Generate image from the hidden full-size element (already 794x1123)
       const canvas = await toPng(element, {
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: "#09090b",
-        width: 794,
-        height: 1123,
-      });
-
-      const img = new Image();
-      img.src = canvas;
-      await new Promise((resolve) => {
-        img.onload = resolve;
       });
 
       const pdf = new jsPDF({
@@ -467,19 +477,12 @@ const ReportGenerator = () => {
           </div>
         </div>
 
-        {/* Hidden portrait preview for PDF generation - must match exact report dimensions */}
+        {/* Hidden portrait preview for PDF generation */}
         <div 
           className="fixed pointer-events-none" 
-          style={{ left: '-9999px', top: 0 }}
+          style={{ left: '-9999px', top: 0, backgroundColor: '#09090b' }}
         >
-          <div 
-            id="report-preview-pdf" 
-            style={{ 
-              width: 794, 
-              height: 1123,
-              backgroundColor: '#09090b'
-            }}
-          >
+          <div id="report-preview-pdf">
             <ReportPreview data={reportData} />
           </div>
         </div>
@@ -815,19 +818,12 @@ const ReportGenerator = () => {
                   </div>
                 </div>
                 
-                {/* Hidden full-size element for PDF generation - must match exact report dimensions */}
+                {/* Hidden full-size element for PDF generation */}
                 <div 
                   className="fixed pointer-events-none" 
-                  style={{ left: '-9999px', top: 0 }}
+                  style={{ left: '-9999px', top: 0, backgroundColor: '#09090b' }}
                 >
-                  <div 
-                    id="report-preview-pdf" 
-                    style={{ 
-                      width: 794, 
-                      height: 1123,
-                      backgroundColor: '#09090b'
-                    }}
-                  >
+                  <div id="report-preview-pdf">
                     <ReportPreview data={reportData} />
                   </div>
                 </div>
