@@ -273,7 +273,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </section>
 
       {/* RECOMMENDATIONS - Main section */}
-      <section className="bg-gradient-to-br from-emerald-950/40 via-zinc-950/70 to-zinc-950/60 rounded-xl border border-emerald-800/40 p-4 flex-1">
+      <section className="bg-gradient-to-br from-emerald-950/40 via-zinc-950/70 to-zinc-950/60 rounded-xl border border-emerald-800/40 p-4">
         <div className="flex items-center gap-2 mb-3">
           <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30">
             <Sparkles className="w-4 h-4 text-white" />
@@ -296,7 +296,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
       </section>
 
       {/* Footer */}
-      <footer className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[8px] text-zinc-600 flex-shrink-0 mt-auto">
+      <footer className="pt-2 border-t border-zinc-900 flex items-center justify-between text-[8px] text-zinc-600 flex-shrink-0 mt-3">
         <p>© 2025 Aurine Agency • aurine.pl</p>
         <div className="flex items-center gap-1.5">
           <MessageCircle className="w-3 h-3 text-pink-400" />
