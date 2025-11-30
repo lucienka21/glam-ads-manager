@@ -75,7 +75,11 @@ const ReportGenerator = () => {
     const updateScale = () => {
       if (containerRef.current) {
         const containerWidth = containerRef.current.clientWidth;
-        const newScale = Math.min(containerWidth / 1600, 1);
+        const containerHeight = containerRef.current.clientHeight;
+        // Scale based on both width AND height to prevent cutoff
+        const scaleByWidth = containerWidth / 1600;
+        const scaleByHeight = containerHeight / 900;
+        const newScale = Math.min(scaleByWidth, scaleByHeight, 1);
         setScale(newScale);
       }
     };

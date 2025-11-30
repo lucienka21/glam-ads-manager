@@ -1,5 +1,6 @@
 import { TrendingUp, Target, CheckCircle2, Sparkles, Phone, MessageCircle } from "lucide-react";
 import { SimplePieChart, SimpleBarChart, SimpleLineChart } from "./SimpleCharts";
+import agencyLogo from "@/assets/agency-logo.png";
 
 interface ReportData {
   clientName?: string;
@@ -85,9 +86,11 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
         <aside className="w-72 bg-gradient-to-b from-zinc-900 via-zinc-950 to-black border-r border-pink-900/20 flex flex-col justify-between p-8 shadow-2xl">
           <div className="space-y-8">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 p-2 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
+              <img 
+                src={agencyLogo} 
+                alt="Aurine" 
+                className="w-12 h-12 object-contain"
+              />
               <div className="space-y-0.5">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-light">
                   Aurine Agency
@@ -356,88 +359,90 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
             </div>
 
             {/* Recommendations panel */}
-            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-5 flex flex-col min-h-0 backdrop-blur shadow-xl">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-10 h-10 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <Sparkles className="w-5 h-5 text-white" />
+            <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-4 flex flex-col min-h-0 backdrop-blur shadow-xl overflow-hidden">
+              <div className="flex items-center gap-2 mb-3 flex-shrink-0">
+                <div className="bg-gradient-to-br from-emerald-500 to-teal-600 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Rekomendacje</h4>
-                  <p className="text-[10px] text-emerald-300">Dalsze działania</p>
+                  <h4 className="text-xs font-semibold text-white">Rekomendacje</h4>
+                  <p className="text-[9px] text-emerald-300">Dalsze działania</p>
                 </div>
               </div>
-              <div className="space-y-2 flex-1 overflow-hidden">
+              <div className="space-y-1.5 flex-1 overflow-hidden">
                 {data.recommendations ? (
                   data.recommendations
                     .split("\n")
                     .filter((line) => line.trim())
                     .slice(0, 7)
                     .map((rec, idx) => {
+                      // Truncate each recommendation to max 80 characters
+                      const truncated = rec.length > 80 ? rec.substring(0, 77) + "..." : rec;
                       return (
-                        <div key={idx} className="flex gap-2">
-                          <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                            <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
+                        <div key={idx} className="flex gap-1.5">
+                          <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-[7px] font-bold text-emerald-400">{idx + 1}</span>
                           </div>
-                          <p className="text-[10px] text-zinc-300 leading-relaxed">{rec}</p>
+                          <p className="text-[8px] text-zinc-300 leading-snug line-clamp-2">{truncated}</p>
                         </div>
                       );
                     })
                 ) : (
                   <>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">1</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">1</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Zwiększ budżet w piątki i soboty o 40% (peak rezerwacji)
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Zwiększ budżet w piątki i soboty o 40%
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">2</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">2</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Dodaj remarketing 3-dniowy dla niedokończonych rezerwacji
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Dodaj remarketing dla niedokończonych rezerwacji
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">3</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">3</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Stwórz karuzelę z efektami przed/po z 3 zabiegów
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Stwórz karuzelę z efektami przed/po
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">4</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">4</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Przetestuj grupy 25-40 lat zamiast szerokiej 18-55
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Przetestuj grupy 25-40 lat
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">5</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">5</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Włącz lokalizację 10km od salonu zamiast miasta
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Włącz lokalizację 10km od salonu
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">6</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">6</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Uruchom kampanię lookalike 1% na bazie klientek
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Uruchom kampanię lookalike 1%
                       </p>
                     </div>
-                    <div className="flex gap-2">
-                      <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-[8px] font-bold text-emerald-400">7</span>
+                    <div className="flex gap-1.5">
+                      <div className="w-3.5 h-3.5 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <span className="text-[7px] font-bold text-emerald-400">7</span>
                       </div>
-                      <p className="text-[9px] text-zinc-300 leading-snug">
-                        Dodaj pilność: "ostatnie miejsca na ten tydzień"
+                      <p className="text-[8px] text-zinc-300 leading-snug">
+                        Dodaj pilność w komunikatach
                       </p>
                     </div>
                   </>
