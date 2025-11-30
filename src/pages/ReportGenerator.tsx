@@ -210,10 +210,10 @@ const ReportGenerator = () => {
     
     // Generate thumbnail after preview shows
     setTimeout(async () => {
-      const element = document.getElementById("report-preview");
+      const element = document.getElementById("report-preview-pdf") || document.getElementById("report-preview");
       if (element && docId) {
         try {
-          const thumbnail = await toPng(element, { cacheBust: true, pixelRatio: 0.2, backgroundColor: "#050509" });
+          const thumbnail = await toPng(element, { cacheBust: true, pixelRatio: 0.2, backgroundColor: "#09090b" });
           updateThumbnail(docId, thumbnail);
         } catch (e) {
           console.error("Error generating thumbnail:", e);
@@ -231,7 +231,8 @@ const ReportGenerator = () => {
   };
 
   const generatePDF = async () => {
-    const element = document.getElementById("report-preview");
+    // Use hidden full-size element for better quality
+    const element = document.getElementById("report-preview-pdf") || document.getElementById("report-preview");
     if (!element || !reportData) return;
 
     setIsGenerating(true);
@@ -239,36 +240,24 @@ const ReportGenerator = () => {
     try {
       const canvas = await toPng(element, {
         cacheBust: true,
-        pixelRatio: 3,
-        backgroundColor: "#050509",
+        pixelRatio: 2,
+        backgroundColor: "#09090b",
       });
-
-      const img = new Image();
-      img.src = canvas;
-      await new Promise((resolve) => {
-        img.onload = resolve;
-      });
-
-      const imgWidth = img.width;
-      const imgHeight = img.height;
 
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "px",
-        format: [imgWidth, imgHeight],
+        format: [794, 1123],
         compress: true,
       });
-
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
 
       pdf.addImage(
         canvas,
         "PNG",
         0,
         0,
-        pdfWidth,
-        pdfHeight,
+        794,
+        1123,
         undefined,
         "FAST"
       );
@@ -471,7 +460,9 @@ const ReportGenerator = () => {
 
         {/* Hidden portrait preview for PDF generation */}
         <div className="fixed -left-[3000px] top-0">
-          <ReportPreview data={reportData} />
+          <div id="report-preview-pdf">
+            <ReportPreview data={reportData} />
+          </div>
         </div>
       </div>
     );
@@ -802,6 +793,13 @@ const ReportGenerator = () => {
                     >
                       <ReportPreview data={reportData} />
                     </div>
+                  </div>
+                </div>
+                
+                {/* Hidden full-size element for PDF generation */}
+                <div className="fixed -left-[3000px] top-0">
+                  <div id="report-preview-pdf">
+                    <ReportPreview data={reportData} />
                   </div>
                 </div>
               </div>
