@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 
 export interface DocumentHistoryItem {
   id: string;
@@ -13,33 +13,57 @@ export interface DocumentHistoryItem {
 const STORAGE_KEY = "aurine_document_history";
 const MAX_ITEMS = 50;
 
-export const useDocumentHistory = () => {
-  const [history, setHistory] = useState<DocumentHistoryItem[]>([]);
-
-  useEffect(() => {
+// Helper function to get current history from localStorage
+const getStoredHistory = (): DocumentHistoryItem[] => {
+  try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      try {
-        setHistory(JSON.parse(stored));
-      } catch {
-        setHistory([]);
-      }
+      return JSON.parse(stored);
     }
+  } catch {
+    console.error("Error parsing stored history");
+  }
+  return [];
+};
+
+// Helper function to save to localStorage
+const saveToStorage = (items: DocumentHistoryItem[]) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch (e) {
+    console.error("Error saving to localStorage:", e);
+  }
+};
+
+export const useDocumentHistory = () => {
+  const [history, setHistory] = useState<DocumentHistoryItem[]>(() => getStoredHistory());
+
+  // Re-sync from localStorage when component mounts (for navigation between pages)
+  useEffect(() => {
+    const stored = getStoredHistory();
+    setHistory(stored);
   }, []);
 
-  const saveToStorage = (items: DocumentHistoryItem[]) => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-  };
+  // Listen for storage events from other tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY) {
+        setHistory(getStoredHistory());
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
-  const saveDocument = (
+  const saveDocument = useCallback((
     type: DocumentHistoryItem["type"],
     title: string,
     subtitle: string,
     data: Record<string, string>,
     thumbnail?: string
-  ) => {
+  ): string => {
     const newItem: DocumentHistoryItem = {
-      id: `${type}-${Date.now()}`,
+      id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       type,
       title,
       subtitle,
@@ -48,52 +72,62 @@ export const useDocumentHistory = () => {
       createdAt: new Date().toISOString(),
     };
 
-    // Save all documents without filtering duplicates
-    const updated = [newItem, ...history].slice(0, MAX_ITEMS);
+    // Read directly from localStorage to get the latest state
+    const currentHistory = getStoredHistory();
+    const updated = [newItem, ...currentHistory].slice(0, MAX_ITEMS);
     
-    setHistory(updated);
+    // Save to localStorage first
     saveToStorage(updated);
+    
+    // Then update state
+    setHistory(updated);
+    
     return newItem.id;
-  };
+  }, []);
 
-  const getDocumentById = (id: string) => {
-    return history.find(item => item.id === id);
-  };
+  const getDocumentById = useCallback((id: string) => {
+    const currentHistory = getStoredHistory();
+    return currentHistory.find(item => item.id === id);
+  }, []);
 
-  const getDocumentsByType = (type: DocumentHistoryItem["type"]) => {
-    return history.filter(item => item.type === type);
-  };
+  const getDocumentsByType = useCallback((type: DocumentHistoryItem["type"]) => {
+    const currentHistory = getStoredHistory();
+    return currentHistory.filter(item => item.type === type);
+  }, []);
 
-  const deleteDocument = (id: string) => {
-    const updated = history.filter(item => item.id !== id);
-    setHistory(updated);
+  const deleteDocument = useCallback((id: string) => {
+    const currentHistory = getStoredHistory();
+    const updated = currentHistory.filter(item => item.id !== id);
     saveToStorage(updated);
-  };
+    setHistory(updated);
+  }, []);
 
-  const updateThumbnail = (id: string, thumbnail: string) => {
-    const updated = history.map(item => 
+  const updateThumbnail = useCallback((id: string, thumbnail: string) => {
+    const currentHistory = getStoredHistory();
+    const updated = currentHistory.map(item => 
       item.id === id ? { ...item, thumbnail } : item
     );
-    setHistory(updated);
     saveToStorage(updated);
-  };
+    setHistory(updated);
+  }, []);
 
-  const clearHistory = (type?: DocumentHistoryItem["type"]) => {
+  const clearHistory = useCallback((type?: DocumentHistoryItem["type"]) => {
     if (type) {
-      const updated = history.filter(item => item.type !== type);
-      setHistory(updated);
+      const currentHistory = getStoredHistory();
+      const updated = currentHistory.filter(item => item.type !== type);
       saveToStorage(updated);
+      setHistory(updated);
     } else {
-      setHistory([]);
       localStorage.removeItem(STORAGE_KEY);
+      setHistory([]);
     }
-  };
+  }, []);
 
-  const getRecentDocuments = (limit: number = 10) => {
+  const getRecentDocuments = useCallback((limit: number = 10) => {
     return history.slice(0, limit);
-  };
+  }, [history]);
 
-  const getStats = () => {
+  const getStats = useCallback(() => {
     return {
       total: history.length,
       reports: history.filter(i => i.type === "report").length,
@@ -101,7 +135,7 @@ export const useDocumentHistory = () => {
       contracts: history.filter(i => i.type === "contract").length,
       presentations: history.filter(i => i.type === "presentation").length,
     };
-  };
+  }, [history]);
 
   return {
     history,
