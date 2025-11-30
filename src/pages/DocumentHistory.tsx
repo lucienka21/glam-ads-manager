@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter } from "lucide-react";
+import { useState, useRef } from "react";
+import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -42,11 +42,39 @@ const filterOptions = [
 ];
 
 export default function DocumentHistory() {
-  const { history, deleteDocument, clearHistory } = useDocumentHistory();
+  const { history, deleteDocument, clearHistory, importHistory, exportHistory } = useDocumentHistory();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [selectedDocument, setSelectedDocument] = useState<DocumentHistoryItem | null>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExport = () => {
+    const jsonData = exportHistory();
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = `aurine-historia-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result as string;
+      const success = importHistory(content);
+      if (!success) {
+        alert("Błąd importu - nieprawidłowy format pliku");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
 
   const filteredHistory = history.filter((doc) => {
     const matchesSearch = 
@@ -78,30 +106,49 @@ export default function DocumentHistory() {
             </p>
           </div>
           
-          {history.length > 0 && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Wyczyść historię
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImport}
+              accept=".json"
+              className="hidden"
+            />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+            {history.length > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={handleExport}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Eksport
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Wyczyścić całą historię?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Ta akcja usunie wszystkie dokumenty z historii. Tej operacji nie można cofnąć.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                  <AlertDialogAction onClick={() => clearHistory()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                    Wyczyść
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Wyczyść
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Wyczyścić całą historię?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Ta akcja usunie wszystkie dokumenty z historii. Tej operacji nie można cofnąć.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => clearHistory()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Wyczyść
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
+            )}
+          </div>
         </div>
 
         {/* Filters */}

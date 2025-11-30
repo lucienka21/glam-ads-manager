@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import { X, Download } from "lucide-react";
+import { X, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { ReportPreviewLandscape } from "@/components/report/ReportPreviewLandscape";
@@ -17,19 +17,29 @@ interface DocumentViewerProps {
   onClose: () => void;
 }
 
+const TOTAL_SLIDES = 6;
+
 export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(1);
   const { toast } = useToast();
+
+  // Reset slide when document changes
+  useEffect(() => {
+    if (document?.type === "presentation") {
+      setCurrentSlide(1);
+    }
+  }, [document?.id]);
 
   useEffect(() => {
     if (!open || !containerRef.current || !document) return;
 
     const updateScale = () => {
       if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth - 48;
-        const containerHeight = containerRef.current.clientHeight - 48;
+        const containerWidth = containerRef.current.clientWidth - 80;
+        const containerHeight = containerRef.current.clientHeight - 80;
         
         let docWidth = 1600;
         let docHeight = 900;
@@ -37,14 +47,14 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         if (document.type === "invoice" || document.type === "contract") {
           docWidth = 794;
           docHeight = 1123;
-        } else if (document.type === "presentation") {
+        } else if (document.type === "presentation" || document.type === "report") {
           docWidth = 1600;
           docHeight = 900;
         }
         
         const scaleByWidth = containerWidth / docWidth;
         const scaleByHeight = containerHeight / docHeight;
-        const newScale = Math.min(scaleByWidth, scaleByHeight, 1);
+        const newScale = Math.min(scaleByWidth, scaleByHeight, 0.9);
         setScale(newScale);
       }
     };
@@ -53,6 +63,24 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
   }, [open, document]);
+
+  // Keyboard navigation for presentations
+  useEffect(() => {
+    if (!open || document?.type !== "presentation") return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight" || e.key === " ") {
+        e.preventDefault();
+        setCurrentSlide(prev => Math.min(prev + 1, TOTAL_SLIDES));
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        setCurrentSlide(prev => Math.max(prev - 1, 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [open, document?.type]);
 
   const generatePDF = async () => {
     if (!document) return;
@@ -85,30 +113,59 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           break;
       }
 
-      const element = window.document.getElementById(elementId);
-      if (!element) {
-        toast({
-          title: "Błąd",
-          description: "Nie można znaleźć elementu do eksportu",
-          variant: "destructive",
+      // For presentations, generate multi-page PDF
+      if (document.type === "presentation") {
+        const pdf = new jsPDF({
+          orientation: "landscape",
+          unit: "px",
+          format: [1600, 900],
         });
-        return;
+
+        for (let i = 1; i <= TOTAL_SLIDES; i++) {
+          setCurrentSlide(i);
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          const element = window.document.getElementById(elementId);
+          if (!element) continue;
+
+          const dataUrl = await toPng(element, {
+            quality: 0.9,
+            pixelRatio: 2,
+            backgroundColor: "#000000",
+          });
+
+          if (i > 1) pdf.addPage([1600, 900], "landscape");
+          pdf.addImage(dataUrl, "PNG", 0, 0, 1600, 900);
+        }
+
+        pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
+        setCurrentSlide(1);
+      } else {
+        const element = window.document.getElementById(elementId);
+        if (!element) {
+          toast({
+            title: "Błąd",
+            description: "Nie można znaleźć elementu do eksportu",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        const dataUrl = await toPng(element, {
+          quality: 0.95,
+          pixelRatio: 2,
+          backgroundColor: "#000000",
+        });
+
+        const pdf = new jsPDF({
+          orientation,
+          unit: "px",
+          format: [width, height],
+        });
+
+        pdf.addImage(dataUrl, "PNG", 0, 0, width, height);
+        pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
       }
-
-      const dataUrl = await toPng(element, {
-        quality: 0.95,
-        pixelRatio: 2,
-        backgroundColor: "#000000",
-      });
-
-      const pdf = new jsPDF({
-        orientation,
-        unit: "px",
-        format: [width, height],
-      });
-
-      pdf.addImage(dataUrl, "PNG", 0, 0, width, height);
-      pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
 
       toast({
         title: "Sukces",
@@ -175,10 +232,53 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           </div>
         </div>
 
+        {/* Presentation Navigation */}
+        {document.type === "presentation" && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-sm rounded-full px-4 py-2 border border-zinc-800">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentSlide(prev => Math.max(prev - 1, 1))}
+              disabled={currentSlide === 1}
+              className="h-8 w-8 text-zinc-400 hover:text-white disabled:opacity-30"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              {Array.from({ length: TOTAL_SLIDES }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentSlide(i + 1)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    currentSlide === i + 1 
+                      ? "bg-pink-500 w-6" 
+                      : "bg-zinc-600 hover:bg-zinc-500"
+                  }`}
+                />
+              ))}
+            </div>
+            
+            <span className="text-sm text-zinc-400 min-w-[60px] text-center">
+              {currentSlide} / {TOTAL_SLIDES}
+            </span>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCurrentSlide(prev => Math.min(prev + 1, TOTAL_SLIDES))}
+              disabled={currentSlide === TOTAL_SLIDES}
+              className="h-8 w-8 text-zinc-400 hover:text-white disabled:opacity-30"
+            >
+              <ChevronRight className="w-5 h-5" />
+            </Button>
+          </div>
+        )}
+
         {/* Document Container */}
         <div 
           ref={containerRef}
-          className="w-full h-full flex items-center justify-center overflow-hidden pt-16 pb-4 px-4"
+          className="w-full h-full flex items-center justify-center overflow-hidden pt-20 pb-16 px-6"
         >
           <div
             style={{
@@ -198,7 +298,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
               <ContractPreview data={document.data as any} />
             )}
             {document.type === "presentation" && (
-              <PresentationPreview data={document.data as any} currentSlide={1} />
+              <PresentationPreview data={document.data as any} currentSlide={currentSlide} />
             )}
           </div>
         </div>

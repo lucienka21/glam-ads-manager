@@ -137,6 +137,36 @@ export const useDocumentHistory = () => {
     };
   }, [history]);
 
+  const exportHistory = useCallback(() => {
+    const currentHistory = getStoredHistory();
+    return JSON.stringify(currentHistory, null, 2);
+  }, []);
+
+  const importHistory = useCallback((jsonData: string): boolean => {
+    try {
+      const imported = JSON.parse(jsonData) as DocumentHistoryItem[];
+      if (!Array.isArray(imported)) return false;
+      
+      // Validate structure
+      const valid = imported.every(item => 
+        item.id && item.type && item.title && item.data && item.createdAt
+      );
+      if (!valid) return false;
+      
+      // Merge with existing, avoiding duplicates by id
+      const currentHistory = getStoredHistory();
+      const existingIds = new Set(currentHistory.map(item => item.id));
+      const newItems = imported.filter(item => !existingIds.has(item.id));
+      const merged = [...newItems, ...currentHistory].slice(0, MAX_ITEMS);
+      
+      saveToStorage(merged);
+      setHistory(merged);
+      return true;
+    } catch {
+      return false;
+    }
+  }, []);
+
   return {
     history,
     saveDocument,
@@ -147,5 +177,7 @@ export const useDocumentHistory = () => {
     clearHistory,
     getRecentDocuments,
     getStats,
+    exportHistory,
+    importHistory,
   };
 };
