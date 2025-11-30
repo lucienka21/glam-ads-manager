@@ -70,7 +70,7 @@ BENCHMARKI DLA BEAUTY:
     if (frequency > 5) issues.push("WYSOKA CZĘSTOTLIWOŚĆ - zmień lub rozszerz grupę docelową");
     if (frequency < 1.5) issues.push("NISKA CZĘSTOTLIWOŚĆ - zwiększ budżet dla lepszego dotarcia");
 
-    const prompt = `Jesteś ekspertem od kampanii Facebook Ads dla salonów beauty w Polsce. Przeanalizuj dane kampanii i wygeneruj 7 KONKRETNYCH, SZCZEGÓŁOWYCH rekomendacji.
+    const prompt = `Jesteś ekspertem od kampanii Facebook Ads dla salonów beauty w Polsce. Przeanalizuj DOKŁADNIE dane kampanii i napisz 7 NATURALNYCH, ROZBUDOWANYCH rekomendacji.
 
 ${analysisContext}
 
@@ -83,23 +83,23 @@ CEL KAMPANII: ${campaignData.campaignObjective || 'Rezerwacje wizyt'}
 STATUS: ${campaignData.campaignStatus || 'Aktywna'}
 
 ZASADY PISANIA REKOMENDACJI:
-1. KAŻDA rekomendacja MUSI zaczynać się od CZASOWNIKA: "Zwiększ", "Dodaj", "Przetestuj", "Uruchom", "Zmień", "Stwórz", "Włącz", "Ogranicz", "Skonfiguruj", "Wykorzystaj", "Zoptymalizuj"
-2. Każda rekomendacja: 60-100 znaków (bardziej szczegółowe!)
-3. Rekomendacje MUSZĄ być oparte na analizie danych - odnosić się do konkretnych problemów i metryk
-4. Pisz konkretnie z liczbami: zamiast "popraw reklamy" napisz "Dodaj zdjęcia przed/po do karuzeli z 3 najlepszymi zabiegami"
-5. Używaj języka branży beauty: zabiegi, stylizacje, pielęgnacja, rezerwacje, klientki
-6. Uwzględnij różne obszary: kreacje, targetowanie, budżet, harmonogram, landing page, remarketing
+1. KAŻDA rekomendacja MUSI zaczynać się od CZASOWNIKA: "Zwiększ", "Dodaj", "Przetestuj", "Uruchom", "Zmień", "Stwórz", "Włącz", "Ogranicz", "Skonfiguruj", "Wykorzystaj", "Zoptymalizuj", "Rozważ", "Wprowadź"
+2. Każda rekomendacja: 80-130 znaków - musi być ROZBUDOWANA i SZCZEGÓŁOWA
+3. Rekomendacje MUSZĄ być oparte na KONKRETNYCH danych z analizy - odwołuj się do liczb, metryk, zidentyfikowanych problemów
+4. Pisz NATURALNYM językiem, jak doświadczony specjalista rozmawiający z klientem
+5. Używaj języka branży beauty: zabiegi, stylizacje, pielęgnacja, rezerwacje, klientki, metamorfozy
+6. Uwzględnij różne obszary: kreacje, targetowanie, budżet, harmonogram, landing page, remarketing, A/B testy
 
-PRZYKŁADY DOBRYCH REKOMENDACJI:
-- "Zwiększ budżet w piątki i soboty o 40% - to peak rezerwacji zabiegów beauty"
-- "Dodaj retargeting 3-dniowy dla osób, które kliknęły ale nie zarezerwowały"
-- "Stwórz karuzelę z efektami przed/po z 3 najpopularniejszych zabiegów"
-- "Przetestuj grupę 25-40 lat kobiet zamiast szerokiej 18-55"
-- "Włącz targetowanie lokalne 10km zamiast całego miasta ${campaignData.city || ''}"
-- "Uruchom kampanię lookalike 1% na bazie klientek z rezerwacjami"
-- "Dodaj pilność w kreacjach: limitowane miejsca na ten tydzień"
+PRZYKŁADY DOBRYCH REKOMENDACJI (zauważ długość i szczegółowość):
+- "Zwiększ budżet reklamowy w piątki i soboty o 40-50%, ponieważ to szczytowe dni rezerwacji zabiegów beauty w salonach"
+- "Dodaj kampanię remarketingową 3-dniową dla osób, które kliknęły reklamę ale nie dokończyły rezerwacji wizyty"
+- "Stwórz dynamiczną karuzelę ze zdjęciami efektów przed i po z 3-4 najpopularniejszych zabiegów oferowanych w salonie"
+- "Przetestuj węższą grupę docelową 25-40 lat kobiet zainteresowanych pielęgnacją zamiast szerokiego targetowania 18-55"
+- "Włącz precyzyjne targetowanie lokalne w promieniu 10-15km od salonu zamiast targetowania całego miasta ${campaignData.city || ''}"
+- "Uruchom kampanię lookalike 1% opartą na bazie stałych klientek, które już dokonały rezerwacji w salonie"
+- "Wprowadź element pilności w kreacjach reklamowych: ostatnie wolne terminy na ten tydzień, limitowana dostępność"
 
-Odpowiedz TYLKO 7 rekomendacjami, każda w nowej linii. BEZ numeracji, punktorów, gwiazdek.`;
+Odpowiedz TYLKO 7 rekomendacjami, każda w nowej linii. BEZ numeracji, punktorów, gwiazdek, myślników na początku.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
