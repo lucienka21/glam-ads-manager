@@ -49,7 +49,9 @@ const ReportGenerator = () => {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   const [scale, setScale] = useState(1);
+  const [portraitScale, setPortraitScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
+  const portraitContainerRef = useRef<HTMLDivElement>(null);
   const { saveDocument, updateThumbnail } = useDocumentHistory();
 
   // Load document from session storage if coming from history
@@ -69,6 +71,7 @@ const ReportGenerator = () => {
     }
   }, []);
 
+  // Scale for landscape fullscreen view
   useEffect(() => {
     if (!isLandscape || !containerRef.current) return;
     
@@ -88,6 +91,24 @@ const ReportGenerator = () => {
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
   }, [isLandscape]);
+
+  // Scale for portrait preview
+  useEffect(() => {
+    if (!reportData || isLandscape || !portraitContainerRef.current) return;
+    
+    const updatePortraitScale = () => {
+      if (portraitContainerRef.current) {
+        const containerWidth = portraitContainerRef.current.clientWidth;
+        // Portrait document: 794x1123
+        const newScale = Math.min(containerWidth / 794, 1);
+        setPortraitScale(newScale);
+      }
+    };
+
+    updatePortraitScale();
+    window.addEventListener('resize', updatePortraitScale);
+    return () => window.removeEventListener('resize', updatePortraitScale);
+  }, [reportData, isLandscape]);
 
   const parseReportPeriod = (period: string): string => {
     const monthMap: { [key: string]: string } = {
@@ -761,10 +782,26 @@ const ReportGenerator = () => {
                     </Button>
                   </div>
                 </div>
-                <div className="relative group">
+                <div ref={portraitContainerRef} className="relative group w-full">
                   <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-pink-500/10 to-primary/20 rounded-2xl blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
-                  <div className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5" style={{ backgroundColor: '#09090b' }}>
-                    <ReportPreview data={reportData} />
+                  <div 
+                    className="relative border-2 border-border/60 rounded-2xl overflow-hidden shadow-2xl shadow-black/40 ring-1 ring-white/5 mx-auto" 
+                    style={{ 
+                      backgroundColor: '#09090b',
+                      width: 794 * portraitScale,
+                      height: 1123 * portraitScale,
+                    }}
+                  >
+                    <div
+                      style={{
+                        transform: `scale(${portraitScale})`,
+                        transformOrigin: 'top left',
+                        width: 794,
+                        height: 1123,
+                      }}
+                    >
+                      <ReportPreview data={reportData} />
+                    </div>
                   </div>
                 </div>
               </div>

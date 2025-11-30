@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDocumentHistory, DocumentHistoryItem } from "@/hooks/useDocumentHistory";
+import { DocumentViewer } from "@/components/document/DocumentViewer";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import {
@@ -42,10 +42,11 @@ const filterOptions = [
 ];
 
 export default function DocumentHistory() {
-  const navigate = useNavigate();
   const { history, deleteDocument, clearHistory } = useDocumentHistory();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [selectedDocument, setSelectedDocument] = useState<DocumentHistoryItem | null>(null);
+  const [viewerOpen, setViewerOpen] = useState(false);
 
   const filteredHistory = history.filter((doc) => {
     const matchesSearch = 
@@ -56,15 +57,13 @@ export default function DocumentHistory() {
   });
 
   const handleOpenDocument = (doc: DocumentHistoryItem) => {
-    const urls: Record<string, string> = {
-      report: "/report-generator",
-      invoice: "/invoice-generator",
-      contract: "/contract-generator",
-      presentation: "/presentation-generator",
-    };
-    // Store the document data to load in the generator
-    sessionStorage.setItem("loadDocument", JSON.stringify(doc));
-    navigate(urls[doc.type]);
+    setSelectedDocument(doc);
+    setViewerOpen(true);
+  };
+
+  const handleCloseViewer = () => {
+    setViewerOpen(false);
+    setSelectedDocument(null);
   };
 
   return (
@@ -217,6 +216,13 @@ export default function DocumentHistory() {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Modal */}
+      <DocumentViewer
+        document={selectedDocument}
+        open={viewerOpen}
+        onClose={handleCloseViewer}
+      />
     </AppLayout>
   );
 }
