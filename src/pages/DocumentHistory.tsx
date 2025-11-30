@@ -66,14 +66,22 @@ export default function DocumentHistory() {
     
     const reader = new FileReader();
     reader.onload = (event) => {
-      const content = event.target?.result as string;
-      const success = importHistory(content);
-      if (!success) {
-        alert("Błąd importu - nieprawidłowy format pliku");
+      try {
+        const content = event.target?.result as string;
+        const success = importHistory(content);
+        if (success) {
+          window.location.reload();
+        } else {
+          alert("Błąd importu - nieprawidłowy format pliku");
+        }
+      } catch (err) {
+        alert("Błąd importu - nieprawidłowy plik JSON");
       }
     };
     reader.readAsText(file);
-    e.target.value = "";
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
   };
 
   const filteredHistory = history.filter((doc) => {
