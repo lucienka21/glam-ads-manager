@@ -323,31 +323,33 @@ const ReportGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background dark" style={{ backgroundColor: 'hsl(var(--background))' }}>
+    <div className={`${isLandscape ? '' : 'min-h-screen'} bg-background dark`} style={{ backgroundColor: 'hsl(var(--background))' }}>
       {/* Subtle background */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,hsl(340_75%_55%/0.08),transparent)]" style={{ backgroundColor: 'hsl(var(--background))' }} />
 
-      <div className={`relative z-10 ${containerClass} px-6 py-8`} style={{ minHeight: '100vh', backgroundColor: 'transparent' }}>
-        <div className="flex items-center gap-4 mb-8">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate("/")}
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground font-sans">
-              Generator Raportów Facebook Ads
-            </h1>
-            <p className="text-muted-foreground">
-              Profesjonalne raporty dla salonów beauty - Aurine Agency
-            </p>
+      <div className={`relative z-10 ${containerClass} px-6 ${isLandscape ? 'py-4' : 'py-8'}`}>
+        {!isLandscape && (
+          <div className="flex items-center gap-4 mb-8">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-semibold text-foreground font-sans">
+                Generator Raportów Facebook Ads
+              </h1>
+              <p className="text-muted-foreground">
+                Profesjonalne raporty dla salonów beauty - Aurine Agency
+              </p>
+            </div>
           </div>
-        </div>
+        )}
 
         {isLandscape && reportData ? (
-          <div className="space-y-4 animate-fade-in" style={{ backgroundColor: 'hsl(var(--background))' }}>
+          <div className="animate-fade-in">
             <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
               <div>
                 <h2 className="text-xl font-semibold text-foreground font-sans">
@@ -422,7 +424,7 @@ const ReportGenerator = () => {
             </div>
 
             {/* Footer */}
-            <div className="text-center py-6 text-xs text-muted-foreground">
+            <div className="text-center py-3 text-xs text-muted-foreground">
               <p>Powered by <span className="text-pink-400 font-medium">Aurine</span> · aurine.pl</p>
             </div>
 
