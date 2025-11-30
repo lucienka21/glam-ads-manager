@@ -216,7 +216,7 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
             <p className="text-[9px] uppercase tracking-wider text-purple-300 mb-2">Kluczowe wskaźniki</p>
             <div className="space-y-1">
               <div className="flex justify-between items-center">
-                <span className="text-[9px] text-zinc-400">CPC</span>
+                <span className="text-[9px] text-zinc-400">Średni koszt kliknięcia</span>
                 <span className="text-[10px] font-bold text-purple-300">
                   {data.clicks && data.budget && parseNumber(data.clicks) > 0 ?
                     `${(parseNumber(data.budget) / parseNumber(data.clicks)).toFixed(2)} PLN`
@@ -224,10 +224,18 @@ export const ReportPreview = ({ data }: ReportPreviewProps) => {
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-[9px] text-zinc-400">Conv. Rate</span>
+                <span className="text-[9px] text-zinc-400">Współczynnik konwersji</span>
                 <span className="text-[10px] font-bold text-pink-300">
                   {data.conversions && data.clicks && parseNumber(data.clicks) > 0 ?
                     `${((parseNumber(data.conversions) / parseNumber(data.clicks)) * 100).toFixed(1)}%`
+                    : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-[9px] text-zinc-400">ROAS</span>
+                <span className="text-[10px] font-bold text-emerald-300">
+                  {data.bookings && data.budget && parseNumber(data.budget) > 0 ?
+                    `${((parseNumber(data.bookings) * 200) / parseNumber(data.budget)).toFixed(1)}x`
                     : "—"}
                 </span>
               </div>
