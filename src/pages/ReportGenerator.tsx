@@ -795,15 +795,18 @@ const ReportGenerator = () => {
                     </Button>
                   </div>
                 </div>
-                <div ref={portraitContainerRef} className="relative group flex justify-center overflow-x-auto">
+                <div 
+                  ref={portraitContainerRef} 
+                  className="relative flex justify-center"
+                  style={{
+                    height: `calc(1200px * ${portraitScale})`,
+                  }}
+                >
                   <div 
-                    className="relative border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5" 
+                    className="absolute top-0 left-1/2 border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5 origin-top" 
                     style={{ 
                       backgroundColor: '#09090b',
-                      transform: `scale(${portraitScale})`,
-                      transformOrigin: 'top center',
-                      width: '794px',
-                      flexShrink: 0,
+                      transform: `translateX(-50%) scale(${portraitScale})`,
                     }}
                   >
                     <ReportPreview data={reportData} />
