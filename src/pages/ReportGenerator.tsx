@@ -347,7 +347,7 @@ const ReportGenerator = () => {
         </div>
 
         {isLandscape && reportData ? (
-          <div className="space-y-6 animate-fade-in pb-8" style={{ backgroundColor: 'hsl(var(--background))' }}>
+          <div className="space-y-4 animate-fade-in" style={{ backgroundColor: 'hsl(var(--background))' }}>
             <div className="flex justify-between items-center flex-wrap gap-4 mb-4">
               <div>
                 <h2 className="text-xl font-semibold text-foreground font-sans">
@@ -398,8 +398,7 @@ const ReportGenerator = () => {
 
             <div 
               ref={containerRef}
-              className="w-full pb-8" 
-              style={{ backgroundColor: '#0a0a0f' }}
+              className="w-full" 
             >
               <div 
                 className="relative mx-auto rounded-2xl overflow-hidden shadow-2xl ring-1 ring-white/5"
@@ -420,6 +419,11 @@ const ReportGenerator = () => {
                   <ReportPreviewLandscape data={reportData} />
                 </div>
               </div>
+            </div>
+
+            {/* Footer */}
+            <div className="text-center py-6 text-xs text-muted-foreground">
+              <p>Powered by <span className="text-pink-400 font-medium">Aurine</span> · aurine.pl</p>
             </div>
 
             <div className="fixed -left-[3000px] top-0">

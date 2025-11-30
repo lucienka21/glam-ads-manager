@@ -366,21 +366,19 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
                   <p className="text-[10px] text-emerald-300">Dalsze działania</p>
                 </div>
               </div>
-              <div className="space-y-1 flex-1 overflow-hidden">
+              <div className="space-y-2 flex-1 overflow-hidden">
                 {data.recommendations ? (
                   data.recommendations
                     .split("\n")
                     .filter((line) => line.trim())
                     .slice(0, 7)
                     .map((rec, idx) => {
-                      const shortRec =
-                        rec.length > 85 ? `${rec.slice(0, 82)}...` : rec;
                       return (
                         <div key={idx} className="flex gap-2">
                           <div className="w-4 h-4 rounded bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-[8px] font-bold text-emerald-400">{idx + 1}</span>
                           </div>
-                          <p className="text-[9px] text-zinc-300 leading-snug">{shortRec}</p>
+                          <p className="text-[10px] text-zinc-300 leading-relaxed">{rec}</p>
                         </div>
                       );
                     })
