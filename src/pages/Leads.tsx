@@ -33,7 +33,8 @@ import {
   CheckCircle2,
   ArrowUpRight,
   UserCheck,
-  Smartphone
+  Smartphone,
+  FileText
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -158,7 +159,6 @@ export default function Leads() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
-  const [coldMailFilter, setColdMailFilter] = useState<'due' | 'sent_all'>('due');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -535,15 +535,10 @@ export default function Leads() {
     // Tab filters
     let matchesTab = true;
     if (activeTab === 'pending_cold_email') {
-      if (coldMailFilter === 'sent_all') {
-        // W tym widoku pokazujemy wszystkie wysłane cold maile
-        matchesTab = lead.cold_email_sent === true;
-      } else {
-        // Domyślnie: leady bez wysłanego cold maila - z datą na dziś/przeszłość lub bez daty (nowe)
-        const hasNoColdEmailDate = !lead.cold_email_date;
-        const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
-        matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
-      }
+      // Leady bez wysłanego cold maila - z datą na dziś/przeszłość lub bez daty (nowe)
+      const hasNoColdEmailDate = !lead.cold_email_date;
+      const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
+      matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
     } else if (activeTab === 'pending_sms') {
       // SMS do wysłania: cold email wysłany, SMS nie wysłany, termin SMS minął lub jest dziś
       if (!lead.cold_email_sent || !lead.cold_email_date || lead.sms_follow_up_sent || !isActiveForFollowUp) {
@@ -1137,17 +1132,6 @@ export default function Leads() {
               ))}
             </SelectContent>
           </Select>
-          {activeTab === 'pending_cold_email' && (
-            <Select value={coldMailFilter} onValueChange={(v: 'due' | 'sent_all') => setColdMailFilter(v)}>
-              <SelectTrigger className="w-[190px] form-input-elegant">
-                <SelectValue placeholder="Widok cold maili" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="due">Dzisiejsze / zaległe do wysłania</SelectItem>
-                <SelectItem value="sent_all">Wszystkie wysłane cold maile</SelectItem>
-              </SelectContent>
-            </Select>
-          )}
         </div>
 
         {/* Leads Grid */}
@@ -1242,6 +1226,26 @@ export default function Leads() {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Phone className="w-3.5 h-3.5 shrink-0" />
                           <span>{lead.phone}</span>
+                        </div>
+                      )}
+                      {lead.facebook_page && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                          </svg>
+                          <span className="truncate text-xs">Facebook</span>
+                        </div>
+                      )}
+                      {lead.email_template && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <FileText className="w-3.5 h-3.5 shrink-0" />
+                          <span className="text-xs">{lead.email_template}</span>
+                        </div>
+                      )}
+                      {lead.email_from && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Send className="w-3.5 h-3.5 shrink-0" />
+                          <span className="text-xs">{lead.email_from}</span>
                         </div>
                       )}
                     </div>
