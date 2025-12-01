@@ -7,14 +7,14 @@ import { FormCard } from "@/components/ui/FormCard";
 import { toast } from "sonner";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useDocumentHistory } from "@/hooks/useDocumentHistory";
+import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import jsPDF from "jspdf";
 import { toJpeg } from "html-to-image";
 
 const TOTAL_SLIDES = 6;
 
 const PresentationGenerator = () => {
-  const { saveDocument, updateThumbnail } = useDocumentHistory();
+  const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -83,8 +83,8 @@ const PresentationGenerator = () => {
     setShowPreview(true);
     setCurrentSlide(1);
 
-    // Save to history
-    const docId = saveDocument(
+    // Save to history (async)
+    const docId = await saveDocument(
       "presentation",
       formData.salonName,
       `Prezentacja dla ${formData.ownerName}`,
@@ -98,7 +98,7 @@ const PresentationGenerator = () => {
     setTimeout(async () => {
       const thumbnail = await generateThumbnail();
       if (thumbnail && docId) {
-        updateThumbnail(docId, thumbnail);
+        await updateThumbnail(docId, thumbnail);
       }
     }, 500);
   };

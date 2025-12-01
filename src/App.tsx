@@ -14,6 +14,7 @@ import ContractGenerator from "./pages/ContractGenerator";
 import PresentationGenerator from "./pages/PresentationGenerator";
 import Leads from "./pages/Leads";
 import Clients from "./pages/Clients";
+import RoleManagement from "./pages/RoleManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/history" element={<ProtectedRoute><DocumentHistory /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+            <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
             <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
             <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />
             <Route path="/contract-generator" element={<ProtectedRoute><ContractGenerator /></ProtectedRoute>} />

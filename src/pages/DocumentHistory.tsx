@@ -1,9 +1,9 @@
-import { useState, useRef, useMemo } from "react";
-import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Download, Upload, Calendar } from "lucide-react";
+import { useState, useMemo } from "react";
+import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useDocumentHistory, DocumentHistoryItem } from "@/hooks/useDocumentHistory";
+import { useCloudDocumentHistory, CloudDocumentItem } from "@/hooks/useCloudDocumentHistory";
 import { DocumentViewer } from "@/components/document/DocumentViewer";
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -49,13 +49,13 @@ const filterOptions = [
 ];
 
 export default function DocumentHistory() {
-  const { history, deleteDocument, clearHistory, importHistory, exportHistory } = useDocumentHistory();
+  const [userFilter, setUserFilter] = useState<string | null>(null);
+  const { history, loading, teamMembers, isSzef, deleteDocument, clearHistory } = useCloudDocumentHistory(userFilter);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
   const [monthFilter, setMonthFilter] = useState<string>("all");
-  const [selectedDocument, setSelectedDocument] = useState<DocumentHistoryItem | null>(null);
+  const [selectedDocument, setSelectedDocument] = useState<CloudDocumentItem | null>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Generate available months from history
   const availableMonths = useMemo(() => {
@@ -68,45 +68,10 @@ export default function DocumentHistory() {
     return Array.from(monthsSet).sort().reverse();
   }, [history]);
 
-  const handleExport = () => {
-    const jsonData = exportHistory();
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = window.document.createElement("a");
-    link.href = url;
-    link.download = `aurine-historia-${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const content = event.target?.result as string;
-        const success = importHistory(content);
-        if (success) {
-          window.location.reload();
-        } else {
-          alert("Błąd importu - nieprawidłowy format pliku");
-        }
-      } catch (err) {
-        alert("Błąd importu - nieprawidłowy plik JSON");
-      }
-    };
-    reader.readAsText(file);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
-  };
-
   const filteredHistory = history.filter((doc) => {
     const matchesSearch = 
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      doc.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
+      (doc.subtitle?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesFilter = filterType === "all" || doc.type === filterType;
     
     // Month filter
@@ -123,7 +88,7 @@ export default function DocumentHistory() {
     return matchesSearch && matchesFilter && matchesMonth;
   });
 
-  const handleOpenDocument = (doc: DocumentHistoryItem) => {
+  const handleOpenDocument = (doc: CloudDocumentItem) => {
     setSelectedDocument(doc);
     setViewerOpen(true);
   };
@@ -139,6 +104,17 @@ export default function DocumentHistory() {
     return format(date, "LLLL yyyy", { locale: pl });
   };
 
+  // Convert CloudDocumentItem to DocumentHistoryItem for viewer
+  const viewerDocument = selectedDocument ? {
+    id: selectedDocument.id,
+    type: selectedDocument.type,
+    title: selectedDocument.title,
+    subtitle: selectedDocument.subtitle || "",
+    data: selectedDocument.data,
+    thumbnail: selectedDocument.thumbnail || undefined,
+    createdAt: selectedDocument.createdAt
+  } : null;
+
   return (
     <AppLayout>
       <div className="p-6 lg:p-8 space-y-6">
@@ -147,51 +123,34 @@ export default function DocumentHistory() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Historia dokumentów</h1>
             <p className="text-muted-foreground">
-              {history.length} dokumentów w historii
+              {loading ? "Ładowanie..." : `${history.length} dokumentów w historii`}
             </p>
           </div>
           
           <div className="flex items-center gap-2">
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleImport}
-              accept=".json"
-              className="hidden"
-            />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-              <Upload className="w-4 h-4 mr-2" />
-              Import
-            </Button>
             {history.length > 0 && (
-              <>
-                <Button variant="outline" size="sm" onClick={handleExport}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Eksport
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                      <Trash2 className="w-4 h-4 mr-2" />
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Wyczyść
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Wyczyścić historię?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Ta akcja usunie {isSzef ? "wszystkie dokumenty" : "twoje dokumenty"} z historii. Tej operacji nie można cofnąć.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Anuluj</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => clearHistory()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                       Wyczyść
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Wyczyścić całą historię?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Ta akcja usunie wszystkie dokumenty z historii. Tej operacji nie można cofnąć.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Anuluj</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => clearHistory()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                        Wyczyść
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </>
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             )}
           </div>
         </div>
@@ -207,6 +166,24 @@ export default function DocumentHistory() {
               className="pl-10"
             />
           </div>
+          
+          {/* User filter for szef */}
+          {isSzef && teamMembers.length > 0 && (
+            <Select value={userFilter || "all"} onValueChange={(v) => setUserFilter(v === "all" ? null : v)}>
+              <SelectTrigger className="w-[200px]">
+                <User className="w-4 h-4 mr-2 text-muted-foreground" />
+                <SelectValue placeholder="Użytkownik" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                {teamMembers.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    {member.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           
           {/* Month Filter */}
           <Select value={monthFilter} onValueChange={setMonthFilter}>
@@ -239,12 +216,17 @@ export default function DocumentHistory() {
         </div>
 
         {/* Documents Grid */}
-        {filteredHistory.length === 0 ? (
+        {loading ? (
+          <div className="bg-secondary/20 border border-border/30 rounded-xl p-12 text-center">
+            <Loader2 className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-spin" />
+            <p className="text-lg text-muted-foreground">Ładowanie dokumentów...</p>
+          </div>
+        ) : filteredHistory.length === 0 ? (
           <div className="bg-secondary/20 border border-border/30 rounded-xl p-12 text-center">
             <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-lg text-muted-foreground">Brak dokumentów</p>
             <p className="text-sm text-muted-foreground/60 mt-1">
-              {searchQuery || filterType !== "all" || monthFilter !== "all"
+              {searchQuery || filterType !== "all" || monthFilter !== "all" || userFilter
                 ? "Spróbuj zmienić filtry wyszukiwania"
                 : "Wygenerowane dokumenty pojawią się tutaj"
               }
@@ -315,9 +297,17 @@ export default function DocumentHistory() {
                     {doc.title}
                   </h3>
                   <p className="text-sm text-muted-foreground truncate">{doc.subtitle}</p>
-                  <p className="text-xs text-muted-foreground/60 mt-2">
-                    {format(new Date(doc.createdAt), "d MMMM yyyy, HH:mm", { locale: pl })}
-                  </p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-xs text-muted-foreground/60">
+                      {format(new Date(doc.createdAt), "d MMMM yyyy, HH:mm", { locale: pl })}
+                    </p>
+                    {isSzef && doc.creatorName && (
+                      <p className="text-xs text-muted-foreground/60 flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {doc.creatorName}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -327,7 +317,7 @@ export default function DocumentHistory() {
 
       {/* Document Viewer Modal */}
       <DocumentViewer
-        document={selectedDocument}
+        document={viewerDocument}
         open={viewerOpen}
         onClose={handleCloseViewer}
       />

@@ -8,12 +8,12 @@ import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { toast } from "sonner";
 import { ContractPreview } from "@/components/contract/ContractPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useDocumentHistory } from "@/hooks/useDocumentHistory";
+import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
 const ContractGenerator = () => {
-  const { saveDocument, updateThumbnail } = useDocumentHistory();
+  const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
@@ -68,8 +68,8 @@ const ContractGenerator = () => {
 
     setShowPreview(true);
 
-    // Save to history
-    const docId = saveDocument(
+    // Save to history (async)
+    const docId = await saveDocument(
       "contract",
       formData.clientName,
       `Umowa ${formData.contractNumber}`,
@@ -83,7 +83,7 @@ const ContractGenerator = () => {
     setTimeout(async () => {
       const thumbnail = await generateThumbnail();
       if (thumbnail && docId) {
-        updateThumbnail(docId, thumbnail);
+        await updateThumbnail(docId, thumbnail);
       }
     }, 500);
   };
