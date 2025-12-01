@@ -50,13 +50,27 @@ const ContractGenerator = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const generateThumbnail = async () => {
+  const generateThumbnailWithRetry = async (docId: string, retries = 0) => {
     const element = document.getElementById("contract-preview");
-    if (!element) return null;
+    if (!element) {
+      if (retries < 3) {
+        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
+      }
+      return;
+    }
     try {
-      return await toPng(element, { cacheBust: true, pixelRatio: 0.3, backgroundColor: "#ffffff" });
-    } catch {
-      return null;
+      const thumbnail = await toPng(element, { 
+        cacheBust: true, 
+        pixelRatio: 0.3, 
+        backgroundColor: "#ffffff",
+        quality: 0.8 
+      });
+      await updateThumbnail(docId, thumbnail);
+    } catch (e) {
+      console.error("Error generating thumbnail:", e);
+      if (retries < 2) {
+        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
+      }
     }
   };
 
@@ -79,13 +93,10 @@ const ContractGenerator = () => {
 
     toast.success("Podgląd umowy gotowy!");
 
-    // Generate thumbnail after preview is shown
-    setTimeout(async () => {
-      const thumbnail = await generateThumbnail();
-      if (thumbnail && docId) {
-        await updateThumbnail(docId, thumbnail);
-      }
-    }, 500);
+    // Generate thumbnail after preview is shown with retry mechanism
+    if (docId) {
+      setTimeout(() => generateThumbnailWithRetry(docId), 1000);
+    }
   };
 
   const generatePDF = async () => {

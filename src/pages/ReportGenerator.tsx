@@ -215,18 +215,33 @@ const ReportGenerator = () => {
       description: "Sprawdź podgląd raportu poniżej i pobierz PDF",
     });
     
-    // Generate thumbnail after preview shows
-    setTimeout(async () => {
+    // Generate thumbnail after preview shows - wait longer for React to render
+    const generateThumbnail = async (retries = 0) => {
       const element = document.getElementById("report-preview-pdf") || document.getElementById("report-preview");
       if (element && docId) {
         try {
-          const thumbnail = await toPng(element, { cacheBust: true, pixelRatio: 0.2, backgroundColor: "#09090b" });
+          const thumbnail = await toPng(element, { 
+            cacheBust: true, 
+            pixelRatio: 0.3, 
+            backgroundColor: "#09090b",
+            quality: 0.8
+          });
           await updateThumbnail(docId, thumbnail);
         } catch (e) {
           console.error("Error generating thumbnail:", e);
+          // Retry once if failed
+          if (retries < 2) {
+            setTimeout(() => generateThumbnail(retries + 1), 500);
+          }
         }
+      } else if (retries < 3) {
+        // Element not ready, retry
+        setTimeout(() => generateThumbnail(retries + 1), 500);
       }
-    }, 500);
+    };
+    
+    // Start thumbnail generation after longer delay to ensure render
+    setTimeout(() => generateThumbnail(), 1000);
   };
 
   const loadFromHistory = (data: Record<string, string>) => {

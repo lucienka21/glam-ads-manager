@@ -232,14 +232,23 @@ export type Database = {
       leads: {
         Row: {
           city: string | null
+          cold_email_date: string | null
+          cold_email_sent: boolean | null
           created_at: string
           created_by: string | null
           email: string | null
+          follow_up_count: number | null
           id: string
           instagram: string | null
+          last_contact_date: string | null
+          last_follow_up_date: string | null
+          next_follow_up_date: string | null
           notes: string | null
           owner_name: string | null
           phone: string | null
+          priority: string | null
+          response: string | null
+          response_date: string | null
           salon_name: string
           source: string | null
           status: string
@@ -247,14 +256,23 @@ export type Database = {
         }
         Insert: {
           city?: string | null
+          cold_email_date?: string | null
+          cold_email_sent?: boolean | null
           created_at?: string
           created_by?: string | null
           email?: string | null
+          follow_up_count?: number | null
           id?: string
           instagram?: string | null
+          last_contact_date?: string | null
+          last_follow_up_date?: string | null
+          next_follow_up_date?: string | null
           notes?: string | null
           owner_name?: string | null
           phone?: string | null
+          priority?: string | null
+          response?: string | null
+          response_date?: string | null
           salon_name: string
           source?: string | null
           status?: string
@@ -262,14 +280,23 @@ export type Database = {
         }
         Update: {
           city?: string | null
+          cold_email_date?: string | null
+          cold_email_sent?: boolean | null
           created_at?: string
           created_by?: string | null
           email?: string | null
+          follow_up_count?: number | null
           id?: string
           instagram?: string | null
+          last_contact_date?: string | null
+          last_follow_up_date?: string | null
+          next_follow_up_date?: string | null
           notes?: string | null
           owner_name?: string | null
           phone?: string | null
+          priority?: string | null
+          response?: string | null
+          response_date?: string | null
           salon_name?: string
           source?: string | null
           status?: string
