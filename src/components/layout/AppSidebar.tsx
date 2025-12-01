@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -11,7 +12,9 @@ import {
   Users,
   UserPlus,
   LogOut,
-  User
+  User,
+  Shield,
+  Crown
 } from "lucide-react";
 import {
   Sidebar,
@@ -55,6 +58,7 @@ export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { isSzef, role } = useUserRole();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
@@ -156,6 +160,31 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+        {/* Szef only: Role management */}
+        {isSzef && (
+          <SidebarGroup className="mt-6">
+            <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-3 mb-2">
+              Administracja
+            </SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/roles")}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                      isActive("/roles")
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    }`}
+                  >
+                    <Shield className="w-4 h-4" />
+                    <span className="text-sm font-medium">Zarządzanie rolami</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
       <SidebarFooter className="p-4 border-t border-border/30 space-y-3">
@@ -163,14 +192,22 @@ export function AppSidebar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="w-full justify-start gap-3 px-3 py-2 h-auto">
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                <User className="w-4 h-4 text-primary" />
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                isSzef ? 'bg-amber-500/20' : 'bg-primary/20'
+              }`}>
+                {isSzef ? (
+                  <Crown className="w-4 h-4 text-amber-500" />
+                ) : (
+                  <User className="w-4 h-4 text-primary" />
+                )}
               </div>
               <div className="flex-1 text-left overflow-hidden">
                 <p className="text-sm font-medium text-foreground truncate">
                   {user?.email?.split('@')[0] || 'Użytkownik'}
                 </p>
-                <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {role ? (role === 'szef' ? 'Szef' : 'Pracownik') : 'Brak roli'}
+                </p>
               </div>
             </Button>
           </DropdownMenuTrigger>

@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ReportPreview } from "@/components/report/ReportPreview";
 import { ReportPreviewLandscape } from "@/components/report/ReportPreviewLandscape";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useDocumentHistory } from "@/hooks/useDocumentHistory";
+import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
@@ -52,7 +52,7 @@ const ReportGenerator = () => {
   const [portraitScale, setPortraitScale] = useState(1);
   const containerRef = useRef<HTMLDivElement>(null);
   const portraitContainerRef = useRef<HTMLDivElement>(null);
-  const { saveDocument, updateThumbnail } = useDocumentHistory();
+  const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
 
   // Load document from session storage if coming from history
   useEffect(() => {
@@ -202,8 +202,8 @@ const ReportGenerator = () => {
   const onSubmit = async (data: ReportFormData) => {
     setReportData(data);
     
-    // Save to new document history
-    const docId = saveDocument(
+    // Save to new document history (async)
+    const docId = await saveDocument(
       "report",
       data.clientName,
       `Raport ${data.period}`,
@@ -221,7 +221,7 @@ const ReportGenerator = () => {
       if (element && docId) {
         try {
           const thumbnail = await toPng(element, { cacheBust: true, pixelRatio: 0.2, backgroundColor: "#09090b" });
-          updateThumbnail(docId, thumbnail);
+          await updateThumbnail(docId, thumbnail);
         } catch (e) {
           console.error("Error generating thumbnail:", e);
         }

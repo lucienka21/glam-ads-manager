@@ -7,14 +7,14 @@ import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { toast } from "sonner";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useDocumentHistory } from "@/hooks/useDocumentHistory";
+import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
 type InvoiceType = "advance" | "final" | "full";
 
 const InvoiceGenerator = () => {
-  const { saveDocument, updateThumbnail } = useDocumentHistory();
+  const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const [invoiceType, setInvoiceType] = useState<InvoiceType>("full");
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -84,8 +84,8 @@ const InvoiceGenerator = () => {
 
     setShowPreview(true);
 
-    // Save to history
-    const docId = saveDocument(
+    // Save to history (async)
+    const docId = await saveDocument(
       "invoice",
       formData.clientName,
       `Faktura ${formData.invoiceNumber}`,
@@ -99,7 +99,7 @@ const InvoiceGenerator = () => {
     setTimeout(async () => {
       const thumbnail = await generateThumbnail();
       if (thumbnail && docId) {
-        updateThumbnail(docId, thumbnail);
+        await updateThumbnail(docId, thumbnail);
       }
     }, 500);
   };
