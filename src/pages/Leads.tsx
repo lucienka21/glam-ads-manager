@@ -548,6 +548,14 @@ export default function Leads() {
         })();
         matchesTab = email1Due || email2Due;
       }
+    } else if (activeTab === 'sent_cold_email') {
+      matchesTab = lead.cold_email_sent === true;
+    } else if (activeTab === 'sent_sms') {
+      matchesTab = lead.sms_follow_up_sent === true;
+    } else if (activeTab === 'sent_email_fu1') {
+      matchesTab = lead.email_follow_up_1_sent === true;
+    } else if (activeTab === 'sent_email_fu2') {
+      matchesTab = lead.email_follow_up_2_sent === true;
     } else if (activeTab === 'responded') {
       matchesTab = !!lead.response;
     }
@@ -590,6 +598,10 @@ export default function Leads() {
       return email1Due || email2Due;
     }).length,
     responded: leads.filter(l => !!l.response).length,
+    sentColdEmail: leads.filter(l => l.cold_email_sent === true).length,
+    sentSms: leads.filter(l => l.sms_follow_up_sent === true).length,
+    sentEmailFu1: leads.filter(l => l.email_follow_up_1_sent === true).length,
+    sentEmailFu2: leads.filter(l => l.email_follow_up_2_sent === true).length,
   };
 
   const getSequenceStatus = (lead: Lead) => {
@@ -949,33 +961,67 @@ export default function Leads() {
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-secondary/50">
-            <TabsTrigger value="all">Wszystkie</TabsTrigger>
-            <TabsTrigger value="pending_cold_email" className="relative">
-              Cold mail
+          <TabsList className="bg-secondary/50 grid grid-cols-9 w-full">
+            <TabsTrigger value="all" className="text-xs">
+              Wszystkie
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-muted text-muted-foreground rounded-full">
+                {stats.total}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="pending_cold_email" className="relative text-xs">
+              Do wysłania: Cold
               {stats.pendingColdEmail > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 rounded-full">
                   {stats.pendingColdEmail}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="pending_sms" className="relative">
-              SMS
+            <TabsTrigger value="pending_sms" className="relative text-xs">
+              Do wysłania: SMS
               {stats.pendingSms > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-400 rounded-full">
                   {stats.pendingSms}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="pending_follow_up" className="relative">
-              Email FU
+            <TabsTrigger value="pending_follow_up" className="relative text-xs">
+              Do wysłania: Email
               {stats.pendingFollowUp > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-orange-500/20 text-orange-400 rounded-full">
                   {stats.pendingFollowUp}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="responded">Odpowiedzi</TabsTrigger>
+            <TabsTrigger value="sent_cold_email" className="text-xs">
+              Wysłane: Cold
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
+                {stats.sentColdEmail}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="sent_sms" className="text-xs">
+              Wysłane: SMS
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
+                {stats.sentSms}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="sent_email_fu1" className="text-xs">
+              Wysłane: Email 1
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
+                {stats.sentEmailFu1}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="sent_email_fu2" className="text-xs">
+              Wysłane: Email 2
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
+                {stats.sentEmailFu2}
+              </span>
+            </TabsTrigger>
+            <TabsTrigger value="responded" className="text-xs">
+              Odpowiedzi
+              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded-full">
+                {stats.responded}
+              </span>
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
