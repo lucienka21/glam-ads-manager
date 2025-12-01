@@ -306,11 +306,12 @@ export default function Leads() {
 
   const handleMarkColdEmailSent = async (lead: Lead) => {
     const today = format(new Date(), 'yyyy-MM-dd');
+    const coldEmailDate = lead.cold_email_date || today;
     const { error } = await supabase
       .from('leads')
       .update({ 
         cold_email_sent: true, 
-        cold_email_date: today,
+        cold_email_date: coldEmailDate,
         last_contact_date: today,
         status: 'contacted'
       })
@@ -326,11 +327,12 @@ export default function Leads() {
 
   const handleMarkSmsFollowUpSent = async (lead: Lead) => {
     const today = format(new Date(), 'yyyy-MM-dd');
+    const smsDate = lead.sms_follow_up_date || today;
     const { error } = await supabase
       .from('leads')
       .update({ 
         sms_follow_up_sent: true, 
-        sms_follow_up_date: today,
+        sms_follow_up_date: smsDate,
         last_contact_date: today,
         follow_up_count: (lead.follow_up_count || 0) + 1,
         status: 'follow_up'
@@ -347,11 +349,12 @@ export default function Leads() {
 
   const handleMarkEmailFollowUp1Sent = async (lead: Lead) => {
     const today = format(new Date(), 'yyyy-MM-dd');
+    const email1Date = lead.email_follow_up_1_date || today;
     const { error } = await supabase
       .from('leads')
       .update({ 
         email_follow_up_1_sent: true, 
-        email_follow_up_1_date: today,
+        email_follow_up_1_date: email1Date,
         last_contact_date: today,
         follow_up_count: (lead.follow_up_count || 0) + 1,
         status: 'follow_up'
@@ -368,11 +371,12 @@ export default function Leads() {
 
   const handleMarkEmailFollowUp2Sent = async (lead: Lead) => {
     const today = format(new Date(), 'yyyy-MM-dd');
+    const email2Date = lead.email_follow_up_2_date || today;
     const { error } = await supabase
       .from('leads')
       .update({ 
         email_follow_up_2_sent: true, 
-        email_follow_up_2_date: today,
+        email_follow_up_2_date: email2Date,
         last_contact_date: today,
         follow_up_count: (lead.follow_up_count || 0) + 1,
         status: 'no_response'
@@ -724,92 +728,108 @@ export default function Leads() {
                 {/* Sequence Tracking */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-muted-foreground">Sekwencja follow-upów</h3>
+                  {/* Cold email */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 flex items-center space-x-2">
                       <Checkbox
                         id="cold_email_sent"
                         checked={formData.cold_email_sent}
-                        onCheckedChange={(checked) => setFormData({ ...formData, cold_email_sent: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, cold_email_sent: checked as boolean })
+                        }
                       />
-                      <Label htmlFor="cold_email_sent" className="cursor-pointer">Cold email wysłany (Dzień 0)</Label>
+                      <Label htmlFor="cold_email_sent" className="cursor-pointer">
+                        Cold email wysłany (Dzień 0)
+                      </Label>
                     </div>
-                    {formData.cold_email_sent && (
-                      <div>
-                        <Label>Data cold maila</Label>
-                        <Input
-                          type="date"
-                          value={formData.cold_email_date}
-                          onChange={(e) => setFormData({ ...formData, cold_email_date: e.target.value })}
-                          className="form-input-elegant"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <Label>Data cold maila (planowana / wysłania)</Label>
+                      <Input
+                        type="date"
+                        value={formData.cold_email_date}
+                        onChange={(e) => setFormData({ ...formData, cold_email_date: e.target.value })}
+                        className="form-input-elegant"
+                      />
+                    </div>
                   </div>
-                  
+
+                  {/* SMS follow-up */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 flex items-center space-x-2">
                       <Checkbox
                         id="sms_follow_up_sent"
                         checked={formData.sms_follow_up_sent}
-                        onCheckedChange={(checked) => setFormData({ ...formData, sms_follow_up_sent: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, sms_follow_up_sent: checked as boolean })
+                        }
                       />
-                      <Label htmlFor="sms_follow_up_sent" className="cursor-pointer">SMS follow-up wysłany (Dzień 2)</Label>
+                      <Label htmlFor="sms_follow_up_sent" className="cursor-pointer">
+                        SMS follow-up wysłany (Dzień 2)
+                      </Label>
                     </div>
-                    {formData.sms_follow_up_sent && (
-                      <div>
-                        <Label>Data SMS</Label>
-                        <Input
-                          type="date"
-                          value={formData.sms_follow_up_date}
-                          onChange={(e) => setFormData({ ...formData, sms_follow_up_date: e.target.value })}
-                          className="form-input-elegant"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <Label>Data SMS (planowana / wysłania)</Label>
+                      <Input
+                        type="date"
+                        value={formData.sms_follow_up_date}
+                        onChange={(e) => setFormData({ ...formData, sms_follow_up_date: e.target.value })}
+                        className="form-input-elegant"
+                      />
+                    </div>
                   </div>
 
+                  {/* Email follow-up #1 */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 flex items-center space-x-2">
                       <Checkbox
                         id="email_follow_up_1_sent"
                         checked={formData.email_follow_up_1_sent}
-                        onCheckedChange={(checked) => setFormData({ ...formData, email_follow_up_1_sent: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, email_follow_up_1_sent: checked as boolean })
+                        }
                       />
-                      <Label htmlFor="email_follow_up_1_sent" className="cursor-pointer">Email follow-up #1 wysłany (Dzień 6)</Label>
+                      <Label htmlFor="email_follow_up_1_sent" className="cursor-pointer">
+                        Email follow-up #1 wysłany (Dzień 6)
+                      </Label>
                     </div>
-                    {formData.email_follow_up_1_sent && (
-                      <div>
-                        <Label>Data email #1</Label>
-                        <Input
-                          type="date"
-                          value={formData.email_follow_up_1_date}
-                          onChange={(e) => setFormData({ ...formData, email_follow_up_1_date: e.target.value })}
-                          className="form-input-elegant"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <Label>Data email #1 (planowana / wysłania)</Label>
+                      <Input
+                        type="date"
+                        value={formData.email_follow_up_1_date}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email_follow_up_1_date: e.target.value })
+                        }
+                        className="form-input-elegant"
+                      />
+                    </div>
                   </div>
 
+                  {/* Email follow-up #2 */}
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 flex items-center space-x-2">
                       <Checkbox
                         id="email_follow_up_2_sent"
                         checked={formData.email_follow_up_2_sent}
-                        onCheckedChange={(checked) => setFormData({ ...formData, email_follow_up_2_sent: checked as boolean })}
+                        onCheckedChange={(checked) =>
+                          setFormData({ ...formData, email_follow_up_2_sent: checked as boolean })
+                        }
                       />
-                      <Label htmlFor="email_follow_up_2_sent" className="cursor-pointer">Email follow-up #2 wysłany (Dzień 10)</Label>
+                      <Label htmlFor="email_follow_up_2_sent" className="cursor-pointer">
+                        Email follow-up #2 wysłany (Dzień 10)
+                      </Label>
                     </div>
-                    {formData.email_follow_up_2_sent && (
-                      <div>
-                        <Label>Data email #2</Label>
-                        <Input
-                          type="date"
-                          value={formData.email_follow_up_2_date}
-                          onChange={(e) => setFormData({ ...formData, email_follow_up_2_date: e.target.value })}
-                          className="form-input-elegant"
-                        />
-                      </div>
-                    )}
+                    <div>
+                      <Label>Data email #2 (planowana / wysłania)</Label>
+                      <Input
+                        type="date"
+                        value={formData.email_follow_up_2_date}
+                        onChange={(e) =>
+                          setFormData({ ...formData, email_follow_up_2_date: e.target.value })
+                        }
+                        className="form-input-elegant"
+                      />
+                    </div>
                   </div>
                 </div>
 
