@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
+import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import jsPDF from "jspdf";
 import { toJpeg } from "html-to-image";
 
@@ -15,6 +16,7 @@ const TOTAL_SLIDES = 6;
 
 const PresentationGenerator = () => {
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
+  const { generateThumbnail: genThumb } = useThumbnailGenerator();
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -64,30 +66,6 @@ const PresentationGenerator = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const generateThumbnailWithRetry = async (docId: string, retries = 0) => {
-    const element = document.getElementById("presentation-preview");
-    if (!element) {
-      if (retries < 3) {
-        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
-      }
-      return;
-    }
-    try {
-      const thumbnail = await toJpeg(element, { 
-        cacheBust: true, 
-        pixelRatio: 0.3, 
-        backgroundColor: "#000000", 
-        quality: 0.8 
-      });
-      await updateThumbnail(docId, thumbnail);
-    } catch (e) {
-      console.error("Error generating thumbnail:", e);
-      if (retries < 2) {
-        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
-      }
-    }
-  };
-
   const handleGenerate = async () => {
     if (!formData.ownerName || !formData.salonName || !formData.city) {
       toast.error("Uzupełnij wszystkie pola");
@@ -108,9 +86,21 @@ const PresentationGenerator = () => {
 
     toast.success("Prezentacja gotowa!");
 
-    // Generate thumbnail after preview is shown with retry mechanism
+    // Generate thumbnail using robust method
     if (docId) {
-      setTimeout(() => generateThumbnailWithRetry(docId), 1000);
+      setTimeout(async () => {
+        const thumbnail = await genThumb({
+          elementId: "presentation-preview",
+          format: 'jpeg',
+          backgroundColor: "#000000",
+          pixelRatio: 0.3,
+          maxRetries: 5,
+          retryDelay: 800
+        });
+        if (thumbnail) {
+          await updateThumbnail(docId, thumbnail);
+        }
+      }, 500);
     }
   };
 

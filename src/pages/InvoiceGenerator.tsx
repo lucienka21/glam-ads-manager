@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
+import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
@@ -15,6 +16,7 @@ type InvoiceType = "advance" | "final" | "full";
 
 const InvoiceGenerator = () => {
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
+  const { generateThumbnail: genThumb } = useThumbnailGenerator();
   const [invoiceType, setInvoiceType] = useState<InvoiceType>("full");
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -61,30 +63,6 @@ const InvoiceGenerator = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const generateThumbnailWithRetry = async (docId: string, retries = 0) => {
-    const element = document.getElementById("invoice-preview");
-    if (!element) {
-      if (retries < 3) {
-        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
-      }
-      return;
-    }
-    try {
-      const thumbnail = await toPng(element, { 
-        cacheBust: true, 
-        pixelRatio: 0.3, 
-        backgroundColor: "#ffffff",
-        quality: 0.8 
-      });
-      await updateThumbnail(docId, thumbnail);
-    } catch (e) {
-      console.error("Error generating thumbnail:", e);
-      if (retries < 2) {
-        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
-      }
-    }
-  };
-
   const handleGenerate = async () => {
     if (!formData.clientName || !formData.invoiceNumber || !formData.amount) {
       toast.error("Uzupełnij wszystkie wymagane pola");
@@ -109,9 +87,20 @@ const InvoiceGenerator = () => {
 
     toast.success("Podgląd faktury gotowy!");
 
-    // Generate thumbnail after preview is shown with retry mechanism
+    // Generate thumbnail using robust method
     if (docId) {
-      setTimeout(() => generateThumbnailWithRetry(docId), 1000);
+      setTimeout(async () => {
+        const thumbnail = await genThumb({
+          elementId: "invoice-preview",
+          backgroundColor: "#ffffff",
+          pixelRatio: 0.3,
+          maxRetries: 5,
+          retryDelay: 800
+        });
+        if (thumbnail) {
+          await updateThumbnail(docId, thumbnail);
+        }
+      }, 500);
     }
   };
 
