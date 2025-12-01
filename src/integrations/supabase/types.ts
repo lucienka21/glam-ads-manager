@@ -237,6 +237,10 @@ export type Database = {
           created_at: string
           created_by: string | null
           email: string | null
+          email_follow_up_1_date: string | null
+          email_follow_up_1_sent: boolean | null
+          email_follow_up_2_date: string | null
+          email_follow_up_2_sent: boolean | null
           follow_up_count: number | null
           id: string
           instagram: string | null
@@ -250,6 +254,8 @@ export type Database = {
           response: string | null
           response_date: string | null
           salon_name: string
+          sms_follow_up_date: string | null
+          sms_follow_up_sent: boolean | null
           source: string | null
           status: string
           updated_at: string
@@ -261,6 +267,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          email_follow_up_1_date?: string | null
+          email_follow_up_1_sent?: boolean | null
+          email_follow_up_2_date?: string | null
+          email_follow_up_2_sent?: boolean | null
           follow_up_count?: number | null
           id?: string
           instagram?: string | null
@@ -274,6 +284,8 @@ export type Database = {
           response?: string | null
           response_date?: string | null
           salon_name: string
+          sms_follow_up_date?: string | null
+          sms_follow_up_sent?: boolean | null
           source?: string | null
           status?: string
           updated_at?: string
@@ -285,6 +297,10 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           email?: string | null
+          email_follow_up_1_date?: string | null
+          email_follow_up_1_sent?: boolean | null
+          email_follow_up_2_date?: string | null
+          email_follow_up_2_sent?: boolean | null
           follow_up_count?: number | null
           id?: string
           instagram?: string | null
@@ -298,6 +314,8 @@ export type Database = {
           response?: string | null
           response_date?: string | null
           salon_name?: string
+          sms_follow_up_date?: string | null
+          sms_follow_up_sent?: boolean | null
           source?: string | null
           status?: string
           updated_at?: string

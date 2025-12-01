@@ -14,6 +14,7 @@ import ContractGenerator from "./pages/ContractGenerator";
 import PresentationGenerator from "./pages/PresentationGenerator";
 import Leads from "./pages/Leads";
 import Clients from "./pages/Clients";
+import ClientProfile from "./pages/ClientProfile";
 import RoleManagement from "./pages/RoleManagement";
 import NotFound from "./pages/NotFound";
 
@@ -32,6 +33,7 @@ const App = () => (
             <Route path="/history" element={<ProtectedRoute><DocumentHistory /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
+            <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
             <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
             <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
             <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />

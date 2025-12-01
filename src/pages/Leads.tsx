@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { format, formatDistanceToNow, isPast, isToday, addDays } from 'date-fns';
+import { format, addDays, isPast, isToday, differenceInDays } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { 
   Plus, 
@@ -28,13 +28,12 @@ import {
   Loader2,
   Send,
   Clock,
-  CalendarDays,
   MessageSquare,
   AlertCircle,
   CheckCircle2,
   ArrowUpRight,
-  Filter,
-  UserCheck
+  UserCheck,
+  Smartphone
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -45,7 +44,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {
   Tabs,
-  TabsContent,
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
@@ -62,7 +60,6 @@ interface Lead {
   status: string;
   notes: string | null;
   created_at: string;
-  // New fields for tracking
   cold_email_sent: boolean | null;
   cold_email_date: string | null;
   follow_up_count: number | null;
@@ -72,6 +69,13 @@ interface Lead {
   response: string | null;
   response_date: string | null;
   priority: string | null;
+  // New fields for sequence tracking
+  sms_follow_up_sent: boolean | null;
+  sms_follow_up_date: string | null;
+  email_follow_up_1_sent: boolean | null;
+  email_follow_up_1_date: string | null;
+  email_follow_up_2_sent: boolean | null;
+  email_follow_up_2_date: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -106,6 +110,34 @@ const priorityLabels: Record<string, string> = {
   high: 'Wysoki',
 };
 
+// Sequence: Cold Mail (Day 0) → SMS (Day 2) → Email 1 (Day 6) → Email 2 (Day 10)
+const getNextFollowUpInfo = (lead: Lead): { type: string; dueDate: Date | null; isDue: boolean } | null => {
+  if (!lead.cold_email_sent || !lead.cold_email_date) return null;
+  if (lead.response || lead.status === 'converted' || lead.status === 'lost') return null;
+  
+  const coldEmailDate = new Date(lead.cold_email_date);
+  
+  // Check SMS (Day 2)
+  if (!lead.sms_follow_up_sent) {
+    const smsDue = addDays(coldEmailDate, 2);
+    return { type: 'sms', dueDate: smsDue, isDue: isPast(smsDue) || isToday(smsDue) };
+  }
+  
+  // Check Email Follow-up 1 (Day 6 = 4 days after SMS)
+  if (!lead.email_follow_up_1_sent) {
+    const email1Due = addDays(coldEmailDate, 6);
+    return { type: 'email1', dueDate: email1Due, isDue: isPast(email1Due) || isToday(email1Due) };
+  }
+  
+  // Check Email Follow-up 2 (Day 10 = 4 days after Email 1)
+  if (!lead.email_follow_up_2_sent) {
+    const email2Due = addDays(coldEmailDate, 10);
+    return { type: 'email2', dueDate: email2Due, isDue: isPast(email2Due) || isToday(email2Due) };
+  }
+  
+  return null; // All follow-ups done
+};
+
 export default function Leads() {
   const { user } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -128,13 +160,15 @@ export default function Leads() {
     notes: '',
     cold_email_sent: false,
     cold_email_date: '',
-    follow_up_count: 0,
-    last_follow_up_date: '',
-    next_follow_up_date: '',
-    last_contact_date: '',
+    priority: 'medium',
     response: '',
     response_date: '',
-    priority: 'medium',
+    sms_follow_up_sent: false,
+    sms_follow_up_date: '',
+    email_follow_up_1_sent: false,
+    email_follow_up_1_date: '',
+    email_follow_up_2_sent: false,
+    email_follow_up_2_date: '',
   });
 
   useEffect(() => {
@@ -152,7 +186,7 @@ export default function Leads() {
       toast.error('Błąd ładowania leadów');
       console.error(error);
     } else {
-      setLeads(data || []);
+      setLeads((data as Lead[]) || []);
     }
     setLoading(false);
   };
@@ -166,12 +200,26 @@ export default function Leads() {
     }
 
     const dataToSave = {
-      ...formData,
+      salon_name: formData.salon_name,
+      owner_name: formData.owner_name || null,
+      city: formData.city || null,
+      phone: formData.phone || null,
+      email: formData.email || null,
+      instagram: formData.instagram || null,
+      source: formData.source || null,
+      status: formData.status,
+      notes: formData.notes || null,
+      cold_email_sent: formData.cold_email_sent,
       cold_email_date: formData.cold_email_date || null,
-      last_follow_up_date: formData.last_follow_up_date || null,
-      next_follow_up_date: formData.next_follow_up_date || null,
-      last_contact_date: formData.last_contact_date || null,
+      priority: formData.priority,
+      response: formData.response || null,
       response_date: formData.response_date || null,
+      sms_follow_up_sent: formData.sms_follow_up_sent,
+      sms_follow_up_date: formData.sms_follow_up_date || null,
+      email_follow_up_1_sent: formData.email_follow_up_1_sent,
+      email_follow_up_1_date: formData.email_follow_up_1_date || null,
+      email_follow_up_2_sent: formData.email_follow_up_2_sent,
+      email_follow_up_2_date: formData.email_follow_up_2_date || null,
     };
 
     if (editingLead) {
@@ -233,18 +281,20 @@ export default function Leads() {
       notes: lead.notes || '',
       cold_email_sent: lead.cold_email_sent || false,
       cold_email_date: lead.cold_email_date || '',
-      follow_up_count: lead.follow_up_count || 0,
-      last_follow_up_date: lead.last_follow_up_date || '',
-      next_follow_up_date: lead.next_follow_up_date || '',
-      last_contact_date: lead.last_contact_date || '',
+      priority: lead.priority || 'medium',
       response: lead.response || '',
       response_date: lead.response_date || '',
-      priority: lead.priority || 'medium',
+      sms_follow_up_sent: lead.sms_follow_up_sent || false,
+      sms_follow_up_date: lead.sms_follow_up_date || '',
+      email_follow_up_1_sent: lead.email_follow_up_1_sent || false,
+      email_follow_up_1_date: lead.email_follow_up_1_date || '',
+      email_follow_up_2_sent: lead.email_follow_up_2_sent || false,
+      email_follow_up_2_date: lead.email_follow_up_2_date || '',
     });
     setIsDialogOpen(true);
   };
 
-  const handleMarkEmailSent = async (lead: Lead) => {
+  const handleMarkColdEmailSent = async (lead: Lead) => {
     const today = format(new Date(), 'yyyy-MM-dd');
     const { error } = await supabase
       .from('leads')
@@ -259,21 +309,20 @@ export default function Leads() {
     if (error) {
       toast.error('Błąd aktualizacji');
     } else {
-      toast.success('Oznaczono jako wysłany');
+      toast.success('Cold mail oznaczony jako wysłany');
       fetchLeads();
     }
   };
 
-  const handleAddFollowUp = async (lead: Lead) => {
+  const handleMarkSmsFollowUpSent = async (lead: Lead) => {
     const today = format(new Date(), 'yyyy-MM-dd');
-    const nextFollowUp = format(addDays(new Date(), 3), 'yyyy-MM-dd');
     const { error } = await supabase
       .from('leads')
       .update({ 
-        follow_up_count: (lead.follow_up_count || 0) + 1,
-        last_follow_up_date: today,
-        next_follow_up_date: nextFollowUp,
+        sms_follow_up_sent: true, 
+        sms_follow_up_date: today,
         last_contact_date: today,
+        follow_up_count: (lead.follow_up_count || 0) + 1,
         status: 'follow_up'
       })
       .eq('id', lead.id);
@@ -281,16 +330,57 @@ export default function Leads() {
     if (error) {
       toast.error('Błąd aktualizacji');
     } else {
-      toast.success('Follow-up dodany');
+      toast.success('SMS follow-up oznaczony');
+      fetchLeads();
+    }
+  };
+
+  const handleMarkEmailFollowUp1Sent = async (lead: Lead) => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const { error } = await supabase
+      .from('leads')
+      .update({ 
+        email_follow_up_1_sent: true, 
+        email_follow_up_1_date: today,
+        last_contact_date: today,
+        follow_up_count: (lead.follow_up_count || 0) + 1,
+        status: 'follow_up'
+      })
+      .eq('id', lead.id);
+
+    if (error) {
+      toast.error('Błąd aktualizacji');
+    } else {
+      toast.success('Email follow-up #1 oznaczony');
+      fetchLeads();
+    }
+  };
+
+  const handleMarkEmailFollowUp2Sent = async (lead: Lead) => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const { error } = await supabase
+      .from('leads')
+      .update({ 
+        email_follow_up_2_sent: true, 
+        email_follow_up_2_date: today,
+        last_contact_date: today,
+        follow_up_count: (lead.follow_up_count || 0) + 1,
+        status: 'no_response'
+      })
+      .eq('id', lead.id);
+
+    if (error) {
+      toast.error('Błąd aktualizacji');
+    } else {
+      toast.success('Email follow-up #2 oznaczony');
       fetchLeads();
     }
   };
 
   const handleConvertToClient = async (lead: Lead) => {
-    if (!confirm(`Czy chcesz przekonwertować "${lead.salon_name}" na klienta? Dane zostaną skopiowane do bazy klientów.`)) return;
+    if (!confirm(`Czy chcesz przekonwertować "${lead.salon_name}" na klienta?`)) return;
 
-    // Create client from lead data
-    const { data: newClient, error: insertError } = await supabase
+    const { error: insertError } = await supabase
       .from('clients')
       .insert({
         salon_name: lead.salon_name,
@@ -303,9 +393,7 @@ export default function Leads() {
         lead_id: lead.id,
         created_by: user?.id,
         status: 'active'
-      })
-      .select()
-      .single();
+      });
 
     if (insertError) {
       toast.error('Błąd tworzenia klienta');
@@ -313,7 +401,6 @@ export default function Leads() {
       return;
     }
 
-    // Update lead status to converted
     const { error: updateError } = await supabase
       .from('leads')
       .update({ status: 'converted' })
@@ -322,7 +409,7 @@ export default function Leads() {
     if (updateError) {
       toast.error('Błąd aktualizacji statusu leada');
     } else {
-      toast.success(`"${lead.salon_name}" został przekonwertowany na klienta!`);
+      toast.success(`"${lead.salon_name}" przekonwertowany na klienta!`);
       fetchLeads();
     }
   };
@@ -341,13 +428,15 @@ export default function Leads() {
       notes: '',
       cold_email_sent: false,
       cold_email_date: '',
-      follow_up_count: 0,
-      last_follow_up_date: '',
-      next_follow_up_date: '',
-      last_contact_date: '',
+      priority: 'medium',
       response: '',
       response_date: '',
-      priority: 'medium',
+      sms_follow_up_sent: false,
+      sms_follow_up_date: '',
+      email_follow_up_1_sent: false,
+      email_follow_up_1_date: '',
+      email_follow_up_2_sent: false,
+      email_follow_up_2_date: '',
     });
   };
 
@@ -362,12 +451,13 @@ export default function Leads() {
     
     // Tab filters
     let matchesTab = true;
-    if (activeTab === 'pending_email') {
+    if (activeTab === 'pending_cold_email') {
       matchesTab = !lead.cold_email_sent;
-    } else if (activeTab === 'awaiting_response') {
-      matchesTab = lead.cold_email_sent === true && !lead.response && lead.status !== 'converted' && lead.status !== 'lost';
-    } else if (activeTab === 'follow_up_due') {
-      matchesTab = lead.next_follow_up_date ? isPast(new Date(lead.next_follow_up_date)) || isToday(new Date(lead.next_follow_up_date)) : false;
+    } else if (activeTab === 'pending_sms') {
+      matchesTab = lead.cold_email_sent === true && !lead.sms_follow_up_sent && !lead.response && lead.status !== 'converted' && lead.status !== 'lost';
+    } else if (activeTab === 'pending_follow_up') {
+      const info = getNextFollowUpInfo(lead);
+      matchesTab = info !== null && info.type !== 'sms' && info.isDue;
     } else if (activeTab === 'responded') {
       matchesTab = !!lead.response;
     }
@@ -378,10 +468,29 @@ export default function Leads() {
   // Stats
   const stats = {
     total: leads.length,
-    pendingEmail: leads.filter(l => !l.cold_email_sent).length,
-    awaitingResponse: leads.filter(l => l.cold_email_sent && !l.response && l.status !== 'converted' && l.status !== 'lost').length,
-    followUpDue: leads.filter(l => l.next_follow_up_date && (isPast(new Date(l.next_follow_up_date)) || isToday(new Date(l.next_follow_up_date)))).length,
+    pendingColdEmail: leads.filter(l => !l.cold_email_sent).length,
+    pendingSms: leads.filter(l => {
+      if (!l.cold_email_sent || !l.cold_email_date) return false;
+      if (l.sms_follow_up_sent) return false;
+      if (l.response || l.status === 'converted' || l.status === 'lost') return false;
+      const smsDue = addDays(new Date(l.cold_email_date), 2);
+      return isPast(smsDue) || isToday(smsDue);
+    }).length,
+    pendingFollowUp: leads.filter(l => {
+      const info = getNextFollowUpInfo(l);
+      return info !== null && info.type !== 'sms' && info.isDue;
+    }).length,
     responded: leads.filter(l => !!l.response).length,
+  };
+
+  const getSequenceStatus = (lead: Lead) => {
+    const steps = [
+      { done: lead.cold_email_sent, label: 'CM', date: lead.cold_email_date },
+      { done: lead.sms_follow_up_sent, label: 'SMS', date: lead.sms_follow_up_date },
+      { done: lead.email_follow_up_1_sent, label: 'FU1', date: lead.email_follow_up_1_date },
+      { done: lead.email_follow_up_2_sent, label: 'FU2', date: lead.email_follow_up_2_date },
+    ];
+    return steps;
   };
 
   return (
@@ -391,7 +500,7 @@ export default function Leads() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Leady</h1>
-            <p className="text-muted-foreground text-sm">Śledzenie cold maili i follow-upów</p>
+            <p className="text-muted-foreground text-sm">Sekwencja: Cold Mail → SMS (2 dni) → Email #1 (4 dni) → Email #2 (4 dni)</p>
           </div>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -507,9 +616,9 @@ export default function Leads() {
                   </div>
                 </div>
 
-                {/* Email Tracking */}
+                {/* Sequence Tracking */}
                 <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground">Śledzenie cold maili</h3>
+                  <h3 className="text-sm font-medium text-muted-foreground">Sekwencja follow-upów</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2 flex items-center space-x-2">
                       <Checkbox
@@ -517,61 +626,85 @@ export default function Leads() {
                         checked={formData.cold_email_sent}
                         onCheckedChange={(checked) => setFormData({ ...formData, cold_email_sent: checked as boolean })}
                       />
-                      <Label htmlFor="cold_email_sent" className="cursor-pointer">Cold email wysłany</Label>
+                      <Label htmlFor="cold_email_sent" className="cursor-pointer">Cold email wysłany (Dzień 0)</Label>
                     </div>
-                    <div>
-                      <Label>Data wysłania maila</Label>
-                      <Input
-                        type="date"
-                        value={formData.cold_email_date}
-                        onChange={(e) => setFormData({ ...formData, cold_email_date: e.target.value })}
-                        className="form-input-elegant"
-                      />
-                    </div>
-                    <div>
-                      <Label>Ostatni kontakt</Label>
-                      <Input
-                        type="date"
-                        value={formData.last_contact_date}
-                        onChange={(e) => setFormData({ ...formData, last_contact_date: e.target.value })}
-                        className="form-input-elegant"
-                      />
-                    </div>
+                    {formData.cold_email_sent && (
+                      <div>
+                        <Label>Data cold maila</Label>
+                        <Input
+                          type="date"
+                          value={formData.cold_email_date}
+                          onChange={(e) => setFormData({ ...formData, cold_email_date: e.target.value })}
+                          className="form-input-elegant"
+                        />
+                      </div>
+                    )}
                   </div>
-                </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 flex items-center space-x-2">
+                      <Checkbox
+                        id="sms_follow_up_sent"
+                        checked={formData.sms_follow_up_sent}
+                        onCheckedChange={(checked) => setFormData({ ...formData, sms_follow_up_sent: checked as boolean })}
+                      />
+                      <Label htmlFor="sms_follow_up_sent" className="cursor-pointer">SMS follow-up wysłany (Dzień 2)</Label>
+                    </div>
+                    {formData.sms_follow_up_sent && (
+                      <div>
+                        <Label>Data SMS</Label>
+                        <Input
+                          type="date"
+                          value={formData.sms_follow_up_date}
+                          onChange={(e) => setFormData({ ...formData, sms_follow_up_date: e.target.value })}
+                          className="form-input-elegant"
+                        />
+                      </div>
+                    )}
+                  </div>
 
-                {/* Follow-ups */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-medium text-muted-foreground">Follow-upy</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label>Liczba follow-upów</Label>
-                      <Input
-                        type="number"
-                        min="0"
-                        value={formData.follow_up_count}
-                        onChange={(e) => setFormData({ ...formData, follow_up_count: parseInt(e.target.value) || 0 })}
-                        className="form-input-elegant"
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 flex items-center space-x-2">
+                      <Checkbox
+                        id="email_follow_up_1_sent"
+                        checked={formData.email_follow_up_1_sent}
+                        onCheckedChange={(checked) => setFormData({ ...formData, email_follow_up_1_sent: checked as boolean })}
                       />
+                      <Label htmlFor="email_follow_up_1_sent" className="cursor-pointer">Email follow-up #1 wysłany (Dzień 6)</Label>
                     </div>
-                    <div>
-                      <Label>Ostatni follow-up</Label>
-                      <Input
-                        type="date"
-                        value={formData.last_follow_up_date}
-                        onChange={(e) => setFormData({ ...formData, last_follow_up_date: e.target.value })}
-                        className="form-input-elegant"
+                    {formData.email_follow_up_1_sent && (
+                      <div>
+                        <Label>Data email #1</Label>
+                        <Input
+                          type="date"
+                          value={formData.email_follow_up_1_date}
+                          onChange={(e) => setFormData({ ...formData, email_follow_up_1_date: e.target.value })}
+                          className="form-input-elegant"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2 flex items-center space-x-2">
+                      <Checkbox
+                        id="email_follow_up_2_sent"
+                        checked={formData.email_follow_up_2_sent}
+                        onCheckedChange={(checked) => setFormData({ ...formData, email_follow_up_2_sent: checked as boolean })}
                       />
+                      <Label htmlFor="email_follow_up_2_sent" className="cursor-pointer">Email follow-up #2 wysłany (Dzień 10)</Label>
                     </div>
-                    <div>
-                      <Label>Następny follow-up</Label>
-                      <Input
-                        type="date"
-                        value={formData.next_follow_up_date}
-                        onChange={(e) => setFormData({ ...formData, next_follow_up_date: e.target.value })}
-                        className="form-input-elegant"
-                      />
-                    </div>
+                    {formData.email_follow_up_2_sent && (
+                      <div>
+                        <Label>Data email #2</Label>
+                        <Input
+                          type="date"
+                          value={formData.email_follow_up_2_date}
+                          onChange={(e) => setFormData({ ...formData, email_follow_up_2_date: e.target.value })}
+                          className="form-input-elegant"
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -642,8 +775,21 @@ export default function Leads() {
                   <Send className="w-4 h-4 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.pendingEmail}</p>
-                  <p className="text-xs text-muted-foreground">Do wysłania</p>
+                  <p className="text-2xl font-bold">{stats.pendingColdEmail}</p>
+                  <p className="text-xs text-muted-foreground">Cold mail</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/80">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-cyan-500/10">
+                  <Smartphone className="w-4 h-4 text-cyan-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.pendingSms}</p>
+                  <p className="text-xs text-muted-foreground">SMS</p>
                 </div>
               </div>
             </CardContent>
@@ -652,24 +798,11 @@ export default function Leads() {
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-orange-500/10">
-                  <Clock className="w-4 h-4 text-orange-400" />
+                  <Mail className="w-4 h-4 text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.awaitingResponse}</p>
-                  <p className="text-xs text-muted-foreground">Czekam na odp.</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-pink-500/10">
-                  <AlertCircle className="w-4 h-4 text-pink-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{stats.followUpDue}</p>
-                  <p className="text-xs text-muted-foreground">Follow-up!</p>
+                  <p className="text-2xl font-bold">{stats.pendingFollowUp}</p>
+                  <p className="text-xs text-muted-foreground">Email FU</p>
                 </div>
               </div>
             </CardContent>
@@ -693,20 +826,27 @@ export default function Leads() {
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="bg-secondary/50">
             <TabsTrigger value="all">Wszystkie</TabsTrigger>
-            <TabsTrigger value="pending_email" className="relative">
-              Do wysłania
-              {stats.pendingEmail > 0 && (
+            <TabsTrigger value="pending_cold_email" className="relative">
+              Cold mail
+              {stats.pendingColdEmail > 0 && (
                 <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 rounded-full">
-                  {stats.pendingEmail}
+                  {stats.pendingColdEmail}
                 </span>
               )}
             </TabsTrigger>
-            <TabsTrigger value="awaiting_response">Czekam na odp.</TabsTrigger>
-            <TabsTrigger value="follow_up_due" className="relative">
-              Follow-up
-              {stats.followUpDue > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-pink-500/20 text-pink-400 rounded-full">
-                  {stats.followUpDue}
+            <TabsTrigger value="pending_sms" className="relative">
+              SMS
+              {stats.pendingSms > 0 && (
+                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-400 rounded-full">
+                  {stats.pendingSms}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="pending_follow_up" className="relative">
+              Email FU
+              {stats.pendingFollowUp > 0 && (
+                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-orange-500/20 text-orange-400 rounded-full">
+                  {stats.pendingFollowUp}
                 </span>
               )}
             </TabsTrigger>
@@ -762,174 +902,181 @@ export default function Leads() {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredLeads.map((lead) => (
-              <Card key={lead.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors overflow-hidden">
-                <CardContent className="p-0">
-                  {/* Header */}
-                  <div className="p-4 border-b border-border/30">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-semibold truncate">{lead.salon_name}</h3>
-                          {lead.priority && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded ${priorityColors[lead.priority]}`}>
-                              {priorityLabels[lead.priority]}
-                            </span>
+            {filteredLeads.map((lead) => {
+              const nextFollowUp = getNextFollowUpInfo(lead);
+              const sequenceSteps = getSequenceStatus(lead);
+              
+              return (
+                <Card key={lead.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors overflow-hidden">
+                  <CardContent className="p-0">
+                    {/* Header */}
+                    <div className="p-4 border-b border-border/30">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-semibold truncate">{lead.salon_name}</h3>
+                            {lead.priority && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${priorityColors[lead.priority]}`}>
+                                {priorityLabels[lead.priority]}
+                              </span>
+                            )}
+                          </div>
+                          {lead.owner_name && (
+                            <p className="text-sm text-muted-foreground truncate">{lead.owner_name}</p>
                           )}
                         </div>
-                        {lead.owner_name && (
-                          <p className="text-sm text-muted-foreground truncate">{lead.owner_name}</p>
-                        )}
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(lead)}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Edytuj
-                          </DropdownMenuItem>
-                          {!lead.cold_email_sent && (
-                            <DropdownMenuItem onClick={() => handleMarkEmailSent(lead)}>
-                              <Send className="w-4 h-4 mr-2" />
-                              Oznacz email wysłany
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleEdit(lead)}>
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edytuj
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuItem onClick={() => handleAddFollowUp(lead)}>
-                            <ArrowUpRight className="w-4 h-4 mr-2" />
-                            Dodaj follow-up
-                          </DropdownMenuItem>
-                          {lead.status !== 'converted' && (
+                            {lead.status !== 'converted' && (
+                              <DropdownMenuItem 
+                                onClick={() => handleConvertToClient(lead)}
+                                className="text-green-400"
+                              >
+                                <UserCheck className="w-4 h-4 mr-2" />
+                                Konwertuj na klienta
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem 
-                              onClick={() => handleConvertToClient(lead)}
-                              className="text-green-400"
+                              onClick={() => handleDelete(lead.id)}
+                              className="text-destructive"
                             >
-                              <UserCheck className="w-4 h-4 mr-2" />
-                              Konwertuj na klienta
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Usuń
                             </DropdownMenuItem>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem 
-                            onClick={() => handleDelete(lead.id)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Usuń
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      <div className="flex items-center gap-2 mt-2">
+                        <Badge className={`${statusColors[lead.status]}`}>
+                          {statusLabels[lead.status]}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge className={`${statusColors[lead.status]}`}>
-                        {statusLabels[lead.status]}
-                      </Badge>
-                    </div>
-                  </div>
 
-                  {/* Contact Info */}
-                  <div className="p-4 space-y-2 text-sm border-b border-border/30">
-                    {lead.city && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        <span>{lead.city}</span>
-                      </div>
-                    )}
-                    {lead.email && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Mail className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{lead.email}</span>
-                      </div>
-                    )}
-                    {lead.phone && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="w-3.5 h-3.5 shrink-0" />
-                        <span>{lead.phone}</span>
-                      </div>
-                    )}
-                    {lead.instagram && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Instagram className="w-3.5 h-3.5 shrink-0" />
-                        <span>{lead.instagram}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Tracking Info */}
-                  <div className="p-4 space-y-3 bg-secondary/20">
-                    {/* Cold Email Status */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Send className={`w-3.5 h-3.5 ${lead.cold_email_sent ? 'text-green-400' : 'text-muted-foreground'}`} />
-                        <span className="text-xs text-muted-foreground">Cold email</span>
-                      </div>
-                      {lead.cold_email_sent ? (
-                        <span className="text-xs text-green-400">
-                          {lead.cold_email_date && format(new Date(lead.cold_email_date), 'd MMM', { locale: pl })}
-                        </span>
-                      ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 px-2 text-xs text-yellow-400 hover:text-yellow-300"
-                          onClick={() => handleMarkEmailSent(lead)}
-                        >
-                          Wyślij
-                        </Button>
+                    {/* Contact Info */}
+                    <div className="p-4 space-y-2 text-sm border-b border-border/30">
+                      {lead.city && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <MapPin className="w-3.5 h-3.5 shrink-0" />
+                          <span>{lead.city}</span>
+                        </div>
+                      )}
+                      {lead.email && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{lead.email}</span>
+                        </div>
+                      )}
+                      {lead.phone && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Phone className="w-3.5 h-3.5 shrink-0" />
+                          <span>{lead.phone}</span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Follow-ups */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Follow-upy</span>
-                      </div>
-                      <span className="text-xs font-medium">{lead.follow_up_count || 0}</span>
-                    </div>
-
-                    {/* Next Follow-up */}
-                    {lead.next_follow_up_date && (
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <CalendarDays className={`w-3.5 h-3.5 ${isPast(new Date(lead.next_follow_up_date)) || isToday(new Date(lead.next_follow_up_date)) ? 'text-pink-400' : 'text-muted-foreground'}`} />
-                          <span className="text-xs text-muted-foreground">Następny FU</span>
-                        </div>
-                        <span className={`text-xs ${isPast(new Date(lead.next_follow_up_date)) || isToday(new Date(lead.next_follow_up_date)) ? 'text-pink-400 font-medium' : ''}`}>
-                          {format(new Date(lead.next_follow_up_date), 'd MMM', { locale: pl })}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Response */}
-                    {lead.response && (
-                      <div className="pt-2 border-t border-border/30">
-                        <div className="flex items-start gap-2">
-                          <MessageSquare className="w-3.5 h-3.5 text-green-400 mt-0.5 shrink-0" />
-                          <div>
-                            <p className="text-xs text-muted-foreground line-clamp-2">{lead.response}</p>
-                            {lead.response_date && (
-                              <p className="text-[10px] text-muted-foreground/60 mt-1">
-                                {format(new Date(lead.response_date), 'd MMM yyyy', { locale: pl })}
-                              </p>
+                    {/* Sequence Progress */}
+                    <div className="p-4 space-y-3 bg-secondary/20">
+                      {/* Sequence Steps */}
+                      <div className="flex items-center justify-between gap-1">
+                        {sequenceSteps.map((step, idx) => (
+                          <div 
+                            key={idx}
+                            className={`flex-1 text-center py-1 px-1 rounded text-[10px] font-medium ${
+                              step.done 
+                                ? 'bg-green-500/20 text-green-400' 
+                                : 'bg-zinc-500/10 text-zinc-500'
+                            }`}
+                          >
+                            {step.label}
+                            {step.done && step.date && (
+                              <div className="text-[8px] opacity-70">
+                                {format(new Date(step.date), 'd.MM', { locale: pl })}
+                              </div>
                             )}
                           </div>
-                        </div>
+                        ))}
                       </div>
-                    )}
 
-                    {/* Last Contact */}
-                    {lead.last_contact_date && (
-                      <div className="text-[10px] text-muted-foreground/60 pt-2 border-t border-border/30">
-                        Ostatni kontakt: {formatDistanceToNow(new Date(lead.last_contact_date), { locale: pl, addSuffix: true })}
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                      {/* Next Action */}
+                      {nextFollowUp && !lead.response && (
+                        <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                          <div className="flex items-center gap-2">
+                            {nextFollowUp.type === 'sms' ? (
+                              <Smartphone className={`w-4 h-4 ${nextFollowUp.isDue ? 'text-cyan-400' : 'text-muted-foreground'}`} />
+                            ) : (
+                              <Mail className={`w-4 h-4 ${nextFollowUp.isDue ? 'text-orange-400' : 'text-muted-foreground'}`} />
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              {nextFollowUp.type === 'sms' && 'SMS'}
+                              {nextFollowUp.type === 'email1' && 'Email #1'}
+                              {nextFollowUp.type === 'email2' && 'Email #2'}
+                              {nextFollowUp.dueDate && (
+                                <span className={nextFollowUp.isDue ? 'text-pink-400 ml-1' : ''}>
+                                  {nextFollowUp.isDue ? '(teraz!)' : format(nextFollowUp.dueDate, 'd MMM', { locale: pl })}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className={`h-6 px-2 text-xs ${
+                              nextFollowUp.type === 'sms' 
+                                ? 'text-cyan-400 hover:text-cyan-300' 
+                                : 'text-orange-400 hover:text-orange-300'
+                            }`}
+                            onClick={() => {
+                              if (nextFollowUp.type === 'sms') handleMarkSmsFollowUpSent(lead);
+                              else if (nextFollowUp.type === 'email1') handleMarkEmailFollowUp1Sent(lead);
+                              else if (nextFollowUp.type === 'email2') handleMarkEmailFollowUp2Sent(lead);
+                            }}
+                          >
+                            Oznacz
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Cold Email Action */}
+                      {!lead.cold_email_sent && (
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Send className="w-4 h-4 text-yellow-400" />
+                            <span className="text-xs text-muted-foreground">Cold mail</span>
+                          </div>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 px-2 text-xs text-yellow-400 hover:text-yellow-300"
+                            onClick={() => handleMarkColdEmailSent(lead)}
+                          >
+                            Wyślij
+                          </Button>
+                        </div>
+                      )}
+
+                      {/* Response indicator */}
+                      {lead.response && (
+                        <div className="flex items-center gap-2 pt-2 border-t border-border/30">
+                          <CheckCircle2 className="w-4 h-4 text-green-400" />
+                          <span className="text-xs text-green-400">Odpowiedź otrzymana</span>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>
