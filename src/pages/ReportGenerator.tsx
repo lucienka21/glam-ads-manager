@@ -803,10 +803,13 @@ const ReportGenerator = () => {
                 </div>
                 <div 
                   ref={portraitContainerRef} 
-                  className="relative w-full flex justify-center"
+                  className="relative w-full overflow-hidden"
+                  style={{
+                    height: `${1123 * portraitScale}px`
+                  }}
                 >
                   <div 
-                    className="border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5 origin-top-left" 
+                    className="border-2 border-border/60 rounded-2xl shadow-2xl shadow-black/40 ring-1 ring-white/5 origin-top-left absolute left-0 top-0" 
                     style={{ 
                       backgroundColor: '#000000',
                       transform: `scale(${portraitScale})`,
