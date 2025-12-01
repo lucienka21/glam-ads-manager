@@ -1,5 +1,6 @@
-import { useState, useMemo } from "react";
-import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2 } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2, Download, Upload } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -50,8 +51,70 @@ const filterOptions = [
 
 export default function DocumentHistory() {
   const [userFilter, setUserFilter] = useState<string | null>(null);
-  const { history, loading, teamMembers, isSzef, deleteDocument, clearHistory } = useCloudDocumentHistory(userFilter);
+  const { history, loading, teamMembers, isSzef, deleteDocument, clearHistory, saveDocument } = useCloudDocumentHistory(userFilter);
   const [searchQuery, setSearchQuery] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Export history as JSON
+  const handleExport = () => {
+    const exportData = history.map(doc => ({
+      type: doc.type,
+      title: doc.title,
+      subtitle: doc.subtitle,
+      data: doc.data,
+      thumbnail: doc.thumbnail,
+      createdAt: doc.createdAt
+    }));
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `historia-dokumentow-${format(new Date(), "yyyy-MM-dd")}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Historia wyeksportowana pomyślnie");
+  };
+
+  // Import history from JSON
+  const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const content = e.target?.result as string;
+        const importedData = JSON.parse(content);
+        
+        if (!Array.isArray(importedData)) {
+          toast.error("Nieprawidłowy format pliku");
+          return;
+        }
+
+        let importedCount = 0;
+        for (const doc of importedData) {
+          if (doc.type && doc.title && doc.data) {
+            await saveDocument(doc.type, doc.title, doc.subtitle || "", doc.data, doc.thumbnail);
+            importedCount++;
+          }
+        }
+
+        toast.success(`Zaimportowano ${importedCount} dokumentów`);
+      } catch (err) {
+        toast.error("Błąd podczas importu pliku");
+        console.error("Import error:", err);
+      }
+    };
+    reader.readAsText(file);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
   const [filterType, setFilterType] = useState<string>("all");
   const [monthFilter, setMonthFilter] = useState<string>("all");
   const [selectedDocument, setSelectedDocument] = useState<CloudDocumentItem | null>(null);
@@ -128,6 +191,28 @@ export default function DocumentHistory() {
           </div>
           
           <div className="flex items-center gap-2">
+            {/* Import */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+            
+            {/* Export */}
+            {history.length > 0 && (
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="w-4 h-4 mr-2" />
+                Eksport
+              </Button>
+            )}
+            
+            {/* Clear */}
             {history.length > 0 && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
