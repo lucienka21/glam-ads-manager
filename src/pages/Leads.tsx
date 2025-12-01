@@ -122,7 +122,7 @@ const isDateDue = (dueDate: Date): boolean => {
 
 const getNextFollowUpInfo = (lead: Lead): { type: string; dueDate: Date | null; isDue: boolean } | null => {
   if (!lead.cold_email_sent || !lead.cold_email_date) return null;
-  if (lead.response || lead.status === 'converted' || lead.status === 'lost') return null;
+  if ((lead.response || lead.response_date) || lead.status === 'converted' || lead.status === 'lost') return null;
   
   // Parse date as local to avoid timezone issues
   const coldEmailDate = new Date(lead.cold_email_date + 'T00:00:00');
@@ -155,6 +155,7 @@ export default function Leads() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [coldMailFilter, setColdMailFilter] = useState<'due' | 'sent_all'>('due');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -518,10 +519,15 @@ export default function Leads() {
     // Tab filters
     let matchesTab = true;
     if (activeTab === 'pending_cold_email') {
-      // Leady bez wysłanego cold maila - z datą na dziś/przeszłość lub bez daty (nowe)
-      const hasNoColdEmailDate = !lead.cold_email_date;
-      const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
-      matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
+      if (coldMailFilter === 'sent_all') {
+        // W tym widoku pokazujemy wszystkie wysłane cold maile
+        matchesTab = lead.cold_email_sent === true;
+      } else {
+        // Domyślnie: leady bez wysłanego cold maila - z datą na dziś/przeszłość lub bez daty (nowe)
+        const hasNoColdEmailDate = !lead.cold_email_date;
+        const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
+        matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
+      }
     } else if (activeTab === 'pending_sms') {
       // SMS do wysłania: cold email wysłany, SMS nie wysłany, termin SMS minął lub jest dziś
       if (!lead.cold_email_sent || !lead.cold_email_date || lead.sms_follow_up_sent || !isActiveForFollowUp) {
@@ -557,7 +563,7 @@ export default function Leads() {
     } else if (activeTab === 'sent_email_fu2') {
       matchesTab = lead.email_follow_up_2_sent === true;
     } else if (activeTab === 'responded') {
-      matchesTab = !!lead.response;
+      matchesTab = !!lead.response || !!lead.response_date;
     }
     // activeTab === 'all' -> matchesTab stays true, shows all leads
     
@@ -577,14 +583,14 @@ export default function Leads() {
     }).length,
     pendingSms: leads.filter(l => {
       if (!l.cold_email_sent || !l.cold_email_date || l.sms_follow_up_sent) return false;
-      if (l.response || l.status === 'converted' || l.status === 'lost') return false;
+      if ((l.response || l.response_date) || l.status === 'converted' || l.status === 'lost') return false;
       const smsDueDate = getSmsDueDate(l.cold_email_date);
       smsDueDate.setHours(0, 0, 0, 0);
       return smsDueDate <= today;
     }).length,
     pendingFollowUp: leads.filter(l => {
       if (!l.cold_email_sent || !l.cold_email_date || !l.sms_follow_up_sent) return false;
-      if (l.response || l.status === 'converted' || l.status === 'lost') return false;
+      if ((l.response || l.response_date) || l.status === 'converted' || l.status === 'lost') return false;
       const email1Due = !l.email_follow_up_1_sent && (() => {
         const dueDate = getEmailFu1DueDate(l.cold_email_date!);
         dueDate.setHours(0, 0, 0, 0);
@@ -597,7 +603,7 @@ export default function Leads() {
       })();
       return email1Due || email2Due;
     }).length,
-    responded: leads.filter(l => !!l.response).length,
+    responded: leads.filter(l => !!l.response || !!l.response_date).length,
     sentColdEmail: leads.filter(l => l.cold_email_sent === true).length,
     sentSms: leads.filter(l => l.sms_follow_up_sent === true).length,
     sentEmailFu1: leads.filter(l => l.email_follow_up_1_sent === true).length,
@@ -1026,7 +1032,7 @@ export default function Leads() {
         </Tabs>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -1058,6 +1064,17 @@ export default function Leads() {
               ))}
             </SelectContent>
           </Select>
+          {activeTab === 'pending_cold_email' && (
+            <Select value={coldMailFilter} onValueChange={(v: 'due' | 'sent_all') => setColdMailFilter(v)}>
+              <SelectTrigger className="w-[190px] form-input-elegant">
+                <SelectValue placeholder="Widok cold maili" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="due">Dzisiejsze / zaległe do wysłania</SelectItem>
+                <SelectItem value="sent_all">Wszystkie wysłane cold maile</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         {/* Leads Grid */}
