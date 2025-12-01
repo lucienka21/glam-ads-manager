@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -6,8 +7,11 @@ import {
   FileSignature, 
   Presentation,
   History,
-  Settings,
-  Sparkles
+  Sparkles,
+  Users,
+  UserPlus,
+  LogOut,
+  User
 } from "lucide-react";
 import {
   Sidebar,
@@ -21,11 +25,23 @@ import {
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import agencyLogo from "@/assets/agency-logo.png";
 
 const mainNavItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Historia", url: "/history", icon: History },
+];
+
+const crmItems = [
+  { title: "Leady", url: "/leads", icon: UserPlus },
+  { title: "Klienci", url: "/clients", icon: Users },
 ];
 
 const generatorItems = [
@@ -38,9 +54,15 @@ const generatorItems = [
 export function AppSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
   const currentPath = location.pathname;
 
   const isActive = (path: string) => currentPath === path;
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
 
   return (
     <Sidebar className="border-r border-border/50 bg-sidebar">
@@ -53,8 +75,8 @@ export function AppSidebar() {
             <img src={agencyLogo} alt="Aurine" className="w-7 h-7 object-contain" />
           </div>
           <div>
-            <h1 className="text-base font-semibold text-foreground">Aurine</h1>
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Document Generator</p>
+            <h1 className="text-base font-semibold text-foreground">Aurine CRM</h1>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Beauty Agency</p>
           </div>
         </div>
       </SidebarHeader>
@@ -67,6 +89,31 @@ export function AppSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               {mainNavItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    onClick={() => navigate(item.url)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                      isActive(item.url)
+                        ? "bg-primary/10 text-primary border border-primary/20"
+                        : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span className="text-sm font-medium">{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup className="mt-6">
+          <SidebarGroupLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/70 px-3 mb-2">
+            CRM
+          </SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {crmItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     onClick={() => navigate(item.url)}
@@ -111,7 +158,30 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-border/30">
+      <SidebarFooter className="p-4 border-t border-border/30 space-y-3">
+        {/* User info and logout */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="w-full justify-start gap-3 px-3 py-2 h-auto">
+              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 text-left overflow-hidden">
+                <p className="text-sm font-medium text-foreground truncate">
+                  {user?.email?.split('@')[0] || 'Użytkownik'}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">{user?.email}</p>
+              </div>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+              <LogOut className="w-4 h-4 mr-2" />
+              Wyloguj się
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
           <Sparkles className="w-3 h-3 text-pink-400" />
           <span>Powered by Aurine</span>

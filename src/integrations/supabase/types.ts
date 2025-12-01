@@ -14,7 +14,296 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      campaign_metrics: {
+        Row: {
+          bookings: number | null
+          campaign_id: string
+          clicks: number | null
+          conversions: number | null
+          created_at: string
+          id: string
+          impressions: number | null
+          messages: number | null
+          period_end: string
+          period_start: string
+          reach: number | null
+          spend: number | null
+        }
+        Insert: {
+          bookings?: number | null
+          campaign_id: string
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          id?: string
+          impressions?: number | null
+          messages?: number | null
+          period_end: string
+          period_start: string
+          reach?: number | null
+          spend?: number | null
+        }
+        Update: {
+          bookings?: number | null
+          campaign_id?: string
+          clicks?: number | null
+          conversions?: number | null
+          created_at?: string
+          id?: string
+          impressions?: number | null
+          messages?: number | null
+          period_end?: string
+          period_start?: string
+          reach?: number | null
+          spend?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaign_metrics_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      campaigns: {
+        Row: {
+          budget: number | null
+          client_id: string
+          created_at: string
+          created_by: string | null
+          end_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          objective: string | null
+          start_date: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          budget?: number | null
+          client_id: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          objective?: string | null
+          start_date: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          budget?: number | null
+          client_id?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          objective?: string | null
+          start_date?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clients: {
+        Row: {
+          city: string | null
+          contract_start_date: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          facebook_page: string | null
+          id: string
+          instagram: string | null
+          lead_id: string | null
+          monthly_budget: number | null
+          notes: string | null
+          owner_name: string | null
+          phone: string | null
+          salon_name: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          contract_start_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          facebook_page?: string | null
+          id?: string
+          instagram?: string | null
+          lead_id?: string | null
+          monthly_budget?: number | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          salon_name: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          contract_start_date?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          facebook_page?: string | null
+          id?: string
+          instagram?: string | null
+          lead_id?: string | null
+          monthly_budget?: number | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          salon_name?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          subtitle: string | null
+          thumbnail: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data: Json
+          id?: string
+          subtitle?: string | null
+          thumbnail?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          subtitle?: string | null
+          thumbnail?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          city: string | null
+          created_at: string
+          created_by: string | null
+          email: string | null
+          id: string
+          instagram: string | null
+          notes: string | null
+          owner_name: string | null
+          phone: string | null
+          salon_name: string
+          source: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          salon_name: string
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          created_at?: string
+          created_by?: string | null
+          email?: string | null
+          id?: string
+          instagram?: string | null
+          notes?: string | null
+          owner_name?: string | null
+          phone?: string | null
+          salon_name?: string
+          source?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
