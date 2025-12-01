@@ -389,7 +389,11 @@ export default function Clients() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredClients.map((client) => (
-              <Card key={client.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
+              <Card 
+                key={client.id} 
+                className="border-border/50 bg-card/80 hover:bg-card transition-colors cursor-pointer"
+                onClick={() => window.location.href = `/clients/${client.id}`}
+              >
                 <CardHeader className="pb-2">
                   <div className="flex items-start justify-between">
                     <div className="flex-1 min-w-0">
@@ -400,17 +404,22 @@ export default function Clients() {
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(client)}>
+                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }}>
                           <Pencil className="w-4 h-4 mr-2" />
                           Edytuj
                         </DropdownMenuItem>
                         <DropdownMenuItem 
-                          onClick={() => handleDelete(client.id)}
+                          onClick={(e) => { e.stopPropagation(); handleDelete(client.id); }}
                           className="text-destructive"
                         >
                           <Trash2 className="w-4 h-4 mr-2" />
