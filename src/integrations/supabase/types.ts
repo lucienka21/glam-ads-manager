@@ -241,6 +241,9 @@ export type Database = {
           email_follow_up_1_sent: boolean | null
           email_follow_up_2_date: string | null
           email_follow_up_2_sent: boolean | null
+          email_from: string | null
+          email_template: string | null
+          facebook_page: string | null
           follow_up_count: number | null
           id: string
           instagram: string | null
@@ -271,6 +274,9 @@ export type Database = {
           email_follow_up_1_sent?: boolean | null
           email_follow_up_2_date?: string | null
           email_follow_up_2_sent?: boolean | null
+          email_from?: string | null
+          email_template?: string | null
+          facebook_page?: string | null
           follow_up_count?: number | null
           id?: string
           instagram?: string | null
@@ -301,6 +307,9 @@ export type Database = {
           email_follow_up_1_sent?: boolean | null
           email_follow_up_2_date?: string | null
           email_follow_up_2_sent?: boolean | null
+          email_from?: string | null
+          email_template?: string | null
+          facebook_page?: string | null
           follow_up_count?: number | null
           id?: string
           instagram?: string | null
