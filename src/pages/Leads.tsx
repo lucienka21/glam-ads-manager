@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { format, addDays, isPast, isToday, differenceInDays } from 'date-fns';
+import { format, addDays, differenceInDays } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { 
   Plus, 
@@ -111,28 +111,38 @@ const priorityLabels: Record<string, string> = {
 };
 
 // Sequence: Cold Mail (Day 0) → SMS (Day 2) → Email 1 (Day 6) → Email 2 (Day 10)
+// Helper to check if a date is due (today or past) - timezone-safe
+const isDateDue = (dueDate: Date): boolean => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dueDateNormalized = new Date(dueDate);
+  dueDateNormalized.setHours(0, 0, 0, 0);
+  return dueDateNormalized <= today;
+};
+
 const getNextFollowUpInfo = (lead: Lead): { type: string; dueDate: Date | null; isDue: boolean } | null => {
   if (!lead.cold_email_sent || !lead.cold_email_date) return null;
   if (lead.response || lead.status === 'converted' || lead.status === 'lost') return null;
   
-  const coldEmailDate = new Date(lead.cold_email_date);
+  // Parse date as local to avoid timezone issues
+  const coldEmailDate = new Date(lead.cold_email_date + 'T00:00:00');
   
   // Check SMS (Day 2)
   if (!lead.sms_follow_up_sent) {
     const smsDue = addDays(coldEmailDate, 2);
-    return { type: 'sms', dueDate: smsDue, isDue: isPast(smsDue) || isToday(smsDue) };
+    return { type: 'sms', dueDate: smsDue, isDue: isDateDue(smsDue) };
   }
   
   // Check Email Follow-up 1 (Day 6 = 4 days after SMS)
   if (!lead.email_follow_up_1_sent) {
     const email1Due = addDays(coldEmailDate, 6);
-    return { type: 'email1', dueDate: email1Due, isDue: isPast(email1Due) || isToday(email1Due) };
+    return { type: 'email1', dueDate: email1Due, isDue: isDateDue(email1Due) };
   }
   
   // Check Email Follow-up 2 (Day 10 = 4 days after Email 1)
   if (!lead.email_follow_up_2_sent) {
     const email2Due = addDays(coldEmailDate, 10);
-    return { type: 'email2', dueDate: email2Due, isDue: isPast(email2Due) || isToday(email2Due) };
+    return { type: 'email2', dueDate: email2Due, isDue: isDateDue(email2Due) };
   }
   
   return null; // All follow-ups done
@@ -440,11 +450,26 @@ export default function Leads() {
     });
   };
 
-  // Helper to check if a follow-up step is due (today or past)
+  // Helper to check if a follow-up step is due (today or past) - with timezone-safe comparison
   const isStepDue = (baseDate: string | null, daysToAdd: number): boolean => {
     if (!baseDate) return false;
-    const dueDate = addDays(new Date(baseDate), daysToAdd);
-    return isPast(dueDate) || isToday(dueDate);
+    // Parse as local date to avoid timezone issues
+    const baseDateParsed = new Date(baseDate + 'T00:00:00');
+    const dueDate = addDays(baseDateParsed, daysToAdd);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate <= today;
+  };
+
+  // Helper to check if date is exactly today
+  const isDateToday = (dateStr: string | null): boolean => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr + 'T00:00:00');
+    const today = new Date();
+    return date.getDate() === today.getDate() && 
+           date.getMonth() === today.getMonth() && 
+           date.getFullYear() === today.getFullYear();
   };
 
   // Filter leads based on tab and filters
@@ -459,21 +484,31 @@ export default function Leads() {
     // Exclude converted/lost from follow-up tabs
     const isActiveForFollowUp = lead.status !== 'converted' && lead.status !== 'lost' && !lead.response;
     
-    // Tab filters - show leads where action is DUE
+    // Tab filters - show leads where action is DUE (today or past)
     let matchesTab = true;
     if (activeTab === 'pending_cold_email') {
       // Leads that need cold email sent (not sent yet)
       matchesTab = !lead.cold_email_sent;
     } else if (activeTab === 'pending_sms') {
-      // Leads where SMS is DUE: cold email sent, SMS not sent, SMS due date is today/past
+      // Leads where SMS is DUE: cold email sent, SMS not sent, due today or past
       matchesTab = lead.cold_email_sent === true && 
                    !lead.sms_follow_up_sent && 
                    isActiveForFollowUp &&
+                   lead.cold_email_date !== null &&
                    isStepDue(lead.cold_email_date, 2);
     } else if (activeTab === 'pending_follow_up') {
       // Email follow-ups that are due
-      const email1Due = lead.cold_email_sent && lead.sms_follow_up_sent && !lead.email_follow_up_1_sent && isStepDue(lead.cold_email_date, 6);
-      const email2Due = lead.cold_email_sent && lead.sms_follow_up_sent && lead.email_follow_up_1_sent && !lead.email_follow_up_2_sent && isStepDue(lead.cold_email_date, 10);
+      const email1Due = lead.cold_email_sent && 
+                        lead.sms_follow_up_sent && 
+                        !lead.email_follow_up_1_sent && 
+                        lead.cold_email_date !== null &&
+                        isStepDue(lead.cold_email_date, 6);
+      const email2Due = lead.cold_email_sent && 
+                        lead.sms_follow_up_sent && 
+                        lead.email_follow_up_1_sent && 
+                        !lead.email_follow_up_2_sent && 
+                        lead.cold_email_date !== null &&
+                        isStepDue(lead.cold_email_date, 10);
       matchesTab = isActiveForFollowUp && (email1Due || email2Due);
     } else if (activeTab === 'responded') {
       matchesTab = !!lead.response;
@@ -482,7 +517,7 @@ export default function Leads() {
     return matchesSearch && matchesStatus && matchesPriority && matchesTab;
   });
 
-  // Stats - count leads where action is DUE
+  // Stats - count leads where action is DUE (today or past)
   const stats = {
     total: leads.length,
     pendingColdEmail: leads.filter(l => !l.cold_email_sent).length,
@@ -494,6 +529,7 @@ export default function Leads() {
     }).length,
     pendingFollowUp: leads.filter(l => {
       if (l.response || l.status === 'converted' || l.status === 'lost') return false;
+      if (!l.cold_email_date) return false;
       const email1Due = l.cold_email_sent && l.sms_follow_up_sent && !l.email_follow_up_1_sent && isStepDue(l.cold_email_date, 6);
       const email2Due = l.cold_email_sent && l.sms_follow_up_sent && l.email_follow_up_1_sent && !l.email_follow_up_2_sent && isStepDue(l.cold_email_date, 10);
       return email1Due || email2Due;
@@ -1005,25 +1041,74 @@ export default function Leads() {
 
                     {/* Sequence Progress */}
                     <div className="p-4 space-y-3 bg-secondary/20">
-                      {/* Sequence Steps */}
+                      {/* Sent Status Summary */}
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        {lead.cold_email_sent ? (
+                          <span className="flex items-center gap-1 text-green-400">
+                            <CheckCircle2 className="w-3 h-3" />
+                            CM wysłany
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-yellow-400">
+                            <AlertCircle className="w-3 h-3" />
+                            CM do wysłania
+                          </span>
+                        )}
+                        {lead.response ? (
+                          <span className="flex items-center gap-1 text-green-400 bg-green-500/10 px-2 py-0.5 rounded">
+                            <MessageSquare className="w-3 h-3" />
+                            Jest odpowiedź
+                          </span>
+                        ) : lead.cold_email_sent ? (
+                          <span className="flex items-center gap-1 text-zinc-400">
+                            <Clock className="w-3 h-3" />
+                            Brak odpowiedzi
+                          </span>
+                        ) : null}
+                      </div>
+
+                      {/* Sequence Steps - shows scheduled dates */}
                       <div className="flex items-center justify-between gap-1">
-                        {sequenceSteps.map((step, idx) => (
-                          <div 
-                            key={idx}
-                            className={`flex-1 text-center py-1 px-1 rounded text-[10px] font-medium ${
-                              step.done 
-                                ? 'bg-green-500/20 text-green-400' 
-                                : 'bg-zinc-500/10 text-zinc-500'
-                            }`}
-                          >
-                            {step.label}
-                            {step.done && step.date && (
-                              <div className="text-[8px] opacity-70">
-                                {format(new Date(step.date), 'd.MM', { locale: pl })}
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                        {sequenceSteps.map((step, idx) => {
+                          // Calculate scheduled due date for each step
+                          let scheduledDate: Date | null = null;
+                          if (lead.cold_email_date) {
+                            const baseDate = new Date(lead.cold_email_date + 'T00:00:00');
+                            if (idx === 0) scheduledDate = baseDate;
+                            else if (idx === 1) scheduledDate = addDays(baseDate, 2);
+                            else if (idx === 2) scheduledDate = addDays(baseDate, 6);
+                            else if (idx === 3) scheduledDate = addDays(baseDate, 10);
+                          }
+                          
+                          const isDueToday = scheduledDate && isDateToday(scheduledDate.toISOString().split('T')[0]);
+                          const isDuePast = scheduledDate && !step.done && scheduledDate < new Date();
+                          
+                          return (
+                            <div 
+                              key={idx}
+                              className={`flex-1 text-center py-1 px-1 rounded text-[10px] font-medium ${
+                                step.done 
+                                  ? 'bg-green-500/20 text-green-400' 
+                                  : isDuePast
+                                    ? 'bg-red-500/20 text-red-400 animate-pulse'
+                                    : isDueToday
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : 'bg-zinc-500/10 text-zinc-500'
+                              }`}
+                            >
+                              {step.label}
+                              {step.done && step.date ? (
+                                <div className="text-[8px] opacity-70">
+                                  {format(new Date(step.date), 'd.MM', { locale: pl })}
+                                </div>
+                              ) : scheduledDate ? (
+                                <div className={`text-[8px] ${isDueToday || isDuePast ? 'opacity-100' : 'opacity-50'}`}>
+                                  {format(scheduledDate, 'd.MM', { locale: pl })}
+                                </div>
+                              ) : null}
+                            </div>
+                          );
+                        })}
                       </div>
 
                       {/* Next Action */}
@@ -1040,7 +1125,7 @@ export default function Leads() {
                               {nextFollowUp.type === 'email1' && 'Email #1'}
                               {nextFollowUp.type === 'email2' && 'Email #2'}
                               {nextFollowUp.dueDate && (
-                                <span className={nextFollowUp.isDue ? 'text-pink-400 ml-1' : ''}>
+                                <span className={nextFollowUp.isDue ? 'text-pink-400 ml-1 font-medium' : ''}>
                                   {nextFollowUp.isDue ? '(teraz!)' : format(nextFollowUp.dueDate, 'd MMM', { locale: pl })}
                                 </span>
                               )}
@@ -1083,11 +1168,23 @@ export default function Leads() {
                         </div>
                       )}
 
-                      {/* Response indicator */}
+                      {/* Response Details */}
                       {lead.response && (
-                        <div className="flex items-center gap-2 pt-2 border-t border-border/30">
-                          <CheckCircle2 className="w-4 h-4 text-green-400" />
-                          <span className="text-xs text-green-400">Odpowiedź otrzymana</span>
+                        <div className="pt-2 border-t border-border/30 space-y-1">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle2 className="w-4 h-4 text-green-400" />
+                            <span className="text-xs text-green-400 font-medium">Odpowiedź otrzymana</span>
+                            {lead.response_date && (
+                              <span className="text-[10px] text-muted-foreground">
+                                ({format(new Date(lead.response_date), 'd.MM.yyyy', { locale: pl })})
+                              </span>
+                            )}
+                          </div>
+                          {lead.response && (
+                            <p className="text-xs text-muted-foreground pl-6 line-clamp-2">
+                              {lead.response}
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
