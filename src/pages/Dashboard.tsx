@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
-import { FileText, Receipt, FileSignature, Presentation, Clock, TrendingUp, Sparkles } from "lucide-react";
+import { FileText, Receipt, FileSignature, Presentation, Clock, TrendingUp, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { useDocumentHistory } from "@/hooks/useDocumentHistory";
+import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 
@@ -57,9 +57,21 @@ const typeColors: Record<string, string> = {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { getRecentDocuments, getStats } = useDocumentHistory();
-  const recentDocs = getRecentDocuments(6);
-  const stats = getStats();
+  const { getRecentDocuments, getStats, loading, userId } = useCloudDocumentHistory();
+  
+  // Each user sees their own stats on dashboard
+  const recentDocs = getRecentDocuments(6, userId);
+  const stats = getStats(userId);
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="p-6 lg:p-8 flex items-center justify-center min-h-[400px]">
+          <Loader2 className="w-8 h-8 text-muted-foreground animate-spin" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

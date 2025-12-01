@@ -204,15 +204,22 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
   const clearHistory = useCallback(async (type?: CloudDocumentItem["type"]) => {
     if (!user) return;
 
+    // Supabase requires at least one filter condition for delete
+    // If szef, delete all docs (filtered by type if specified)
+    // If not szef, only delete own documents
     let query = supabase.from('documents').delete();
+    
+    if (!isSzef) {
+      // Non-szef users can only delete their own documents
+      query = query.eq('created_by', user.id);
+    } else {
+      // Szef can delete all, but we need at least one condition
+      // Use created_at not null (always true) as a workaround
+      query = query.not('created_at', 'is', null);
+    }
     
     if (type) {
       query = query.eq('type', type);
-    }
-    
-    // If not szef, only delete own documents
-    if (!isSzef) {
-      query = query.eq('created_by', user.id);
     }
 
     const { error } = await query;
@@ -229,14 +236,24 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
     return history.find(item => item.id === id);
   }, [history]);
 
-  const getStats = useCallback(() => {
+  const getStats = useCallback((filterByUserId?: string) => {
+    const filtered = filterByUserId 
+      ? history.filter(i => i.createdBy === filterByUserId)
+      : history;
     return {
-      total: history.length,
-      reports: history.filter(i => i.type === "report").length,
-      invoices: history.filter(i => i.type === "invoice").length,
-      contracts: history.filter(i => i.type === "contract").length,
-      presentations: history.filter(i => i.type === "presentation").length,
+      total: filtered.length,
+      reports: filtered.filter(i => i.type === "report").length,
+      invoices: filtered.filter(i => i.type === "invoice").length,
+      contracts: filtered.filter(i => i.type === "contract").length,
+      presentations: filtered.filter(i => i.type === "presentation").length,
     };
+  }, [history]);
+
+  const getRecentDocuments = useCallback((limit: number = 10, filterByUserId?: string) => {
+    const filtered = filterByUserId 
+      ? history.filter(i => i.createdBy === filterByUserId)
+      : history;
+    return filtered.slice(0, limit);
   }, [history]);
 
   return {
@@ -244,12 +261,14 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
     loading,
     teamMembers,
     isSzef,
+    userId: user?.id,
     saveDocument,
     getDocumentById,
     deleteDocument,
     updateThumbnail,
     clearHistory,
     getStats,
+    getRecentDocuments,
     refetch: fetchDocuments
   };
 };
