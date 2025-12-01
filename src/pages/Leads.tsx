@@ -56,6 +56,7 @@ interface Lead {
   phone: string | null;
   email: string | null;
   instagram: string | null;
+  facebook_page: string | null;
   source: string | null;
   status: string;
   notes: string | null;
@@ -69,6 +70,8 @@ interface Lead {
   response: string | null;
   response_date: string | null;
   priority: string | null;
+  email_template: string | null;
+  email_from: string | null;
   // New fields for sequence tracking
   sms_follow_up_sent: boolean | null;
   sms_follow_up_date: string | null;
@@ -166,6 +169,7 @@ export default function Leads() {
     phone: '',
     email: '',
     instagram: '',
+    facebook_page: '',
     source: '',
     status: 'new',
     notes: '',
@@ -174,6 +178,8 @@ export default function Leads() {
     priority: 'medium',
     response: '',
     response_date: '',
+    email_template: '',
+    email_from: '',
     sms_follow_up_sent: false,
     sms_follow_up_date: '',
     email_follow_up_1_sent: false,
@@ -217,6 +223,7 @@ export default function Leads() {
       phone: formData.phone || null,
       email: formData.email || null,
       instagram: formData.instagram || null,
+      facebook_page: formData.facebook_page || null,
       source: formData.source || null,
       status: formData.status,
       notes: formData.notes || null,
@@ -225,6 +232,8 @@ export default function Leads() {
       priority: formData.priority,
       response: formData.response || null,
       response_date: formData.response_date || null,
+      email_template: formData.email_template || null,
+      email_from: formData.email_from || null,
       sms_follow_up_sent: formData.sms_follow_up_sent,
       sms_follow_up_date: formData.sms_follow_up_date || null,
       email_follow_up_1_sent: formData.email_follow_up_1_sent,
@@ -287,6 +296,7 @@ export default function Leads() {
       phone: lead.phone || '',
       email: lead.email || '',
       instagram: lead.instagram || '',
+      facebook_page: lead.facebook_page || '',
       source: lead.source || '',
       status: lead.status,
       notes: lead.notes || '',
@@ -295,6 +305,8 @@ export default function Leads() {
       priority: lead.priority || 'medium',
       response: lead.response || '',
       response_date: lead.response_date || '',
+      email_template: lead.email_template || '',
+      email_from: lead.email_from || '',
       sms_follow_up_sent: lead.sms_follow_up_sent || false,
       sms_follow_up_date: lead.sms_follow_up_date || '',
       email_follow_up_1_sent: lead.email_follow_up_1_sent || false,
@@ -404,6 +416,7 @@ export default function Leads() {
         phone: lead.phone,
         email: lead.email,
         instagram: lead.instagram,
+        facebook_page: lead.facebook_page,
         notes: lead.notes,
         lead_id: lead.id,
         created_by: user?.id,
@@ -438,6 +451,7 @@ export default function Leads() {
       phone: '',
       email: '',
       instagram: '',
+      facebook_page: '',
       source: '',
       status: 'new',
       notes: '',
@@ -446,6 +460,8 @@ export default function Leads() {
       priority: 'medium',
       response: '',
       response_date: '',
+      email_template: '',
+      email_from: '',
       sms_follow_up_sent: false,
       sms_follow_up_date: '',
       email_follow_up_1_sent: false,
@@ -690,11 +706,11 @@ export default function Leads() {
                       />
                     </div>
                     <div>
-                      <Label>Instagram</Label>
+                      <Label>Facebook</Label>
                       <Input
-                        value={formData.instagram}
-                        onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
-                        placeholder="@nazwasalonu"
+                        value={formData.facebook_page}
+                        onChange={(e) => setFormData({ ...formData, facebook_page: e.target.value })}
+                        placeholder="Link do strony FB"
                         className="form-input-elegant"
                       />
                     </div>
@@ -743,6 +759,39 @@ export default function Leads() {
                   </div>
                 </div>
 
+                {/* Email template & sender */}
+                <div className="space-y-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">Ustawienia wysyłki</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Szablon wiadomości</Label>
+                      <Select value={formData.email_template} onValueChange={(v) => setFormData({ ...formData, email_template: v })}>
+                        <SelectTrigger className="form-input-elegant">
+                          <SelectValue placeholder="Wybierz szablon" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="szablon1">Szablon 1</SelectItem>
+                          <SelectItem value="szablon2">Szablon 2</SelectItem>
+                          <SelectItem value="szablon3">Szablon 3</SelectItem>
+                          <SelectItem value="szablon4">Szablon 4</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Email nadawcy</Label>
+                      <Select value={formData.email_from} onValueChange={(v) => setFormData({ ...formData, email_from: v })}>
+                        <SelectTrigger className="form-input-elegant">
+                          <SelectValue placeholder="Wybierz email" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="kontakt@aurine.pl">kontakt@aurine.pl</SelectItem>
+                          <SelectItem value="biuro@aurine.pl">biuro@aurine.pl</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Sequence Tracking */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-muted-foreground">Sekwencja follow-upów</h3>
@@ -765,9 +814,30 @@ export default function Leads() {
                       <Input
                         type="date"
                         value={formData.cold_email_date}
-                        onChange={(e) => setFormData({ ...formData, cold_email_date: e.target.value })}
+                        onChange={(e) => {
+                          const newDate = e.target.value;
+                          if (newDate) {
+                            // Auto-calculate other dates based on sequence
+                            const coldDate = new Date(newDate + 'T00:00:00');
+                            const smsDate = format(addDays(coldDate, 2), 'yyyy-MM-dd');
+                            const email1Date = format(addDays(coldDate, 6), 'yyyy-MM-dd');
+                            const email2Date = format(addDays(coldDate, 10), 'yyyy-MM-dd');
+                            setFormData({ 
+                              ...formData, 
+                              cold_email_date: newDate,
+                              sms_follow_up_date: smsDate,
+                              email_follow_up_1_date: email1Date,
+                              email_follow_up_2_date: email2Date
+                            });
+                          } else {
+                            setFormData({ ...formData, cold_email_date: newDate });
+                          }
+                        }}
                         className="form-input-elegant"
                       />
+                      <p className="text-xs text-muted-foreground/60 mt-1">
+                        Pozostałe daty automatycznie się wyliczą
+                      </p>
                     </div>
                   </div>
 
@@ -854,6 +924,9 @@ export default function Leads() {
                 {/* Response */}
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium text-muted-foreground">Odpowiedź</h3>
+                  <p className="text-xs text-muted-foreground/70 italic">
+                    Uwaga: Zaznaczenie odpowiedzi wyłączy automatyczne follow-upy. Możesz ręcznie zaznaczyć, które follow-upy mają być dalej aktywne.
+                  </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
                       <Label>Treść odpowiedzi</Label>
