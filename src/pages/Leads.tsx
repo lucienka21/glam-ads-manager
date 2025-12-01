@@ -472,6 +472,30 @@ export default function Leads() {
            date.getFullYear() === today.getFullYear();
   };
 
+  // Helper: check if date is today or in the past (action due)
+  const isDateDueOrToday = (dateStr: string | null): boolean => {
+    if (!dateStr) return false;
+    const date = new Date(dateStr + 'T00:00:00');
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return date <= today;
+  };
+
+  // Helper: get SMS due date from cold email date
+  const getSmsDueDate = (coldEmailDate: string): Date => {
+    return addDays(new Date(coldEmailDate + 'T00:00:00'), 2);
+  };
+
+  // Helper: get Email FU1 due date from cold email date  
+  const getEmailFu1DueDate = (coldEmailDate: string): Date => {
+    return addDays(new Date(coldEmailDate + 'T00:00:00'), 6);
+  };
+
+  // Helper: get Email FU2 due date from cold email date
+  const getEmailFu2DueDate = (coldEmailDate: string): Date => {
+    return addDays(new Date(coldEmailDate + 'T00:00:00'), 10);
+  };
+
   // Filter leads based on tab and filters
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
@@ -484,54 +508,81 @@ export default function Leads() {
     // Exclude converted/lost from follow-up tabs
     const isActiveForFollowUp = lead.status !== 'converted' && lead.status !== 'lost' && !lead.response;
     
-    // Tab filters - show leads where action is DUE (today or past)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    // Tab filters
     let matchesTab = true;
     if (activeTab === 'pending_cold_email') {
-      // Leads that need cold email sent (not sent yet)
-      matchesTab = !lead.cold_email_sent;
+      // Leady bez wysłanego cold maila - z datą na dziś/przeszłość lub bez daty (nowe)
+      const hasNoColdEmailDate = !lead.cold_email_date;
+      const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
+      matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
     } else if (activeTab === 'pending_sms') {
-      // Leads where SMS is DUE: cold email sent, SMS not sent, due today or past
-      matchesTab = lead.cold_email_sent === true && 
-                   !lead.sms_follow_up_sent && 
-                   isActiveForFollowUp &&
-                   lead.cold_email_date !== null &&
-                   isStepDue(lead.cold_email_date, 2);
+      // SMS do wysłania: cold email wysłany, SMS nie wysłany, termin SMS minął lub jest dziś
+      if (!lead.cold_email_sent || !lead.cold_email_date || lead.sms_follow_up_sent || !isActiveForFollowUp) {
+        matchesTab = false;
+      } else {
+        const smsDueDate = getSmsDueDate(lead.cold_email_date);
+        smsDueDate.setHours(0, 0, 0, 0);
+        matchesTab = smsDueDate <= today;
+      }
     } else if (activeTab === 'pending_follow_up') {
-      // Email follow-ups that are due
-      const email1Due = lead.cold_email_sent && 
-                        lead.sms_follow_up_sent && 
-                        !lead.email_follow_up_1_sent && 
-                        lead.cold_email_date !== null &&
-                        isStepDue(lead.cold_email_date, 6);
-      const email2Due = lead.cold_email_sent && 
-                        lead.sms_follow_up_sent && 
-                        lead.email_follow_up_1_sent && 
-                        !lead.email_follow_up_2_sent && 
-                        lead.cold_email_date !== null &&
-                        isStepDue(lead.cold_email_date, 10);
-      matchesTab = isActiveForFollowUp && (email1Due || email2Due);
+      // Email follow-upy do wysłania (termin minął lub jest dziś)
+      if (!lead.cold_email_sent || !lead.cold_email_date || !lead.sms_follow_up_sent || !isActiveForFollowUp) {
+        matchesTab = false;
+      } else {
+        const email1Due = !lead.email_follow_up_1_sent && (() => {
+          const dueDate = getEmailFu1DueDate(lead.cold_email_date!);
+          dueDate.setHours(0, 0, 0, 0);
+          return dueDate <= today;
+        })();
+        const email2Due = lead.email_follow_up_1_sent && !lead.email_follow_up_2_sent && (() => {
+          const dueDate = getEmailFu2DueDate(lead.cold_email_date!);
+          dueDate.setHours(0, 0, 0, 0);
+          return dueDate <= today;
+        })();
+        matchesTab = email1Due || email2Due;
+      }
     } else if (activeTab === 'responded') {
       matchesTab = !!lead.response;
     }
+    // activeTab === 'all' -> matchesTab stays true, shows all leads
     
     return matchesSearch && matchesStatus && matchesPriority && matchesTab;
   });
 
   // Stats - count leads where action is DUE (today or past)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
   const stats = {
     total: leads.length,
-    pendingColdEmail: leads.filter(l => !l.cold_email_sent).length,
+    pendingColdEmail: leads.filter(l => {
+      if (l.cold_email_sent) return false;
+      // Bez daty lub data na dziś/przeszłość
+      return !l.cold_email_date || isDateDueOrToday(l.cold_email_date);
+    }).length,
     pendingSms: leads.filter(l => {
-      if (!l.cold_email_sent || !l.cold_email_date) return false;
-      if (l.sms_follow_up_sent) return false;
+      if (!l.cold_email_sent || !l.cold_email_date || l.sms_follow_up_sent) return false;
       if (l.response || l.status === 'converted' || l.status === 'lost') return false;
-      return isStepDue(l.cold_email_date, 2);
+      const smsDueDate = getSmsDueDate(l.cold_email_date);
+      smsDueDate.setHours(0, 0, 0, 0);
+      return smsDueDate <= today;
     }).length,
     pendingFollowUp: leads.filter(l => {
+      if (!l.cold_email_sent || !l.cold_email_date || !l.sms_follow_up_sent) return false;
       if (l.response || l.status === 'converted' || l.status === 'lost') return false;
-      if (!l.cold_email_date) return false;
-      const email1Due = l.cold_email_sent && l.sms_follow_up_sent && !l.email_follow_up_1_sent && isStepDue(l.cold_email_date, 6);
-      const email2Due = l.cold_email_sent && l.sms_follow_up_sent && l.email_follow_up_1_sent && !l.email_follow_up_2_sent && isStepDue(l.cold_email_date, 10);
+      const email1Due = !l.email_follow_up_1_sent && (() => {
+        const dueDate = getEmailFu1DueDate(l.cold_email_date!);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate <= today;
+      })();
+      const email2Due = l.email_follow_up_1_sent && !l.email_follow_up_2_sent && (() => {
+        const dueDate = getEmailFu2DueDate(l.cold_email_date!);
+        dueDate.setHours(0, 0, 0, 0);
+        return dueDate <= today;
+      })();
       return email1Due || email2Due;
     }).length,
     responded: leads.filter(l => !!l.response).length,
