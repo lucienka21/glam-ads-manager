@@ -14,7 +14,8 @@ import {
   LogOut,
   User,
   Shield,
-  Crown
+  Crown,
+  Target
 } from "lucide-react";
 import {
   Sidebar,
@@ -45,6 +46,7 @@ const mainNavItems = [
 const crmItems = [
   { title: "Leady", url: "/leads", icon: UserPlus },
   { title: "Klienci", url: "/clients", icon: Users },
+  { title: "Kampanie", url: "/campaigns", icon: Target },
 ];
 
 const generatorItems = [
