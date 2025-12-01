@@ -440,6 +440,13 @@ export default function Leads() {
     });
   };
 
+  // Helper to check if a follow-up step is due (today or past)
+  const isStepDue = (baseDate: string | null, daysToAdd: number): boolean => {
+    if (!baseDate) return false;
+    const dueDate = addDays(new Date(baseDate), daysToAdd);
+    return isPast(dueDate) || isToday(dueDate);
+  };
+
   // Filter leads based on tab and filters
   const filteredLeads = leads.filter((lead) => {
     const matchesSearch =
@@ -449,15 +456,25 @@ export default function Leads() {
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || lead.priority === priorityFilter;
     
-    // Tab filters
+    // Exclude converted/lost from follow-up tabs
+    const isActiveForFollowUp = lead.status !== 'converted' && lead.status !== 'lost' && !lead.response;
+    
+    // Tab filters - show leads where action is DUE
     let matchesTab = true;
     if (activeTab === 'pending_cold_email') {
+      // Leads that need cold email sent (not sent yet)
       matchesTab = !lead.cold_email_sent;
     } else if (activeTab === 'pending_sms') {
-      matchesTab = lead.cold_email_sent === true && !lead.sms_follow_up_sent && !lead.response && lead.status !== 'converted' && lead.status !== 'lost';
+      // Leads where SMS is DUE: cold email sent, SMS not sent, SMS due date is today/past
+      matchesTab = lead.cold_email_sent === true && 
+                   !lead.sms_follow_up_sent && 
+                   isActiveForFollowUp &&
+                   isStepDue(lead.cold_email_date, 2);
     } else if (activeTab === 'pending_follow_up') {
-      const info = getNextFollowUpInfo(lead);
-      matchesTab = info !== null && info.type !== 'sms' && info.isDue;
+      // Email follow-ups that are due
+      const email1Due = lead.cold_email_sent && lead.sms_follow_up_sent && !lead.email_follow_up_1_sent && isStepDue(lead.cold_email_date, 6);
+      const email2Due = lead.cold_email_sent && lead.sms_follow_up_sent && lead.email_follow_up_1_sent && !lead.email_follow_up_2_sent && isStepDue(lead.cold_email_date, 10);
+      matchesTab = isActiveForFollowUp && (email1Due || email2Due);
     } else if (activeTab === 'responded') {
       matchesTab = !!lead.response;
     }
@@ -465,7 +482,7 @@ export default function Leads() {
     return matchesSearch && matchesStatus && matchesPriority && matchesTab;
   });
 
-  // Stats
+  // Stats - count leads where action is DUE
   const stats = {
     total: leads.length,
     pendingColdEmail: leads.filter(l => !l.cold_email_sent).length,
@@ -473,12 +490,13 @@ export default function Leads() {
       if (!l.cold_email_sent || !l.cold_email_date) return false;
       if (l.sms_follow_up_sent) return false;
       if (l.response || l.status === 'converted' || l.status === 'lost') return false;
-      const smsDue = addDays(new Date(l.cold_email_date), 2);
-      return isPast(smsDue) || isToday(smsDue);
+      return isStepDue(l.cold_email_date, 2);
     }).length,
     pendingFollowUp: leads.filter(l => {
-      const info = getNextFollowUpInfo(l);
-      return info !== null && info.type !== 'sms' && info.isDue;
+      if (l.response || l.status === 'converted' || l.status === 'lost') return false;
+      const email1Due = l.cold_email_sent && l.sms_follow_up_sent && !l.email_follow_up_1_sent && isStepDue(l.cold_email_date, 6);
+      const email2Due = l.cold_email_sent && l.sms_follow_up_sent && l.email_follow_up_1_sent && !l.email_follow_up_2_sent && isStepDue(l.cold_email_date, 10);
+      return email1Due || email2Due;
     }).length,
     responded: leads.filter(l => !!l.response).length,
   };
