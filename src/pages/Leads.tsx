@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,11 +44,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
 
 interface Lead {
   id: string;
@@ -154,6 +150,7 @@ const getNextFollowUpInfo = (lead: Lead): { type: string; dueDate: Date | null; 
 
 export default function Leads() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -162,6 +159,7 @@ export default function Leads() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
+  const [tabFilter, setTabFilter] = useState<'due' | 'all'>('due');
   const [formData, setFormData] = useState({
     salon_name: '',
     owner_name: '',
@@ -535,44 +533,52 @@ export default function Leads() {
     // Tab filters
     let matchesTab = true;
     if (activeTab === 'pending_cold_email') {
-      // Leady bez wysłanego cold maila - z datą na dziś/przeszłość lub bez daty (nowe)
-      const hasNoColdEmailDate = !lead.cold_email_date;
-      const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
-      matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
+      if (tabFilter === 'all') {
+        // Wszystkie wysłane cold maile
+        matchesTab = lead.cold_email_sent === true;
+      } else {
+        // Domyślnie: dzisiejsze i zaległe do wysłania
+        const hasNoColdEmailDate = !lead.cold_email_date;
+        const coldEmailDue = isDateDueOrToday(lead.cold_email_date);
+        matchesTab = !lead.cold_email_sent && (hasNoColdEmailDate || coldEmailDue);
+      }
     } else if (activeTab === 'pending_sms') {
-      // SMS do wysłania: cold email wysłany, SMS nie wysłany, termin SMS minął lub jest dziś
-      if (!lead.cold_email_sent || !lead.cold_email_date || lead.sms_follow_up_sent || !isActiveForFollowUp) {
-        matchesTab = false;
+      if (tabFilter === 'all') {
+        // Wszystkie wysłane SMS-y
+        matchesTab = lead.sms_follow_up_sent === true;
       } else {
-        const smsDueDate = getSmsDueDate(lead.cold_email_date);
-        smsDueDate.setHours(0, 0, 0, 0);
-        matchesTab = smsDueDate <= today;
+        // Domyślnie: dzisiejsze i zaległe do wysłania
+        if (!lead.cold_email_sent || !lead.cold_email_date || lead.sms_follow_up_sent || !isActiveForFollowUp) {
+          matchesTab = false;
+        } else {
+          const smsDueDate = getSmsDueDate(lead.cold_email_date);
+          smsDueDate.setHours(0, 0, 0, 0);
+          matchesTab = smsDueDate <= today;
+        }
       }
-    } else if (activeTab === 'pending_follow_up') {
-      // Email follow-upy do wysłania (termin minął lub jest dziś)
-      if (!lead.cold_email_sent || !lead.cold_email_date || !lead.sms_follow_up_sent || !isActiveForFollowUp) {
-        matchesTab = false;
+    } else if (activeTab === 'pending_email') {
+      // Połączone Email FU #1 i #2
+      if (tabFilter === 'all') {
+        // Wszystkie wysłane email follow-upy
+        matchesTab = lead.email_follow_up_1_sent === true || lead.email_follow_up_2_sent === true;
       } else {
-        const email1Due = !lead.email_follow_up_1_sent && (() => {
-          const dueDate = getEmailFu1DueDate(lead.cold_email_date!);
-          dueDate.setHours(0, 0, 0, 0);
-          return dueDate <= today;
-        })();
-        const email2Due = lead.email_follow_up_1_sent && !lead.email_follow_up_2_sent && (() => {
-          const dueDate = getEmailFu2DueDate(lead.cold_email_date!);
-          dueDate.setHours(0, 0, 0, 0);
-          return dueDate <= today;
-        })();
-        matchesTab = email1Due || email2Due;
+        // Domyślnie: dzisiejsze i zaległe do wysłania
+        if (!lead.cold_email_sent || !lead.cold_email_date || !lead.sms_follow_up_sent || !isActiveForFollowUp) {
+          matchesTab = false;
+        } else {
+          const email1Due = !lead.email_follow_up_1_sent && (() => {
+            const dueDate = getEmailFu1DueDate(lead.cold_email_date!);
+            dueDate.setHours(0, 0, 0, 0);
+            return dueDate <= today;
+          })();
+          const email2Due = lead.email_follow_up_1_sent && !lead.email_follow_up_2_sent && (() => {
+            const dueDate = getEmailFu2DueDate(lead.cold_email_date!);
+            dueDate.setHours(0, 0, 0, 0);
+            return dueDate <= today;
+          })();
+          matchesTab = email1Due || email2Due;
+        }
       }
-    } else if (activeTab === 'sent_cold_email') {
-      matchesTab = lead.cold_email_sent === true;
-    } else if (activeTab === 'sent_sms') {
-      matchesTab = lead.sms_follow_up_sent === true;
-    } else if (activeTab === 'sent_email_fu1') {
-      matchesTab = lead.email_follow_up_1_sent === true;
-    } else if (activeTab === 'sent_email_fu2') {
-      matchesTab = lead.email_follow_up_2_sent === true;
     } else if (activeTab === 'responded') {
       matchesTab = !!lead.response || !!lead.response_date;
     }
@@ -599,7 +605,7 @@ export default function Leads() {
       smsDueDate.setHours(0, 0, 0, 0);
       return smsDueDate <= today;
     }).length,
-    pendingFollowUp: leads.filter(l => {
+    pendingEmail: leads.filter(l => {
       if (!l.cold_email_sent || !l.cold_email_date || !l.sms_follow_up_sent) return false;
       if ((l.response || l.response_date) || l.status === 'converted' || l.status === 'lost') return false;
       const email1Due = !l.email_follow_up_1_sent && (() => {
@@ -615,10 +621,6 @@ export default function Leads() {
       return email1Due || email2Due;
     }).length,
     responded: leads.filter(l => !!l.response || !!l.response_date).length,
-    sentColdEmail: leads.filter(l => l.cold_email_sent === true).length,
-    sentSms: leads.filter(l => l.sms_follow_up_sent === true).length,
-    sentEmailFu1: leads.filter(l => l.email_follow_up_1_sent === true).length,
-    sentEmailFu2: leads.filter(l => l.email_follow_up_2_sent === true).length,
   };
 
   const getSequenceStatus = (lead: Lead) => {
@@ -1012,7 +1014,7 @@ export default function Leads() {
                   <Mail className="w-4 h-4 text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.pendingFollowUp}</p>
+                  <p className="text-2xl font-bold">{stats.pendingEmail}</p>
                   <p className="text-xs text-muted-foreground">Email FU</p>
                 </div>
               </div>
@@ -1034,70 +1036,42 @@ export default function Leads() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="bg-secondary/50 grid grid-cols-9 w-full">
-            <TabsTrigger value="all" className="text-xs">
-              Wszystkie
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-muted text-muted-foreground rounded-full">
-                {stats.total}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="pending_cold_email" className="relative text-xs">
-              Do wysłania: Cold
-              {stats.pendingColdEmail > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-yellow-500/20 text-yellow-400 rounded-full">
-                  {stats.pendingColdEmail}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="pending_sms" className="relative text-xs">
-              Do wysłania: SMS
-              {stats.pendingSms > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-cyan-500/20 text-cyan-400 rounded-full">
-                  {stats.pendingSms}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="pending_follow_up" className="relative text-xs">
-              Do wysłania: Email
-              {stats.pendingFollowUp > 0 && (
-                <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-orange-500/20 text-orange-400 rounded-full">
-                  {stats.pendingFollowUp}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="sent_cold_email" className="text-xs">
-              Wysłane: Cold
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
-                {stats.sentColdEmail}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="sent_sms" className="text-xs">
-              Wysłane: SMS
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
-                {stats.sentSms}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="sent_email_fu1" className="text-xs">
-              Wysłane: Email 1
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
-                {stats.sentEmailFu1}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="sent_email_fu2" className="text-xs">
-              Wysłane: Email 2
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-green-500/20 text-green-400 rounded-full">
-                {stats.sentEmailFu2}
-              </span>
-            </TabsTrigger>
-            <TabsTrigger value="responded" className="text-xs">
-              Odpowiedzi
-              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-500/20 text-blue-400 rounded-full">
-                {stats.responded}
-              </span>
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="flex gap-2 flex-wrap">
+            {[
+              { id: 'all', label: 'Wszystkie', count: stats.total },
+              { id: 'pending_cold_email', label: 'Do wysłania: Cold', count: stats.pendingColdEmail },
+              { id: 'pending_sms', label: 'Do wysłania: SMS', count: stats.pendingSms },
+              { id: 'pending_email', label: 'Do wysłania: Email', count: stats.pendingEmail },
+              { id: 'responded', label: 'Odpowiedzi', count: stats.responded },
+            ].map((tab) => (
+              <Button
+                key={tab.id}
+                variant={activeTab === tab.id ? 'default' : 'ghost'}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setTabFilter('due');
+                }}
+                className="text-sm"
+              >
+                {tab.label} {tab.count > 0 && <Badge className="ml-2">{tab.count}</Badge>}
+              </Button>
+            ))}
+          </div>
+
+          {/* Tab Filter (visible only for specific tabs) */}
+          {activeTab !== 'all' && activeTab !== 'responded' && (
+            <Select value={tabFilter} onValueChange={(v: 'due' | 'all') => setTabFilter(v)}>
+              <SelectTrigger className="w-[200px] form-input-elegant">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="due">Dzisiejsze / zaległe</SelectItem>
+                <SelectItem value="all">Wszystkie wysłane</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        </div>
 
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
@@ -1216,36 +1190,10 @@ export default function Leads() {
                           <span>{lead.city}</span>
                         </div>
                       )}
-                      {lead.email && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Mail className="w-3.5 h-3.5 shrink-0" />
-                          <span className="truncate">{lead.email}</span>
-                        </div>
-                      )}
                       {lead.phone && (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Phone className="w-3.5 h-3.5 shrink-0" />
                           <span>{lead.phone}</span>
-                        </div>
-                      )}
-                      {lead.facebook_page && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                          </svg>
-                          <span className="truncate text-xs">Facebook</span>
-                        </div>
-                      )}
-                      {lead.email_template && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <FileText className="w-3.5 h-3.5 shrink-0" />
-                          <span className="text-xs">{lead.email_template}</span>
-                        </div>
-                      )}
-                      {lead.email_from && (
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Send className="w-3.5 h-3.5 shrink-0" />
-                          <span className="text-xs">{lead.email_from}</span>
                         </div>
                       )}
                     </div>

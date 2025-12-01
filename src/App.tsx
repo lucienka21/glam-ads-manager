@@ -13,6 +13,7 @@ import InvoiceGenerator from "./pages/InvoiceGenerator";
 import ContractGenerator from "./pages/ContractGenerator";
 import PresentationGenerator from "./pages/PresentationGenerator";
 import Leads from "./pages/Leads";
+import LeadProfile from "./pages/LeadProfile";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Campaigns from "./pages/Campaigns";
@@ -33,6 +34,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><DocumentHistory /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
+            <Route path="/leads/:id" element={<ProtectedRoute><LeadProfile /></ProtectedRoute>} />
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
             <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
