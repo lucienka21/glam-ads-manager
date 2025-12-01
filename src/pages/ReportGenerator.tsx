@@ -14,6 +14,7 @@ import { ReportPreview } from "@/components/report/ReportPreview";
 import { ReportPreviewLandscape } from "@/components/report/ReportPreviewLandscape";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
+import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
@@ -53,6 +54,7 @@ const ReportGenerator = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const portraitContainerRef = useRef<HTMLDivElement>(null);
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
+  const { generateThumbnail: genThumb } = useThumbnailGenerator();
 
   // Load document from session storage if coming from history
   useEffect(() => {
@@ -215,33 +217,34 @@ const ReportGenerator = () => {
       description: "Sprawdź podgląd raportu poniżej i pobierz PDF",
     });
     
-    // Generate thumbnail after preview shows - wait longer for React to render
-    const generateThumbnail = async (retries = 0) => {
-      const element = document.getElementById("report-preview-pdf") || document.getElementById("report-preview");
-      if (element && docId) {
-        try {
-          const thumbnail = await toPng(element, { 
-            cacheBust: true, 
-            pixelRatio: 0.3, 
+    // Generate thumbnail using robust method
+    if (docId) {
+      // Wait for React to render the preview
+      setTimeout(async () => {
+        const thumbnail = await genThumb({
+          elementId: "report-preview-pdf",
+          backgroundColor: "#09090b",
+          pixelRatio: 0.3,
+          maxRetries: 5,
+          retryDelay: 800
+        });
+        
+        // If PDF preview not found, try regular preview
+        if (!thumbnail) {
+          const fallbackThumb = await genThumb({
+            elementId: "report-preview",
             backgroundColor: "#09090b",
-            quality: 0.8
+            pixelRatio: 0.3,
+            maxRetries: 3
           });
-          await updateThumbnail(docId, thumbnail);
-        } catch (e) {
-          console.error("Error generating thumbnail:", e);
-          // Retry once if failed
-          if (retries < 2) {
-            setTimeout(() => generateThumbnail(retries + 1), 500);
+          if (fallbackThumb) {
+            await updateThumbnail(docId, fallbackThumb);
           }
+        } else {
+          await updateThumbnail(docId, thumbnail);
         }
-      } else if (retries < 3) {
-        // Element not ready, retry
-        setTimeout(() => generateThumbnail(retries + 1), 500);
-      }
-    };
-    
-    // Start thumbnail generation after longer delay to ensure render
-    setTimeout(() => generateThumbnail(), 1000);
+      }, 500);
+    }
   };
 
   const loadFromHistory = (data: Record<string, string>) => {

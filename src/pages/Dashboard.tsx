@@ -1,10 +1,21 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Receipt, FileSignature, Presentation, Clock, TrendingUp, Sparkles, Loader2 } from "lucide-react";
+import { FileText, Receipt, FileSignature, Presentation, Clock, TrendingUp, Sparkles, Loader2, AlertCircle, ArrowRight, CalendarDays, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
-import { format } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { format, isPast, isToday, formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
+
+interface LeadReminder {
+  id: string;
+  salon_name: string;
+  owner_name: string | null;
+  next_follow_up_date: string;
+  follow_up_count: number;
+  status: string;
+}
 
 const generators = [
   {
@@ -58,10 +69,36 @@ const typeColors: Record<string, string> = {
 export default function Dashboard() {
   const navigate = useNavigate();
   const { getRecentDocuments, getStats, loading, userId } = useCloudDocumentHistory();
+  const [followUpReminders, setFollowUpReminders] = useState<LeadReminder[]>([]);
+  const [loadingReminders, setLoadingReminders] = useState(true);
   
   // Each user sees their own stats on dashboard
   const recentDocs = getRecentDocuments(6, userId);
   const stats = getStats(userId);
+
+  // Fetch follow-up reminders
+  useEffect(() => {
+    const fetchReminders = async () => {
+      setLoadingReminders(true);
+      const today = new Date().toISOString().split('T')[0];
+      
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, salon_name, owner_name, next_follow_up_date, follow_up_count, status')
+        .not('next_follow_up_date', 'is', null)
+        .lte('next_follow_up_date', today)
+        .not('status', 'in', '("converted","lost")')
+        .order('next_follow_up_date', { ascending: true })
+        .limit(5);
+
+      if (!error && data) {
+        setFollowUpReminders(data as LeadReminder[]);
+      }
+      setLoadingReminders(false);
+    };
+
+    fetchReminders();
+  }, []);
 
   if (loading) {
     return (
@@ -89,6 +126,63 @@ export default function Dashboard() {
             Profesjonalne dokumenty dla salonów beauty - raporty, faktury, umowy i prezentacje.
           </p>
         </div>
+
+        {/* Follow-up Reminders Alert */}
+        {followUpReminders.length > 0 && (
+          <div className="bg-pink-500/10 border border-pink-500/30 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 text-pink-400" />
+                <h3 className="font-semibold text-pink-400">
+                  Follow-upy do wykonania ({followUpReminders.length})
+                </h3>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-pink-400 hover:text-pink-300 hover:bg-pink-500/10"
+                onClick={() => navigate("/leads")}
+              >
+                Zobacz wszystkie
+                <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {followUpReminders.map((lead) => (
+                <div 
+                  key={lead.id}
+                  className="flex items-center justify-between bg-background/50 rounded-lg px-3 py-2 cursor-pointer hover:bg-background/70 transition-colors"
+                  onClick={() => navigate("/leads")}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
+                      <User className="w-4 h-4 text-pink-400" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground text-sm">{lead.salon_name}</p>
+                      {lead.owner_name && (
+                        <p className="text-xs text-muted-foreground">{lead.owner_name}</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className="text-muted-foreground">
+                      FU #{(lead.follow_up_count || 0) + 1}
+                    </span>
+                    <div className="flex items-center gap-1 text-pink-400">
+                      <CalendarDays className="w-3.5 h-3.5" />
+                      <span>
+                        {isToday(new Date(lead.next_follow_up_date)) 
+                          ? "Dzisiaj" 
+                          : formatDistanceToNow(new Date(lead.next_follow_up_date), { locale: pl, addSuffix: true })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

@@ -9,11 +9,13 @@ import { toast } from "sonner";
 import { ContractPreview } from "@/components/contract/ContractPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
+import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
 const ContractGenerator = () => {
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
+  const { generateThumbnail: genThumb } = useThumbnailGenerator();
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
@@ -50,30 +52,6 @@ const ContractGenerator = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const generateThumbnailWithRetry = async (docId: string, retries = 0) => {
-    const element = document.getElementById("contract-preview");
-    if (!element) {
-      if (retries < 3) {
-        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
-      }
-      return;
-    }
-    try {
-      const thumbnail = await toPng(element, { 
-        cacheBust: true, 
-        pixelRatio: 0.3, 
-        backgroundColor: "#ffffff",
-        quality: 0.8 
-      });
-      await updateThumbnail(docId, thumbnail);
-    } catch (e) {
-      console.error("Error generating thumbnail:", e);
-      if (retries < 2) {
-        setTimeout(() => generateThumbnailWithRetry(docId, retries + 1), 500);
-      }
-    }
-  };
-
   const handleGenerate = async () => {
     if (!formData.clientName || !formData.contractNumber || !formData.contractValue) {
       toast.error("Uzupełnij wszystkie wymagane pola");
@@ -93,9 +71,20 @@ const ContractGenerator = () => {
 
     toast.success("Podgląd umowy gotowy!");
 
-    // Generate thumbnail after preview is shown with retry mechanism
+    // Generate thumbnail using robust method
     if (docId) {
-      setTimeout(() => generateThumbnailWithRetry(docId), 1000);
+      setTimeout(async () => {
+        const thumbnail = await genThumb({
+          elementId: "contract-preview",
+          backgroundColor: "#ffffff",
+          pixelRatio: 0.3,
+          maxRetries: 5,
+          retryDelay: 800
+        });
+        if (thumbnail) {
+          await updateThumbnail(docId, thumbnail);
+        }
+      }, 500);
     }
   };
 

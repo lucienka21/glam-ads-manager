@@ -33,7 +33,8 @@ import {
   AlertCircle,
   CheckCircle2,
   ArrowUpRight,
-  Filter
+  Filter,
+  UserCheck
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -281,6 +282,47 @@ export default function Leads() {
       toast.error('Błąd aktualizacji');
     } else {
       toast.success('Follow-up dodany');
+      fetchLeads();
+    }
+  };
+
+  const handleConvertToClient = async (lead: Lead) => {
+    if (!confirm(`Czy chcesz przekonwertować "${lead.salon_name}" na klienta? Dane zostaną skopiowane do bazy klientów.`)) return;
+
+    // Create client from lead data
+    const { data: newClient, error: insertError } = await supabase
+      .from('clients')
+      .insert({
+        salon_name: lead.salon_name,
+        owner_name: lead.owner_name,
+        city: lead.city,
+        phone: lead.phone,
+        email: lead.email,
+        instagram: lead.instagram,
+        notes: lead.notes,
+        lead_id: lead.id,
+        created_by: user?.id,
+        status: 'active'
+      })
+      .select()
+      .single();
+
+    if (insertError) {
+      toast.error('Błąd tworzenia klienta');
+      console.error(insertError);
+      return;
+    }
+
+    // Update lead status to converted
+    const { error: updateError } = await supabase
+      .from('leads')
+      .update({ status: 'converted' })
+      .eq('id', lead.id);
+
+    if (updateError) {
+      toast.error('Błąd aktualizacji statusu leada');
+    } else {
+      toast.success(`"${lead.salon_name}" został przekonwertowany na klienta!`);
       fetchLeads();
     }
   };
@@ -760,6 +802,15 @@ export default function Leads() {
                             <ArrowUpRight className="w-4 h-4 mr-2" />
                             Dodaj follow-up
                           </DropdownMenuItem>
+                          {lead.status !== 'converted' && (
+                            <DropdownMenuItem 
+                              onClick={() => handleConvertToClient(lead)}
+                              className="text-green-400"
+                            >
+                              <UserCheck className="w-4 h-4 mr-2" />
+                              Konwertuj na klienta
+                            </DropdownMenuItem>
+                          )}
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             onClick={() => handleDelete(lead.id)}
