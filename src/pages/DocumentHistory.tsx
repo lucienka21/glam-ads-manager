@@ -1,12 +1,19 @@
-import { useState, useRef } from "react";
-import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Download, Upload } from "lucide-react";
+import { useState, useRef, useMemo } from "react";
+import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Download, Upload, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useDocumentHistory, DocumentHistoryItem } from "@/hooks/useDocumentHistory";
 import { DocumentViewer } from "@/components/document/DocumentViewer";
-import { format } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pl } from "date-fns/locale";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,9 +52,21 @@ export default function DocumentHistory() {
   const { history, deleteDocument, clearHistory, importHistory, exportHistory } = useDocumentHistory();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
+  const [monthFilter, setMonthFilter] = useState<string>("all");
   const [selectedDocument, setSelectedDocument] = useState<DocumentHistoryItem | null>(null);
   const [viewerOpen, setViewerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Generate available months from history
+  const availableMonths = useMemo(() => {
+    const monthsSet = new Set<string>();
+    history.forEach((doc) => {
+      const date = parseISO(doc.createdAt);
+      const monthKey = format(date, "yyyy-MM");
+      monthsSet.add(monthKey);
+    });
+    return Array.from(monthsSet).sort().reverse();
+  }, [history]);
 
   const handleExport = () => {
     const jsonData = exportHistory();
@@ -89,7 +108,19 @@ export default function DocumentHistory() {
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       doc.subtitle.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter = filterType === "all" || doc.type === filterType;
-    return matchesSearch && matchesFilter;
+    
+    // Month filter
+    let matchesMonth = true;
+    if (monthFilter !== "all") {
+      const docDate = parseISO(doc.createdAt);
+      const [year, month] = monthFilter.split("-").map(Number);
+      const filterDate = new Date(year, month - 1, 1);
+      const monthStart = startOfMonth(filterDate);
+      const monthEnd = endOfMonth(filterDate);
+      matchesMonth = isWithinInterval(docDate, { start: monthStart, end: monthEnd });
+    }
+    
+    return matchesSearch && matchesFilter && matchesMonth;
   });
 
   const handleOpenDocument = (doc: DocumentHistoryItem) => {
@@ -100,6 +131,12 @@ export default function DocumentHistory() {
   const handleCloseViewer = () => {
     setViewerOpen(false);
     setSelectedDocument(null);
+  };
+
+  const formatMonthLabel = (monthKey: string) => {
+    const [year, month] = monthKey.split("-").map(Number);
+    const date = new Date(year, month - 1, 1);
+    return format(date, "LLLL yyyy", { locale: pl });
   };
 
   return (
@@ -171,6 +208,22 @@ export default function DocumentHistory() {
             />
           </div>
           
+          {/* Month Filter */}
+          <Select value={monthFilter} onValueChange={setMonthFilter}>
+            <SelectTrigger className="w-[180px]">
+              <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Miesiąc" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Wszystkie miesiące</SelectItem>
+              {availableMonths.map((monthKey) => (
+                <SelectItem key={monthKey} value={monthKey}>
+                  {formatMonthLabel(monthKey)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          
           <div className="flex gap-2 flex-wrap">
             {filterOptions.map((option) => (
               <Button
@@ -191,7 +244,7 @@ export default function DocumentHistory() {
             <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-lg text-muted-foreground">Brak dokumentów</p>
             <p className="text-sm text-muted-foreground/60 mt-1">
-              {searchQuery || filterType !== "all" 
+              {searchQuery || filterType !== "all" || monthFilter !== "all"
                 ? "Spróbuj zmienić filtry wyszukiwania"
                 : "Wygenerowane dokumenty pojawią się tutaj"
               }
