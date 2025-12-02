@@ -730,20 +730,20 @@ export default function Leads() {
             <p className="text-muted-foreground text-sm">Sekwencja: Cold Mail → SMS (2 dni) → Email #1 (4 dni) → Email #2 (4 dni)</p>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center border border-zinc-700 rounded-lg overflow-hidden">
+            <div className="flex items-center border border-zinc-700 rounded-lg overflow-hidden z-10">
               <Button
                 size="sm"
-                variant={viewMode === 'list' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('list')}
-                className="rounded-none"
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('list'); }}
+                className={`rounded-none border-0 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
               >
                 <List className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
-                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
-                onClick={() => setViewMode('kanban')}
-                className="rounded-none"
+                variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('kanban'); }}
+                className={`rounded-none border-0 ${viewMode === 'kanban' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
               >
                 <LayoutGrid className="w-4 h-4" />
               </Button>
