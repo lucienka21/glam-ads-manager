@@ -122,6 +122,7 @@ export type Database = {
       }
       clients: {
         Row: {
+          assigned_to: string | null
           city: string | null
           contract_start_date: string | null
           created_at: string
@@ -140,6 +141,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          assigned_to?: string | null
           city?: string | null
           contract_start_date?: string | null
           created_at?: string
@@ -158,6 +160,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          assigned_to?: string | null
           city?: string | null
           contract_start_date?: string | null
           created_at?: string
@@ -228,6 +231,36 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      email_templates: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string | null
+          id: string
+          subject: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          subject: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          subject?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       leads: {
         Row: {

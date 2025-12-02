@@ -17,6 +17,7 @@ import LeadProfile from "./pages/LeadProfile";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Campaigns from "./pages/Campaigns";
+import EmailTemplates from "./pages/EmailTemplates";
 import RoleManagement from "./pages/RoleManagement";
 import NotFound from "./pages/NotFound";
 
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
             <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
             <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+            <Route path="/email-templates" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
             <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
             <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
             <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />

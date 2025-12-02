@@ -21,7 +21,8 @@ import {
   Target,
   TrendingUp,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  User
 } from 'lucide-react';
 
 interface Client {
@@ -38,6 +39,13 @@ interface Client {
   monthly_budget: number | null;
   notes: string | null;
   created_at: string;
+  assigned_to: string | null;
+}
+
+interface Profile {
+  id: string;
+  email: string | null;
+  full_name: string | null;
 }
 
 interface Campaign {
@@ -96,6 +104,7 @@ export default function ClientProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [client, setClient] = useState<Client | null>(null);
+  const [assignedEmployee, setAssignedEmployee] = useState<Profile | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,6 +131,17 @@ export default function ClientProfile() {
       return;
     }
     setClient(clientData);
+
+    // Fetch assigned employee if exists
+    if (clientData.assigned_to) {
+      const { data: employeeData } = await supabase
+        .from('profiles')
+        .select('id, email, full_name')
+        .eq('id', clientData.assigned_to)
+        .single();
+      
+      setAssignedEmployee(employeeData);
+    }
 
     // Fetch campaigns for this client
     const { data: campaignsData } = await supabase
@@ -232,6 +252,15 @@ export default function ClientProfile() {
                   </div>
                 )}
               </div>
+              {assignedEmployee && (
+                <div className="pt-4 border-t border-border/50">
+                  <div className="flex items-center gap-2 text-sm">
+                    <User className="w-4 h-4 text-primary" />
+                    <span className="text-muted-foreground">Opiekun:</span>
+                    <span className="font-medium">{assignedEmployee.full_name || assignedEmployee.email}</span>
+                  </div>
+                </div>
+              )}
               {client.notes && (
                 <div className="pt-4 border-t border-border/50">
                   <p className="text-sm text-muted-foreground">{client.notes}</p>
