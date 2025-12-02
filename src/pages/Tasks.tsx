@@ -98,6 +98,19 @@ const priorityLabels: Record<string, string> = {
 export default function Tasks() {
   const { user } = useAuth();
   const { isSzef } = useUserRole();
+
+  const safeFormatDate = (dateString: string | null | undefined, pattern: string) => {
+    if (!dateString) return '';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      return format(date, pattern, { locale: pl });
+    } catch (error) {
+      console.error('Date format error in Tasks page:', { dateString, error });
+      return '';
+    }
+  };
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -447,7 +460,7 @@ export default function Tasks() {
           {task.due_date && (
             <div className={`flex items-center gap-2 text-sm ${isOverdue ? 'text-red-400' : 'text-muted-foreground'}`}>
               {isOverdue ? <AlertCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-              <span>{format(new Date(task.due_date), 'd MMMM yyyy', { locale: pl })}</span>
+              <span>{safeFormatDate(task.due_date, 'd MMMM yyyy') || 'Nieprawidłowa data'}</span>
               {isOverdue && <span className="text-xs">(Zaległe)</span>}
             </div>
           )}
@@ -698,10 +711,10 @@ export default function Tasks() {
                             <p className="text-sm font-medium">
                               {comment.user?.full_name || comment.user?.email || 'Użytkownik'}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(new Date(comment.created_at), 'd MMMM yyyy, HH:mm', { locale: pl })}
-                              {comment.updated_at !== comment.created_at && ' (edytowany)'}
-                            </p>
+                             <p className="text-xs text-muted-foreground">
+                               {safeFormatDate(comment.created_at, 'd MMMM yyyy, HH:mm')}
+                               {comment.updated_at !== comment.created_at && ' (edytowany)'}
+                             </p>
                           </div>
                         </div>
                         {comment.user_id === user?.id && (
