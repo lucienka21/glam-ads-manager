@@ -15,7 +15,8 @@ import {
   User,
   Shield,
   Crown,
-  Target
+  Target,
+  Mail
 } from "lucide-react";
 import {
   Sidebar,
@@ -47,6 +48,7 @@ const crmItems = [
   { title: "Leady", url: "/leads", icon: UserPlus },
   { title: "Klienci", url: "/clients", icon: Users },
   { title: "Kampanie", url: "/campaigns", icon: Target },
+  { title: "Szablony email", url: "/email-templates", icon: Mail },
 ];
 
 const generatorItems = [

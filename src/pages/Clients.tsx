@@ -69,6 +69,7 @@ export default function Clients() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [employees, setEmployees] = useState<{ id: string; email: string; full_name: string | null }[]>([]);
   const [formData, setFormData] = useState({
     salon_name: '',
     owner_name: '',
@@ -81,11 +82,22 @@ export default function Clients() {
     contract_start_date: '',
     monthly_budget: '',
     notes: '',
+    assigned_to: '',
   });
 
   useEffect(() => {
     fetchClients();
+    fetchEmployees();
   }, []);
+
+  const fetchEmployees = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .order('full_name');
+    
+    setEmployees(data || []);
+  };
 
   const fetchClients = async () => {
     setLoading(true);
@@ -123,6 +135,7 @@ export default function Clients() {
       contract_start_date: formData.contract_start_date || null,
       monthly_budget: formData.monthly_budget ? parseFloat(formData.monthly_budget) : null,
       notes: formData.notes || null,
+      assigned_to: formData.assigned_to || null,
     };
 
     if (editingClient) {
@@ -170,7 +183,7 @@ export default function Clients() {
     }
   };
 
-  const handleEdit = (client: Client) => {
+  const handleEdit = (client: Client & { assigned_to?: string }) => {
     setEditingClient(client);
     setFormData({
       salon_name: client.salon_name,
@@ -184,6 +197,7 @@ export default function Clients() {
       contract_start_date: client.contract_start_date || '',
       monthly_budget: client.monthly_budget?.toString() || '',
       notes: client.notes || '',
+      assigned_to: client.assigned_to || '',
     });
     setIsDialogOpen(true);
   };
@@ -202,6 +216,7 @@ export default function Clients() {
       contract_start_date: '',
       monthly_budget: '',
       notes: '',
+      assigned_to: '',
     });
   };
 
@@ -320,7 +335,7 @@ export default function Clients() {
                       className="form-input-elegant"
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div>
                     <Label>Status</Label>
                     <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
                       <SelectTrigger className="form-input-elegant">
@@ -329,6 +344,22 @@ export default function Clients() {
                       <SelectContent>
                         {Object.entries(statusLabels).map(([value, label]) => (
                           <SelectItem key={value} value={value}>{label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Przypisany pracownik</Label>
+                    <Select value={formData.assigned_to} onValueChange={(v) => setFormData({ ...formData, assigned_to: v })}>
+                      <SelectTrigger className="form-input-elegant">
+                        <SelectValue placeholder="Wybierz pracownika" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Brak przypisania</SelectItem>
+                        {employees.map((emp) => (
+                          <SelectItem key={emp.id} value={emp.id}>
+                            {emp.full_name || emp.email}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
