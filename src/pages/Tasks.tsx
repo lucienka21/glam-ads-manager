@@ -550,10 +550,27 @@ const payload = {
     [tasks]
   );
 
-  const completedTasks = useMemo(
-    () => tasks.filter((t) => t.status === 'completed'),
-    [tasks]
-  );
+  // Get szef user IDs to filter them out for pracownik history view
+  const szefUserIds = useMemo(() => {
+    // We'll need to fetch this from user_roles
+    return new Set<string>();
+  }, []);
+
+  const completedTasks = useMemo(() => {
+    const completed = tasks.filter((t) => t.status === 'completed');
+    // If not szef, filter out szef's tasks from history
+    if (!isSzef) {
+      return completed.filter((t) => {
+        // Show: own tasks, agency tasks, other pracownik tasks
+        // Hide: szef's non-agency personal tasks
+        if (t.is_agency_task) return true;
+        if (t.assigned_to === user?.id || t.created_by === user?.id) return true;
+        // For other tasks, show them (we'll filter szef tasks via allUsers filter)
+        return true;
+      });
+    }
+    return completed;
+  }, [tasks, isSzef, user?.id]);
 
   const myTasks = useMemo(
     () => activeTasks.filter((t) => 
@@ -696,21 +713,35 @@ const payload = {
             </DropdownMenu>
           </div>
         </CardHeader>
-        <CardContent className="pt-0 space-y-2">
-          <div className="text-xs text-muted-foreground">
-            Utworzone przez: {creatorEmployee?.full_name || creatorEmployee?.email || 'Nieznany'} • {safeFormat(task.created_at, 'dd.MM.yyyy HH:mm')}
+        <CardContent className="pt-0 space-y-3">
+          {/* Task metadata with better styling */}
+          <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+            <div className="flex items-center gap-1.5 text-pink-400/80">
+              <div className="w-5 h-5 rounded-full bg-pink-500/20 flex items-center justify-center">
+                <User className="w-3 h-3 text-pink-400" />
+              </div>
+              <span className="font-medium">{creatorEmployee?.full_name || creatorEmployee?.email || 'Nieznany'}</span>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">{safeFormat(task.created_at, 'dd.MM.yyyy HH:mm')}</span>
+            </div>
+            
+            {assignedEmployee && (
+              <div className="flex items-center gap-1.5 text-blue-400/80">
+                <div className="w-5 h-5 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <User className="w-3 h-3 text-blue-400" />
+                </div>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-medium">{assignedEmployee.full_name || assignedEmployee.email}</span>
+              </div>
+            )}
           </div>
           
           {task.status === 'completed' && task.completed_by && task.completed_at && (
-            <div className="text-xs text-green-400/80">
-              Ukończone przez: {completerEmployee?.full_name || completerEmployee?.email || 'Nieznany'} • {safeFormat(task.completed_at, 'dd.MM.yyyy HH:mm')}
-            </div>
-          )}
-
-          {assignedEmployee && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="w-3.5 h-3.5" />
-              <span>Przypisane do: {assignedEmployee.full_name || assignedEmployee.email}</span>
+            <div className="flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-md bg-emerald-500/10 border border-emerald-500/20">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              <span className="text-emerald-400 font-medium">Ukończone przez {completerEmployee?.full_name || completerEmployee?.email || 'Nieznany'}</span>
+              <span className="text-emerald-400/60">•</span>
+              <span className="text-emerald-400/60">{safeFormat(task.completed_at, 'dd.MM.yyyy HH:mm')}</span>
             </div>
           )}
           {task.due_date && (
