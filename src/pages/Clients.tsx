@@ -48,7 +48,19 @@ interface Client {
   notes: string | null;
   created_at: string;
   assigned_to: string | null;
+  industry: string | null;
 }
+
+const industryOptions = [
+  'Fryzjerstwo',
+  'Kosmetyka',
+  'Paznokcie',
+  'Spa & Wellness',
+  'Barber',
+  'Makijaż',
+  'Brwi i rzęsy',
+  'Inne',
+];
 
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/20 text-green-400 border-green-500/30',
@@ -68,6 +80,7 @@ export default function Clients() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [industryFilter, setIndustryFilter] = useState<string>('all');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [employees, setEmployees] = useState<{ id: string; email: string; full_name: string | null }[]>([]);
@@ -84,6 +97,7 @@ export default function Clients() {
     monthly_budget: '',
     notes: '',
     assigned_to: '',
+    industry: '',
   });
 
   useEffect(() => {
