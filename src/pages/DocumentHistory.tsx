@@ -324,16 +324,16 @@ export default function DocumentHistory() {
                 key={doc.id}
                 className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-colors group"
               >
-                {/* Thumbnail - shows full image without cropping */}
+                {/* Thumbnail - consistent landscape display with full visibility */}
                 <div 
-                  className="aspect-video bg-zinc-900 relative overflow-hidden cursor-pointer flex items-center justify-center"
+                  className="aspect-[16/9] bg-zinc-900 relative overflow-hidden cursor-pointer flex items-center justify-center p-2"
                   onClick={() => handleOpenDocument(doc)}
                 >
                   {doc.thumbnail ? (
                     <img 
                       src={doc.thumbnail} 
                       alt={doc.title}
-                      className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                     />
                   ) : (
                     <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>

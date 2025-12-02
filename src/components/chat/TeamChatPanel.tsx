@@ -9,10 +9,12 @@ import {
   Users, 
   UserPlus,
   Target,
-  Paperclip,
-  CornerDownRight,
+  Plus,
+  Reply,
   Trash2,
-  Search
+  Search,
+  Smile,
+  ExternalLink
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,18 +35,29 @@ import {
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { format, isToday, isYesterday } from "date-fns";
 import { pl } from "date-fns/locale";
 import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
+
+interface Reaction {
+  id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  profile?: {
+    full_name: string | null;
+  };
+}
 
 interface TeamMessage {
   id: string;
@@ -58,12 +71,16 @@ interface TeamMessage {
     full_name: string | null;
     email: string | null;
   };
+  reactions?: Reaction[];
+  referenceName?: string;
 }
 
 interface ReferenceItem {
   id: string;
   name: string;
 }
+
+const EMOJI_OPTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥", "👏", "🎉"];
 
 const getInitials = (name: string | null | undefined, email: string | null | undefined) => {
   if (name) {
@@ -79,7 +96,7 @@ const formatMessageDate = (dateStr: string) => {
   const date = new Date(dateStr);
   if (isToday(date)) return "Dzisiaj";
   if (isYesterday(date)) return "Wczoraj";
-  return format(date, "d MMMM", { locale: pl });
+  return format(date, "d MMMM yyyy", { locale: pl });
 };
 
 const groupMessagesByDate = (messages: TeamMessage[]) => {
@@ -126,6 +143,7 @@ export function TeamChatPanel() {
   const { isSzef } = useUserRole();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -167,6 +185,7 @@ export function TeamChatPanel() {
       return;
     }
 
+    // Fetch profiles
     const userIds = [...new Set(messagesData?.map(m => m.user_id) || [])];
     const { data: profiles } = await supabase
       .from("profiles")
@@ -175,9 +194,64 @@ export function TeamChatPanel() {
 
     const profileMap = new Map(profiles?.map(p => [p.id, p]));
 
+    // Fetch reactions
+    const messageIds = messagesData?.map(m => m.id) || [];
+    const { data: reactionsData } = await supabase
+      .from("message_reactions")
+      .select("*")
+      .in("message_id", messageIds);
+
+    // Fetch reference names
+    const referenceGroups = {
+      document: new Set<string>(),
+      client: new Set<string>(),
+      lead: new Set<string>(),
+      campaign: new Set<string>(),
+    };
+
+    messagesData?.forEach(msg => {
+      if (msg.reference_type && msg.reference_id) {
+        referenceGroups[msg.reference_type as keyof typeof referenceGroups]?.add(msg.reference_id);
+      }
+    });
+
+    const [docsRes, clientsRes, leadsRes, campaignsRes] = await Promise.all([
+      referenceGroups.document.size > 0 
+        ? supabase.from("documents").select("id, title").in("id", [...referenceGroups.document])
+        : { data: [] },
+      referenceGroups.client.size > 0
+        ? supabase.from("clients").select("id, salon_name").in("id", [...referenceGroups.client])
+        : { data: [] },
+      referenceGroups.lead.size > 0
+        ? supabase.from("leads").select("id, salon_name").in("id", [...referenceGroups.lead])
+        : { data: [] },
+      referenceGroups.campaign.size > 0
+        ? supabase.from("campaigns").select("id, name").in("id", [...referenceGroups.campaign])
+        : { data: [] },
+    ]);
+
+    const referenceNames = new Map<string, string>();
+    docsRes.data?.forEach(d => referenceNames.set(d.id, d.title));
+    clientsRes.data?.forEach(c => referenceNames.set(c.id, c.salon_name));
+    leadsRes.data?.forEach(l => referenceNames.set(l.id, l.salon_name));
+    campaignsRes.data?.forEach(c => referenceNames.set(c.id, c.name));
+
+    // Build reactions map
+    const reactionsMap = new Map<string, Reaction[]>();
+    reactionsData?.forEach(r => {
+      const existing = reactionsMap.get(r.message_id) || [];
+      existing.push({
+        ...r,
+        profile: profileMap.get(r.user_id),
+      });
+      reactionsMap.set(r.message_id, existing);
+    });
+
     const enrichedMessages = (messagesData || []).map(msg => ({
       ...msg,
       profile: profileMap.get(msg.user_id),
+      reactions: reactionsMap.get(msg.id) || [],
+      referenceName: msg.reference_id ? referenceNames.get(msg.reference_id) : undefined,
     }));
 
     setMessages(enrichedMessages);
@@ -238,6 +312,11 @@ export function TeamChatPanel() {
           { event: "*", schema: "public", table: "team_messages" },
           () => fetchMessages()
         )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "message_reactions" },
+          () => fetchMessages()
+        )
         .subscribe();
 
       return () => {
@@ -275,12 +354,55 @@ export function TeamChatPanel() {
     }
   };
 
+  const handleReaction = async (messageId: string, emoji: string) => {
+    if (!user) return;
+
+    // Check if user already reacted with this emoji
+    const existingReaction = messages
+      .find(m => m.id === messageId)
+      ?.reactions?.find(r => r.user_id === user.id && r.emoji === emoji);
+
+    if (existingReaction) {
+      // Remove reaction
+      await supabase.from("message_reactions").delete().eq("id", existingReaction.id);
+    } else {
+      // Add reaction
+      await supabase.from("message_reactions").insert({
+        message_id: messageId,
+        user_id: user.id,
+        emoji,
+      });
+    }
+  };
+
+  const handleReferenceClick = (type: string | null, id: string | null) => {
+    if (!type || !id) return;
+    
+    setOpen(false);
+    setTimeout(() => {
+      switch (type) {
+        case "document":
+          navigate("/document-history");
+          break;
+        case "client":
+          navigate(`/clients/${id}`);
+          break;
+        case "lead":
+          navigate(`/leads/${id}`);
+          break;
+        case "campaign":
+          navigate("/campaigns");
+          break;
+      }
+    }, 300);
+  };
+
   const getRefIcon = (type: string | null) => {
     switch (type) {
-      case "document": return <FileText className="w-3 h-3" />;
-      case "client": return <Users className="w-3 h-3" />;
-      case "lead": return <UserPlus className="w-3 h-3" />;
-      case "campaign": return <Target className="w-3 h-3" />;
+      case "document": return <FileText className="w-3.5 h-3.5" />;
+      case "client": return <Users className="w-3.5 h-3.5" />;
+      case "lead": return <UserPlus className="w-3.5 h-3.5" />;
+      case "campaign": return <Target className="w-3.5 h-3.5" />;
       default: return null;
     }
   };
@@ -301,6 +423,27 @@ export function TeamChatPanel() {
 
   const groupedMessages = groupMessagesByDate(filteredMessages);
 
+  // Group reactions by emoji
+  const groupReactions = (reactions: Reaction[]) => {
+    const grouped: { emoji: string; count: number; users: string[]; userIds: string[] }[] = [];
+    reactions.forEach(r => {
+      const existing = grouped.find(g => g.emoji === r.emoji);
+      if (existing) {
+        existing.count++;
+        existing.users.push(r.profile?.full_name || "Użytkownik");
+        existing.userIds.push(r.user_id);
+      } else {
+        grouped.push({ 
+          emoji: r.emoji, 
+          count: 1, 
+          users: [r.profile?.full_name || "Użytkownik"],
+          userIds: [r.user_id]
+        });
+      }
+    });
+    return grouped;
+  };
+
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
@@ -310,66 +453,63 @@ export function TeamChatPanel() {
         >
           <MessageCircle className="w-6 h-6 text-white" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-white text-pink-600 text-xs font-bold rounded-full flex items-center justify-center px-1 shadow-lg animate-bounce">
+            <span className="absolute -top-1 -right-1 min-w-[22px] h-[22px] bg-white text-pink-600 text-xs font-bold rounded-full flex items-center justify-center px-1 shadow-lg animate-pulse">
               {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </Button>
       </SheetTrigger>
       
-      <SheetContent className="w-full sm:w-[440px] p-0 flex flex-col bg-background border-l border-border/50">
+      <SheetContent className="w-full sm:w-[480px] p-0 flex flex-col bg-zinc-950 border-l border-zinc-800">
         {/* Header */}
-        <SheetHeader className="px-4 py-3 border-b border-border/50 bg-secondary/30">
+        <SheetHeader className="px-5 py-4 border-b border-zinc-800 bg-zinc-900/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/20">
                 <MessageCircle className="w-5 h-5 text-white" />
               </div>
               <div>
-                <SheetTitle className="text-base font-semibold text-foreground">
+                <SheetTitle className="text-base font-semibold text-white">
                   Chat zespołu
                 </SheetTitle>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-zinc-400">
                   {messages.length} wiadomości
                 </p>
               </div>
             </div>
             
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8"
-                    onClick={() => setShowSearch(!showSearch)}
-                  >
-                    <Search className="w-4 h-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Szukaj</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                "h-9 w-9 rounded-lg transition-colors",
+                showSearch ? "bg-pink-500/20 text-pink-400" : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              )}
+              onClick={() => setShowSearch(!showSearch)}
+            >
+              <Search className="w-4 h-4" />
+            </Button>
           </div>
           
           {showSearch && (
             <div className="pt-3">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                 <Input
                   placeholder="Szukaj w wiadomościach..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 bg-background/50"
+                  className="pl-9 h-10 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-pink-500"
+                  autoFocus
                 />
                 {searchQuery && (
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-zinc-400 hover:text-white"
                     onClick={() => setSearchQuery("")}
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3.5 h-3.5" />
                   </Button>
                 )}
               </div>
@@ -378,153 +518,196 @@ export function TeamChatPanel() {
         </SheetHeader>
 
         {/* Messages */}
-        <ScrollArea className="flex-1 px-4" ref={scrollRef}>
-          <div className="py-4 space-y-4">
+        <ScrollArea className="flex-1" ref={scrollRef}>
+          <div className="p-4 space-y-1">
             {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+              <div className="flex items-center justify-center py-16">
+                <div className="w-10 h-10 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
               </div>
             ) : filteredMessages.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-secondary/50 flex items-center justify-center mb-4">
-                  <MessageCircle className="w-8 h-8 text-muted-foreground" />
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-4">
+                  <MessageCircle className="w-8 h-8 text-zinc-600" />
                 </div>
-                <p className="text-muted-foreground font-medium">
+                <p className="text-zinc-400 font-medium">
                   {searchQuery ? "Brak wyników" : "Brak wiadomości"}
                 </p>
-                <p className="text-sm text-muted-foreground/60 mt-1">
+                <p className="text-sm text-zinc-600 mt-1">
                   {searchQuery ? "Spróbuj innej frazy" : "Napisz pierwszą wiadomość!"}
                 </p>
               </div>
             ) : (
               groupedMessages.map((group) => (
                 <div key={group.date}>
-                  <div className="flex items-center gap-3 my-4">
-                    <div className="flex-1 h-px bg-border/50" />
-                    <span className="text-xs text-muted-foreground px-2 py-1 bg-secondary/50 rounded-full">
+                  <div className="flex items-center gap-3 my-5">
+                    <div className="flex-1 h-px bg-zinc-800" />
+                    <span className="text-[11px] text-zinc-500 font-medium uppercase tracking-wider">
                       {group.date}
                     </span>
-                    <div className="flex-1 h-px bg-border/50" />
+                    <div className="flex-1 h-px bg-zinc-800" />
                   </div>
                   
-                  <div className="space-y-3">
-                    {group.messages.map((msg, msgIndex) => {
+                  <div className="space-y-4">
+                    {group.messages.map((msg) => {
                       const isOwn = msg.user_id === user?.id;
                       const replyMessage = msg.reply_to_id 
                         ? messages.find(m => m.id === msg.reply_to_id) 
                         : null;
-                      const showAvatar = msgIndex === 0 || 
-                        group.messages[msgIndex - 1]?.user_id !== msg.user_id;
+                      const groupedReactions = groupReactions(msg.reactions || []);
 
                       return (
-                        <div
-                          key={msg.id}
-                          className={cn(
-                            "group flex gap-2",
-                            isOwn ? "flex-row-reverse" : "flex-row"
+                        <div key={msg.id} className="group">
+                          {/* Author */}
+                          {!isOwn && (
+                            <div className="flex items-center gap-2 mb-1.5 ml-11">
+                              <span className="text-xs font-medium text-zinc-400">
+                                {msg.profile?.full_name || msg.profile?.email?.split("@")[0] || "Użytkownik"}
+                              </span>
+                              <span className="text-[10px] text-zinc-600">
+                                {format(new Date(msg.created_at), "HH:mm")}
+                              </span>
+                            </div>
                           )}
-                        >
-                          <div className={cn("w-8 flex-shrink-0", !showAvatar && "invisible")}>
+                          
+                          <div className={cn("flex items-start gap-2", isOwn && "flex-row-reverse")}>
+                            {/* Avatar */}
                             {!isOwn && (
-                              <Avatar className="w-8 h-8">
-                                <AvatarFallback className="bg-gradient-to-br from-pink-500/20 to-rose-500/20 text-pink-400 text-xs font-medium">
+                              <Avatar className="w-8 h-8 flex-shrink-0">
+                                <AvatarFallback className="bg-gradient-to-br from-zinc-700 to-zinc-800 text-zinc-300 text-xs font-medium border border-zinc-700">
                                   {getInitials(msg.profile?.full_name, msg.profile?.email)}
                                 </AvatarFallback>
                               </Avatar>
                             )}
-                          </div>
-                          
-                          <div className={cn("max-w-[75%] space-y-1", isOwn && "items-end")}>
-                            {!isOwn && showAvatar && (
-                              <p className="text-xs font-medium text-muted-foreground ml-1">
-                                {msg.profile?.full_name || msg.profile?.email?.split("@")[0] || "Użytkownik"}
-                              </p>
-                            )}
                             
-                            {replyMessage && (
-                              <div className={cn(
-                                "flex items-center gap-1.5 text-[11px] text-muted-foreground px-2 py-1 rounded-lg bg-secondary/30",
-                                isOwn ? "ml-auto" : ""
-                              )}>
-                                <CornerDownRight className="w-3 h-3 flex-shrink-0" />
-                                <span className="truncate max-w-[180px]">
-                                  {replyMessage.content}
-                                </span>
-                              </div>
-                            )}
-                            
-                            <div
-                              className={cn(
-                                "relative px-3 py-2 rounded-2xl",
-                                isOwn 
-                                  ? "bg-gradient-to-br from-pink-500 to-rose-600 text-white rounded-tr-md" 
-                                  : "bg-secondary/50 text-foreground rounded-tl-md"
-                              )}
-                            >
-                              {msg.reference_type && (
+                            <div className={cn("max-w-[80%] space-y-1", isOwn && "items-end flex flex-col")}>
+                              {/* Reply preview */}
+                              {replyMessage && (
                                 <div className={cn(
-                                  "inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded mb-1.5",
-                                  isOwn 
-                                    ? "bg-white/20 text-white/90" 
-                                    : "bg-pink-500/10 text-pink-400"
+                                  "flex items-center gap-2 text-[11px] text-zinc-500 px-3 py-1.5 rounded-lg bg-zinc-800/50 border-l-2 border-pink-500/50",
+                                  isOwn && "ml-auto"
                                 )}>
-                                  {getRefIcon(msg.reference_type)}
-                                  <span>{getRefLabel(msg.reference_type)}</span>
+                                  <Reply className="w-3 h-3 flex-shrink-0 rotate-180" />
+                                  <span className="truncate max-w-[200px]">
+                                    {replyMessage.content}
+                                  </span>
                                 </div>
                               )}
                               
-                              <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                                {msg.content}
-                              </p>
+                              {/* Reference link */}
+                              {msg.reference_type && msg.reference_id && (
+                                <button
+                                  onClick={() => handleReferenceClick(msg.reference_type, msg.reference_id)}
+                                  className={cn(
+                                    "flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg transition-colors",
+                                    isOwn 
+                                      ? "bg-pink-500/20 text-pink-300 hover:bg-pink-500/30" 
+                                      : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700",
+                                    isOwn && "ml-auto"
+                                  )}
+                                >
+                                  {getRefIcon(msg.reference_type)}
+                                  <span className="font-medium">{getRefLabel(msg.reference_type)}:</span>
+                                  <span className="truncate max-w-[150px]">{msg.referenceName || "..."}</span>
+                                  <ExternalLink className="w-3 h-3 opacity-60" />
+                                </button>
+                              )}
                               
-                              <p className={cn(
-                                "text-[10px] mt-1",
-                                isOwn ? "text-white/60" : "text-muted-foreground"
+                              {/* Message bubble */}
+                              <div
+                                className={cn(
+                                  "relative px-4 py-2.5 rounded-2xl",
+                                  isOwn 
+                                    ? "bg-gradient-to-br from-pink-500 to-rose-600 text-white rounded-br-md" 
+                                    : "bg-zinc-800 text-zinc-100 rounded-bl-md"
+                                )}
+                              >
+                                <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
+                                  {msg.content}
+                                </p>
+                                
+                                {isOwn && (
+                                  <span className="text-[10px] text-white/50 mt-1 block text-right">
+                                    {format(new Date(msg.created_at), "HH:mm")}
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* Reactions */}
+                              {groupedReactions.length > 0 && (
+                                <div className={cn("flex flex-wrap gap-1", isOwn && "justify-end")}>
+                                  {groupedReactions.map((r) => (
+                                    <button
+                                      key={r.emoji}
+                                      onClick={() => handleReaction(msg.id, r.emoji)}
+                                      className={cn(
+                                        "flex items-center gap-1 px-2 py-0.5 rounded-full text-xs transition-colors",
+                                        r.userIds.includes(user?.id || "") 
+                                          ? "bg-pink-500/20 text-pink-300 border border-pink-500/30"
+                                          : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-zinc-700"
+                                      )}
+                                      title={r.users.join(", ")}
+                                    >
+                                      <span>{r.emoji}</span>
+                                      <span className="text-[10px]">{r.count}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              
+                              {/* Actions */}
+                              <div className={cn(
+                                "flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity",
+                                isOwn ? "justify-end" : ""
                               )}>
-                                {format(new Date(msg.created_at), "HH:mm")}
-                              </p>
-                            </div>
-                            
-                            <div className={cn(
-                              "flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity",
-                              isOwn ? "justify-end pr-1" : "pl-1"
-                            )}>
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
+                                {/* Emoji picker */}
+                                <Popover>
+                                  <PopoverTrigger asChild>
                                     <Button
                                       size="icon"
                                       variant="ghost"
-                                      className="h-6 w-6"
-                                      onClick={() => {
-                                        setReplyTo(msg);
-                                        inputRef.current?.focus();
-                                      }}
+                                      className="h-7 w-7 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
                                     >
-                                      <CornerDownRight className="w-3 h-3" />
+                                      <Smile className="w-3.5 h-3.5" />
                                     </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>Odpowiedz</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                              
-                              {(isOwn || isSzef) && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        size="icon"
-                                        variant="ghost"
-                                        className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                        onClick={() => handleDelete(msg.id)}
-                                      >
-                                        <Trash2 className="w-3 h-3" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Usuń</TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                              )}
+                                  </PopoverTrigger>
+                                  <PopoverContent className="w-auto p-2 bg-zinc-900 border-zinc-800" align={isOwn ? "end" : "start"}>
+                                    <div className="flex gap-1">
+                                      {EMOJI_OPTIONS.map((emoji) => (
+                                        <button
+                                          key={emoji}
+                                          onClick={() => handleReaction(msg.id, emoji)}
+                                          className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-zinc-800 transition-colors text-lg"
+                                        >
+                                          {emoji}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  </PopoverContent>
+                                </Popover>
+                                
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-7 w-7 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                                  onClick={() => {
+                                    setReplyTo(msg);
+                                    inputRef.current?.focus();
+                                  }}
+                                >
+                                  <Reply className="w-3.5 h-3.5" />
+                                </Button>
+                                
+                                {(isOwn || isSzef) && (
+                                  <Button
+                                    size="icon"
+                                    variant="ghost"
+                                    className="h-7 w-7 text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+                                    onClick={() => handleDelete(msg.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -538,28 +721,28 @@ export function TeamChatPanel() {
         </ScrollArea>
 
         {/* Input */}
-        <div className="p-4 border-t border-border/50 bg-secondary/20 space-y-2">
+        <div className="p-4 border-t border-zinc-800 bg-zinc-900/50 space-y-2">
           {replyTo && (
-            <div className="flex items-center justify-between bg-secondary/50 rounded-lg px-3 py-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                <CornerDownRight className="w-3 h-3 flex-shrink-0 text-pink-400" />
-                <span className="font-medium text-pink-400">Odpowiedź:</span>
-                <span className="truncate">{replyTo.content}</span>
+            <div className="flex items-center justify-between bg-zinc-800/50 rounded-lg px-3 py-2 border-l-2 border-pink-500">
+              <div className="flex items-center gap-2 text-xs text-zinc-400 min-w-0">
+                <Reply className="w-3.5 h-3.5 flex-shrink-0 text-pink-400 rotate-180" />
+                <span className="font-medium text-pink-400">Odpowiedź dla {replyTo.profile?.full_name || "użytkownika"}:</span>
+                <span className="truncate text-zinc-500">{replyTo.content}</span>
               </div>
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-6 w-6 flex-shrink-0" 
+                className="h-6 w-6 flex-shrink-0 text-zinc-500 hover:text-white" 
                 onClick={() => setReplyTo(null)}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </Button>
             </div>
           )}
           
           {selectedReference && (
-            <div className="flex items-center justify-between bg-pink-500/10 rounded-lg px-3 py-2">
-              <div className="flex items-center gap-2 text-xs text-pink-400 min-w-0">
+            <div className="flex items-center justify-between bg-pink-500/10 rounded-lg px-3 py-2 border-l-2 border-pink-500">
+              <div className="flex items-center gap-2 text-xs text-pink-300 min-w-0">
                 {getRefIcon(selectedReference.type)}
                 <span className="font-medium">{getRefLabel(selectedReference.type)}:</span>
                 <span className="truncate">{selectedReference.name}</span>
@@ -567,10 +750,10 @@ export function TeamChatPanel() {
               <Button 
                 size="icon" 
                 variant="ghost" 
-                className="h-6 w-6 flex-shrink-0" 
+                className="h-6 w-6 flex-shrink-0 text-pink-300 hover:text-white" 
                 onClick={() => setSelectedReference(null)}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </Button>
             </div>
           )}
@@ -581,25 +764,26 @@ export function TeamChatPanel() {
                 <Button 
                   size="icon" 
                   variant="ghost" 
-                  className="flex-shrink-0 h-9 w-9 hover:bg-secondary/50"
+                  className="flex-shrink-0 h-10 w-10 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800"
                 >
-                  <Paperclip className="w-4 h-4 text-muted-foreground" />
+                  <Plus className="w-5 h-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuContent align="start" className="w-64 bg-zinc-900 border-zinc-800">
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <FileText className="w-4 h-4 mr-2" />
+                  <DropdownMenuSubTrigger className="text-zinc-300 focus:bg-zinc-800 focus:text-white">
+                    <FileText className="w-4 h-4 mr-2 text-blue-400" />
                     Dokumenty ({references.documents.length})
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-[200px] overflow-y-auto">
+                  <DropdownMenuSubContent className="max-h-[250px] overflow-y-auto bg-zinc-900 border-zinc-800">
                     {references.documents.length === 0 ? (
-                      <DropdownMenuItem disabled>Brak dokumentów</DropdownMenuItem>
+                      <DropdownMenuItem disabled className="text-zinc-500">Brak dokumentów</DropdownMenuItem>
                     ) : (
                       references.documents.map(doc => (
                         <DropdownMenuItem 
                           key={doc.id}
                           onClick={() => setSelectedReference({ type: "document", id: doc.id, name: doc.name })}
+                          className="text-zinc-300 focus:bg-zinc-800 focus:text-white"
                         >
                           <span className="truncate">{doc.name}</span>
                         </DropdownMenuItem>
@@ -609,18 +793,19 @@ export function TeamChatPanel() {
                 </DropdownMenuSub>
                 
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Users className="w-4 h-4 mr-2" />
+                  <DropdownMenuSubTrigger className="text-zinc-300 focus:bg-zinc-800 focus:text-white">
+                    <Users className="w-4 h-4 mr-2 text-emerald-400" />
                     Klienci ({references.clients.length})
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-[200px] overflow-y-auto">
+                  <DropdownMenuSubContent className="max-h-[250px] overflow-y-auto bg-zinc-900 border-zinc-800">
                     {references.clients.length === 0 ? (
-                      <DropdownMenuItem disabled>Brak klientów</DropdownMenuItem>
+                      <DropdownMenuItem disabled className="text-zinc-500">Brak klientów</DropdownMenuItem>
                     ) : (
                       references.clients.map(client => (
                         <DropdownMenuItem 
                           key={client.id}
                           onClick={() => setSelectedReference({ type: "client", id: client.id, name: client.name })}
+                          className="text-zinc-300 focus:bg-zinc-800 focus:text-white"
                         >
                           <span className="truncate">{client.name}</span>
                         </DropdownMenuItem>
@@ -630,18 +815,19 @@ export function TeamChatPanel() {
                 </DropdownMenuSub>
                 
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <UserPlus className="w-4 h-4 mr-2" />
+                  <DropdownMenuSubTrigger className="text-zinc-300 focus:bg-zinc-800 focus:text-white">
+                    <UserPlus className="w-4 h-4 mr-2 text-amber-400" />
                     Leady ({references.leads.length})
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-[200px] overflow-y-auto">
+                  <DropdownMenuSubContent className="max-h-[250px] overflow-y-auto bg-zinc-900 border-zinc-800">
                     {references.leads.length === 0 ? (
-                      <DropdownMenuItem disabled>Brak leadów</DropdownMenuItem>
+                      <DropdownMenuItem disabled className="text-zinc-500">Brak leadów</DropdownMenuItem>
                     ) : (
                       references.leads.map(lead => (
                         <DropdownMenuItem 
                           key={lead.id}
                           onClick={() => setSelectedReference({ type: "lead", id: lead.id, name: lead.name })}
+                          className="text-zinc-300 focus:bg-zinc-800 focus:text-white"
                         >
                           <span className="truncate">{lead.name}</span>
                         </DropdownMenuItem>
@@ -651,18 +837,19 @@ export function TeamChatPanel() {
                 </DropdownMenuSub>
                 
                 <DropdownMenuSub>
-                  <DropdownMenuSubTrigger>
-                    <Target className="w-4 h-4 mr-2" />
+                  <DropdownMenuSubTrigger className="text-zinc-300 focus:bg-zinc-800 focus:text-white">
+                    <Target className="w-4 h-4 mr-2 text-purple-400" />
                     Kampanie ({references.campaigns.length})
                   </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent className="max-h-[200px] overflow-y-auto">
+                  <DropdownMenuSubContent className="max-h-[250px] overflow-y-auto bg-zinc-900 border-zinc-800">
                     {references.campaigns.length === 0 ? (
-                      <DropdownMenuItem disabled>Brak kampanii</DropdownMenuItem>
+                      <DropdownMenuItem disabled className="text-zinc-500">Brak kampanii</DropdownMenuItem>
                     ) : (
                       references.campaigns.map(campaign => (
                         <DropdownMenuItem 
                           key={campaign.id}
                           onClick={() => setSelectedReference({ type: "campaign", id: campaign.id, name: campaign.name })}
+                          className="text-zinc-300 focus:bg-zinc-800 focus:text-white"
                         >
                           <span className="truncate">{campaign.name}</span>
                         </DropdownMenuItem>
@@ -684,14 +871,14 @@ export function TeamChatPanel() {
                   handleSend();
                 }
               }}
-              className="flex-1 h-10 bg-background/50"
+              className="flex-1 h-10 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-pink-500 rounded-xl"
             />
             
             <Button 
               size="icon"
               onClick={handleSend} 
               disabled={!newMessage.trim() || sending}
-              className="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700"
+              className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </Button>
