@@ -137,6 +137,11 @@ export default function Tasks() {
       return;
     }
 
+    if (!user?.id) {
+      toast.error('Musisz być zalogowany, aby dodać zadanie');
+      return;
+    }
+
     const submitData = {
       title: formData.title,
       description: formData.description || null,
@@ -145,8 +150,10 @@ export default function Tasks() {
       due_date: formData.due_date || null,
       assigned_to: formData.assigned_to || null,
       is_agency_task: formData.is_agency_task,
-      created_by: user?.id,
+      created_by: user.id,
     };
+
+    console.log('Submitting task:', submitData);
 
     if (editingTask) {
       const { error } = await supabase
@@ -155,7 +162,8 @@ export default function Tasks() {
         .eq('id', editingTask.id);
 
       if (error) {
-        toast.error('Błąd aktualizacji zadania');
+        console.error('Błąd aktualizacji zadania:', error);
+        toast.error(`Błąd aktualizacji zadania: ${error.message}`);
       } else {
         toast.success('Zadanie zaktualizowane');
         fetchTasks();
@@ -166,7 +174,8 @@ export default function Tasks() {
         .insert(submitData);
 
       if (error) {
-        toast.error('Błąd dodawania zadania');
+        console.error('Błąd dodawania zadania:', error);
+        toast.error(`Błąd dodawania zadania: ${error.message}`);
       } else {
         toast.success('Zadanie dodane');
         fetchTasks();
@@ -243,6 +252,7 @@ export default function Tasks() {
 
   const myTasks = tasks.filter(t => t.assigned_to === user?.id);
   const agencyTasks = tasks.filter(t => t.is_agency_task);
+  const teamTasks = tasks; // All tasks for szef to see team's work
   const allTasks = tasks;
 
   const renderTaskCard = (task: Task) => {
@@ -453,9 +463,15 @@ export default function Tasks() {
               Agencyjne ({agencyTasks.length})
             </TabsTrigger>
             {isSzef && (
-              <TabsTrigger value="all-tasks" className="gap-2">
-                Wszystkie ({allTasks.length})
-              </TabsTrigger>
+              <>
+                <TabsTrigger value="team-tasks" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  Zespół ({teamTasks.length})
+                </TabsTrigger>
+                <TabsTrigger value="all-tasks" className="gap-2">
+                  Wszystkie ({allTasks.length})
+                </TabsTrigger>
+              </>
             )}
           </TabsList>
 
@@ -494,22 +510,41 @@ export default function Tasks() {
           </TabsContent>
 
           {isSzef && (
-            <TabsContent value="all-tasks" className="space-y-4">
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                </div>
-              ) : allTasks.length === 0 ? (
-                <div className="text-center py-12">
-                  <Circle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Brak zadań</p>
-                </div>
-              ) : (
-                <div className="grid gap-4 md:grid-cols-2">
-                  {allTasks.map(renderTaskCard)}
-                </div>
-              )}
-            </TabsContent>
+            <>
+              <TabsContent value="team-tasks" className="space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : teamTasks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Brak zadań zespołu</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {teamTasks.map(renderTaskCard)}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="all-tasks" className="space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : allTasks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <Circle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Brak zadań</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {allTasks.map(renderTaskCard)}
+                  </div>
+                )}
+              </TabsContent>
+            </>
           )}
         </Tabs>
       </div>

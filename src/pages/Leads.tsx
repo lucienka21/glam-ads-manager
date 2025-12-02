@@ -216,6 +216,11 @@ export default function Leads() {
       return;
     }
 
+    if (!user?.id) {
+      toast.error('Musisz być zalogowany, aby dodać leada');
+      return;
+    }
+
     const dataToSave = {
       salon_name: formData.salon_name,
       owner_name: formData.owner_name || null,
@@ -242,6 +247,8 @@ export default function Leads() {
       email_follow_up_2_date: formData.email_follow_up_2_date || null,
     };
 
+    console.log('Submitting lead:', { ...dataToSave, created_by: user.id });
+
     if (editingLead) {
       const { error } = await supabase
         .from('leads')
@@ -257,10 +264,11 @@ export default function Leads() {
     } else {
       const { error } = await supabase
         .from('leads')
-        .insert({ ...dataToSave, created_by: user?.id });
+        .insert({ ...dataToSave, created_by: user.id });
 
       if (error) {
-        toast.error('Błąd dodawania leada');
+        console.error('Błąd dodawania leada:', error);
+        toast.error(`Błąd dodawania leada: ${error.message}`);
       } else {
         toast.success('Lead dodany');
         fetchLeads();
