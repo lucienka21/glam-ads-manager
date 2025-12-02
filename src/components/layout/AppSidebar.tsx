@@ -19,7 +19,8 @@ import {
   Crown,
   Target,
   Mail,
-  CheckSquare
+  CheckSquare,
+  TrendingDown
 } from "lucide-react";
 import {
   Sidebar,
@@ -51,6 +52,7 @@ const mainNavItems = [
 const crmItems = [
   { title: "Leady", url: "/leads", icon: UserPlus },
   { title: "Klienci", url: "/clients", icon: Users },
+  { title: "Lejek", url: "/funnel", icon: TrendingDown },
   { title: "Kampanie", url: "/campaigns", icon: Target },
   { title: "Szablony email", url: "/email-templates", icon: Mail },
 ];

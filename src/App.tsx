@@ -21,6 +21,7 @@ import Campaigns from "./pages/Campaigns";
 import EmailTemplates from "./pages/EmailTemplates";
 import Tasks from "./pages/Tasks";
 import RoleManagement from "./pages/RoleManagement";
+import SalesFunnelPage from "./pages/SalesFunnelPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
               <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
               <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
               <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+              <Route path="/funnel" element={<ProtectedRoute><SalesFunnelPage /></ProtectedRoute>} />
               <Route path="/email-templates" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
               <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
               <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />

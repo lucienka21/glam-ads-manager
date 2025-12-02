@@ -508,38 +508,58 @@ export default function Clients() {
                     {statusLabels[client.status]}
                   </Badge>
                 </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  {client.city && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{client.city}</span>
-                    </div>
-                  )}
-                  {client.phone && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-3.5 h-3.5" />
-                      <span>{client.phone}</span>
-                    </div>
-                  )}
-                  {client.email && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="w-3.5 h-3.5" />
-                      <span className="truncate">{client.email}</span>
-                    </div>
-                  )}
-                  {client.instagram && (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Instagram className="w-3.5 h-3.5" />
-                      <span>{client.instagram}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                    {client.monthly_budget && (
-                      <div className="flex items-center gap-1 text-xs text-primary">
-                        <DollarSign className="w-3 h-3" />
-                        <span>{formatCurrency(client.monthly_budget)}/mies.</span>
+                <CardContent className="space-y-3 text-sm">
+                  {/* Basic Info */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {client.city && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <MapPin className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{client.city}</span>
                       </div>
                     )}
+                    {client.industry && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Building2 className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{client.industry}</span>
+                      </div>
+                    )}
+                    {client.phone && (
+                      <div className="flex items-center gap-2 text-muted-foreground">
+                        <Phone className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{client.phone}</span>
+                      </div>
+                    )}
+                    {client.email && (
+                      <div className="flex items-center gap-2 text-muted-foreground col-span-2">
+                        <Mail className="w-3.5 h-3.5 shrink-0" />
+                        <span className="truncate">{client.email}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Social Links */}
+                  {(client.instagram || client.facebook_page) && (
+                    <div className="flex items-center gap-3 pt-2 border-t border-border/30">
+                      {client.instagram && (
+                        <div className="flex items-center gap-1.5 text-pink-400 text-xs">
+                          <Instagram className="w-3.5 h-3.5" />
+                          <span>{client.instagram}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  
+                  {/* Business Info */}
+                  <div className="flex items-center justify-between pt-2 border-t border-border/30 bg-secondary/30 -mx-4 px-4 -mb-4 pb-3 mt-3">
+                    <div className="flex items-center gap-3">
+                      {client.monthly_budget && (
+                        <div className="flex items-center gap-1 text-xs">
+                          <DollarSign className="w-3.5 h-3.5 text-green-400" />
+                          <span className="font-semibold text-green-400">{formatCurrency(client.monthly_budget)}</span>
+                          <span className="text-muted-foreground">/mies.</span>
+                        </div>
+                      )}
+                    </div>
                     {client.contract_start_date && (
                       <div className="flex items-center gap-1 text-xs text-muted-foreground">
                         <Calendar className="w-3 h-3" />
