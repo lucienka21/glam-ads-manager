@@ -95,6 +95,8 @@ const priorityColors: Record<string, string> = {
   high: 'bg-red-500/20 text-red-400',
 };
 
+const UNASSIGNED_VALUE = 'unassigned';
+
 function safeFormat(dateString: string | null, pattern: string) {
   if (!dateString) return '';
   try {
@@ -119,15 +121,15 @@ export default function Tasks() {
   const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
   const [activeTab, setActiveTab] = useState<'my' | 'agency' | 'team' | 'all'>('my');
 
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    status: 'todo',
-    priority: 'medium',
-    due_date: '',
-    assigned_to: '',
-    is_agency_task: false,
-  });
+const [formData, setFormData] = useState({
+  title: '',
+  description: '',
+  status: 'todo',
+  priority: 'medium',
+  due_date: '',
+  assigned_to: UNASSIGNED_VALUE,
+  is_agency_task: false,
+});
 
   const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
@@ -170,33 +172,33 @@ export default function Tasks() {
 
   // ---------- TASK CRUD ----------
 
-  const openNewTaskDialog = () => {
-    setEditingTask(null);
-    setFormData({
-      title: '',
-      description: '',
-      status: 'todo',
-      priority: 'medium',
-      due_date: '',
-      assigned_to: '',
-      is_agency_task: false,
-    });
-    setIsTaskDialogOpen(true);
-  };
+const openNewTaskDialog = () => {
+  setEditingTask(null);
+  setFormData({
+    title: '',
+    description: '',
+    status: 'todo',
+    priority: 'medium',
+    due_date: '',
+    assigned_to: UNASSIGNED_VALUE,
+    is_agency_task: false,
+  });
+  setIsTaskDialogOpen(true);
+};
 
-  const openEditTaskDialog = (task: TaskRow) => {
-    setEditingTask(task);
-    setFormData({
-      title: task.title,
-      description: task.description || '',
-      status: task.status,
-      priority: task.priority,
-      due_date: task.due_date || '',
-      assigned_to: task.assigned_to || '',
-      is_agency_task: task.is_agency_task,
-    });
-    setIsTaskDialogOpen(true);
-  };
+const openEditTaskDialog = (task: TaskRow) => {
+  setEditingTask(task);
+  setFormData({
+    title: task.title,
+    description: task.description || '',
+    status: task.status,
+    priority: task.priority,
+    due_date: task.due_date || '',
+    assigned_to: task.assigned_to || UNASSIGNED_VALUE,
+    is_agency_task: task.is_agency_task,
+  });
+  setIsTaskDialogOpen(true);
+};
 
   const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -211,16 +213,19 @@ export default function Tasks() {
       return;
     }
 
-    const payload = {
-      title: formData.title.trim(),
-      description: formData.description.trim() || null,
-      status: formData.status,
-      priority: formData.priority,
-      due_date: formData.due_date || null,
-      assigned_to: formData.assigned_to || null,
-      is_agency_task: formData.is_agency_task,
-      created_by: editingTask?.created_by || user.id,
-    };
+const payload = {
+  title: formData.title.trim(),
+  description: formData.description.trim() || null,
+  status: formData.status,
+  priority: formData.priority,
+  due_date: formData.due_date || null,
+  assigned_to:
+    formData.assigned_to === UNASSIGNED_VALUE
+      ? null
+      : formData.assigned_to || null,
+  is_agency_task: formData.is_agency_task,
+  created_by: editingTask?.created_by || user.id,
+};
 
     try {
       if (editingTask) {
@@ -673,25 +678,25 @@ export default function Tasks() {
                   />
                 </div>
                 <div>
-                  <Label>Przypisz do</Label>
-                  <Select
-                    value={formData.assigned_to}
-                    onValueChange={(v) =>
-                      setFormData((prev) => ({ ...prev, assigned_to: v }))
-                    }
-                  >
-                    <SelectTrigger className="form-input-elegant">
-                      <SelectValue placeholder="Wybierz osobę" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nie przypisane</SelectItem>
-                      {employees.map((emp) => (
-                        <SelectItem key={emp.id} value={emp.id}>
-                          {emp.full_name || emp.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+<Label>Przypisz do</Label>
+<Select
+  value={formData.assigned_to}
+  onValueChange={(v) =>
+    setFormData((prev) => ({ ...prev, assigned_to: v }))
+  }
+>
+  <SelectTrigger className="form-input-elegant">
+    <SelectValue placeholder="Wybierz osobę" />
+  </SelectTrigger>
+  <SelectContent>
+    <SelectItem value={UNASSIGNED_VALUE}>Nie przypisane</SelectItem>
+    {employees.map((emp) => (
+      <SelectItem key={emp.id} value={emp.id}>
+        {emp.full_name || emp.email}
+      </SelectItem>
+    ))}
+  </SelectContent>
+</Select>
                 </div>
                 {isSzef && (
                   <div className="flex items-center gap-2">
