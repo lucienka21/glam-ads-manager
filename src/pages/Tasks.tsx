@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,8 +16,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { 
-  Plus, 
+import {
+  Plus,
   CheckCircle2,
   Circle,
   Clock,
@@ -29,7 +29,7 @@ import {
   Trash2,
   Loader2,
   MessageSquare,
-  Send
+  Send,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -38,7 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface Task {
+interface TaskRow {
   id: string;
   title: string;
   description: string | null;
@@ -58,7 +58,7 @@ interface Employee {
   full_name: string | null;
 }
 
-interface TaskComment {
+interface TaskCommentRow {
   id: string;
   task_id: string;
   user_id: string;
@@ -68,25 +68,13 @@ interface TaskComment {
   user?: {
     email: string | null;
     full_name: string | null;
-  };
+  } | null;
 }
-
-const statusColors: Record<string, string> = {
-  todo: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
-  in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
-};
 
 const statusLabels: Record<string, string> = {
   todo: 'Do zrobienia',
   in_progress: 'W trakcie',
   completed: 'Ukończone',
-};
-
-const priorityColors: Record<string, string> = {
-  low: 'bg-green-500/20 text-green-400',
-  medium: 'bg-yellow-500/20 text-yellow-400',
-  high: 'bg-red-500/20 text-red-400',
 };
 
 const priorityLabels: Record<string, string> = {
@@ -95,34 +83,42 @@ const priorityLabels: Record<string, string> = {
   high: 'Wysoki',
 };
 
+const statusColors: Record<string, string> = {
+  todo: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+  in_progress: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  completed: 'bg-green-500/20 text-green-400 border-green-500/30',
+};
+
+const priorityColors: Record<string, string> = {
+  low: 'bg-green-500/20 text-green-400',
+  medium: 'bg-yellow-500/20 text-yellow-400',
+  high: 'bg-red-500/20 text-red-400',
+};
+
+function safeFormat(dateString: string | null, pattern: string) {
+  if (!dateString) return '';
+  try {
+    const d = new Date(dateString);
+    if (Number.isNaN(d.getTime())) return '';
+    return format(d, pattern, { locale: pl });
+  } catch (e) {
+    console.error('Date format error in Tasks page', { dateString, e });
+    return '';
+  }
+}
+
 export default function Tasks() {
   const { user } = useAuth();
   const { isSzef } = useUserRole();
 
-  const safeFormatDate = (dateString: string | null | undefined, pattern: string) => {
-    if (!dateString) return '';
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return '';
-      return format(date, pattern, { locale: pl });
-    } catch (error) {
-      console.error('Date format error in Tasks page:', { dateString, error });
-      return '';
-    }
-  };
-
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [activeTab, setActiveTab] = useState('my-tasks');
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false);
-  const [comments, setComments] = useState<TaskComment[]>([]);
-  const [newComment, setNewComment] = useState('');
-  const [editingComment, setEditingComment] = useState<TaskComment | null>(null);
-  const [editCommentText, setEditCommentText] = useState('');
+
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
+  const [activeTab, setActiveTab] = useState<'my' | 'agency' | 'team' | 'all'>('my');
+
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -133,153 +129,48 @@ export default function Tasks() {
     is_agency_task: false,
   });
 
+  const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
+  const [comments, setComments] = useState<TaskCommentRow[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editingCommentText, setEditingCommentText] = useState('');
+
+  // ---------- DATA LOADING ----------
+
   useEffect(() => {
-    fetchTasks();
-    fetchEmployees();
+    void loadInitialData();
   }, []);
 
-  const fetchEmployees = async () => {
-    const { data } = await supabase
-      .from('profiles')
-      .select('id, email, full_name')
-      .order('full_name');
-    
-    setEmployees(data || []);
-  };
-
-  const fetchTasks = async () => {
+  const loadInitialData = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('tasks')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      toast.error('Błąd ładowania zadań');
-      console.error(error);
-    } else {
-      setTasks(data || []);
-    }
-    setLoading(false);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.title) {
-      toast.error('Tytuł zadania jest wymagany');
-      return;
-    }
-
-    if (!user?.id) {
-      toast.error('Musisz być zalogowany, aby dodać zadanie');
-      console.error('Brak użytkownika przy próbie dodania zadania');
-      return;
-    }
-
-    const submitData = {
-      title: formData.title,
-      description: formData.description || null,
-      status: formData.status,
-      priority: formData.priority,
-      due_date: formData.due_date || null,
-      assigned_to: formData.assigned_to || null,
-      is_agency_task: formData.is_agency_task,
-      created_by: user.id,
-    };
-
-    console.log('Submitting task with user:', user.id, 'data:', submitData);
-
     try {
-      if (editingTask) {
-        const { error } = await supabase
-          .from('tasks')
-          .update(submitData)
-          .eq('id', editingTask.id);
+      const [tasksRes, employeesRes] = await Promise.all([
+        supabase.from('tasks').select('*').order('created_at', { ascending: false }),
+        supabase.from('profiles').select('id, email, full_name').order('full_name'),
+      ]);
 
-        if (error) {
-          console.error('Błąd aktualizacji zadania (RLS?):', error);
-          toast.error(`Błąd aktualizacji zadania: ${error.message}`);
-        } else {
-          toast.success('Zadanie zaktualizowane');
-          fetchTasks();
-        }
+      if (tasksRes.error) {
+        console.error('Error loading tasks', tasksRes.error);
+        toast.error('Błąd ładowania zadań');
       } else {
-        const { data, error } = await supabase
-          .from('tasks')
-          .insert(submitData)
-          .select();
-
-        if (error) {
-          console.error('Błąd dodawania zadania (RLS?):', error, 'submitData:', submitData);
-          toast.error(`Błąd dodawania zadania: ${error.message}`);
-        } else {
-          console.log('Zadanie dodane:', data);
-          toast.success('Zadanie dodane');
-          fetchTasks();
-        }
+        setTasks(tasksRes.data || []);
       }
-    } catch (err) {
-      console.error('Nieoczekiwany błąd przy zapisie zadania:', err);
-      toast.error('Nieoczekiwany błąd przy zapisie zadania');
-    }
 
-    setIsDialogOpen(false);
-    resetForm();
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm('Czy na pewno chcesz usunąć to zadanie?')) return;
-
-    const { error } = await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', id);
-
-    if (error) {
-      toast.error('Błąd usuwania zadania');
-    } else {
-      toast.success('Zadanie usunięte');
-      fetchTasks();
+      if (employeesRes.error) {
+        console.error('Error loading employees', employeesRes.error);
+      } else {
+        setEmployees(employeesRes.data || []);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleStatusChange = async (taskId: string, newStatus: string) => {
-    const updateData: any = { status: newStatus };
-    if (newStatus === 'completed') {
-      updateData.completed_at = new Date().toISOString();
-    } else if (newStatus !== 'completed') {
-      updateData.completed_at = null;
-    }
+  // ---------- TASK CRUD ----------
 
-    const { error } = await supabase
-      .from('tasks')
-      .update(updateData)
-      .eq('id', taskId);
-
-    if (error) {
-      toast.error('Błąd aktualizacji statusu');
-    } else {
-      toast.success('Status zaktualizowany');
-      fetchTasks();
-    }
-  };
-
-  const handleEdit = (task: Task) => {
-    setEditingTask(task);
-    setFormData({
-      title: task.title,
-      description: task.description || '',
-      status: task.status,
-      priority: task.priority,
-      due_date: task.due_date || '',
-      assigned_to: task.assigned_to || '',
-      is_agency_task: task.is_agency_task,
-    });
-    setIsDialogOpen(true);
-  };
-
-  const resetForm = () => {
+  const openNewTaskDialog = () => {
     setEditingTask(null);
     setFormData({
       title: '',
@@ -290,130 +181,329 @@ export default function Tasks() {
       assigned_to: '',
       is_agency_task: false,
     });
+    setIsTaskDialogOpen(true);
   };
 
-  const fetchComments = async (taskId: string) => {
-    const { data, error } = await supabase
-      .from('task_comments')
-      .select(`
-        *,
-        profiles!task_comments_user_id_fkey (
-          email,
-          full_name
-        )
-      `)
-      .eq('task_id', taskId)
-      .order('created_at', { ascending: true });
+  const openEditTaskDialog = (task: TaskRow) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      description: task.description || '',
+      status: task.status,
+      priority: task.priority,
+      due_date: task.due_date || '',
+      assigned_to: task.assigned_to || '',
+      is_agency_task: task.is_agency_task,
+    });
+    setIsTaskDialogOpen(true);
+  };
 
-    if (error) {
-      console.error('Błąd ładowania komentarzy:', error);
-      toast.error('Błąd ładowania komentarzy');
-    } else {
-      const mappedComments = (data || []).map((comment: any) => ({
-        ...comment,
-        user: comment.profiles
-      }));
-      setComments(mappedComments);
+  const handleSaveTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!user?.id) {
+      toast.error('Musisz być zalogowany, aby zarządzać zadaniami');
+      return;
+    }
+
+    if (!formData.title.trim()) {
+      toast.error('Tytuł zadania jest wymagany');
+      return;
+    }
+
+    const payload = {
+      title: formData.title.trim(),
+      description: formData.description.trim() || null,
+      status: formData.status,
+      priority: formData.priority,
+      due_date: formData.due_date || null,
+      assigned_to: formData.assigned_to || null,
+      is_agency_task: formData.is_agency_task,
+      created_by: editingTask?.created_by || user.id,
+    };
+
+    try {
+      if (editingTask) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(payload)
+          .eq('id', editingTask.id);
+
+        if (error) {
+          console.error('Error updating task', error);
+          toast.error('Błąd aktualizacji zadania: ' + error.message);
+        } else {
+          toast.success('Zadanie zaktualizowane');
+          void loadInitialData();
+          setIsTaskDialogOpen(false);
+        }
+      } else {
+        const { error } = await supabase.from('tasks').insert({ ...payload, created_by: user.id });
+
+        if (error) {
+          console.error('Error creating task', error);
+          toast.error('Błąd dodawania zadania: ' + error.message);
+        } else {
+          toast.success('Zadanie dodane');
+          void loadInitialData();
+          setIsTaskDialogOpen(false);
+        }
+      }
+    } catch (err: any) {
+      console.error('Unexpected error saving task', err);
+      toast.error('Nieoczekiwany błąd przy zapisie zadania');
+    }
+  };
+
+  const handleDeleteTask = async (task: TaskRow) => {
+    if (!confirm('Czy na pewno chcesz usunąć to zadanie?')) return;
+
+    try {
+      const { error } = await supabase.from('tasks').delete().eq('id', task.id);
+      if (error) {
+        console.error('Error deleting task', error);
+        toast.error('Błąd usuwania zadania: ' + error.message);
+      } else {
+        toast.success('Zadanie usunięte');
+        void loadInitialData();
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting task', err);
+      toast.error('Nieoczekiwany błąd usuwania zadania');
+    }
+  };
+
+  const handleToggleCompleted = async (task: TaskRow, completed: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          status: completed ? 'completed' : 'todo',
+          completed_at: completed ? new Date().toISOString() : null,
+        })
+        .eq('id', task.id);
+
+      if (error) {
+        console.error('Error updating task status', error);
+        toast.error('Błąd aktualizacji statusu');
+      } else {
+        void loadInitialData();
+      }
+    } catch (err) {
+      console.error('Unexpected error updating status', err);
+      toast.error('Nieoczekiwany błąd aktualizacji statusu');
+    }
+  };
+
+  // ---------- COMMENTS ----------
+
+  const openComments = async (task: TaskRow) => {
+    setSelectedTask(task);
+    setIsCommentsDialogOpen(true);
+    setComments([]);
+    setNewComment('');
+    setEditingCommentId(null);
+    setEditingCommentText('');
+    await loadComments(task.id);
+  };
+
+  const loadComments = async (taskId: string) => {
+    setCommentsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('task_comments')
+        .select(
+          'id, task_id, user_id, comment, created_at, updated_at'
+        )
+        .eq('task_id', taskId)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error loading comments', error);
+        toast.error('Błąd ładowania komentarzy');
+      } else {
+        // osobno dociągamy autorów, żeby uniknąć problemów z typami relacji
+        const userIds = Array.from(new Set((data || []).map((c) => c.user_id)));
+        let profilesById: Record<string, { full_name: string | null; email: string | null }> = {};
+
+        if (userIds.length) {
+          const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+
+          if (profilesError) {
+            console.error('Error loading comment authors', profilesError);
+          } else {
+            profilesById = Object.fromEntries(
+              (profilesData || []).map((p) => [p.id, { full_name: p.full_name, email: p.email }])
+            );
+          }
+        }
+
+        const mapped: TaskCommentRow[] = (data || []).map((c: any) => ({
+          id: c.id,
+          task_id: c.task_id,
+          user_id: c.user_id,
+          comment: c.comment,
+          created_at: c.created_at,
+          updated_at: c.updated_at,
+          user: profilesById[c.user_id] || null,
+        }));
+
+        setComments(mapped);
+      }
+    } catch (err) {
+      console.error('Unexpected error loading comments', err);
+      toast.error('Nieoczekiwany błąd ładowania komentarzy');
+    } finally {
+      setCommentsLoading(false);
     }
   };
 
   const handleAddComment = async () => {
-    if (!newComment.trim() || !selectedTask) return;
+    if (!user?.id || !selectedTask) return;
+    const text = newComment.trim();
+    if (!text) return;
 
-    const { error } = await supabase
-      .from('task_comments')
-      .insert({
+    try {
+      const { error } = await supabase.from('task_comments').insert({
         task_id: selectedTask.id,
-        user_id: user?.id,
-        comment: newComment.trim(),
+        user_id: user.id,
+        comment: text,
       });
 
-    if (error) {
-      console.error('Błąd dodawania komentarza:', error);
-      toast.error('Błąd dodawania komentarza');
-    } else {
-      toast.success('Komentarz dodany');
-      setNewComment('');
-      fetchComments(selectedTask.id);
+      if (error) {
+        console.error('Error adding comment', error);
+        toast.error('Błąd dodawania komentarza: ' + error.message);
+      } else {
+        setNewComment('');
+        await loadComments(selectedTask.id);
+      }
+    } catch (err) {
+      console.error('Unexpected error adding comment', err);
+      toast.error('Nieoczekiwany błąd dodawania komentarza');
     }
   };
 
-  const handleUpdateComment = async (commentId: string) => {
-    if (!editCommentText.trim()) return;
+  const handleStartEditComment = (comment: TaskCommentRow) => {
+    setEditingCommentId(comment.id);
+    setEditingCommentText(comment.comment);
+  };
 
-    const { error } = await supabase
-      .from('task_comments')
-      .update({ comment: editCommentText.trim() })
-      .eq('id', commentId);
+  const handleSaveComment = async () => {
+    if (!editingCommentId || !editingCommentText.trim() || !selectedTask) return;
 
-    if (error) {
-      console.error('Błąd aktualizacji komentarza:', error);
-      toast.error('Błąd aktualizacji komentarza');
-    } else {
-      toast.success('Komentarz zaktualizowany');
-      setEditingComment(null);
-      setEditCommentText('');
-      if (selectedTask) fetchComments(selectedTask.id);
+    try {
+      const { error } = await supabase
+        .from('task_comments')
+        .update({ comment: editingCommentText.trim() })
+        .eq('id', editingCommentId);
+
+      if (error) {
+        console.error('Error updating comment', error);
+        toast.error('Błąd aktualizacji komentarza: ' + error.message);
+      } else {
+        setEditingCommentId(null);
+        setEditingCommentText('');
+        await loadComments(selectedTask.id);
+      }
+    } catch (err) {
+      console.error('Unexpected error updating comment', err);
+      toast.error('Nieoczekiwany błąd aktualizacji komentarza');
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
+  const handleDeleteComment = async (comment: TaskCommentRow) => {
+    if (!selectedTask) return;
     if (!confirm('Czy na pewno chcesz usunąć ten komentarz?')) return;
 
-    const { error } = await supabase
-      .from('task_comments')
-      .delete()
-      .eq('id', commentId);
-
-    if (error) {
-      console.error('Błąd usuwania komentarza:', error);
-      toast.error('Błąd usuwania komentarza');
-    } else {
-      toast.success('Komentarz usunięty');
-      if (selectedTask) fetchComments(selectedTask.id);
+    try {
+      const { error } = await supabase.from('task_comments').delete().eq('id', comment.id);
+      if (error) {
+        console.error('Error deleting comment', error);
+        toast.error('Błąd usuwania komentarza: ' + error.message);
+      } else {
+        await loadComments(selectedTask.id);
+      }
+    } catch (err) {
+      console.error('Unexpected error deleting comment', err);
+      toast.error('Nieoczekiwany błąd usuwania komentarza');
     }
   };
 
-  const handleOpenComments = (task: Task) => {
-    setSelectedTask(task);
-    setIsCommentsDialogOpen(true);
-    fetchComments(task.id);
-  };
+  // ---------- DERIVED LISTS ----------
 
-  const myTasks = tasks.filter(t => t.assigned_to === user?.id);
-  const agencyTasks = tasks.filter(t => t.is_agency_task);
-  const teamTasks = tasks; // All tasks for szef to see team's work
-  const allTasks = tasks;
+  const myTasks = useMemo(
+    () => tasks.filter((t) => t.assigned_to === user?.id),
+    [tasks, user?.id]
+  );
 
-  const renderTaskCard = (task: Task) => {
-    const assignedEmployee = employees.find(e => e.id === task.assigned_to);
-    const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
+  const agencyTasks = useMemo(
+    () => tasks.filter((t) => t.is_agency_task),
+    [tasks]
+  );
+
+  const teamTasks = useMemo(() => tasks, [tasks]);
+
+  const visibleTasks = (() => {
+    switch (activeTab) {
+      case 'agency':
+        return agencyTasks;
+      case 'team':
+        return teamTasks;
+      case 'all':
+        return tasks;
+      case 'my':
+      default:
+        return myTasks;
+    }
+  })();
+
+  // ---------- RENDER HELPERS ----------
+
+  const renderTaskCard = (task: TaskRow) => {
+    const assignedEmployee = employees.find((e) => e.id === task.assigned_to);
+    const isOverdue =
+      task.due_date &&
+      task.status !== 'completed' &&
+      new Date(task.due_date).getTime() < new Date().getTime();
 
     return (
       <Card key={task.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1">
               <Checkbox
                 checked={task.status === 'completed'}
-                onCheckedChange={(checked) => 
-                  handleStatusChange(task.id, checked ? 'completed' : 'todo')
+                onCheckedChange={(checked) =>
+                  handleToggleCompleted(task, Boolean(checked))
                 }
                 className="mt-1"
               />
               <div className="flex-1 min-w-0">
-                <CardTitle className={`text-base ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>
+                <CardTitle
+                  className={`text-base ${
+                    task.status === 'completed'
+                      ? 'line-through text-muted-foreground'
+                      : ''
+                  }`}
+                >
                   {task.title}
                 </CardTitle>
                 {task.description && (
-                  <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {task.description}
+                  </p>
                 )}
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge className={statusColors[task.status]}>
-                    {statusLabels[task.status]}
+                  <Badge className={statusColors[task.status] || statusColors.todo}>
+                    {statusLabels[task.status] || task.status}
                   </Badge>
-                  <Badge className={priorityColors[task.priority]}>
-                    {priorityLabels[task.priority]}
+                  <Badge
+                    className={priorityColors[task.priority] || priorityColors.medium}
+                  >
+                    {priorityLabels[task.priority] || task.priority}
                   </Badge>
                   {task.is_agency_task && (
                     <Badge variant="outline" className="gap-1">
@@ -431,16 +521,16 @@ export default function Tasks() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleOpenComments(task)}>
+                <DropdownMenuItem onClick={() => openComments(task)}>
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Komentarze
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleEdit(task)}>
+                <DropdownMenuItem onClick={() => openEditTaskDialog(task)}>
                   <Pencil className="w-4 h-4 mr-2" />
                   Edytuj
                 </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => handleDelete(task.id)}
+                <DropdownMenuItem
+                  onClick={() => handleDeleteTask(task)}
                   className="text-destructive"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
@@ -458,9 +548,19 @@ export default function Tasks() {
             </div>
           )}
           {task.due_date && (
-            <div className={`flex items-center gap-2 text-sm ${isOverdue ? 'text-red-400' : 'text-muted-foreground'}`}>
-              {isOverdue ? <AlertCircle className="w-3.5 h-3.5" /> : <Clock className="w-3.5 h-3.5" />}
-              <span>{safeFormatDate(task.due_date, 'd MMMM yyyy') || 'Nieprawidłowa data'}</span>
+            <div
+              className={`flex items-center gap-2 text-sm ${
+                isOverdue ? 'text-red-400' : 'text-muted-foreground'
+              }`}
+            >
+              {isOverdue ? (
+                <AlertCircle className="w-3.5 h-3.5" />
+              ) : (
+                <Clock className="w-3.5 h-3.5" />
+              )}
+              <span>
+                {safeFormat(task.due_date, 'd MMMM yyyy') || 'Nieprawidłowa data'}
+              </span>
               {isOverdue && <span className="text-xs">(Zaległe)</span>}
             </div>
           )}
@@ -469,6 +569,8 @@ export default function Tasks() {
     );
   };
 
+  // ---------- MAIN RENDER ----------
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6 animate-fade-in">
@@ -476,28 +578,37 @@ export default function Tasks() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Zadania</h1>
-            <p className="text-muted-foreground text-sm">Zarządzaj zadaniami zespołu</p>
+            <p className="text-muted-foreground text-sm">
+              Zarządzaj zadaniami swoimi i zespołu
+            </p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
+          <Dialog
+            open={isTaskDialogOpen}
+            onOpenChange={(open) => {
+              setIsTaskDialogOpen(open);
+              if (!open) setEditingTask(null);
+            }}
+          >
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-primary hover:bg-primary/90" onClick={openNewTaskDialog}>
                 <Plus className="w-4 h-4 mr-2" />
                 Nowe zadanie
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingTask ? 'Edytuj zadanie' : 'Nowe zadanie'}</DialogTitle>
+                <DialogTitle>
+                  {editingTask ? 'Edytuj zadanie' : 'Nowe zadanie'}
+                </DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSaveTask} className="space-y-4">
                 <div>
                   <Label>Tytuł *</Label>
                   <Input
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, title: e.target.value }))
+                    }
                     className="form-input-elegant"
                   />
                 </div>
@@ -505,7 +616,9 @@ export default function Tasks() {
                   <Label>Opis</Label>
                   <Textarea
                     value={formData.description}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    }
                     className="form-input-elegant"
                     rows={3}
                   />
@@ -513,27 +626,37 @@ export default function Tasks() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Status</Label>
-                    <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(v) =>
+                        setFormData((prev) => ({ ...prev, status: v }))
+                      }
+                    >
                       <SelectTrigger className="form-input-elegant">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(statusLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
+                        <SelectItem value="todo">Do zrobienia</SelectItem>
+                        <SelectItem value="in_progress">W trakcie</SelectItem>
+                        <SelectItem value="completed">Ukończone</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                   <div>
                     <Label>Priorytet</Label>
-                    <Select value={formData.priority} onValueChange={(v) => setFormData({ ...formData, priority: v })}>
+                    <Select
+                      value={formData.priority}
+                      onValueChange={(v) =>
+                        setFormData((prev) => ({ ...prev, priority: v }))
+                      }
+                    >
                       <SelectTrigger className="form-input-elegant">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {Object.entries(priorityLabels).map(([value, label]) => (
-                          <SelectItem key={value} value={value}>{label}</SelectItem>
-                        ))}
+                        <SelectItem value="low">Niski</SelectItem>
+                        <SelectItem value="medium">Średni</SelectItem>
+                        <SelectItem value="high">Wysoki</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -543,13 +666,20 @@ export default function Tasks() {
                   <Input
                     type="date"
                     value={formData.due_date}
-                    onChange={(e) => setFormData({ ...formData, due_date: e.target.value })}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, due_date: e.target.value }))
+                    }
                     className="form-input-elegant"
                   />
                 </div>
                 <div>
                   <Label>Przypisz do</Label>
-                  <Select value={formData.assigned_to} onValueChange={(v) => setFormData({ ...formData, assigned_to: v })}>
+                  <Select
+                    value={formData.assigned_to}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({ ...prev, assigned_to: v }))
+                    }
+                  >
                     <SelectTrigger className="form-input-elegant">
                       <SelectValue placeholder="Wybierz osobę" />
                     </SelectTrigger>
@@ -568,8 +698,11 @@ export default function Tasks() {
                     <Checkbox
                       id="is_agency_task"
                       checked={formData.is_agency_task}
-                      onCheckedChange={(checked) => 
-                        setFormData({ ...formData, is_agency_task: checked as boolean })
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          is_agency_task: Boolean(checked),
+                        }))
                       }
                     />
                     <Label htmlFor="is_agency_task" className="cursor-pointer">
@@ -585,215 +718,191 @@ export default function Tasks() {
           </Dialog>
         </div>
 
-        {/* Tasks Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Tabs */}
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as typeof activeTab)}
+        >
           <TabsList>
-            <TabsTrigger value="my-tasks" className="gap-2">
+            <TabsTrigger value="my" className="gap-2">
               <User className="w-4 h-4" />
-              Moje zadania ({myTasks.length})
+              Moje ({myTasks.length})
             </TabsTrigger>
-            <TabsTrigger value="agency-tasks" className="gap-2">
+            <TabsTrigger value="agency" className="gap-2">
               <Users className="w-4 h-4" />
               Agencyjne ({agencyTasks.length})
             </TabsTrigger>
             {isSzef && (
               <>
-                <TabsTrigger value="team-tasks" className="gap-2">
+                <TabsTrigger value="team" className="gap-2">
                   <Users className="w-4 h-4" />
                   Zespół ({teamTasks.length})
                 </TabsTrigger>
-                <TabsTrigger value="all-tasks" className="gap-2">
-                  Wszystkie ({allTasks.length})
+                <TabsTrigger value="all" className="gap-2">
+                  Wszystkie ({tasks.length})
                 </TabsTrigger>
               </>
             )}
           </TabsList>
 
-          <TabsContent value="my-tasks" className="space-y-4">
+          <TabsContent value={activeTab} className="space-y-4">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
-            ) : myTasks.length === 0 ? (
+            ) : visibleTasks.length === 0 ? (
               <div className="text-center py-12">
                 <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Brak przypisanych zadań</p>
+                <p className="text-muted-foreground">Brak zadań w tym widoku</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
-                {myTasks.map(renderTaskCard)}
+                {visibleTasks.map(renderTaskCard)}
               </div>
             )}
           </TabsContent>
-
-          <TabsContent value="agency-tasks" className="space-y-4">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : agencyTasks.length === 0 ? (
-              <div className="text-center py-12">
-                <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Brak zadań agencyjnych</p>
-              </div>
-            ) : (
-              <div className="grid gap-4 md:grid-cols-2">
-                {agencyTasks.map(renderTaskCard)}
-              </div>
-            )}
-          </TabsContent>
-
-          {isSzef && (
-            <>
-              <TabsContent value="team-tasks" className="space-y-4">
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : teamTasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Brak zadań zespołu</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {teamTasks.map(renderTaskCard)}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="all-tasks" className="space-y-4">
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : allTasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <Circle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Brak zadań</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {allTasks.map(renderTaskCard)}
-                  </div>
-                )}
-              </TabsContent>
-            </>
-          )}
         </Tabs>
 
-        {/* Comments Dialog */}
-        <Dialog open={isCommentsDialogOpen} onOpenChange={setIsCommentsDialogOpen}>
+        {/* Comments dialog */}
+        <Dialog
+          open={isCommentsDialogOpen}
+          onOpenChange={(open) => {
+            setIsCommentsDialogOpen(open);
+            if (!open) {
+              setSelectedTask(null);
+              setComments([]);
+              setNewComment('');
+              setEditingCommentId(null);
+              setEditingCommentText('');
+            }
+          }}
+        >
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <MessageSquare className="w-5 h-5" />
-                Komentarze - {selectedTask?.title}
+                Komentarze – {selectedTask?.title}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              {/* Comments List */}
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {comments.length === 0 ? (
+                {commentsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : comments.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
                     <p>Brak komentarzy</p>
                   </div>
                 ) : (
-                  comments.map((comment) => (
-                    <Card key={comment.id} className="p-4 bg-secondary/30">
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                            <User className="w-4 h-4 text-primary" />
+                  comments.map((comment) => {
+                    const isOwn = comment.user_id === user?.id;
+                    const author =
+                      comment.user?.full_name ||
+                      comment.user?.email ||
+                      'Użytkownik';
+                    const dateLabel =
+                      safeFormat(comment.created_at, 'd MMMM yyyy, HH:mm') || '';
+
+                    return (
+                      <Card
+                        key={comment.id}
+                        className="p-4 bg-secondary/30 space-y-2"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                              <User className="w-4 h-4 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{author}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {dateLabel}
+                                {comment.updated_at !== comment.created_at &&
+                                  ' (edytowany)'}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {comment.user?.full_name || comment.user?.email || 'Użytkownik'}
-                            </p>
-                             <p className="text-xs text-muted-foreground">
-                               {safeFormatDate(comment.created_at, 'd MMMM yyyy, HH:mm')}
-                               {comment.updated_at !== comment.created_at && ' (edytowany)'}
-                             </p>
-                          </div>
+                          {isOwn && (
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem
+                                  onClick={() => handleStartEditComment(comment)}
+                                >
+                                  <Pencil className="w-4 h-4 mr-2" />
+                                  Edytuj
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDeleteComment(comment)}
+                                  className="text-destructive"
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" />
+                                  Usuń
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )}
                         </div>
-                        {comment.user_id === user?.id && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical className="w-4 h-4" />
+                        {editingCommentId === comment.id ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              value={editingCommentText}
+                              onChange={(e) =>
+                                setEditingCommentText(e.target.value)
+                              }
+                              className="form-input-elegant"
+                              rows={3}
+                            />
+                            <div className="flex gap-2">
+                              <Button size="sm" onClick={handleSaveComment}>
+                                Zapisz
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {
-                                setEditingComment(comment);
-                                setEditCommentText(comment.comment);
-                              }}>
-                                <Pencil className="w-4 h-4 mr-2" />
-                                Edytuj
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                onClick={() => handleDeleteComment(comment.id)}
-                                className="text-destructive"
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  setEditingCommentId(null);
+                                  setEditingCommentText('');
+                                }}
                               >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Usuń
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                      {editingComment?.id === comment.id ? (
-                        <div className="space-y-2">
-                          <Textarea
-                            value={editCommentText}
-                            onChange={(e) => setEditCommentText(e.target.value)}
-                            className="form-input-elegant"
-                            rows={3}
-                          />
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              onClick={() => handleUpdateComment(comment.id)}
-                            >
-                              Zapisz
-                            </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              onClick={() => {
-                                setEditingComment(null);
-                                setEditCommentText('');
-                              }}
-                            >
-                              Anuluj
-                            </Button>
+                                Anuluj
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <p className="text-sm whitespace-pre-wrap">{comment.comment}</p>
-                      )}
-                    </Card>
-                  ))
+                        ) : (
+                          <p className="text-sm whitespace-pre-wrap">
+                            {comment.comment}
+                          </p>
+                        )}
+                      </Card>
+                    );
+                  })
                 )}
               </div>
 
-              {/* Add Comment Form */}
-              <div className="border-t pt-4">
-                <Label className="mb-2">Dodaj komentarz</Label>
-                <div className="flex gap-2">
-                  <Textarea
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Wpisz komentarz..."
-                    className="form-input-elegant flex-1"
-                    rows={3}
-                  />
-                </div>
-                <Button 
+              <div className="border-t pt-4 space-y-2">
+                <Label>Dodaj komentarz</Label>
+                <Textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Wpisz komentarz..."
+                  className="form-input-elegant"
+                  rows={3}
+                />
+                <Button
                   onClick={handleAddComment}
-                  disabled={!newComment.trim()}
-                  className="mt-2 w-full"
+                  disabled={!newComment.trim() || !selectedTask}
+                  className="w-full"
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Wyślij komentarz
