@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import { Menu } from "lucide-react";
+import { TeamChatPanel } from "@/components/chat/TeamChatPanel";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,9 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
             {children}
           </div>
         </main>
+        
+        {/* Team Chat - available globally */}
+        <TeamChatPanel />
       </div>
     </SidebarProvider>
   );
