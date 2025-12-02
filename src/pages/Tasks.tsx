@@ -145,7 +145,37 @@ const [formData, setFormData] = useState({
 
   useEffect(() => {
     void loadInitialData();
-  }, []);
+    
+    // Subscribe to task changes for real-time notifications
+    if (!user) return;
+    
+    const channel = supabase
+      .channel('task-notifications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'tasks',
+          filter: `assigned_to=eq.${user.id}`,
+        },
+        (payload) => {
+          const newTask = payload.new as TaskRow;
+          // Only show notification if the task was created by someone else
+          if (newTask.created_by !== user.id) {
+            toast.info(`Nowe zadanie przypisane: "${newTask.title}"`, {
+              duration: 5000,
+            });
+            void loadInitialData();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const loadInitialData = async () => {
     setLoading(true);
@@ -309,7 +339,16 @@ const payload = {
           toast.error('Błąd dodawania zadania: ' + error.message);
         } else {
           console.log('Task created successfully:', data);
-          toast.success('Zadanie dodane');
+          
+          // Send notification if task is assigned to someone
+          if (payload.assigned_to && payload.assigned_to !== user.id) {
+            const assignedEmployee = employees.find(e => e.id === payload.assigned_to);
+            const assignedName = assignedEmployee?.full_name || assignedEmployee?.email || 'użytkownika';
+            toast.success(`Zadanie "${formData.title}" przypisane do ${assignedName}`);
+          } else {
+            toast.success('Zadanie dodane');
+          }
+          
           void loadInitialData();
           setIsTaskDialogOpen(false);
         }
@@ -500,7 +539,10 @@ const payload = {
   // ---------- DERIVED LISTS ----------
 
   const myTasks = useMemo(
-    () => tasks.filter((t) => t.assigned_to === user?.id),
+    () => tasks.filter((t) => 
+      t.assigned_to === user?.id || 
+      (t.created_by === user?.id && !t.is_agency_task && !t.assigned_to)
+    ),
     [tasks, user?.id]
   );
 
@@ -630,13 +672,14 @@ const payload = {
             </div>
           )}
           {taskComments[task.id] && taskComments[task.id].length > 0 && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground border-t border-border/40 pt-2 mt-2">
-              <MessageSquare className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+            <div className="flex items-start gap-2 border-t border-pink-500/20 pt-2 mt-2 bg-gradient-to-r from-pink-500/5 to-transparent -mx-4 px-4 pb-1">
+              <MessageSquare className="w-4 h-4 mt-0.5 flex-shrink-0 text-pink-400" />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium mb-0.5">
-                  {taskComments[task.id][0].author_name} ({taskComments[task.id].length})
+                <p className="text-xs font-semibold text-pink-400 mb-0.5">
+                  {taskComments[task.id][0].author_name} 
+                  <span className="ml-1 text-pink-400/60">({taskComments[task.id].length} {taskComments[task.id].length === 1 ? 'komentarz' : 'komentarzy'})</span>
                 </p>
-                <p className="text-xs line-clamp-2">
+                <p className="text-xs line-clamp-2 text-foreground/80">
                   {taskComments[task.id][0].comment}
                 </p>
               </div>
@@ -763,31 +806,39 @@ const payload = {
   </SelectTrigger>
   <SelectContent>
     <SelectItem value={UNASSIGNED_VALUE}>Nie przypisane</SelectItem>
-    {employees.map((emp) => (
-      <SelectItem key={emp.id} value={emp.id}>
-        {emp.full_name || emp.email}
+    {isSzef ? (
+      // Szef can assign to anyone
+      employees.map((emp) => (
+        <SelectItem key={emp.id} value={emp.id}>
+          {emp.full_name || emp.email}
+        </SelectItem>
+      ))
+    ) : (
+      // Pracownik can only assign to themselves
+      <SelectItem value={user?.id || ''}>
+        {employees.find(e => e.id === user?.id)?.full_name || 
+         employees.find(e => e.id === user?.id)?.email || 
+         'Ja'}
       </SelectItem>
-    ))}
+    )}
   </SelectContent>
 </Select>
                 </div>
-                {isSzef && (
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="is_agency_task"
-                      checked={formData.is_agency_task}
-                      onCheckedChange={(checked) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          is_agency_task: Boolean(checked),
-                        }))
-                      }
-                    />
-                    <Label htmlFor="is_agency_task" className="cursor-pointer">
-                      Zadanie agencyjne (widoczne dla wszystkich)
-                    </Label>
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="is_agency_task"
+                    checked={formData.is_agency_task}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        is_agency_task: Boolean(checked),
+                      }))
+                    }
+                  />
+                  <Label htmlFor="is_agency_task" className="cursor-pointer">
+                    Zadanie agencyjne (widoczne dla wszystkich)
+                  </Label>
+                </div>
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                   {editingTask ? 'Zapisz zmiany' : 'Dodaj zadanie'}
                 </Button>
@@ -939,18 +990,18 @@ const payload = {
                       safeFormat(comment.created_at, 'd MMMM yyyy, HH:mm') || '';
 
                     return (
-                      <Card
+                       <Card
                         key={comment.id}
-                        className="p-4 bg-secondary/30 space-y-2"
+                        className="p-4 bg-gradient-to-br from-pink-500/5 to-rose-500/5 border-pink-500/20 space-y-2"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                              <User className="w-4 h-4 text-primary" />
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500/20 to-rose-500/20 border border-pink-500/30 flex items-center justify-center">
+                              <User className="w-4 h-4 text-pink-400" />
                             </div>
                             <div>
-                              <p className="text-sm font-medium">{author}</p>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-sm font-semibold text-foreground">{author}</p>
+                              <p className="text-xs text-pink-400/70">
                                 {dateLabel}
                                 {comment.updated_at !== comment.created_at &&
                                   ' (edytowany)'}
@@ -1013,7 +1064,7 @@ const payload = {
                             </div>
                           </div>
                         ) : (
-                          <p className="text-sm whitespace-pre-wrap">
+                          <p className="text-sm whitespace-pre-wrap text-foreground leading-relaxed">
                             {comment.comment}
                           </p>
                         )}
