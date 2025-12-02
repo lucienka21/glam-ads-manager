@@ -7,6 +7,7 @@ import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isPast, isToday, formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
+import { AnnouncementBanner } from "@/components/dashboard/AnnouncementBanner";
 
 interface LeadReminder {
   id: string;
@@ -184,6 +185,11 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Announcements Section */}
+        <div className="bg-secondary/20 border border-border/30 rounded-xl p-4">
+          <AnnouncementBanner />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-secondary/30 border border-border/50 rounded-xl p-4">
@@ -269,13 +275,13 @@ export default function Dashboard() {
                     navigate(urls[doc.type]);
                   }}
                 >
-                  {/* Thumbnail */}
-                  <div className="aspect-video bg-zinc-900/50 relative overflow-hidden">
+                  {/* Thumbnail - fixed to show full image */}
+                  <div className="aspect-[16/10] bg-zinc-900/50 relative overflow-hidden">
                     {doc.thumbnail ? (
                       <img 
                         src={doc.thumbnail} 
                         alt={doc.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
@@ -305,7 +311,7 @@ export default function Dashboard() {
                 </div>
               ))}
             </div>
-          )}
+            )}
         </div>
       </div>
     </AppLayout>
