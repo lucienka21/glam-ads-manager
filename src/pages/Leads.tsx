@@ -35,7 +35,10 @@ import {
   ArrowUpRight,
   UserCheck,
   Smartphone,
-  FileText
+  FileText,
+  LayoutGrid,
+  List,
+  Building2
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -44,6 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { LeadsKanban } from '@/components/leads/LeadsKanban';
 
 interface Lead {
   id: string;
@@ -69,6 +73,7 @@ interface Lead {
   priority: string | null;
   email_template: string | null;
   email_from: string | null;
+  industry: string | null;
   // New fields for sequence tracking
   sms_follow_up_sent: boolean | null;
   sms_follow_up_date: string | null;
@@ -109,6 +114,17 @@ const priorityLabels: Record<string, string> = {
   medium: 'Średni',
   high: 'Wysoki',
 };
+
+const industryOptions = [
+  'Fryzjerstwo',
+  'Kosmetyka',
+  'Paznokcie',
+  'Spa & Wellness',
+  'Barber',
+  'Makijaż',
+  'Brwi i rzęsy',
+  'Inne',
+];
 
 // Sequence: Cold Mail (Day 0) → SMS (Day 2) → Email 1 (Day 6) → Email 2 (Day 10)
 // Helper to check if a date is due (today or past) - timezone-safe
@@ -156,6 +172,8 @@ export default function Leads() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
+  const [industryFilter, setIndustryFilter] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -180,6 +198,7 @@ export default function Leads() {
     response_date: '',
     email_template: '',
     email_from: '',
+    industry: '',
     sms_follow_up_sent: false,
     sms_follow_up_date: '',
     email_follow_up_1_sent: false,
@@ -239,6 +258,7 @@ export default function Leads() {
       response_date: formData.response_date || null,
       email_template: formData.email_template || null,
       email_from: formData.email_from || null,
+      industry: formData.industry || null,
       sms_follow_up_sent: formData.sms_follow_up_sent,
       sms_follow_up_date: formData.sms_follow_up_date || null,
       email_follow_up_1_sent: formData.email_follow_up_1_sent,
@@ -315,6 +335,7 @@ export default function Leads() {
       response_date: lead.response_date || '',
       email_template: lead.email_template || '',
       email_from: lead.email_from || '',
+      industry: lead.industry || '',
       sms_follow_up_sent: lead.sms_follow_up_sent || false,
       sms_follow_up_date: lead.sms_follow_up_date || '',
       email_follow_up_1_sent: lead.email_follow_up_1_sent || false,
@@ -470,6 +491,7 @@ export default function Leads() {
       response_date: '',
       email_template: '',
       email_from: '',
+      industry: '',
       sms_follow_up_sent: false,
       sms_follow_up_date: '',
       email_follow_up_1_sent: false,
@@ -530,9 +552,11 @@ export default function Leads() {
     const matchesSearch =
       lead.salon_name.toLowerCase().includes(search.toLowerCase()) ||
       lead.owner_name?.toLowerCase().includes(search.toLowerCase()) ||
-      lead.city?.toLowerCase().includes(search.toLowerCase());
+      lead.city?.toLowerCase().includes(search.toLowerCase()) ||
+      lead.industry?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     const matchesPriority = priorityFilter === 'all' || lead.priority === priorityFilter;
+    const matchesIndustry = industryFilter === 'all' || lead.industry === industryFilter;
     
     // Exclude converted/lost from follow-up tabs
     const isActiveForFollowUp = lead.status !== 'converted' && lead.status !== 'lost' && !lead.response;
@@ -594,7 +618,7 @@ export default function Leads() {
     }
     // activeTab === 'all' -> matchesTab stays true, shows all leads
     
-    return matchesSearch && matchesStatus && matchesPriority && matchesTab;
+    return matchesSearch && matchesStatus && matchesPriority && matchesIndustry && matchesTab;
   });
 
   // Stats - count leads where action is DUE (today or past)
@@ -705,16 +729,35 @@ export default function Leads() {
             <h1 className="text-2xl font-bold text-foreground">Leady</h1>
             <p className="text-muted-foreground text-sm">Sekwencja: Cold Mail → SMS (2 dni) → Email #1 (4 dni) → Email #2 (4 dni)</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Dodaj lead
+          <div className="flex items-center gap-2">
+            <div className="flex items-center border border-zinc-700 rounded-lg overflow-hidden">
+              <Button
+                size="sm"
+                variant={viewMode === 'list' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('list')}
+                className="rounded-none"
+              >
+                <List className="w-4 h-4" />
               </Button>
-            </DialogTrigger>
+              <Button
+                size="sm"
+                variant={viewMode === 'kanban' ? 'default' : 'ghost'}
+                onClick={() => setViewMode('kanban')}
+                className="rounded-none"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+            </div>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Dodaj lead
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingLead ? 'Edytuj lead' : 'Nowy lead'}</DialogTitle>
@@ -806,6 +849,20 @@ export default function Leads() {
                           ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label>Branża</Label>
+                      <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
+                        <SelectTrigger className="form-input-elegant">
+                          <SelectValue placeholder="Wybierz branżę" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {industryOptions.map((ind) => (
+                            <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                     </div>
                     <div>
                       <Label>Źródło</Label>

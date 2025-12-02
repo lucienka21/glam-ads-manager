@@ -217,30 +217,19 @@ const ReportGenerator = () => {
       description: "Sprawdź podgląd raportu poniżej i pobierz PDF",
     });
     
-    // Generate thumbnail using robust method
+    // Generate thumbnail using landscape preview for consistent horizontal thumbnails
     if (docId) {
-      // Wait for React to render the preview
+      // Wait for React to render the landscape preview
       setTimeout(async () => {
         const thumbnail = await genThumb({
-          elementId: "report-preview-pdf",
-          backgroundColor: "#09090b",
-          pixelRatio: 0.3,
+          elementId: "report-preview-landscape",
+          backgroundColor: "#050509",
+          pixelRatio: 0.2,
           maxRetries: 5,
           retryDelay: 800
         });
         
-        // If PDF preview not found, try regular preview
-        if (!thumbnail) {
-          const fallbackThumb = await genThumb({
-            elementId: "report-preview",
-            backgroundColor: "#09090b",
-            pixelRatio: 0.3,
-            maxRetries: 3
-          });
-          if (fallbackThumb) {
-            await updateThumbnail(docId, fallbackThumb);
-          }
-        } else {
+        if (thumbnail) {
           await updateThumbnail(docId, thumbnail);
         }
       }, 500);

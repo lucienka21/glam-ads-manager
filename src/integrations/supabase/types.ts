@@ -336,6 +336,7 @@ export type Database = {
           facebook_page: string | null
           follow_up_count: number | null
           id: string
+          industry: string | null
           instagram: string | null
           last_contact_date: string | null
           last_follow_up_date: string | null
@@ -369,6 +370,7 @@ export type Database = {
           facebook_page?: string | null
           follow_up_count?: number | null
           id?: string
+          industry?: string | null
           instagram?: string | null
           last_contact_date?: string | null
           last_follow_up_date?: string | null
@@ -402,6 +404,7 @@ export type Database = {
           facebook_page?: string | null
           follow_up_count?: number | null
           id?: string
+          industry?: string | null
           instagram?: string | null
           last_contact_date?: string | null
           last_follow_up_date?: string | null
