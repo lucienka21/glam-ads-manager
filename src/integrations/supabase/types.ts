@@ -550,6 +550,7 @@ export type Database = {
       tasks: {
         Row: {
           assigned_to: string | null
+          client_id: string | null
           completed_at: string | null
           completed_by: string | null
           created_at: string
@@ -565,6 +566,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          client_id?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
@@ -580,6 +582,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          client_id?: string | null
           completed_at?: string | null
           completed_by?: string | null
           created_at?: string
@@ -593,7 +596,15 @@ export type Database = {
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_messages: {
         Row: {

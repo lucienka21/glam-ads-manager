@@ -1273,9 +1273,20 @@ export default function Leads() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={industryFilter} onValueChange={setIndustryFilter}>
+            <SelectTrigger className="w-[150px] form-input-elegant">
+              <SelectValue placeholder="Branża" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Wszystkie</SelectItem>
+              {industryOptions.map((ind) => (
+                <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Leads Grid */}
+        {/* Leads View */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -1286,6 +1297,12 @@ export default function Leads() {
             <p className="text-muted-foreground">Brak leadów</p>
             <p className="text-sm text-muted-foreground/70">Dodaj pierwszego leada klikając przycisk powyżej</p>
           </div>
+        ) : viewMode === 'kanban' ? (
+          <LeadsKanban
+            leads={filteredLeads}
+            onLeadClick={(id) => navigate(`/leads/${id}`)}
+            onRefresh={fetchLeads}
+          />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredLeads.map((lead) => {
@@ -1368,6 +1385,12 @@ export default function Leads() {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <MapPin className="w-3.5 h-3.5 shrink-0" />
                           <span>{lead.city}</span>
+                        </div>
+                      )}
+                      {lead.industry && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Building2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>{lead.industry}</span>
                         </div>
                       )}
                       {lead.phone && (
