@@ -188,6 +188,33 @@ export type Database = {
           },
         ]
       }
+      custom_roles: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_system: boolean
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_system?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           client_id: string | null
@@ -391,6 +418,35 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission: Database["public"]["Enums"]["app_permission"]
+          role_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission: Database["public"]["Enums"]["app_permission"]
+          role_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission?: Database["public"]["Enums"]["app_permission"]
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_comments: {
         Row: {
           comment: string
@@ -477,29 +533,47 @@ export type Database = {
       user_roles: {
         Row: {
           created_at: string
+          custom_role_id: string | null
           id: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Insert: {
           created_at?: string
+          custom_role_id?: string | null
           id?: string
           role: Database["public"]["Enums"]["app_role"]
           user_id: string
         }
         Update: {
           created_at?: string
+          custom_role_id?: string | null
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_custom_role_id_fkey"
+            columns: ["custom_role_id"]
+            isOneToOne: false
+            referencedRelation: "custom_roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      has_permission: {
+        Args: {
+          _permission: Database["public"]["Enums"]["app_permission"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -510,6 +584,33 @@ export type Database = {
       is_szef: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      app_permission:
+        | "leads_view"
+        | "leads_create"
+        | "leads_edit"
+        | "leads_delete"
+        | "clients_view"
+        | "clients_create"
+        | "clients_edit"
+        | "clients_delete"
+        | "campaigns_view"
+        | "campaigns_create"
+        | "campaigns_edit"
+        | "campaigns_delete"
+        | "documents_view"
+        | "documents_create"
+        | "documents_edit"
+        | "documents_delete"
+        | "tasks_view"
+        | "tasks_create"
+        | "tasks_edit"
+        | "tasks_delete"
+        | "reports_generate"
+        | "invoices_generate"
+        | "contracts_generate"
+        | "presentations_generate"
+        | "team_manage"
+        | "roles_manage"
       app_role: "szef" | "pracownik"
     }
     CompositeTypes: {
@@ -638,6 +739,34 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_permission: [
+        "leads_view",
+        "leads_create",
+        "leads_edit",
+        "leads_delete",
+        "clients_view",
+        "clients_create",
+        "clients_edit",
+        "clients_delete",
+        "campaigns_view",
+        "campaigns_create",
+        "campaigns_edit",
+        "campaigns_delete",
+        "documents_view",
+        "documents_create",
+        "documents_edit",
+        "documents_delete",
+        "tasks_view",
+        "tasks_create",
+        "tasks_edit",
+        "tasks_delete",
+        "reports_generate",
+        "invoices_generate",
+        "contracts_generate",
+        "presentations_generate",
+        "team_manage",
+        "roles_manage",
+      ],
       app_role: ["szef", "pracownik"],
     },
   },
