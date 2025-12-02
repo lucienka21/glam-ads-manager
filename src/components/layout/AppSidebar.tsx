@@ -16,7 +16,8 @@ import {
   Shield,
   Crown,
   Target,
-  Mail
+  Mail,
+  CheckSquare
 } from "lucide-react";
 import {
   Sidebar,
@@ -41,6 +42,7 @@ import agencyLogo from "@/assets/agency-logo.png";
 
 const mainNavItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Zadania", url: "/tasks", icon: CheckSquare },
   { title: "Historia", url: "/history", icon: History },
 ];
 

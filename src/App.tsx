@@ -18,6 +18,7 @@ import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Campaigns from "./pages/Campaigns";
 import EmailTemplates from "./pages/EmailTemplates";
+import Tasks from "./pages/Tasks";
 import RoleManagement from "./pages/RoleManagement";
 import NotFound from "./pages/NotFound";
 
@@ -33,6 +34,7 @@ const App = () => (
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><DocumentHistory /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><Leads /></ProtectedRoute>} />
             <Route path="/leads/:id" element={<ProtectedRoute><LeadProfile /></ProtectedRoute>} />

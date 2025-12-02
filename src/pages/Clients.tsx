@@ -47,6 +47,7 @@ interface Client {
   monthly_budget: number | null;
   notes: string | null;
   created_at: string;
+  assigned_to: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -183,7 +184,7 @@ export default function Clients() {
     }
   };
 
-  const handleEdit = (client: Client & { assigned_to?: string }) => {
+  const handleEdit = (client: Client) => {
     setEditingClient(client);
     setFormData({
       salon_name: client.salon_name,
