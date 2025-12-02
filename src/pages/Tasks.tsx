@@ -27,7 +27,9 @@ import {
   MoreVertical,
   Pencil,
   Trash2,
-  Loader2
+  Loader2,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -54,6 +56,19 @@ interface Employee {
   id: string;
   email: string | null;
   full_name: string | null;
+}
+
+interface TaskComment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  comment: string;
+  created_at: string;
+  updated_at: string;
+  user?: {
+    email: string | null;
+    full_name: string | null;
+  };
 }
 
 const statusColors: Record<string, string> = {
@@ -89,6 +104,12 @@ export default function Tasks() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [activeTab, setActiveTab] = useState('my-tasks');
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false);
+  const [comments, setComments] = useState<TaskComment[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [editingComment, setEditingComment] = useState<TaskComment | null>(null);
+  const [editCommentText, setEditCommentText] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -250,6 +271,94 @@ export default function Tasks() {
     });
   };
 
+  const fetchComments = async (taskId: string) => {
+    const { data, error } = await supabase
+      .from('task_comments')
+      .select(`
+        *,
+        profiles!task_comments_user_id_fkey (
+          email,
+          full_name
+        )
+      `)
+      .eq('task_id', taskId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Błąd ładowania komentarzy:', error);
+      toast.error('Błąd ładowania komentarzy');
+    } else {
+      const mappedComments = (data || []).map((comment: any) => ({
+        ...comment,
+        user: comment.profiles
+      }));
+      setComments(mappedComments);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !selectedTask) return;
+
+    const { error } = await supabase
+      .from('task_comments')
+      .insert({
+        task_id: selectedTask.id,
+        user_id: user?.id,
+        comment: newComment.trim(),
+      });
+
+    if (error) {
+      console.error('Błąd dodawania komentarza:', error);
+      toast.error('Błąd dodawania komentarza');
+    } else {
+      toast.success('Komentarz dodany');
+      setNewComment('');
+      fetchComments(selectedTask.id);
+    }
+  };
+
+  const handleUpdateComment = async (commentId: string) => {
+    if (!editCommentText.trim()) return;
+
+    const { error } = await supabase
+      .from('task_comments')
+      .update({ comment: editCommentText.trim() })
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Błąd aktualizacji komentarza:', error);
+      toast.error('Błąd aktualizacji komentarza');
+    } else {
+      toast.success('Komentarz zaktualizowany');
+      setEditingComment(null);
+      setEditCommentText('');
+      if (selectedTask) fetchComments(selectedTask.id);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!confirm('Czy na pewno chcesz usunąć ten komentarz?')) return;
+
+    const { error } = await supabase
+      .from('task_comments')
+      .delete()
+      .eq('id', commentId);
+
+    if (error) {
+      console.error('Błąd usuwania komentarza:', error);
+      toast.error('Błąd usuwania komentarza');
+    } else {
+      toast.success('Komentarz usunięty');
+      if (selectedTask) fetchComments(selectedTask.id);
+    }
+  };
+
+  const handleOpenComments = (task: Task) => {
+    setSelectedTask(task);
+    setIsCommentsDialogOpen(true);
+    fetchComments(task.id);
+  };
+
   const myTasks = tasks.filter(t => t.assigned_to === user?.id);
   const agencyTasks = tasks.filter(t => t.is_agency_task);
   const teamTasks = tasks; // All tasks for szef to see team's work
@@ -301,6 +410,10 @@ export default function Tasks() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleOpenComments(task)}>
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  Komentarze
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleEdit(task)}>
                   <Pencil className="w-4 h-4 mr-2" />
                   Edytuj
@@ -547,6 +660,127 @@ export default function Tasks() {
             </>
           )}
         </Tabs>
+
+        {/* Comments Dialog */}
+        <Dialog open={isCommentsDialogOpen} onOpenChange={setIsCommentsDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <MessageSquare className="w-5 h-5" />
+                Komentarze - {selectedTask?.title}
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Comments List */}
+              <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                {comments.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Brak komentarzy</p>
+                  </div>
+                ) : (
+                  comments.map((comment) => (
+                    <Card key={comment.id} className="p-4 bg-secondary/30">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                            <User className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {comment.user?.full_name || comment.user?.email || 'Użytkownik'}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(new Date(comment.created_at), 'd MMMM yyyy, HH:mm', { locale: pl })}
+                              {comment.updated_at !== comment.created_at && ' (edytowany)'}
+                            </p>
+                          </div>
+                        </div>
+                        {comment.user_id === user?.id && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {
+                                setEditingComment(comment);
+                                setEditCommentText(comment.comment);
+                              }}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Edytuj
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className="text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Usuń
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                      {editingComment?.id === comment.id ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            className="form-input-elegant"
+                            rows={3}
+                          />
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => handleUpdateComment(comment.id)}
+                            >
+                              Zapisz
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => {
+                                setEditingComment(null);
+                                setEditCommentText('');
+                              }}
+                            >
+                              Anuluj
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm whitespace-pre-wrap">{comment.comment}</p>
+                      )}
+                    </Card>
+                  ))
+                )}
+              </div>
+
+              {/* Add Comment Form */}
+              <div className="border-t pt-4">
+                <Label className="mb-2">Dodaj komentarz</Label>
+                <div className="flex gap-2">
+                  <Textarea
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    placeholder="Wpisz komentarz..."
+                    className="form-input-elegant flex-1"
+                    rows={3}
+                  />
+                </div>
+                <Button 
+                  onClick={handleAddComment}
+                  disabled={!newComment.trim()}
+                  className="mt-2 w-full"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Wyślij komentarz
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </AppLayout>
   );
