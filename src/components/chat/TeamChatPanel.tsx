@@ -14,7 +14,8 @@ import {
   Trash2,
   Search,
   Smile,
-  ExternalLink
+  ExternalLink,
+  CheckSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -137,7 +138,8 @@ export function TeamChatPanel() {
     clients: ReferenceItem[];
     leads: ReferenceItem[];
     campaigns: ReferenceItem[];
-  }>({ documents: [], clients: [], leads: [], campaigns: [] });
+    tasks: ReferenceItem[];
+  }>({ documents: [], clients: [], leads: [], campaigns: [], tasks: [] });
   
   const { user } = useAuth();
   const { isSzef } = useUserRole();
@@ -207,6 +209,7 @@ export function TeamChatPanel() {
       client: new Set<string>(),
       lead: new Set<string>(),
       campaign: new Set<string>(),
+      task: new Set<string>(),
     };
 
     messagesData?.forEach(msg => {
@@ -215,7 +218,7 @@ export function TeamChatPanel() {
       }
     });
 
-    const [docsRes, clientsRes, leadsRes, campaignsRes] = await Promise.all([
+    const [docsRes, clientsRes, leadsRes, campaignsRes, tasksRes] = await Promise.all([
       referenceGroups.document.size > 0 
         ? supabase.from("documents").select("id, title").in("id", [...referenceGroups.document])
         : { data: [] },
@@ -228,6 +231,9 @@ export function TeamChatPanel() {
       referenceGroups.campaign.size > 0
         ? supabase.from("campaigns").select("id, name").in("id", [...referenceGroups.campaign])
         : { data: [] },
+      referenceGroups.task.size > 0
+        ? supabase.from("tasks").select("id, title").in("id", [...referenceGroups.task])
+        : { data: [] },
     ]);
 
     const referenceNames = new Map<string, string>();
@@ -235,6 +241,7 @@ export function TeamChatPanel() {
     clientsRes.data?.forEach(c => referenceNames.set(c.id, c.salon_name));
     leadsRes.data?.forEach(l => referenceNames.set(l.id, l.salon_name));
     campaignsRes.data?.forEach(c => referenceNames.set(c.id, c.name));
+    tasksRes.data?.forEach(t => referenceNames.set(t.id, t.title));
 
     // Build reactions map
     const reactionsMap = new Map<string, Reaction[]>();
@@ -285,11 +292,12 @@ export function TeamChatPanel() {
   }, [user, open, lastReadTime]);
 
   const fetchReferences = async () => {
-    const [docsRes, clientsRes, leadsRes, campaignsRes] = await Promise.all([
+    const [docsRes, clientsRes, leadsRes, campaignsRes, tasksRes] = await Promise.all([
       supabase.from("documents").select("id, title").order("created_at", { ascending: false }).limit(15),
       supabase.from("clients").select("id, salon_name").order("created_at", { ascending: false }).limit(15),
       supabase.from("leads").select("id, salon_name").order("created_at", { ascending: false }).limit(15),
       supabase.from("campaigns").select("id, name").order("created_at", { ascending: false }).limit(15),
+      supabase.from("tasks").select("id, title").order("created_at", { ascending: false }).limit(15),
     ]);
 
     setReferences({
@@ -297,6 +305,7 @@ export function TeamChatPanel() {
       clients: clientsRes.data?.map(c => ({ id: c.id, name: c.salon_name })) || [],
       leads: leadsRes.data?.map(l => ({ id: l.id, name: l.salon_name })) || [],
       campaigns: campaignsRes.data?.map(c => ({ id: c.id, name: c.name })) || [],
+      tasks: tasksRes.data?.map(t => ({ id: t.id, name: t.title })) || [],
     });
   };
 
@@ -393,6 +402,9 @@ export function TeamChatPanel() {
         case "campaign":
           navigate("/campaigns");
           break;
+        case "task":
+          navigate("/tasks");
+          break;
       }
     }, 300);
   };
@@ -403,6 +415,7 @@ export function TeamChatPanel() {
       case "client": return <Users className="w-3.5 h-3.5" />;
       case "lead": return <UserPlus className="w-3.5 h-3.5" />;
       case "campaign": return <Target className="w-3.5 h-3.5" />;
+      case "task": return <CheckSquare className="w-3.5 h-3.5" />;
       default: return null;
     }
   };
@@ -413,6 +426,7 @@ export function TeamChatPanel() {
       case "client": return "Klient";
       case "lead": return "Lead";
       case "campaign": return "Kampania";
+      case "task": return "Zadanie";
       default: return "";
     }
   };
@@ -852,6 +866,28 @@ export function TeamChatPanel() {
                           className="text-zinc-300 focus:bg-zinc-800 focus:text-white"
                         >
                           <span className="truncate">{campaign.name}</span>
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="text-zinc-300 focus:bg-zinc-800 focus:text-white">
+                    <CheckSquare className="w-4 h-4 mr-2 text-cyan-400" />
+                    Zadania ({references.tasks.length})
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="max-h-[250px] overflow-y-auto bg-zinc-900 border-zinc-800">
+                    {references.tasks.length === 0 ? (
+                      <DropdownMenuItem disabled className="text-zinc-500">Brak zadań</DropdownMenuItem>
+                    ) : (
+                      references.tasks.map(task => (
+                        <DropdownMenuItem 
+                          key={task.id}
+                          onClick={() => setSelectedReference({ type: "task", id: task.id, name: task.name })}
+                          className="text-zinc-300 focus:bg-zinc-800 focus:text-white"
+                        >
+                          <span className="truncate">{task.name}</span>
                         </DropdownMenuItem>
                       ))
                     )}
