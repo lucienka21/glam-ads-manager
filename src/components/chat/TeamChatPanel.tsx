@@ -351,17 +351,53 @@ export function TeamChatPanel() {
     if (!newMessage.trim() || !user) return;
 
     setSending(true);
-    const { error } = await supabase.from("team_messages").insert({
+    const messageContent = newMessage.trim();
+    
+    const { data: messageData, error } = await supabase.from("team_messages").insert({
       user_id: user.id,
-      content: newMessage.trim(),
+      content: messageContent,
       reference_type: selectedReference?.type || null,
       reference_id: selectedReference?.id || null,
       reply_to_id: replyTo?.id || null,
-    });
+    }).select().single();
 
     if (error) {
       toast.error("Błąd wysyłania wiadomości");
     } else {
+      // Check for mentions and create notifications
+      const mentionRegex = /@(\w+)/g;
+      let match;
+      const mentionedNames: string[] = [];
+      
+      while ((match = mentionRegex.exec(messageContent)) !== null) {
+        mentionedNames.push(match[1].toLowerCase());
+      }
+      
+      if (mentionedNames.length > 0) {
+        // Find user IDs for mentioned names
+        const mentionedUsers = teamMembers.filter(m => 
+          mentionedNames.some(name => 
+            m.name.toLowerCase().replace(/\s/g, "").includes(name) ||
+            name.includes(m.name.toLowerCase().replace(/\s/g, ""))
+          )
+        );
+        
+        // Create notifications for each mentioned user
+        for (const mentionedUser of mentionedUsers) {
+          if (mentionedUser.id !== user.id) {
+            await supabase.from("notifications").insert({
+              user_id: mentionedUser.id,
+              type: "mention",
+              title: `${user.email?.split("@")[0] || "Użytkownik"} oznaczył/a Cię w wiadomości`,
+              content: messageContent.slice(0, 100) + (messageContent.length > 100 ? "..." : ""),
+              reference_type: "chat",
+              reference_id: messageData?.id || null,
+              created_by: user.id,
+            });
+          }
+        }
+      }
+      
       setNewMessage("");
       setSelectedReference(null);
       setReplyTo(null);
@@ -484,19 +520,20 @@ export function TeamChatPanel() {
         parts.push(content.slice(lastIndex, match.index));
       }
       
-      // Add the mention with highlight
+      // Add the mention with beautiful highlight
       const mentionName = match[1];
       parts.push(
         <span 
           key={match.index} 
           className={cn(
-            "px-1 rounded font-medium",
+            "inline-flex items-center px-1.5 py-0.5 rounded-md font-medium text-sm mx-0.5 transition-all",
             isOwn 
-              ? "bg-white/20 text-white" 
-              : "bg-pink-500/20 text-pink-400"
+              ? "bg-white/25 text-white hover:bg-white/35" 
+              : "bg-gradient-to-r from-pink-500/30 to-rose-500/30 text-pink-300 hover:from-pink-500/40 hover:to-rose-500/40 ring-1 ring-pink-500/40"
           )}
         >
-          @{mentionName}
+          <span className="opacity-70 mr-0.5">@</span>
+          {mentionName}
         </span>
       );
       
