@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, 
   FileText, 
@@ -66,8 +68,46 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const { isSzef, role } = useUserRole();
   const currentPath = location.pathname;
+  const [incompleteTasks, setIncompleteTasks] = useState(0);
 
   const isActive = (path: string) => currentPath === path;
+
+  useEffect(() => {
+    if (!user) return;
+
+    const loadIncompleteTasks = async () => {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('id')
+        .neq('status', 'completed');
+
+      if (!error && data) {
+        setIncompleteTasks(data.length);
+      }
+    };
+
+    loadIncompleteTasks();
+
+    // Subscribe to task changes for real-time updates
+    const channel = supabase
+      .channel('task-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+        },
+        () => {
+          loadIncompleteTasks();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -110,6 +150,11 @@ export function AppSidebar() {
                   >
                     <item.icon className="w-4 h-4" />
                     <span className="text-sm font-medium">{item.title}</span>
+                    {item.title === "Zadania" && incompleteTasks > 0 && (
+                      <span className="ml-auto bg-pink-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                        {incompleteTasks}
+                      </span>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
