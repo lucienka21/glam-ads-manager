@@ -152,7 +152,7 @@ export default function Tasks() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!formData.title) {
       toast.error('Tytuł zadania jest wymagany');
       return;
@@ -160,6 +160,7 @@ export default function Tasks() {
 
     if (!user?.id) {
       toast.error('Musisz być zalogowany, aby dodać zadanie');
+      console.error('Brak użytkownika przy próbie dodania zadania');
       return;
     }
 
@@ -174,33 +175,40 @@ export default function Tasks() {
       created_by: user.id,
     };
 
-    console.log('Submitting task:', submitData);
+    console.log('Submitting task with user:', user.id, 'data:', submitData);
 
-    if (editingTask) {
-      const { error } = await supabase
-        .from('tasks')
-        .update(submitData)
-        .eq('id', editingTask.id);
+    try {
+      if (editingTask) {
+        const { error } = await supabase
+          .from('tasks')
+          .update(submitData)
+          .eq('id', editingTask.id);
 
-      if (error) {
-        console.error('Błąd aktualizacji zadania:', error);
-        toast.error(`Błąd aktualizacji zadania: ${error.message}`);
+        if (error) {
+          console.error('Błąd aktualizacji zadania (RLS?):', error);
+          toast.error(`Błąd aktualizacji zadania: ${error.message}`);
+        } else {
+          toast.success('Zadanie zaktualizowane');
+          fetchTasks();
+        }
       } else {
-        toast.success('Zadanie zaktualizowane');
-        fetchTasks();
-      }
-    } else {
-      const { error } = await supabase
-        .from('tasks')
-        .insert(submitData);
+        const { data, error } = await supabase
+          .from('tasks')
+          .insert(submitData)
+          .select();
 
-      if (error) {
-        console.error('Błąd dodawania zadania:', error);
-        toast.error(`Błąd dodawania zadania: ${error.message}`);
-      } else {
-        toast.success('Zadanie dodane');
-        fetchTasks();
+        if (error) {
+          console.error('Błąd dodawania zadania (RLS?):', error, 'submitData:', submitData);
+          toast.error(`Błąd dodawania zadania: ${error.message}`);
+        } else {
+          console.log('Zadanie dodane:', data);
+          toast.success('Zadanie dodane');
+          fetchTasks();
+        }
       }
+    } catch (err) {
+      console.error('Nieoczekiwany błąd przy zapisie zadania:', err);
+      toast.error('Nieoczekiwany błąd przy zapisie zadania');
     }
 
     setIsDialogOpen(false);
