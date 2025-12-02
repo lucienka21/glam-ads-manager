@@ -745,22 +745,77 @@ export default function Tasks() {
             )}
           </TabsList>
 
-          <TabsContent value={activeTab} className="space-y-4">
+          <TabsContent value="my" className="space-y-4">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
-            ) : visibleTasks.length === 0 ? (
+            ) : myTasks.length === 0 ? (
               <div className="text-center py-12">
                 <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Brak zadań w tym widoku</p>
               </div>
             ) : (
               <div className="grid gap-4 md:grid-cols-2">
-                {visibleTasks.map(renderTaskCard)}
+                {myTasks.map(renderTaskCard)}
               </div>
             )}
           </TabsContent>
+
+          <TabsContent value="agency" className="space-y-4">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : agencyTasks.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Brak zadań w tym widoku</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {agencyTasks.map(renderTaskCard)}
+              </div>
+            )}
+          </TabsContent>
+
+          {isSzef && (
+            <>
+              <TabsContent value="team" className="space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : teamTasks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Brak zadań w tym widoku</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {teamTasks.map(renderTaskCard)}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="all" className="space-y-4">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  </div>
+                ) : tasks.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                    <p className="text-muted-foreground">Brak zadań w tym widoku</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {tasks.map(renderTaskCard)}
+                  </div>
+                )}
+              </TabsContent>
+            </>
+          )}
         </Tabs>
 
         {/* Comments dialog */}
