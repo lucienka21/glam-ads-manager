@@ -151,6 +151,7 @@ export default function Clients() {
       monthly_budget: formData.monthly_budget ? parseFloat(formData.monthly_budget) : null,
       notes: formData.notes || null,
       assigned_to: formData.assigned_to || null,
+      industry: formData.industry || null,
     };
 
     if (editingClient) {
@@ -213,6 +214,7 @@ export default function Clients() {
       monthly_budget: client.monthly_budget?.toString() || '',
       notes: client.notes || '',
       assigned_to: client.assigned_to || '',
+      industry: client.industry || '',
     });
     setIsDialogOpen(true);
   };
@@ -232,6 +234,7 @@ export default function Clients() {
       monthly_budget: '',
       notes: '',
       assigned_to: '',
+      industry: '',
     });
   };
 
@@ -239,9 +242,11 @@ export default function Clients() {
     const matchesSearch =
       client.salon_name.toLowerCase().includes(search.toLowerCase()) ||
       client.owner_name?.toLowerCase().includes(search.toLowerCase()) ||
-      client.city?.toLowerCase().includes(search.toLowerCase());
+      client.city?.toLowerCase().includes(search.toLowerCase()) ||
+      client.industry?.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesIndustry = industryFilter === 'all' || client.industry === industryFilter;
+    return matchesSearch && matchesStatus && matchesIndustry;
   });
 
   const formatCurrency = (value: number | null) => {
@@ -364,6 +369,20 @@ export default function Clients() {
                     </Select>
                   </div>
                   <div>
+                    <Label>Branża</Label>
+                    <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
+                      <SelectTrigger className="form-input-elegant">
+                        <SelectValue placeholder="Wybierz branżę" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Brak</SelectItem>
+                        {industryOptions.map((ind) => (
+                          <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
                     <Label>Przypisany pracownik</Label>
                     <Select value={formData.assigned_to} onValueChange={(v) => setFormData({ ...formData, assigned_to: v })}>
                       <SelectTrigger className="form-input-elegant">
@@ -416,6 +435,17 @@ export default function Clients() {
               <SelectItem value="all">Wszystkie</SelectItem>
               {Object.entries(statusLabels).map(([value, label]) => (
                 <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={industryFilter} onValueChange={setIndustryFilter}>
+            <SelectTrigger className="w-[180px] form-input-elegant">
+              <SelectValue placeholder="Branża" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Wszystkie branże</SelectItem>
+              {industryOptions.map((ind) => (
+                <SelectItem key={ind} value={ind}>{ind}</SelectItem>
               ))}
             </SelectContent>
           </Select>

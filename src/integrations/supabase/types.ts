@@ -160,6 +160,7 @@ export type Database = {
           email: string | null
           facebook_page: string | null
           id: string
+          industry: string | null
           instagram: string | null
           lead_id: string | null
           monthly_budget: number | null
@@ -179,6 +180,7 @@ export type Database = {
           email?: string | null
           facebook_page?: string | null
           id?: string
+          industry?: string | null
           instagram?: string | null
           lead_id?: string | null
           monthly_budget?: number | null
@@ -198,6 +200,7 @@ export type Database = {
           email?: string | null
           facebook_page?: string | null
           id?: string
+          industry?: string | null
           instagram?: string | null
           lead_id?: string | null
           monthly_budget?: number | null

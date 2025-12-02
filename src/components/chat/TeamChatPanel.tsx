@@ -15,7 +15,8 @@ import {
   Search,
   Smile,
   ExternalLink,
-  CheckSquare
+  CheckSquare,
+  AtSign
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,6 +141,10 @@ export function TeamChatPanel() {
     campaigns: ReferenceItem[];
     tasks: ReferenceItem[];
   }>({ documents: [], clients: [], leads: [], campaigns: [], tasks: [] });
+  const [teamMembers, setTeamMembers] = useState<{ id: string; name: string }[]>([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState("");
+  const [mentionIndex, setMentionIndex] = useState(0);
   
   const { user } = useAuth();
   const { isSzef } = useUserRole();
@@ -292,12 +297,13 @@ export function TeamChatPanel() {
   }, [user, open, lastReadTime]);
 
   const fetchReferences = async () => {
-    const [docsRes, clientsRes, leadsRes, campaignsRes, tasksRes] = await Promise.all([
+    const [docsRes, clientsRes, leadsRes, campaignsRes, tasksRes, profilesRes] = await Promise.all([
       supabase.from("documents").select("id, title").order("created_at", { ascending: false }).limit(15),
       supabase.from("clients").select("id, salon_name").order("created_at", { ascending: false }).limit(15),
       supabase.from("leads").select("id, salon_name").order("created_at", { ascending: false }).limit(15),
       supabase.from("campaigns").select("id, name").order("created_at", { ascending: false }).limit(15),
       supabase.from("tasks").select("id, title").order("created_at", { ascending: false }).limit(15),
+      supabase.from("profiles").select("id, full_name, email"),
     ]);
 
     setReferences({
@@ -307,6 +313,13 @@ export function TeamChatPanel() {
       campaigns: campaignsRes.data?.map(c => ({ id: c.id, name: c.name })) || [],
       tasks: tasksRes.data?.map(t => ({ id: t.id, name: t.title })) || [],
     });
+
+    setTeamMembers(
+      profilesRes.data?.map(p => ({ 
+        id: p.id, 
+        name: p.full_name || p.email?.split("@")[0] || "Użytkownik" 
+      })) || []
+    );
   };
 
   useEffect(() => {
@@ -456,6 +469,120 @@ export function TeamChatPanel() {
       }
     });
     return grouped;
+  };
+
+  // Helper function to render message content with highlighted mentions
+  const renderMessageWithMentions = (content: string, isOwn: boolean) => {
+    const mentionRegex = /@(\w+)/g;
+    const parts: (string | JSX.Element)[] = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = mentionRegex.exec(content)) !== null) {
+      // Add text before the mention
+      if (match.index > lastIndex) {
+        parts.push(content.slice(lastIndex, match.index));
+      }
+      
+      // Add the mention with highlight
+      const mentionName = match[1];
+      parts.push(
+        <span 
+          key={match.index} 
+          className={cn(
+            "px-1 rounded font-medium",
+            isOwn 
+              ? "bg-white/20 text-white" 
+              : "bg-pink-500/20 text-pink-400"
+          )}
+        >
+          @{mentionName}
+        </span>
+      );
+      
+      lastIndex = match.index + match[0].length;
+    }
+
+    // Add remaining text
+    if (lastIndex < content.length) {
+      parts.push(content.slice(lastIndex));
+    }
+
+    return parts.length > 0 ? parts : content;
+  };
+
+  // Filter team members based on mention query
+  const filteredMentions = teamMembers.filter(m => 
+    m.name.toLowerCase().includes(mentionQuery.toLowerCase())
+  ).slice(0, 5);
+
+  // Handle input change with @ mention detection
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setNewMessage(value);
+    
+    // Check if user typed @
+    const cursorPos = e.target.selectionStart || 0;
+    const textBeforeCursor = value.slice(0, cursorPos);
+    const atIndex = textBeforeCursor.lastIndexOf("@");
+    
+    if (atIndex !== -1) {
+      const textAfterAt = textBeforeCursor.slice(atIndex + 1);
+      // Show mentions if @ is followed by letters or nothing
+      if (/^[\w]*$/.test(textAfterAt)) {
+        setMentionQuery(textAfterAt);
+        setShowMentions(true);
+        setMentionIndex(0);
+        return;
+      }
+    }
+    
+    setShowMentions(false);
+    setMentionQuery("");
+  };
+
+  // Insert mention into message
+  const insertMention = (memberName: string) => {
+    const input = inputRef.current;
+    if (!input) return;
+    
+    const cursorPos = input.selectionStart || 0;
+    const textBeforeCursor = newMessage.slice(0, cursorPos);
+    const atIndex = textBeforeCursor.lastIndexOf("@");
+    
+    if (atIndex !== -1) {
+      const newText = 
+        newMessage.slice(0, atIndex) + 
+        "@" + memberName.replace(/\s/g, "") + " " + 
+        newMessage.slice(cursorPos);
+      setNewMessage(newText);
+    }
+    
+    setShowMentions(false);
+    setMentionQuery("");
+    input.focus();
+  };
+
+  // Handle keyboard navigation in mentions
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (showMentions && filteredMentions.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setMentionIndex(prev => (prev + 1) % filteredMentions.length);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setMentionIndex(prev => (prev - 1 + filteredMentions.length) % filteredMentions.length);
+      } else if (e.key === "Enter" || e.key === "Tab") {
+        e.preventDefault();
+        insertMention(filteredMentions[mentionIndex].name);
+        return;
+      } else if (e.key === "Escape") {
+        setShowMentions(false);
+      }
+    } else if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
@@ -636,7 +763,7 @@ export function TeamChatPanel() {
                                 )}
                               >
                                 <p className="text-sm whitespace-pre-wrap break-words leading-relaxed">
-                                  {msg.content}
+                                  {renderMessageWithMentions(msg.content, isOwn)}
                                 </p>
                                 
                                 {isOwn && (
@@ -896,19 +1023,44 @@ export function TeamChatPanel() {
               </DropdownMenuContent>
             </DropdownMenu>
             
-            <Input
-              ref={inputRef}
-              placeholder="Napisz wiadomość..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSend();
-                }
-              }}
-              className="flex-1 h-10 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-pink-500 rounded-xl"
-            />
+            <div className="flex-1 relative">
+              {/* Mentions dropdown */}
+              {showMentions && filteredMentions.length > 0 && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50">
+                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+                    Oznacz użytkownika
+                  </div>
+                  {filteredMentions.map((member, idx) => (
+                    <button
+                      key={member.id}
+                      onClick={() => insertMention(member.name)}
+                      className={cn(
+                        "w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
+                        idx === mentionIndex 
+                          ? "bg-pink-500/20 text-pink-300" 
+                          : "text-zinc-300 hover:bg-zinc-800"
+                      )}
+                    >
+                      <Avatar className="w-6 h-6">
+                        <AvatarFallback className="bg-zinc-700 text-zinc-300 text-xs">
+                          {getInitials(member.name, null)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>@{member.name.replace(/\s/g, "")}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              <Input
+                ref={inputRef}
+                placeholder="Napisz wiadomość... (użyj @ aby oznaczyć)"
+                value={newMessage}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyDown}
+                className="w-full h-10 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-pink-500 rounded-xl"
+              />
+            </div>
             
             <Button 
               size="icon"
