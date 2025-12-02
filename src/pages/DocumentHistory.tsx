@@ -324,16 +324,16 @@ export default function DocumentHistory() {
                 key={doc.id}
                 className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-colors group"
               >
-                {/* Thumbnail */}
+                {/* Thumbnail - landscape for reports */}
                 <div 
-                  className="aspect-video bg-zinc-900/50 relative overflow-hidden cursor-pointer"
+                  className={`${doc.type === "report" ? "aspect-[16/9]" : "aspect-video"} bg-zinc-900/50 relative overflow-hidden cursor-pointer`}
                   onClick={() => handleOpenDocument(doc)}
                 >
                   {doc.thumbnail ? (
                     <img 
                       src={doc.thumbnail} 
                       alt={doc.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      className={`w-full h-full ${doc.type === "report" ? "object-cover" : "object-cover"} group-hover:scale-105 transition-transform`}
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
