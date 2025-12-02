@@ -275,13 +275,13 @@ export default function Dashboard() {
                     navigate(urls[doc.type]);
                   }}
                 >
-                  {/* Thumbnail - landscape for reports, shows full image */}
-                  <div className="aspect-video bg-zinc-900 relative overflow-hidden flex items-center justify-center">
+                  {/* Thumbnail - consistent landscape display */}
+                  <div className="aspect-[16/9] bg-zinc-900 relative overflow-hidden flex items-center justify-center p-2">
                     {doc.thumbnail ? (
                       <img 
                         src={doc.thumbnail} 
                         alt={doc.title}
-                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                       />
                     ) : (
                       <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
