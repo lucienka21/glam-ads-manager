@@ -49,7 +49,9 @@ interface TaskRow {
   created_by: string | null;
   is_agency_task: boolean;
   completed_at: string | null;
+  completed_by: string | null;
   created_at: string;
+  updated_at: string;
 }
 
 interface Employee {
@@ -120,7 +122,8 @@ export default function Tasks() {
 
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskRow | null>(null);
-  const [activeTab, setActiveTab] = useState<'my' | 'agency' | 'team' | 'all'>('my');
+  const [activeTab, setActiveTab] = useState<'my' | 'agency' | 'team' | 'history'>('my');
+  const [userFilter, setUserFilter] = useState<string>('all');
 
 const [formData, setFormData] = useState({
   title: '',
@@ -378,12 +381,15 @@ const payload = {
   };
 
   const handleToggleCompleted = async (task: TaskRow, completed: boolean) => {
+    if (!user) return;
+
     try {
       const { error } = await supabase
         .from('tasks')
         .update({
           status: completed ? 'completed' : 'todo',
           completed_at: completed ? new Date().toISOString() : null,
+          completed_by: completed ? user.id : null,
         })
         .eq('id', task.id);
 
@@ -391,6 +397,7 @@ const payload = {
         console.error('Error updating task status', error);
         toast.error('Błąd aktualizacji statusu');
       } else {
+        toast.success(completed ? 'Zadanie ukończone' : 'Zadanie wznowione');
         void loadInitialData();
       }
     } catch (err) {
@@ -538,20 +545,52 @@ const payload = {
 
   // ---------- DERIVED LISTS ----------
 
-  const myTasks = useMemo(
-    () => tasks.filter((t) => 
-      t.assigned_to === user?.id || 
-      (t.created_by === user?.id && !t.is_agency_task && !t.assigned_to)
-    ),
-    [tasks, user?.id]
-  );
-
-  const agencyTasks = useMemo(
-    () => tasks.filter((t) => t.is_agency_task),
+  const activeTasks = useMemo(
+    () => tasks.filter((t) => t.status !== 'completed'),
     [tasks]
   );
 
-  const teamTasks = useMemo(() => tasks, [tasks]);
+  const completedTasks = useMemo(
+    () => tasks.filter((t) => t.status === 'completed'),
+    [tasks]
+  );
+
+  const myTasks = useMemo(
+    () => activeTasks.filter((t) => 
+      t.assigned_to === user?.id || 
+      (t.created_by === user?.id && !t.is_agency_task && !t.assigned_to)
+    ),
+    [activeTasks, user?.id]
+  );
+
+  const agencyTasks = useMemo(
+    () => activeTasks.filter((t) => t.is_agency_task),
+    [activeTasks]
+  );
+
+  const teamTasks = useMemo(() => activeTasks, [activeTasks]);
+
+  const filteredHistoryTasks = useMemo(() => {
+    if (userFilter === 'all') return completedTasks;
+    return completedTasks.filter(
+      (t) => t.assigned_to === userFilter || t.created_by === userFilter
+    );
+  }, [completedTasks, userFilter]);
+
+  const allUsers = useMemo(() => {
+    const userMap = new Map<string, string>();
+    tasks.forEach((task) => {
+      if (task.assigned_to) {
+        const emp = employees.find(e => e.id === task.assigned_to);
+        if (emp) userMap.set(task.assigned_to, emp.full_name || emp.email || 'Nieznany');
+      }
+      if (task.created_by) {
+        const emp = employees.find(e => e.id === task.created_by);
+        if (emp) userMap.set(task.created_by, emp.full_name || emp.email || 'Nieznany');
+      }
+    });
+    return Array.from(userMap.entries()).map(([id, name]) => ({ id, name }));
+  }, [tasks, employees]);
 
   const visibleTasks = (() => {
     switch (activeTab) {
@@ -559,8 +598,8 @@ const payload = {
         return agencyTasks;
       case 'team':
         return teamTasks;
-      case 'all':
-        return tasks;
+      case 'history':
+        return filteredHistoryTasks;
       case 'my':
       default:
         return myTasks;
@@ -571,6 +610,8 @@ const payload = {
 
   const renderTaskCard = (task: TaskRow) => {
     const assignedEmployee = employees.find((e) => e.id === task.assigned_to);
+    const creatorEmployee = employees.find((e) => e.id === task.created_by);
+    const completerEmployee = employees.find((e) => e.id === task.completed_by);
     const isOverdue =
       task.due_date &&
       task.status !== 'completed' &&
@@ -581,13 +622,15 @@ const payload = {
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3 flex-1">
-              <Checkbox
-                checked={task.status === 'completed'}
-                onCheckedChange={(checked) =>
-                  handleToggleCompleted(task, Boolean(checked))
-                }
-                className="mt-1"
-              />
+              {activeTab !== 'history' && (
+                <Checkbox
+                  checked={task.status === 'completed'}
+                  onCheckedChange={(checked) =>
+                    handleToggleCompleted(task, Boolean(checked))
+                  }
+                  className="mt-1"
+                />
+              )}
               <div className="flex-1 min-w-0">
                 <CardTitle
                   className={`text-base ${
@@ -604,9 +647,11 @@ const payload = {
                   </p>
                 )}
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <Badge className={statusColors[task.status] || statusColors.todo}>
-                    {statusLabels[task.status] || task.status}
-                  </Badge>
+                  {activeTab !== 'history' && (
+                    <Badge className={statusColors[task.status] || statusColors.todo}>
+                      {statusLabels[task.status] || task.status}
+                    </Badge>
+                  )}
                   <Badge
                     className={priorityColors[task.priority] || priorityColors.medium}
                   >
@@ -632,26 +677,40 @@ const payload = {
                   <MessageSquare className="w-4 h-4 mr-2" />
                   Komentarze
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openEditTaskDialog(task)}>
-                  <Pencil className="w-4 h-4 mr-2" />
-                  Edytuj
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => handleDeleteTask(task)}
-                  className="text-destructive"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Usuń
-                </DropdownMenuItem>
+                {activeTab !== 'history' && (
+                  <DropdownMenuItem onClick={() => openEditTaskDialog(task)}>
+                    <Pencil className="w-4 h-4 mr-2" />
+                    Edytuj
+                  </DropdownMenuItem>
+                )}
+                {activeTab !== 'history' && (
+                  <DropdownMenuItem
+                    onClick={() => handleDeleteTask(task)}
+                    className="text-destructive"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Usuń
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </CardHeader>
         <CardContent className="pt-0 space-y-2">
+          <div className="text-xs text-muted-foreground">
+            Utworzone przez: {creatorEmployee?.full_name || creatorEmployee?.email || 'Nieznany'} • {safeFormat(task.created_at, 'dd.MM.yyyy HH:mm')}
+          </div>
+          
+          {task.status === 'completed' && task.completed_by && task.completed_at && (
+            <div className="text-xs text-green-400/80">
+              Ukończone przez: {completerEmployee?.full_name || completerEmployee?.email || 'Nieznany'} • {safeFormat(task.completed_at, 'dd.MM.yyyy HH:mm')}
+            </div>
+          )}
+
           {assignedEmployee && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="w-3.5 h-3.5" />
-              <span>{assignedEmployee.full_name || assignedEmployee.email}</span>
+              <span>Przypisane do: {assignedEmployee.full_name || assignedEmployee.email}</span>
             </div>
           )}
           {task.due_date && (
@@ -862,17 +921,35 @@ const payload = {
               Agencyjne ({agencyTasks.length})
             </TabsTrigger>
             {isSzef && (
-              <>
-                <TabsTrigger value="team" className="gap-2">
-                  <Users className="w-4 h-4" />
-                  Zespół ({teamTasks.length})
-                </TabsTrigger>
-                <TabsTrigger value="all" className="gap-2">
-                  Wszystkie ({tasks.length})
-                </TabsTrigger>
-              </>
+              <TabsTrigger value="team" className="gap-2">
+                <Users className="w-4 h-4" />
+                Zespół ({teamTasks.length})
+              </TabsTrigger>
             )}
+            <TabsTrigger value="history" className="gap-2">
+              <CheckCircle2 className="w-4 h-4" />
+              Historia ({completedTasks.length})
+            </TabsTrigger>
           </TabsList>
+
+          {activeTab === 'history' && (
+            <div className="my-4">
+              <Label className="mb-2 block">Filtruj po użytkowniku</Label>
+              <Select value={userFilter} onValueChange={setUserFilter}>
+                <SelectTrigger className="w-64 bg-card border-border">
+                  <SelectValue placeholder="Wszyscy użytkownicy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                  {allUsers.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <TabsContent value="my" className="space-y-4">
             {loading ? (
@@ -909,42 +986,40 @@ const payload = {
           </TabsContent>
 
           {isSzef && (
-            <>
-              <TabsContent value="team" className="space-y-4">
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : teamTasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Brak zadań w tym widoku</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {teamTasks.map(renderTaskCard)}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="all" className="space-y-4">
-                {loading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                  </div>
-                ) : tasks.length === 0 ? (
-                  <div className="text-center py-12">
-                    <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                    <p className="text-muted-foreground">Brak zadań w tym widoku</p>
-                  </div>
-                ) : (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {tasks.map(renderTaskCard)}
-                  </div>
-                )}
-              </TabsContent>
-            </>
+            <TabsContent value="team" className="space-y-4">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                </div>
+              ) : teamTasks.length === 0 ? (
+                <div className="text-center py-12">
+                  <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Brak zadań w tym widoku</p>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2">
+                  {teamTasks.map(renderTaskCard)}
+                </div>
+              )}
+            </TabsContent>
           )}
+
+          <TabsContent value="history" className="space-y-4">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredHistoryTasks.length === 0 ? (
+              <div className="text-center py-12">
+                <CheckCircle2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Brak ukończonych zadań</p>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2">
+                {filteredHistoryTasks.map(renderTaskCard)}
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
 
         {/* Comments dialog */}
