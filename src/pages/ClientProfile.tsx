@@ -22,7 +22,10 @@ import {
   TrendingUp,
   Loader2,
   ExternalLink,
-  User
+  User,
+  CheckSquare,
+  Clock,
+  AlertCircle
 } from 'lucide-react';
 
 interface Client {
@@ -67,6 +70,15 @@ interface Document {
   created_at: string;
 }
 
+interface Task {
+  id: string;
+  title: string;
+  status: string;
+  priority: string;
+  due_date: string | null;
+  created_at: string;
+}
+
 const statusColors: Record<string, string> = {
   active: 'bg-green-500/20 text-green-400 border-green-500/30',
   paused: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
@@ -107,6 +119,7 @@ export default function ClientProfile() {
   const [assignedEmployee, setAssignedEmployee] = useState<Profile | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -160,6 +173,15 @@ export default function ClientProfile() {
       .order('created_at', { ascending: false });
     
     setDocuments(documentsData || []);
+
+    // Fetch tasks for this client
+    const { data: tasksData } = await supabase
+      .from('tasks')
+      .select('id, title, status, priority, due_date, created_at')
+      .eq('client_id', id)
+      .order('created_at', { ascending: false });
+    
+    setTasks(tasksData || []);
     setLoading(false);
   };
 
@@ -420,6 +442,66 @@ export default function ClientProfile() {
                     <ExternalLink className="w-4 h-4 text-muted-foreground" />
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Tasks Section */}
+        <Card className="border-border/50 bg-card/80">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CheckSquare className="w-5 h-5" />
+              Zadania ({tasks.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {tasks.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-8">
+                Brak zadań dla tego klienta
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {tasks.map((task) => {
+                  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'completed';
+                  return (
+                    <div 
+                      key={task.id} 
+                      className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
+                      onClick={() => navigate('/tasks')}
+                    >
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                        task.status === 'completed' ? 'bg-green-500/20' :
+                        task.status === 'in_progress' ? 'bg-blue-500/20' :
+                        'bg-zinc-500/20'
+                      }`}>
+                        {task.status === 'completed' ? (
+                          <CheckSquare className="w-5 h-5 text-green-400" />
+                        ) : (
+                          <Clock className="w-5 h-5 text-blue-400" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate text-sm">{task.title}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <Badge className={`text-[10px] ${
+                            task.priority === 'high' ? 'bg-red-500/20 text-red-400' :
+                            task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                            'bg-zinc-500/20 text-zinc-400'
+                          }`}>
+                            {task.priority === 'high' ? 'Wysoki' : task.priority === 'medium' ? 'Średni' : 'Niski'}
+                          </Badge>
+                          {task.due_date && (
+                            <span className={`text-xs flex items-center gap-1 ${isOverdue ? 'text-red-400' : 'text-muted-foreground'}`}>
+                              {isOverdue && <AlertCircle className="w-3 h-3" />}
+                              {format(new Date(task.due_date), 'd MMM', { locale: pl })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>

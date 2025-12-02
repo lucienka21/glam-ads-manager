@@ -52,12 +52,18 @@ interface TaskRow {
   completed_by: string | null;
   created_at: string;
   updated_at: string;
+  client_id: string | null;
 }
 
 interface Employee {
   id: string;
   email: string | null;
   full_name: string | null;
+}
+
+interface Client {
+  id: string;
+  salon_name: string;
 }
 
 interface TaskCommentRow {
@@ -118,6 +124,7 @@ export default function Tasks() {
 
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
@@ -133,6 +140,7 @@ const [formData, setFormData] = useState({
   due_date: '',
   assigned_to: UNASSIGNED_VALUE,
   is_agency_task: false,
+  client_id: '',
 });
 
   const [isCommentsDialogOpen, setIsCommentsDialogOpen] = useState(false);
@@ -183,9 +191,10 @@ const [formData, setFormData] = useState({
   const loadInitialData = async () => {
     setLoading(true);
     try {
-      const [tasksRes, employeesRes] = await Promise.all([
+      const [tasksRes, employeesRes, clientsRes] = await Promise.all([
         supabase.from('tasks').select('*').order('created_at', { ascending: false }),
         supabase.from('profiles').select('id, email, full_name').order('full_name'),
+        supabase.from('clients').select('id, salon_name').order('salon_name'),
       ]);
 
       if (tasksRes.error) {
@@ -201,6 +210,12 @@ const [formData, setFormData] = useState({
         console.error('Error loading employees', employeesRes.error);
       } else {
         setEmployees(employeesRes.data || []);
+      }
+      
+      if (clientsRes.error) {
+        console.error('Error loading clients', clientsRes.error);
+      } else {
+        setClients(clientsRes.data || []);
       }
     } finally {
       setLoading(false);
@@ -273,6 +288,7 @@ const openNewTaskDialog = () => {
     due_date: '',
     assigned_to: UNASSIGNED_VALUE,
     is_agency_task: false,
+    client_id: '',
   });
   setIsTaskDialogOpen(true);
 };
@@ -287,6 +303,7 @@ const openEditTaskDialog = (task: TaskRow) => {
     due_date: task.due_date || '',
     assigned_to: task.assigned_to || UNASSIGNED_VALUE,
     is_agency_task: task.is_agency_task,
+    client_id: task.client_id || '',
   });
   setIsTaskDialogOpen(true);
 };
@@ -316,6 +333,7 @@ const payload = {
       : formData.assigned_to || null,
   is_agency_task: formData.is_agency_task,
   created_by: editingTask?.created_by || user.id,
+  client_id: formData.client_id || null,
 };
 
     try {
@@ -882,6 +900,27 @@ const payload = {
                     }
                     className="form-input-elegant"
                   />
+                </div>
+                <div>
+                  <Label>Klient (opcjonalnie)</Label>
+                  <Select
+                    value={formData.client_id}
+                    onValueChange={(v) =>
+                      setFormData((prev) => ({ ...prev, client_id: v === 'none' ? '' : v }))
+                    }
+                  >
+                    <SelectTrigger className="form-input-elegant">
+                      <SelectValue placeholder="Wybierz klienta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Brak klienta</SelectItem>
+                      {clients.map((client) => (
+                        <SelectItem key={client.id} value={client.id}>
+                          {client.salon_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
 <Label>Przypisz do</Label>
