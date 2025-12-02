@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { format, isPast, isToday, formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { AnnouncementBanner } from "@/components/dashboard/AnnouncementBanner";
+import { SalesFunnel } from "@/components/dashboard/SalesFunnel";
 
 interface LeadReminder {
   id: string;
@@ -221,6 +222,9 @@ export default function Dashboard() {
             <p className="text-2xl font-bold text-foreground">{stats.contracts}</p>
           </div>
         </div>
+
+        {/* Sales Funnel */}
+        <SalesFunnel />
 
         {/* Generators Grid */}
         <div>
