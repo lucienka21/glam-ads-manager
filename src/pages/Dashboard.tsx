@@ -275,22 +275,20 @@ export default function Dashboard() {
                     navigate(urls[doc.type]);
                   }}
                 >
-                  {/* Thumbnail - landscape for reports */}
-                  <div className={`${doc.type === "report" ? "aspect-[16/9]" : "aspect-[16/10]"} bg-zinc-900/50 relative overflow-hidden`}>
+                  {/* Thumbnail - landscape for reports, shows full image */}
+                  <div className="aspect-video bg-zinc-900 relative overflow-hidden flex items-center justify-center">
                     {doc.thumbnail ? (
                       <img 
                         src={doc.thumbnail} 
                         alt={doc.title}
-                        className={`w-full h-full ${doc.type === "report" ? "object-cover" : "object-contain"} group-hover:scale-105 transition-transform`}
+                        className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
-                          {doc.type === "report" && <FileText className="w-6 h-6" />}
-                          {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
-                          {doc.type === "contract" && <FileSignature className="w-6 h-6" />}
-                          {doc.type === "presentation" && <Presentation className="w-6 h-6" />}
-                        </div>
+                      <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
+                        {doc.type === "report" && <FileText className="w-6 h-6" />}
+                        {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
+                        {doc.type === "contract" && <FileSignature className="w-6 h-6" />}
+                        {doc.type === "presentation" && <Presentation className="w-6 h-6" />}
                       </div>
                     )}
                   </div>

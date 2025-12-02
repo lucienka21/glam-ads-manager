@@ -324,25 +324,23 @@ export default function DocumentHistory() {
                 key={doc.id}
                 className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-colors group"
               >
-                {/* Thumbnail - landscape for reports */}
+                {/* Thumbnail - shows full image without cropping */}
                 <div 
-                  className={`${doc.type === "report" ? "aspect-[16/9]" : "aspect-video"} bg-zinc-900/50 relative overflow-hidden cursor-pointer`}
+                  className="aspect-video bg-zinc-900 relative overflow-hidden cursor-pointer flex items-center justify-center"
                   onClick={() => handleOpenDocument(doc)}
                 >
                   {doc.thumbnail ? (
                     <img 
                       src={doc.thumbnail} 
                       alt={doc.title}
-                      className={`w-full h-full ${doc.type === "report" ? "object-cover" : "object-cover"} group-hover:scale-105 transition-transform`}
+                      className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
-                        {doc.type === "report" && <FileText className="w-6 h-6" />}
-                        {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
-                        {doc.type === "contract" && <FileSignature className="w-6 h-6" />}
-                        {doc.type === "presentation" && <Presentation className="w-6 h-6" />}
-                      </div>
+                    <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
+                      {doc.type === "report" && <FileText className="w-6 h-6" />}
+                      {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
+                      {doc.type === "contract" && <FileSignature className="w-6 h-6" />}
+                      {doc.type === "presentation" && <Presentation className="w-6 h-6" />}
                     </div>
                   )}
                 </div>
