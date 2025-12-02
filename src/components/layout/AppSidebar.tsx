@@ -76,14 +76,39 @@ export function AppSidebar() {
     if (!user) return;
 
     const loadIncompleteTasks = async () => {
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
+
+      const isSzef = userRoles?.role === 'szef';
+
       const { data, error } = await supabase
         .from('tasks')
-        .select('id')
+        .select('id, status, assigned_to, is_agency_task, created_by')
         .neq('status', 'completed');
 
-      if (!error && data) {
-        setIncompleteTasks(data.length);
+      if (error) {
+        console.error('Error loading incomplete tasks:', error);
+        return;
       }
+
+      const incomplete = (data || []).filter((task) => {
+        if (isSzef) {
+          // Szef sees only their own tasks and agency tasks
+          return (
+            task.assigned_to === user.id ||
+            task.is_agency_task ||
+            (task.created_by === user.id && !task.assigned_to && !task.is_agency_task)
+          );
+        } else {
+          // Pracownik sees tasks assigned to them and agency tasks
+          return task.assigned_to === user.id || task.is_agency_task;
+        }
+      }).length;
+
+      setIncompleteTasks(incomplete);
     };
 
     loadIncompleteTasks();
