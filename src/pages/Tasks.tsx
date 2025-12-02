@@ -65,6 +65,7 @@ interface TaskCommentRow {
   comment: string;
   created_at: string;
   updated_at: string;
+  author_name?: string;
   user?: {
     email: string | null;
     full_name: string | null;
@@ -138,6 +139,7 @@ const [formData, setFormData] = useState({
   const [newComment, setNewComment] = useState('');
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editingCommentText, setEditingCommentText] = useState('');
+  const [taskComments, setTaskComments] = useState<Record<string, TaskCommentRow[]>>({});
 
   // ---------- DATA LOADING ----------
 
@@ -158,6 +160,8 @@ const [formData, setFormData] = useState({
         toast.error('Błąd ładowania zadań');
       } else {
         setTasks(tasksRes.data || []);
+        // Load last comment for each task
+        void loadTaskComments(tasksRes.data || []);
       }
 
       if (employeesRes.error) {
@@ -167,6 +171,60 @@ const [formData, setFormData] = useState({
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTaskComments = async (tasksList: TaskRow[]) => {
+    const taskIds = tasksList.map(t => t.id);
+    if (taskIds.length === 0) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('task_comments')
+        .select('id, task_id, user_id, comment, created_at, updated_at')
+        .in('task_id', taskIds)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error loading task comments', error);
+        return;
+      }
+
+      // Group comments by task_id (only keep last comment per task)
+      const commentsByTask: Record<string, TaskCommentRow[]> = {};
+      const userIds = new Set<string>();
+
+      (data || []).forEach((c: any) => {
+        if (!commentsByTask[c.task_id]) {
+          commentsByTask[c.task_id] = [];
+        }
+        commentsByTask[c.task_id].push(c);
+        userIds.add(c.user_id);
+      });
+
+      // Load profiles for comment authors
+      if (userIds.size > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, full_name, email')
+          .in('id', Array.from(userIds));
+
+        const profilesById = Object.fromEntries(
+          (profilesData || []).map(p => [p.id, { full_name: p.full_name, email: p.email }])
+        );
+
+        // Map profiles to comments
+        Object.keys(commentsByTask).forEach(taskId => {
+          commentsByTask[taskId] = commentsByTask[taskId].map(c => ({
+            ...c,
+            author_name: profilesById[c.user_id]?.full_name || profilesById[c.user_id]?.email || 'Nieznany'
+          }));
+        });
+      }
+
+      setTaskComments(commentsByTask);
+    } catch (err) {
+      console.error('Unexpected error loading task comments', err);
     }
   };
 
@@ -243,12 +301,14 @@ const payload = {
           setIsTaskDialogOpen(false);
         }
       } else {
-        const { error } = await supabase.from('tasks').insert({ ...payload, created_by: user.id });
+        console.log('Attempting to insert task with payload:', { ...payload, created_by: user.id });
+        const { data, error } = await supabase.from('tasks').insert({ ...payload, created_by: user.id }).select();
 
         if (error) {
           console.error('Error creating task', error);
           toast.error('Błąd dodawania zadania: ' + error.message);
         } else {
+          console.log('Task created successfully:', data);
           toast.success('Zadanie dodane');
           void loadInitialData();
           setIsTaskDialogOpen(false);
@@ -567,6 +627,19 @@ const payload = {
                 {safeFormat(task.due_date, 'd MMMM yyyy') || 'Nieprawidłowa data'}
               </span>
               {isOverdue && <span className="text-xs">(Zaległe)</span>}
+            </div>
+          )}
+          {taskComments[task.id] && taskComments[task.id].length > 0 && (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground border-t border-border/40 pt-2 mt-2">
+              <MessageSquare className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium mb-0.5">
+                  {taskComments[task.id][0].author_name} ({taskComments[task.id].length})
+                </p>
+                <p className="text-xs line-clamp-2">
+                  {taskComments[task.id][0].comment}
+                </p>
+              </div>
             </div>
           )}
         </CardContent>
