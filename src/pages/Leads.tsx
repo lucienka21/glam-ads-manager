@@ -863,7 +863,6 @@ export default function Leads() {
                         </SelectContent>
                       </Select>
                     </div>
-                    </div>
                     <div>
                       <Label>Źródło</Label>
                       <Input
@@ -1084,6 +1083,7 @@ export default function Leads() {
               </form>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats Cards */}
