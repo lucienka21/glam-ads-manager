@@ -160,6 +160,8 @@ export default function Leads() {
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
   const [tabFilter, setTabFilter] = useState<'due' | 'all'>('due');
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+  const [isBulkActionOpen, setIsBulkActionOpen] = useState(false);
   const [formData, setFormData] = useState({
     salon_name: '',
     owner_name: '',
@@ -633,6 +635,59 @@ export default function Leads() {
     return steps;
   };
 
+  const handleSelectLead = (leadId: string) => {
+    const newSelected = new Set(selectedLeads);
+    if (newSelected.has(leadId)) {
+      newSelected.delete(leadId);
+    } else {
+      newSelected.add(leadId);
+    }
+    setSelectedLeads(newSelected);
+  };
+
+  const handleSelectAll = () => {
+    if (selectedLeads.size === filteredLeads.length) {
+      setSelectedLeads(new Set());
+    } else {
+      setSelectedLeads(new Set(filteredLeads.map(l => l.id)));
+    }
+  };
+
+  const handleBulkMarkColdEmailSent = async () => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const updates = Array.from(selectedLeads).map(id => {
+      const lead = leads.find(l => l.id === id);
+      return supabase
+        .from('leads')
+        .update({ 
+          cold_email_sent: true, 
+          cold_email_date: lead?.cold_email_date || today,
+          last_contact_date: today,
+          status: 'contacted'
+        })
+        .eq('id', id);
+    });
+
+    await Promise.all(updates);
+    toast.success(`Oznaczono ${selectedLeads.size} leadów jako wysłane`);
+    setSelectedLeads(new Set());
+    fetchLeads();
+  };
+
+  const handleBulkChangeStatus = async (newStatus: string) => {
+    const updates = Array.from(selectedLeads).map(id =>
+      supabase
+        .from('leads')
+        .update({ status: newStatus })
+        .eq('id', id)
+    );
+
+    await Promise.all(updates);
+    toast.success(`Zmieniono status dla ${selectedLeads.size} leadów`);
+    setSelectedLeads(new Set());
+    fetchLeads();
+  };
+
   return (
     <AppLayout>
       <div className="p-6 space-y-6 animate-fade-in">
@@ -1073,8 +1128,55 @@ export default function Leads() {
           )}
         </div>
 
+        {/* Bulk Actions */}
+        {selectedLeads.size > 0 && (
+          <Card className="border-border/50 bg-card/80 p-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium">
+                  Wybrano: {selectedLeads.size} {selectedLeads.size === 1 ? 'lead' : 'leadów'}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSelectedLeads(new Set())}
+                >
+                  Anuluj
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleBulkMarkColdEmailSent}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Oznacz cold mail jako wysłane
+                </Button>
+                <Select onValueChange={handleBulkChangeStatus}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Zmień status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(statusLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+          <div className="flex items-center gap-2">
+            <Checkbox
+              checked={selectedLeads.size === filteredLeads.length && filteredLeads.length > 0}
+              onCheckedChange={handleSelectAll}
+            />
+            <span className="text-sm text-muted-foreground">Zaznacz wszystkie</span>
+          </div>
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
@@ -1131,21 +1233,31 @@ export default function Leads() {
                     {/* Header */}
                     <div className="p-4 border-b border-border/30">
                       <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h3 className="font-semibold truncate">{lead.salon_name}</h3>
-                            {lead.priority && (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded ${priorityColors[lead.priority]}`}>
-                                {priorityLabels[lead.priority]}
-                              </span>
+                        <div className="flex items-center gap-2">
+                          <Checkbox
+                            checked={selectedLeads.has(lead.id)}
+                            onCheckedChange={() => handleSelectLead(lead.id)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <div 
+                            className="flex-1 min-w-0 cursor-pointer"
+                            onClick={() => navigate(`/leads/${lead.id}`)}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold truncate">{lead.salon_name}</h3>
+                              {lead.priority && (
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded ${priorityColors[lead.priority]}`}>
+                                  {priorityLabels[lead.priority]}
+                                </span>
+                              )}
+                            </div>
+                            {lead.owner_name && (
+                              <p className="text-sm text-muted-foreground truncate">{lead.owner_name}</p>
                             )}
                           </div>
-                          {lead.owner_name && (
-                            <p className="text-sm text-muted-foreground truncate">{lead.owner_name}</p>
-                          )}
                         </div>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
@@ -1183,7 +1295,10 @@ export default function Leads() {
                     </div>
 
                     {/* Contact Info */}
-                    <div className="p-4 space-y-2 text-sm border-b border-border/30">
+                    <div 
+                      className="p-4 space-y-2 text-sm border-b border-border/30 cursor-pointer"
+                      onClick={() => navigate(`/leads/${lead.id}`)}
+                    >
                       {lead.city && (
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <MapPin className="w-3.5 h-3.5 shrink-0" />
@@ -1194,6 +1309,12 @@ export default function Leads() {
                         <div className="flex items-center gap-2 text-muted-foreground">
                           <Phone className="w-3.5 h-3.5 shrink-0" />
                           <span>{lead.phone}</span>
+                        </div>
+                      )}
+                      {lead.email && (
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Mail className="w-3.5 h-3.5 shrink-0" />
+                          <span className="truncate">{lead.email}</span>
                         </div>
                       )}
                     </div>
