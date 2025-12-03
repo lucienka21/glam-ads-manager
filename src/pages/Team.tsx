@@ -9,11 +9,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, MessageSquare, Crown, User, Search, Circle } from "lucide-react";
+import { Users, MessageSquare, Crown, User, Search, Circle, Shield } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { TeamChatPanel } from "@/components/chat/TeamChatPanel";
+import { EmbeddedTeamChat } from "@/components/chat/EmbeddedTeamChat";
 
 interface Profile {
   id: string;
@@ -185,13 +185,20 @@ export default function Team() {
                           )} />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="font-semibold text-foreground truncate">
                               {profile.full_name || profile.email?.split("@")[0] || "Użytkownik"}
                             </h3>
                             {profile.role === "szef" && (
-                              <Badge variant="outline" className="text-amber-500 border-amber-500/30 text-xs">
+                              <Badge variant="outline" className="text-amber-500 border-amber-500/30 bg-amber-500/10 text-xs gap-1">
+                                <Crown className="w-3 h-3" />
                                 Szef
+                              </Badge>
+                            )}
+                            {profile.role === "pracownik" && (
+                              <Badge variant="outline" className="text-blue-400 border-blue-400/30 bg-blue-500/10 text-xs gap-1">
+                                <Shield className="w-3 h-3" />
+                                Pracownik
                               </Badge>
                             )}
                           </div>
@@ -234,8 +241,8 @@ export default function Team() {
           </TabsContent>
 
           <TabsContent value="chat">
-            <Card>
-              <CardHeader>
+            <Card className="overflow-hidden">
+              <CardHeader className="pb-0">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-pink-400" />
                   Czat zespołowy
@@ -243,7 +250,7 @@ export default function Team() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="h-[600px]">
-                  <TeamChatPanel />
+                  <EmbeddedTeamChat />
                 </div>
               </CardContent>
             </Card>
