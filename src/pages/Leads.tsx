@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppSettings } from '@/hooks/useAppSettings';
 import { format, addDays, differenceInDays } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { 
@@ -166,6 +167,7 @@ const getNextFollowUpInfo = (lead: Lead): { type: string; dueDate: Date | null; 
 
 export default function Leads() {
   const { user } = useAuth();
+  const { settings } = useAppSettings();
   const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -173,7 +175,7 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [industryFilter, setIndustryFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(settings.defaultLeadView);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -206,6 +208,11 @@ export default function Leads() {
     email_follow_up_2_sent: false,
     email_follow_up_2_date: '',
   });
+
+  // Update viewMode when settings change
+  useEffect(() => {
+    setViewMode(settings.defaultLeadView);
+  }, [settings.defaultLeadView]);
 
   useEffect(() => {
     fetchLeads();

@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -7,29 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Settings as SettingsIcon, Bell, Volume2, Moon, Sun, Monitor, Save } from 'lucide-react';
-
-interface AppSettings {
-  notificationSound: boolean;
-  notificationVolume: number;
-  soundType: string;
-  theme: string;
-  compactMode: boolean;
-  showStatusIndicators: boolean;
-  autoRefreshInterval: number;
-  defaultLeadView: 'list' | 'kanban';
-}
-
-const defaultSettings: AppSettings = {
-  notificationSound: true,
-  notificationVolume: 50,
-  soundType: 'default',
-  theme: 'dark',
-  compactMode: false,
-  showStatusIndicators: true,
-  autoRefreshInterval: 30,
-  defaultLeadView: 'list',
-};
+import { Settings as SettingsIcon, Bell, Volume2, Moon, Sun, Monitor } from 'lucide-react';
+import { useAppSettings } from '@/hooks/useAppSettings';
 
 const soundOptions = [
   { value: 'default', label: 'Domyślny' },
@@ -39,47 +17,14 @@ const soundOptions = [
 ];
 
 export default function Settings() {
-  const [settings, setSettings] = useState<AppSettings>(defaultSettings);
-  const [hasChanges, setHasChanges] = useState(false);
-
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('app_settings');
-    if (savedSettings) {
-      setSettings({ ...defaultSettings, ...JSON.parse(savedSettings) });
-    }
-  }, []);
-
-  const updateSetting = <K extends keyof AppSettings>(key: K, value: AppSettings[K]) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    setHasChanges(true);
-  };
-
-  const saveSettings = () => {
-    localStorage.setItem('app_settings', JSON.stringify(settings));
-    setHasChanges(false);
-    toast.success('Ustawienia zapisane');
-    
-    // Dispatch event for other components to react
-    window.dispatchEvent(new CustomEvent('settingsChanged', { detail: settings }));
-  };
+  const { settings, updateSettings } = useAppSettings();
 
   const playTestSound = () => {
-    const audio = new Audio();
-    const soundUrl = getSoundUrl(settings.soundType);
-    audio.src = soundUrl;
-    audio.volume = settings.notificationVolume / 100;
-    audio.play().catch(() => {
-      // Fallback to Web Audio API beep
-      playBeep(settings.notificationVolume / 100, settings.soundType);
-    });
-  };
-
-  const getSoundUrl = (type: string) => {
-    // Using data URLs for sounds (simple beeps)
-    return '';
-  };
-
-  const playBeep = (volume: number, type: string) => {
+    if (!settings.notificationSound) {
+      toast.error('Dźwięki są wyłączone');
+      return;
+    }
+    
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
@@ -88,7 +33,6 @@ export default function Settings() {
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
       
-      // Different frequencies for different sound types
       const frequencies: Record<string, number> = {
         default: 800,
         chime: 1200,
@@ -96,36 +40,32 @@ export default function Settings() {
         ding: 1000,
       };
       
-      oscillator.frequency.value = frequencies[type] || 800;
-      oscillator.type = type === 'chime' ? 'sine' : type === 'pop' ? 'triangle' : 'square';
+      const volume = settings.notificationVolume / 100;
+      oscillator.frequency.value = frequencies[settings.soundType] || 800;
+      oscillator.type = settings.soundType === 'chime' ? 'sine' : settings.soundType === 'pop' ? 'triangle' : 'square';
       
       gainNode.gain.setValueAtTime(volume * 0.3, audioContext.currentTime);
       gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
       
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.3);
+      
+      toast.success('Test dźwięku');
     } catch (e) {
       console.error('Could not play sound:', e);
+      toast.error('Nie można odtworzyć dźwięku');
     }
   };
 
   return (
     <AppLayout>
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <SettingsIcon className="w-6 h-6 text-pink-400" />
-              Ustawienia
-            </h1>
-            <p className="text-muted-foreground mt-1">Dostosuj aplikację do swoich preferencji</p>
-          </div>
-          {hasChanges && (
-            <Button onClick={saveSettings} className="bg-pink-500 hover:bg-pink-600">
-              <Save className="w-4 h-4 mr-2" />
-              Zapisz zmiany
-            </Button>
-          )}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <SettingsIcon className="w-6 h-6 text-pink-400" />
+            Ustawienia
+          </h1>
+          <p className="text-muted-foreground mt-1">Dostosuj aplikację do swoich preferencji</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -146,7 +86,7 @@ export default function Settings() {
                 </div>
                 <Switch
                   checked={settings.notificationSound}
-                  onCheckedChange={(checked) => updateSetting('notificationSound', checked)}
+                  onCheckedChange={(checked) => updateSettings({ notificationSound: checked })}
                 />
               </div>
 
@@ -156,7 +96,7 @@ export default function Settings() {
                     <Label>Rodzaj dźwięku</Label>
                     <Select
                       value={settings.soundType}
-                      onValueChange={(value) => updateSetting('soundType', value)}
+                      onValueChange={(value) => updateSettings({ soundType: value })}
                     >
                       <SelectTrigger className="bg-zinc-800 border-zinc-700">
                         <SelectValue />
@@ -180,7 +120,7 @@ export default function Settings() {
                       <Volume2 className="w-4 h-4 text-muted-foreground" />
                       <Slider
                         value={[settings.notificationVolume]}
-                        onValueChange={([value]) => updateSetting('notificationVolume', value)}
+                        onValueChange={([value]) => updateSettings({ notificationVolume: value })}
                         max={100}
                         step={5}
                         className="flex-1"
@@ -211,7 +151,7 @@ export default function Settings() {
                 <Label>Motyw</Label>
                 <Select
                   value={settings.theme}
-                  onValueChange={(value) => updateSetting('theme', value)}
+                  onValueChange={(value: 'dark' | 'light' | 'system') => updateSettings({ theme: value })}
                 >
                   <SelectTrigger className="bg-zinc-800 border-zinc-700">
                     <SelectValue />
@@ -237,6 +177,9 @@ export default function Settings() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Aktualny motyw: {settings.theme === 'dark' ? 'ciemny' : settings.theme === 'light' ? 'jasny' : 'systemowy'}
+                </p>
               </div>
 
               <div className="flex items-center justify-between">
@@ -246,7 +189,7 @@ export default function Settings() {
                 </div>
                 <Switch
                   checked={settings.compactMode}
-                  onCheckedChange={(checked) => updateSetting('compactMode', checked)}
+                  onCheckedChange={(checked) => updateSettings({ compactMode: checked })}
                 />
               </div>
 
@@ -257,7 +200,7 @@ export default function Settings() {
                 </div>
                 <Switch
                   checked={settings.showStatusIndicators}
-                  onCheckedChange={(checked) => updateSetting('showStatusIndicators', checked)}
+                  onCheckedChange={(checked) => updateSettings({ showStatusIndicators: checked })}
                 />
               </div>
             </CardContent>
@@ -274,7 +217,7 @@ export default function Settings() {
                 <Label>Domyślny widok leadów</Label>
                 <Select
                   value={settings.defaultLeadView}
-                  onValueChange={(value: 'list' | 'kanban') => updateSetting('defaultLeadView', value)}
+                  onValueChange={(value: 'list' | 'kanban') => updateSettings({ defaultLeadView: value })}
                 >
                   <SelectTrigger className="bg-zinc-800 border-zinc-700">
                     <SelectValue />
@@ -293,7 +236,7 @@ export default function Settings() {
                 </div>
                 <Slider
                   value={[settings.autoRefreshInterval]}
-                  onValueChange={([value]) => updateSetting('autoRefreshInterval', value)}
+                  onValueChange={([value]) => updateSettings({ autoRefreshInterval: value })}
                   min={10}
                   max={120}
                   step={10}

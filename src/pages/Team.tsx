@@ -21,6 +21,7 @@ import { formatDistanceToNow, format, subDays, isAfter } from "date-fns";
 import { pl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { EmbeddedTeamChat } from "@/components/chat/EmbeddedTeamChat";
+import { isUserOnline } from "@/hooks/useActivityStatus";
 
 interface Profile {
   id: string;
@@ -244,12 +245,15 @@ export default function Team() {
       profile.email?.toLowerCase().includes(searchLower) ||
       profile.position?.toLowerCase().includes(searchLower);
     
-    const matchesStatus = statusFilter === "all" || profile.status === statusFilter;
+    // Use the computed status instead of stored status
+    const computedStatus = isUserOnline(profile.last_seen_at, profile.status);
+    const matchesStatus = statusFilter === "all" || computedStatus === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
 
-  const getStatusColor = (status: string | null) => {
+  const getStatusColor = (profile: UserWithRole) => {
+    const status = isUserOnline(profile.last_seen_at, profile.status);
     switch (status) {
       case "online": return "bg-emerald-500";
       case "away": return "bg-amber-500";
@@ -257,7 +261,8 @@ export default function Team() {
     }
   };
 
-  const getStatusLabel = (status: string | null) => {
+  const getStatusLabel = (profile: UserWithRole) => {
+    const status = isUserOnline(profile.last_seen_at, profile.status);
     switch (status) {
       case "online": return "Online";
       case "away": return "Zaraz wracam";
@@ -274,8 +279,8 @@ export default function Team() {
     }
   };
 
-  const onlineCount = profiles.filter(p => p.status === "online").length;
-  const awayCount = profiles.filter(p => p.status === "away").length;
+  const onlineCount = profiles.filter(p => isUserOnline(p.last_seen_at, p.status) === "online").length;
+  const awayCount = profiles.filter(p => isUserOnline(p.last_seen_at, p.status) === "away").length;
   const totalDocuments = Object.values(userStats).reduce((sum, s) => sum + s.documentsCount, 0);
   const totalTasksCompleted = Object.values(userStats).reduce((sum, s) => sum + s.tasksCompleted, 0);
   const totalMessages = Object.values(userStats).reduce((sum, s) => sum + s.messagesCount, 0);
@@ -510,9 +515,9 @@ export default function Team() {
                                 )}
                               </AvatarFallback>
                             </Avatar>
-                            <div className={cn(
+                          <div className={cn(
                               "absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-background",
-                              getStatusColor(profile.status)
+                              getStatusColor(profile)
                             )} />
                           </div>
                           <div className="flex-1 min-w-0">
@@ -543,12 +548,12 @@ export default function Team() {
                               )}
                               <Badge variant="outline" className={cn(
                                 "text-xs gap-1",
-                                profile.status === "online" ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" :
-                                profile.status === "away" ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : 
+                                isUserOnline(profile.last_seen_at, profile.status) === "online" ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" :
+                                isUserOnline(profile.last_seen_at, profile.status) === "away" ? "text-amber-400 border-amber-500/30 bg-amber-500/10" : 
                                 "text-zinc-400 border-zinc-500/30"
                               )}>
                                 <Circle className="w-2 h-2 fill-current" />
-                                {getStatusLabel(profile.status)}
+                                {getStatusLabel(profile)}
                               </Badge>
                             </div>
                           </div>

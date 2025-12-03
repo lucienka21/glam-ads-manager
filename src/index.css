@@ -117,13 +117,16 @@
 
   html {
     font-family: 'Inter', system-ui, sans-serif;
-    background-color: hsl(240 12% 6%);
   }
 
   body {
     @apply bg-background text-foreground antialiased;
     min-height: 100vh;
-    background-color: hsl(240 12% 6%);
+  }
+
+  /* Default to dark theme */
+  html:not(.light) {
+    @apply dark;
   }
 
   h1, h2, h3, h4, h5, h6 {
