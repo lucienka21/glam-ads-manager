@@ -644,7 +644,12 @@ const payload = {
     [activeTasks]
   );
 
-  const teamTasks = useMemo(() => activeTasks, [activeTasks]);
+  const teamTasks = useMemo(() => {
+    if (userFilter === 'all') return activeTasks;
+    return activeTasks.filter(
+      (t) => t.assigned_to === userFilter || t.created_by === userFilter
+    );
+  }, [activeTasks, userFilter]);
 
   const filteredHistoryTasks = useMemo(() => {
     if (userFilter === 'all') return completedTasks;
@@ -1022,45 +1027,48 @@ const payload = {
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as typeof activeTab)}
         >
-          <TabsList>
-            <TabsTrigger value="my" className="gap-2">
-              <User className="w-4 h-4" />
-              Moje ({myTasks.length})
-            </TabsTrigger>
-            <TabsTrigger value="agency" className="gap-2">
-              <Users className="w-4 h-4" />
-              Agencyjne ({agencyTasks.length})
-            </TabsTrigger>
-            {isSzef && (
-              <TabsTrigger value="team" className="gap-2">
-                <Users className="w-4 h-4" />
-                Zespół ({teamTasks.length})
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+            <TabsList>
+              <TabsTrigger value="my" className="gap-2">
+                <User className="w-4 h-4" />
+                Moje ({myTasks.length})
               </TabsTrigger>
-            )}
-            <TabsTrigger value="history" className="gap-2">
-              <CheckCircle2 className="w-4 h-4" />
-              Historia ({completedTasks.length})
-            </TabsTrigger>
-          </TabsList>
+              <TabsTrigger value="agency" className="gap-2">
+                <Users className="w-4 h-4" />
+                Agencyjne ({agencyTasks.length})
+              </TabsTrigger>
+              {isSzef && (
+                <TabsTrigger value="team" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  Zespół ({teamTasks.length})
+                </TabsTrigger>
+              )}
+              <TabsTrigger value="history" className="gap-2">
+                <CheckCircle2 className="w-4 h-4" />
+                Historia ({completedTasks.length})
+              </TabsTrigger>
+            </TabsList>
 
-          {activeTab === 'history' && (
-            <div className="my-4">
-              <Label className="mb-2 block">Filtruj po użytkowniku</Label>
-              <Select value={userFilter} onValueChange={setUserFilter}>
-                <SelectTrigger className="w-64 bg-card border-border">
-                  <SelectValue placeholder="Wszyscy użytkownicy" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
-                  {allUsers.map((u) => (
-                    <SelectItem key={u.id} value={u.id}>
-                      {u.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+            {/* User filter - visible for team and history tabs */}
+            {(activeTab === 'history' || (activeTab === 'team' && isSzef)) && (
+              <div className="flex items-center gap-2">
+                <Label className="text-sm text-muted-foreground whitespace-nowrap">Filtruj:</Label>
+                <Select value={userFilter} onValueChange={setUserFilter}>
+                  <SelectTrigger className="w-48 bg-card border-border">
+                    <SelectValue placeholder="Wszyscy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                    {employees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.full_name || emp.email || 'Nieznany'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
 
           <TabsContent value="my" className="space-y-4">
             {loading ? (
