@@ -12,6 +12,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useOnboardingTasks } from '@/hooks/useOnboardingTasks';
 import { 
   Plus, 
   Search, 
@@ -37,6 +38,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface Client {
   id: string;
@@ -83,6 +85,7 @@ const statusLabels: Record<string, string> = {
 export default function Clients() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { createOnboardingTasks } = useOnboardingTasks();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -92,6 +95,7 @@ export default function Clients() {
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [employees, setEmployees] = useState<{ id: string; email: string; full_name: string | null }[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [createOnboarding, setCreateOnboarding] = useState(true);
 
   const copyClientId = (e: React.MouseEvent, clientId: string) => {
     e.stopPropagation();
@@ -183,14 +187,27 @@ export default function Clients() {
         fetchClients();
       }
     } else {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('clients')
-        .insert({ ...submitData, created_by: user?.id });
+        .insert({ ...submitData, created_by: user?.id })
+        .select()
+        .single();
 
       if (error) {
         toast.error('Błąd dodawania klienta');
       } else {
         toast.success('Klient dodany');
+        
+        // Create onboarding tasks if checkbox is checked
+        if (createOnboarding && data && user?.id) {
+          await createOnboardingTasks(
+            data.id,
+            formData.salon_name,
+            formData.assigned_to || null,
+            user.id
+          );
+        }
+        
         fetchClients();
       }
     }
@@ -238,6 +255,7 @@ export default function Clients() {
 
   const resetForm = () => {
     setEditingClient(null);
+    setCreateOnboarding(true);
     setFormData({
       salon_name: '',
       owner_name: '',
@@ -439,6 +457,18 @@ export default function Clients() {
                       rows={3}
                     />
                   </div>
+                  {!editingClient && (
+                    <div className="col-span-2 flex items-center space-x-2 pt-2 border-t border-border/50">
+                      <Checkbox
+                        id="createOnboarding"
+                        checked={createOnboarding}
+                        onCheckedChange={(checked) => setCreateOnboarding(checked as boolean)}
+                      />
+                      <Label htmlFor="createOnboarding" className="text-sm cursor-pointer">
+                        Utwórz zadania onboardingowe (10 zadań)
+                      </Label>
+                    </div>
+                  )}
                 </div>
                 <Button type="submit" className="w-full bg-primary hover:bg-primary/90">
                   {editingClient ? 'Zapisz zmiany' : 'Dodaj klienta'}
