@@ -16,7 +16,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { notifyTaskCompleted, notifyTaskAssigned } from '@/lib/notifications';
+import { notifyTaskCompleted, notifyTaskAssigned, processMentions } from '@/lib/notifications';
+import { renderMentions } from '@/components/ui/Mention';
 import {
   Plus,
   CheckCircle2,
@@ -535,6 +536,17 @@ const payload = {
         console.error('Error adding comment', error);
         toast.error('Błąd dodawania komentarza: ' + error.message);
       } else {
+        // Process mentions in task comment
+        const profiles = employees.map(e => ({ id: e.id, full_name: e.full_name, email: e.email }));
+        await processMentions(
+          text,
+          profiles,
+          user.id,
+          `komentarzu do zadania "${selectedTask.title}"`,
+          'task_comment',
+          selectedTask.id
+        );
+        
         setNewComment('');
         await loadComments(selectedTask.id);
       }
@@ -1239,7 +1251,7 @@ const payload = {
                           </div>
                         ) : (
                           <p className="text-sm whitespace-pre-wrap text-foreground leading-relaxed">
-                            {comment.comment}
+                            {renderMentions(comment.comment)}
                           </p>
                         )}
                       </Card>

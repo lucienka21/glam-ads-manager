@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Megaphone, Plus, X, Pin, Trash2, Edit2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Megaphone, Plus, X, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,6 +16,9 @@ import {
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
+import { processMentions } from "@/lib/notifications";
+import { renderMentions } from "@/components/ui/Mention";
+import { AnnouncementComments } from "@/components/announcements/AnnouncementComments";
 
 interface Announcement {
   id: string;
@@ -33,7 +37,11 @@ export function AnnouncementBanner() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [isPinned, setIsPinned] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [commentCounts, setCommentCounts] = useState<Record<string, number>>({});
+  const [profiles, setProfiles] = useState<{ id: string; full_name: string | null; email: string | null }[]>([]);
   const { isSzef } = useUserRole();
+  const { user } = useAuth();
 
   const fetchAnnouncements = async () => {
     const { data, error } = await supabase
@@ -45,12 +53,29 @@ export function AnnouncementBanner() {
 
     if (!error && data) {
       setAnnouncements(data);
+      
+      // Fetch comment counts
+      const counts: Record<string, number> = {};
+      for (const announcement of data) {
+        const { count } = await supabase
+          .from("announcement_comments")
+          .select("*", { count: "exact", head: true })
+          .eq("announcement_id", announcement.id);
+        counts[announcement.id] = count || 0;
+      }
+      setCommentCounts(counts);
     }
     setLoading(false);
   };
 
+  const fetchProfiles = async () => {
+    const { data } = await supabase.from("profiles").select("id, full_name, email");
+    setProfiles(data || []);
+  };
+
   useEffect(() => {
     fetchAnnouncements();
+    fetchProfiles();
   }, []);
 
   const handleSubmit = async () => {
@@ -59,7 +84,6 @@ export function AnnouncementBanner() {
       return;
     }
 
-    const user = (await supabase.auth.getUser()).data.user;
     if (!user) return;
 
     if (editingAnnouncement) {
@@ -74,17 +98,30 @@ export function AnnouncementBanner() {
       }
       toast.success("Komunikat zaktualizowany");
     } else {
-      const { error } = await supabase.from("announcements").insert({
+      const { data, error } = await supabase.from("announcements").insert({
         title,
         content,
         is_pinned: isPinned,
         created_by: user.id,
-      });
+      }).select().single();
 
       if (error) {
         toast.error("Błąd podczas dodawania");
         return;
       }
+      
+      // Process mentions in announcement content
+      if (data) {
+        await processMentions(
+          content,
+          profiles,
+          user.id,
+          "komunikacie",
+          "announcement",
+          data.id
+        );
+      }
+      
       toast.success("Komunikat dodany");
     }
 
@@ -202,11 +239,28 @@ export function AnnouncementBanner() {
                     </h4>
                   </div>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {announcement.content}
+                    {renderMentions(announcement.content)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground/60 mt-1.5">
-                    {format(new Date(announcement.created_at), "d MMM, HH:mm", { locale: pl })}
-                  </p>
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <p className="text-[10px] text-muted-foreground/60">
+                      {format(new Date(announcement.created_at), "d MMM, HH:mm", { locale: pl })}
+                    </p>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedId(expandedId === announcement.id ? null : announcement.id);
+                      }}
+                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <MessageSquare className="w-3 h-3" />
+                      {commentCounts[announcement.id] || 0}
+                      {expandedId === announcement.id ? (
+                        <ChevronUp className="w-3 h-3" />
+                      ) : (
+                        <ChevronDown className="w-3 h-3" />
+                      )}
+                    </button>
+                  </div>
                 </div>
                 {isSzef && (
                   <div className="flex items-center gap-1 flex-shrink-0">
@@ -229,6 +283,9 @@ export function AnnouncementBanner() {
                   </div>
                 )}
               </div>
+              {expandedId === announcement.id && (
+                <AnnouncementComments announcementId={announcement.id} />
+              )}
             </div>
           ))}
         </div>

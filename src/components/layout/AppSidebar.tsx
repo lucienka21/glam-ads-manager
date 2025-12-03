@@ -20,7 +20,9 @@ import {
   Target,
   Mail,
   CheckSquare,
-  TrendingDown
+  TrendingDown,
+  Bell,
+  UsersRound
 } from "lucide-react";
 import {
   Sidebar,
@@ -46,6 +48,8 @@ import agencyLogo from "@/assets/agency-logo.png";
 const mainNavItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
   { title: "Zadania", url: "/tasks", icon: CheckSquare },
+  { title: "Zespół", url: "/team", icon: UsersRound },
+  { title: "Powiadomienia", url: "/notifications", icon: Bell },
   { title: "Historia", url: "/history", icon: History },
 ];
 
