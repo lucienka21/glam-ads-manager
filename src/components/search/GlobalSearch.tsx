@@ -32,12 +32,22 @@ export function GlobalSearch() {
     const searchTerm = `%${searchQuery}%`;
 
     try {
+      // Check if search query is a UUID (for ID search)
+      const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(searchQuery);
+      
       // Search users/profiles
-      const { data: profiles } = await supabase
+      let profileQuery = supabase
         .from("profiles")
         .select("id, full_name, email, position")
-        .or(`full_name.ilike.${searchTerm},email.ilike.${searchTerm}`)
         .limit(5);
+      
+      if (isUUID) {
+        profileQuery = profileQuery.eq("id", searchQuery);
+      } else {
+        profileQuery = profileQuery.or(`full_name.ilike.${searchTerm},email.ilike.${searchTerm}`);
+      }
+      
+      const { data: profiles } = await profileQuery;
 
       profiles?.forEach((p) => {
         searchResults.push({
@@ -50,11 +60,18 @@ export function GlobalSearch() {
       });
 
       // Search clients
-      const { data: clients } = await supabase
+      let clientQuery = supabase
         .from("clients")
         .select("id, salon_name, owner_name, city")
-        .or(`salon_name.ilike.${searchTerm},owner_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`)
         .limit(5);
+      
+      if (isUUID) {
+        clientQuery = clientQuery.eq("id", searchQuery);
+      } else {
+        clientQuery = clientQuery.or(`salon_name.ilike.${searchTerm},owner_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
+      }
+      
+      const { data: clients } = await clientQuery;
 
       clients?.forEach((c) => {
         searchResults.push({
@@ -67,11 +84,18 @@ export function GlobalSearch() {
       });
 
       // Search leads
-      const { data: leads } = await supabase
+      let leadQuery = supabase
         .from("leads")
         .select("id, salon_name, owner_name, city")
-        .or(`salon_name.ilike.${searchTerm},owner_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`)
         .limit(5);
+      
+      if (isUUID) {
+        leadQuery = leadQuery.eq("id", searchQuery);
+      } else {
+        leadQuery = leadQuery.or(`salon_name.ilike.${searchTerm},owner_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`);
+      }
+      
+      const { data: leads } = await leadQuery;
 
       leads?.forEach((l) => {
         searchResults.push({
@@ -84,11 +108,19 @@ export function GlobalSearch() {
       });
 
       // Search documents
-      const { data: documents } = await supabase
+      let docQuery = supabase
         .from("documents")
-        .select("id, type, title, subtitle")
-        .or(`title.ilike.${searchTerm},subtitle.ilike.${searchTerm}`)
+        .select("id, type, title, subtitle, created_by")
         .limit(5);
+      
+      if (isUUID) {
+        // Search by document ID or created_by (user ID)
+        docQuery = docQuery.or(`id.eq.${searchQuery},created_by.eq.${searchQuery}`);
+      } else {
+        docQuery = docQuery.or(`title.ilike.${searchTerm},subtitle.ilike.${searchTerm}`);
+      }
+      
+      const { data: documents } = await docQuery;
 
       documents?.forEach((d) => {
         const iconMap: Record<string, React.ReactNode> = {
@@ -107,11 +139,18 @@ export function GlobalSearch() {
       });
 
       // Search campaigns
-      const { data: campaigns } = await supabase
+      let campaignQuery = supabase
         .from("campaigns")
         .select("id, name")
-        .ilike("name", searchTerm)
         .limit(5);
+      
+      if (isUUID) {
+        campaignQuery = campaignQuery.eq("id", searchQuery);
+      } else {
+        campaignQuery = campaignQuery.ilike("name", searchTerm);
+      }
+      
+      const { data: campaigns } = await campaignQuery;
 
       campaigns?.forEach((c) => {
         searchResults.push({

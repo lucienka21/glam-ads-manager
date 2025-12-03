@@ -144,25 +144,32 @@ export default function UserProfile() {
     
     setDeleting(true);
     
-    // Delete user via admin API (this requires edge function for full deletion)
-    // For now, we'll just remove the profile and related data
     try {
-      // Delete user's documents
-      await supabase.from("documents").delete().eq("created_by", id);
+      // Get the current session token
+      const { data: { session } } = await supabase.auth.getSession();
       
-      // Delete user's role
-      await supabase.from("user_roles").delete().eq("user_id", id);
+      if (!session?.access_token) {
+        throw new Error("No session");
+      }
       
-      // Delete user's notifications
-      await supabase.from("notifications").delete().eq("user_id", id);
+      // Call edge function to delete user
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ userId: id }),
+        }
+      );
       
-      // Delete user's messages
-      await supabase.from("team_messages").delete().eq("user_id", id);
+      const result = await response.json();
       
-      // Delete profile (this should cascade)
-      const { error } = await supabase.from("profiles").delete().eq("id", id);
-      
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
       
       toast.success("Użytkownik został usunięty");
       navigate("/roles");
