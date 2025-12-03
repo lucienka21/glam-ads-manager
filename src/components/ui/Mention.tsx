@@ -10,15 +10,15 @@ export function Mention({ name, className, variant = 'default' }: MentionProps) 
   return (
     <span
       className={cn(
-        "inline-flex items-center px-1.5 py-0.5 rounded-md font-medium text-sm cursor-pointer transition-all",
-        variant === 'chat-own' && "bg-white/25 text-white hover:bg-white/35",
-        variant === 'chat-other' && "bg-gradient-to-r from-pink-500/30 to-rose-500/30 text-pink-300 hover:from-pink-500/40 hover:to-rose-500/40 ring-1 ring-pink-500/40",
-        variant === 'default' && "bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-400 hover:from-pink-500/30 hover:to-rose-500/30 ring-1 ring-pink-500/30",
+        "inline-flex items-center gap-0.5 px-2 py-0.5 rounded-lg font-semibold text-sm cursor-pointer transition-all duration-200 shadow-sm",
+        variant === 'chat-own' && "bg-white/30 text-white hover:bg-white/45 backdrop-blur-sm border border-white/20",
+        variant === 'chat-other' && "bg-gradient-to-r from-pink-500/40 to-rose-500/40 text-pink-200 hover:from-pink-500/50 hover:to-rose-500/50 ring-1 ring-pink-400/50 shadow-pink-500/20",
+        variant === 'default' && "bg-gradient-to-r from-pink-500/30 to-rose-500/30 text-pink-300 hover:from-pink-500/40 hover:to-rose-500/40 ring-1 ring-pink-400/40 shadow-pink-500/10",
         className
       )}
     >
-      <span className="mr-0.5 opacity-70">@</span>
-      {name}
+      <span className="text-pink-300/80">@</span>
+      <span className="font-bold">{name}</span>
     </span>
   );
 }
