@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from "react";
-import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2, Download, Upload, Users } from "lucide-react";
+import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2, Download, Upload, Users, ArrowUpDown, SortAsc, SortDesc } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,6 +27,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const typeLabels: Record<string, string> = {
   report: "Raport",
@@ -50,6 +56,17 @@ const filterOptions = [
   { value: "presentation", label: "Prezentacje" },
 ];
 
+type SortOption = "date-desc" | "date-asc" | "name-asc" | "name-desc" | "type-asc" | "type-desc";
+
+const sortOptions: { value: SortOption; label: string }[] = [
+  { value: "date-desc", label: "Data (najnowsze)" },
+  { value: "date-asc", label: "Data (najstarsze)" },
+  { value: "name-asc", label: "Nazwa (A-Z)" },
+  { value: "name-desc", label: "Nazwa (Z-A)" },
+  { value: "type-asc", label: "Typ (A-Z)" },
+  { value: "type-desc", label: "Typ (Z-A)" },
+];
+
 interface ClientOption {
   id: string;
   salon_name: string;
@@ -62,6 +79,7 @@ export default function DocumentHistory() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [clientFilter, setClientFilter] = useState<string>("all");
+  const [sortBy, setSortBy] = useState<SortOption>("date-desc");
 
   // Fetch clients for filter
   useEffect(() => {
@@ -151,27 +169,50 @@ export default function DocumentHistory() {
     return Array.from(monthsSet).sort().reverse();
   }, [history]);
 
-  const filteredHistory = history.filter((doc) => {
-    const matchesSearch = 
-      doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (doc.subtitle?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
-      (doc.clientId?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
-    const matchesFilter = filterType === "all" || doc.type === filterType;
-    const matchesClient = clientFilter === "all" || doc.clientId === clientFilter;
-    
-    // Month filter
-    let matchesMonth = true;
-    if (monthFilter !== "all") {
-      const docDate = parseISO(doc.createdAt);
-      const [year, month] = monthFilter.split("-").map(Number);
-      const filterDate = new Date(year, month - 1, 1);
-      const monthStart = startOfMonth(filterDate);
-      const monthEnd = endOfMonth(filterDate);
-      matchesMonth = isWithinInterval(docDate, { start: monthStart, end: monthEnd });
-    }
-    
-    return matchesSearch && matchesFilter && matchesMonth && matchesClient;
-  });
+  const filteredAndSortedHistory = useMemo(() => {
+    // First filter
+    const filtered = history.filter((doc) => {
+      const matchesSearch = 
+        doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (doc.subtitle?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+        (doc.clientId?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      const matchesFilter = filterType === "all" || doc.type === filterType;
+      const matchesClient = clientFilter === "all" || doc.clientId === clientFilter;
+      
+      // Month filter
+      let matchesMonth = true;
+      if (monthFilter !== "all") {
+        const docDate = parseISO(doc.createdAt);
+        const [year, month] = monthFilter.split("-").map(Number);
+        const filterDate = new Date(year, month - 1, 1);
+        const monthStart = startOfMonth(filterDate);
+        const monthEnd = endOfMonth(filterDate);
+        matchesMonth = isWithinInterval(docDate, { start: monthStart, end: monthEnd });
+      }
+      
+      return matchesSearch && matchesFilter && matchesMonth && matchesClient;
+    });
+
+    // Then sort
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "date-desc":
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case "date-asc":
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case "name-asc":
+          return a.title.localeCompare(b.title, 'pl');
+        case "name-desc":
+          return b.title.localeCompare(a.title, 'pl');
+        case "type-asc":
+          return (typeLabels[a.type] || a.type).localeCompare(typeLabels[b.type] || b.type, 'pl');
+        case "type-desc":
+          return (typeLabels[b.type] || b.type).localeCompare(typeLabels[a.type] || a.type, 'pl');
+        default:
+          return 0;
+      }
+    });
+  }, [history, searchQuery, filterType, clientFilter, monthFilter, sortBy]);
 
   const handleOpenDocument = (doc: CloudDocumentItem) => {
     setSelectedDocument(doc);
@@ -329,18 +370,41 @@ export default function DocumentHistory() {
             </div>
           </div>
           
-          {/* Type filter buttons */}
-          <div className="flex gap-2 flex-wrap">
-            {filterOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={filterType === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setFilterType(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
+          {/* Type filter buttons and Sort */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex gap-2 flex-wrap">
+              {filterOptions.map((option) => (
+                <Button
+                  key={option.value}
+                  variant={filterType === option.value ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setFilterType(option.value)}
+                >
+                  {option.label}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Sort dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <ArrowUpDown className="w-4 h-4" />
+                  Sortuj
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {sortOptions.map((option) => (
+                  <DropdownMenuItem 
+                    key={option.value} 
+                    onClick={() => setSortBy(option.value)}
+                    className={sortBy === option.value ? "bg-secondary" : ""}
+                  >
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -350,7 +414,7 @@ export default function DocumentHistory() {
             <Loader2 className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-spin" />
             <p className="text-lg text-muted-foreground">Ładowanie dokumentów...</p>
           </div>
-        ) : filteredHistory.length === 0 ? (
+        ) : filteredAndSortedHistory.length === 0 ? (
           <div className="bg-secondary/20 border border-border/30 rounded-xl p-12 text-center">
             <Filter className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-lg text-muted-foreground">Brak dokumentów</p>
@@ -363,10 +427,10 @@ export default function DocumentHistory() {
           </div>
         ) : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredHistory.map((doc) => (
+            {filteredAndSortedHistory.map((doc) => (
               <div
                 key={doc.id}
-                className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-colors group"
+                className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 transition-all duration-300 group"
               >
                 {/* Thumbnail - larger landscape display with full visibility */}
                 <div 
@@ -377,11 +441,11 @@ export default function DocumentHistory() {
                     <img 
                       src={doc.thumbnail} 
                       alt={doc.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
+                    <div className="w-full h-full flex items-center justify-center group-hover:bg-zinc-800/50 transition-colors">
+                      <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center group-hover:scale-110 transition-transform`}>
                         {doc.type === "report" && <FileText className="w-6 h-6" />}
                         {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
                         {doc.type === "contract" && <FileSignature className="w-6 h-6" />}

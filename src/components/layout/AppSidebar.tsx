@@ -290,6 +290,10 @@ export function AppSidebar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)}>
+              <User className="w-4 h-4 mr-2" />
+              Mój profil
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
               <LogOut className="w-4 h-4 mr-2" />
               Wyloguj się

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, X, FileText, Users, Target, Receipt, FileSignature, Presentation, Loader2 } from "lucide-react";
+import { Search, X, FileText, Users, Target, Receipt, FileSignature, Presentation, Loader2, User, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 
 interface SearchResult {
   id: string;
-  type: "client" | "document" | "campaign" | "lead";
+  type: "client" | "document" | "campaign" | "lead" | "user";
   title: string;
   subtitle: string;
   icon: React.ReactNode;
@@ -29,13 +29,31 @@ export function GlobalSearch() {
 
     setLoading(true);
     const searchResults: SearchResult[] = [];
+    const searchTerm = `%${searchQuery}%`;
 
     try {
+      // Search users/profiles
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, position")
+        .or(`full_name.ilike.${searchTerm},email.ilike.${searchTerm}`)
+        .limit(5);
+
+      profiles?.forEach((p) => {
+        searchResults.push({
+          id: p.id,
+          type: "user",
+          title: p.full_name || p.email || "Użytkownik",
+          subtitle: p.position || p.email || "",
+          icon: <User className="w-4 h-4 text-purple-400" />,
+        });
+      });
+
       // Search clients
       const { data: clients } = await supabase
         .from("clients")
         .select("id, salon_name, owner_name, city")
-        .or(`salon_name.ilike.%${searchQuery}%,owner_name.ilike.%${searchQuery}%,id.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%,phone.ilike.%${searchQuery}%`)
+        .or(`salon_name.ilike.${searchTerm},owner_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`)
         .limit(5);
 
       clients?.forEach((c) => {
@@ -43,16 +61,33 @@ export function GlobalSearch() {
           id: c.id,
           type: "client",
           title: c.salon_name,
-          subtitle: `${c.owner_name || ""} · ${c.city || ""}`,
+          subtitle: `${c.owner_name || ""} · ${c.city || ""}`.trim().replace(/^·\s*|·\s*$/g, ''),
           icon: <Users className="w-4 h-4 text-pink-400" />,
+        });
+      });
+
+      // Search leads
+      const { data: leads } = await supabase
+        .from("leads")
+        .select("id, salon_name, owner_name, city")
+        .or(`salon_name.ilike.${searchTerm},owner_name.ilike.${searchTerm},email.ilike.${searchTerm},phone.ilike.${searchTerm}`)
+        .limit(5);
+
+      leads?.forEach((l) => {
+        searchResults.push({
+          id: l.id,
+          type: "lead",
+          title: l.salon_name,
+          subtitle: `Lead · ${l.owner_name || l.city || ""}`.trim(),
+          icon: <Building2 className="w-4 h-4 text-amber-400" />,
         });
       });
 
       // Search documents
       const { data: documents } = await supabase
         .from("documents")
-        .select("id, type, title, subtitle, client_id")
-        .or(`title.ilike.%${searchQuery}%,subtitle.ilike.%${searchQuery}%,client_id.ilike.%${searchQuery}%`)
+        .select("id, type, title, subtitle")
+        .or(`title.ilike.${searchTerm},subtitle.ilike.${searchTerm}`)
         .limit(5);
 
       documents?.forEach((d) => {
@@ -74,8 +109,8 @@ export function GlobalSearch() {
       // Search campaigns
       const { data: campaigns } = await supabase
         .from("campaigns")
-        .select("id, name, client_id")
-        .or(`name.ilike.%${searchQuery}%,client_id.ilike.%${searchQuery}%`)
+        .select("id, name")
+        .ilike("name", searchTerm)
         .limit(5);
 
       campaigns?.forEach((c) => {
@@ -107,12 +142,22 @@ export function GlobalSearch() {
     setOpen(false);
     setQuery("");
     
-    if (result.type === "client") {
-      navigate(`/clients/${result.id}`);
-    } else if (result.type === "document") {
-      navigate(`/history`);
-    } else if (result.type === "campaign") {
-      navigate(`/campaigns`);
+    switch (result.type) {
+      case "client":
+        navigate(`/clients/${result.id}`);
+        break;
+      case "lead":
+        navigate(`/leads/${result.id}`);
+        break;
+      case "document":
+        navigate(`/history`);
+        break;
+      case "campaign":
+        navigate(`/campaigns`);
+        break;
+      case "user":
+        navigate(`/profile/${result.id}`);
+        break;
     }
   };
 
@@ -127,6 +172,21 @@ export function GlobalSearch() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
+
+  // Group results by type
+  const groupedResults = results.reduce((acc, result) => {
+    if (!acc[result.type]) acc[result.type] = [];
+    acc[result.type].push(result);
+    return acc;
+  }, {} as Record<string, SearchResult[]>);
+
+  const typeLabels: Record<string, string> = {
+    user: "Użytkownicy",
+    client: "Klienci",
+    lead: "Leady",
+    document: "Dokumenty",
+    campaign: "Kampanie",
+  };
 
   return (
     <>
@@ -152,7 +212,7 @@ export function GlobalSearch() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Wpisz ID klienta, nazwę, email..."
+                placeholder="Szukaj użytkowników, klientów, dokumentów..."
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 className="pl-10 pr-10"
@@ -171,7 +231,7 @@ export function GlobalSearch() {
             </div>
           </div>
 
-          <div className="px-2 pb-4 max-h-80 overflow-y-auto">
+          <div className="px-2 pb-4 max-h-96 overflow-y-auto">
             {loading && (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -185,21 +245,30 @@ export function GlobalSearch() {
             )}
 
             {!loading && results.length > 0 && (
-              <div className="space-y-1">
-                {results.map((result) => (
-                  <button
-                    key={`${result.type}-${result.id}`}
-                    onClick={() => handleSelect(result)}
-                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors text-left"
-                  >
-                    <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
-                      {result.icon}
+              <div className="space-y-4">
+                {Object.entries(groupedResults).map(([type, items]) => (
+                  <div key={type}>
+                    <p className="px-3 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {typeLabels[type] || type}
+                    </p>
+                    <div className="space-y-0.5">
+                      {items.map((result) => (
+                        <button
+                          key={`${result.type}-${result.id}`}
+                          onClick={() => handleSelect(result)}
+                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/80 transition-colors text-left"
+                        >
+                          <div className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center shrink-0">
+                            {result.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{result.title}</p>
+                            <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{result.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
-                    </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             )}

@@ -4,6 +4,7 @@ import { Menu } from "lucide-react";
 import { TeamChatPanel } from "@/components/chat/TeamChatPanel";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
+import { useActivityStatus } from "@/hooks/useActivityStatus";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -11,6 +12,9 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
+  // Track user activity status
+  useActivityStatus();
+  
   if (fullScreen) {
     return <>{children}</>;
   }
