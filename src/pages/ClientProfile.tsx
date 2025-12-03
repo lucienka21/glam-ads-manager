@@ -50,6 +50,7 @@ interface Client {
   email: string | null;
   instagram: string | null;
   facebook_page: string | null;
+  business_manager_url: string | null;
   status: string;
   contract_start_date: string | null;
   monthly_budget: number | null;
@@ -153,6 +154,7 @@ export default function ClientProfile() {
     email: '',
     instagram: '',
     facebook_page: '',
+    business_manager_url: '',
     status: 'active',
     contract_start_date: '',
     monthly_budget: '',
@@ -304,6 +306,7 @@ export default function ClientProfile() {
       email: client.email || '',
       instagram: client.instagram || '',
       facebook_page: client.facebook_page || '',
+      business_manager_url: client.business_manager_url || '',
       status: client.status,
       contract_start_date: client.contract_start_date || '',
       monthly_budget: client.monthly_budget?.toString() || '',
@@ -326,6 +329,7 @@ export default function ClientProfile() {
       email: formData.email || null,
       instagram: formData.instagram || null,
       facebook_page: formData.facebook_page || null,
+      business_manager_url: formData.business_manager_url || null,
       status: formData.status,
       contract_start_date: formData.contract_start_date || null,
       monthly_budget: formData.monthly_budget ? parseFloat(formData.monthly_budget) : null,
@@ -544,12 +548,29 @@ export default function ClientProfile() {
                   </div>
                   <div className="flex-1">
                     <p className="text-xs text-muted-foreground">Facebook</p>
-                    <p className="font-medium truncate">{client.facebook_page}</p>
+                    <p className="font-medium text-blue-400">Otwórz stronę</p>
                   </div>
                   <ExternalLink className="w-4 h-4 text-muted-foreground" />
                 </a>
               )}
-              {!client.phone && !client.email && !client.instagram && !client.facebook_page && (
+              {client.business_manager_url && (
+                <a 
+                  href={client.business_manager_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                    <Target className="w-5 h-5 text-indigo-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Business Manager</p>
+                    <p className="font-medium text-indigo-400">Otwórz panel</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                </a>
+              )}
+              {!client.phone && !client.email && !client.instagram && !client.facebook_page && !client.business_manager_url && (
                 <p className="text-muted-foreground text-sm text-center py-4">Brak danych kontaktowych</p>
               )}
             </CardContent>
@@ -887,6 +908,15 @@ export default function ClientProfile() {
                 <Input
                   value={formData.facebook_page}
                   onChange={(e) => setFormData({ ...formData, facebook_page: e.target.value })}
+                  placeholder="Link do strony FB"
+                />
+              </div>
+              <div className="col-span-2">
+                <Label>Business Manager</Label>
+                <Input
+                  value={formData.business_manager_url}
+                  onChange={(e) => setFormData({ ...formData, business_manager_url: e.target.value })}
+                  placeholder="Link do Business Manager"
                 />
               </div>
               <div>

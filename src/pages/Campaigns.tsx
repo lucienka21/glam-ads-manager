@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -25,8 +25,17 @@ import {
   Trash2,
   Loader2,
   TrendingUp,
+  TrendingDown,
   Eye,
-  BarChart3
+  BarChart3,
+  MousePointer,
+  Users,
+  MessageCircle,
+  AlertTriangle,
+  ExternalLink,
+  LayoutGrid,
+  List,
+  Percent
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -35,6 +44,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  Legend
+} from 'recharts';
 
 interface Campaign {
   id: string;
@@ -49,6 +70,7 @@ interface Campaign {
   created_at: string;
   clients?: {
     salon_name: string;
+    facebook_page: string | null;
   };
 }
 
@@ -69,6 +91,7 @@ interface CampaignMetrics {
 interface Client {
   id: string;
   salon_name: string;
+  facebook_page: string | null;
 }
 
 const statusColors: Record<string, string> = {
@@ -85,10 +108,18 @@ const statusLabels: Record<string, string> = {
   draft: 'Szkic',
 };
 
+// KPI target thresholds
+const KPI_TARGETS = {
+  cpc: 2.0, // Max CPC in PLN
+  ctr: 1.0, // Min CTR in %
+  roas: 3.0, // Min ROAS
+};
+
 export default function Campaigns() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [allMetrics, setAllMetrics] = useState<CampaignMetrics[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -98,6 +129,7 @@ export default function Campaigns() {
   const [metricsDialogOpen, setMetricsDialogOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [campaignMetrics, setCampaignMetrics] = useState<CampaignMetrics[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const [formData, setFormData] = useState({
     client_id: '',
@@ -132,7 +164,7 @@ export default function Campaigns() {
     // Fetch campaigns with client info
     const { data: campaignsData, error: campaignsError } = await supabase
       .from('campaigns')
-      .select('*, clients(salon_name)')
+      .select('*, clients(salon_name, facebook_page)')
       .order('created_at', { ascending: false });
 
     if (campaignsError) {
@@ -142,16 +174,128 @@ export default function Campaigns() {
       setCampaigns(campaignsData || []);
     }
 
+    // Fetch all metrics for KPI calculations
+    const { data: metricsData } = await supabase
+      .from('campaign_metrics')
+      .select('*')
+      .order('period_start', { ascending: false });
+    
+    setAllMetrics(metricsData || []);
+
     // Fetch clients for dropdown
     const { data: clientsData } = await supabase
       .from('clients')
-      .select('id, salon_name')
+      .select('id, salon_name, facebook_page')
       .eq('status', 'active')
       .order('salon_name');
     
     setClients(clientsData || []);
     setLoading(false);
   };
+
+  // Calculate aggregated KPIs
+  const aggregatedKPIs = useMemo(() => {
+    const totalImpressions = allMetrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
+    const totalClicks = allMetrics.reduce((sum, m) => sum + (m.clicks || 0), 0);
+    const totalSpend = allMetrics.reduce((sum, m) => sum + (m.spend || 0), 0);
+    const totalBookings = allMetrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
+    const totalConversions = allMetrics.reduce((sum, m) => sum + (m.conversions || 0), 0);
+    const totalReach = allMetrics.reduce((sum, m) => sum + (m.reach || 0), 0);
+
+    const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
+    const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+    const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0; // 200 PLN avg booking value
+    const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
+
+    return {
+      cpc,
+      ctr,
+      roas,
+      conversionRate,
+      totalSpend,
+      totalClicks,
+      totalImpressions,
+      totalReach,
+      totalBookings,
+      totalConversions,
+    };
+  }, [allMetrics]);
+
+  // Chart data - performance over time
+  const chartData = useMemo(() => {
+    const grouped: Record<string, { date: string; spend: number; clicks: number; bookings: number }> = {};
+    
+    allMetrics.forEach(m => {
+      const date = m.period_start;
+      if (!grouped[date]) {
+        grouped[date] = { date, spend: 0, clicks: 0, bookings: 0 };
+      }
+      grouped[date].spend += m.spend || 0;
+      grouped[date].clicks += m.clicks || 0;
+      grouped[date].bookings += m.bookings || 0;
+    });
+
+    return Object.values(grouped)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-12); // Last 12 periods
+  }, [allMetrics]);
+
+  // Campaign comparison data
+  const campaignComparison = useMemo(() => {
+    return campaigns.slice(0, 5).map(campaign => {
+      const metrics = allMetrics.filter(m => m.campaign_id === campaign.id);
+      const totalSpend = metrics.reduce((sum, m) => sum + (m.spend || 0), 0);
+      const totalClicks = metrics.reduce((sum, m) => sum + (m.clicks || 0), 0);
+      const totalBookings = metrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
+      const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0;
+      
+      return {
+        name: campaign.name.substring(0, 15) + (campaign.name.length > 15 ? '...' : ''),
+        spend: totalSpend,
+        roas: Number(roas.toFixed(2)),
+        bookings: totalBookings,
+      };
+    });
+  }, [campaigns, allMetrics]);
+
+  // Alerts for underperforming campaigns
+  const alerts = useMemo(() => {
+    const alertsList: { campaign: Campaign; issue: string; severity: 'warning' | 'critical' }[] = [];
+    
+    campaigns.filter(c => c.status === 'active').forEach(campaign => {
+      const metrics = allMetrics.filter(m => m.campaign_id === campaign.id);
+      if (metrics.length === 0) return;
+      
+      const totalSpend = metrics.reduce((sum, m) => sum + (m.spend || 0), 0);
+      const totalClicks = metrics.reduce((sum, m) => sum + (m.clicks || 0), 0);
+      const totalImpressions = metrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
+      const totalBookings = metrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
+      
+      const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
+      const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
+      const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0;
+      
+      if (cpc > KPI_TARGETS.cpc * 1.5) {
+        alertsList.push({ campaign, issue: `CPC (${cpc.toFixed(2)} PLN) znacznie powyżej targetu`, severity: 'critical' });
+      } else if (cpc > KPI_TARGETS.cpc) {
+        alertsList.push({ campaign, issue: `CPC (${cpc.toFixed(2)} PLN) powyżej targetu`, severity: 'warning' });
+      }
+      
+      if (ctr < KPI_TARGETS.ctr * 0.5) {
+        alertsList.push({ campaign, issue: `CTR (${ctr.toFixed(2)}%) znacznie poniżej targetu`, severity: 'critical' });
+      } else if (ctr < KPI_TARGETS.ctr) {
+        alertsList.push({ campaign, issue: `CTR (${ctr.toFixed(2)}%) poniżej targetu`, severity: 'warning' });
+      }
+      
+      if (totalSpend > 100 && roas < KPI_TARGETS.roas * 0.5) {
+        alertsList.push({ campaign, issue: `ROAS (${roas.toFixed(2)}) znacznie poniżej targetu`, severity: 'critical' });
+      } else if (totalSpend > 100 && roas < KPI_TARGETS.roas) {
+        alertsList.push({ campaign, issue: `ROAS (${roas.toFixed(2)}) poniżej targetu`, severity: 'warning' });
+      }
+    });
+    
+    return alertsList;
+  }, [campaigns, allMetrics]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -235,7 +379,6 @@ export default function Campaigns() {
   const handleOpenMetrics = async (campaign: Campaign) => {
     setSelectedCampaign(campaign);
     
-    // Fetch metrics for this campaign
     const { data } = await supabase
       .from('campaign_metrics')
       .select('*')
@@ -275,6 +418,7 @@ export default function Campaigns() {
     } else {
       toast.success('Metryki dodane');
       handleOpenMetrics(selectedCampaign);
+      fetchData();
       setMetricsForm({
         period_start: '',
         period_end: '',
@@ -320,6 +464,26 @@ export default function Campaigns() {
   const formatCurrency = (value: number | null) => {
     if (value === null) return '-';
     return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
+  };
+
+  const formatFacebookLink = (url: string | null) => {
+    if (!url) return null;
+    return url.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, '').replace(/\/$/, '') || 'Facebook';
+  };
+
+  const getCampaignKPIs = (campaignId: string) => {
+    const metrics = allMetrics.filter(m => m.campaign_id === campaignId);
+    const totalSpend = metrics.reduce((sum, m) => sum + (m.spend || 0), 0);
+    const totalClicks = metrics.reduce((sum, m) => sum + (m.clicks || 0), 0);
+    const totalImpressions = metrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
+    const totalBookings = metrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
+    
+    return {
+      cpc: totalClicks > 0 ? totalSpend / totalClicks : 0,
+      ctr: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
+      roas: totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0,
+      spend: totalSpend,
+    };
   };
 
   return (
@@ -458,8 +622,8 @@ export default function Campaigns() {
           </Dialog>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4">
+        {/* KPI Dashboard */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           <Card className="border-border/50 bg-card/80">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
@@ -489,92 +653,209 @@ export default function Campaigns() {
           <Card className="border-border/50 bg-card/80">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${aggregatedKPIs.cpc <= KPI_TARGETS.cpc ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                  <MousePointer className={`w-5 h-5 ${aggregatedKPIs.cpc <= KPI_TARGETS.cpc ? 'text-green-400' : 'text-red-400'}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{aggregatedKPIs.cpc.toFixed(2)} zł</p>
+                  <p className="text-xs text-muted-foreground">CPC</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/80">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${aggregatedKPIs.ctr >= KPI_TARGETS.ctr ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
+                  <Percent className={`w-5 h-5 ${aggregatedKPIs.ctr >= KPI_TARGETS.ctr ? 'text-green-400' : 'text-yellow-400'}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{aggregatedKPIs.ctr.toFixed(2)}%</p>
+                  <p className="text-xs text-muted-foreground">CTR</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/80">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-lg ${aggregatedKPIs.roas >= KPI_TARGETS.roas ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                  <BarChart3 className={`w-5 h-5 ${aggregatedKPIs.roas >= KPI_TARGETS.roas ? 'text-green-400' : 'text-red-400'}`} />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{aggregatedKPIs.roas.toFixed(2)}x</p>
+                  <p className="text-xs text-muted-foreground">ROAS</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="border-border/50 bg-card/80">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-blue-500/10">
                   <DollarSign className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{formatCurrency(stats.totalBudget)}</p>
-                  <p className="text-xs text-muted-foreground">Łączny budżet</p>
+                  <p className="text-2xl font-bold">{formatCurrency(aggregatedKPIs.totalSpend)}</p>
+                  <p className="text-xs text-muted-foreground">Wydano</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Alerts */}
+        {alerts.length > 0 && (
+          <Card className="border-yellow-500/30 bg-yellow-500/5">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2 text-yellow-400">
+                <AlertTriangle className="w-5 h-5" />
+                Alerty wydajności ({alerts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {alerts.slice(0, 5).map((alert, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      alert.severity === 'critical' ? 'bg-red-500/10 border border-red-500/30' : 'bg-yellow-500/10 border border-yellow-500/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {alert.severity === 'critical' ? (
+                        <TrendingDown className="w-4 h-4 text-red-400" />
+                      ) : (
+                        <AlertTriangle className="w-4 h-4 text-yellow-400" />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium">{alert.campaign.name}</p>
+                        <p className="text-xs text-muted-foreground">{alert.issue}</p>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => handleOpenMetrics(alert.campaign)}>
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Charts */}
+        {chartData.length > 0 && (
+          <div className="grid lg:grid-cols-2 gap-6">
+            <Card className="border-border/50 bg-card/80">
+              <CardHeader>
+                <CardTitle className="text-lg">Wydatki w czasie</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="date" stroke="#888" fontSize={12} />
+                    <YAxis stroke="#888" fontSize={12} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
+                      labelStyle={{ color: '#888' }}
+                    />
+                    <Line type="monotone" dataKey="spend" stroke="#ec4899" strokeWidth={2} dot={false} name="Wydatki (PLN)" />
+                    <Line type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} dot={false} name="Kliknięcia" />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card className="border-border/50 bg-card/80">
+              <CardHeader>
+                <CardTitle className="text-lg">Porównanie kampanii</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={campaignComparison}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+                    <XAxis dataKey="name" stroke="#888" fontSize={10} angle={-15} />
+                    <YAxis stroke="#888" fontSize={12} />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
+                      labelStyle={{ color: '#888' }}
+                    />
+                    <Legend />
+                    <Bar dataKey="roas" fill="#22c55e" name="ROAS" />
+                    <Bar dataKey="bookings" fill="#ec4899" name="Rezerwacje" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         {/* Filters */}
-        <div className="flex gap-4">
-          <div className="flex-1 relative">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Szukaj po nazwie lub kliencie..."
+              placeholder="Szukaj kampanii..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue />
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Wszystkie</SelectItem>
-              <SelectItem value="active">Aktywne</SelectItem>
-              <SelectItem value="paused">Wstrzymane</SelectItem>
-              <SelectItem value="completed">Zakończone</SelectItem>
-              <SelectItem value="draft">Szkice</SelectItem>
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-lg border border-border/50">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Campaigns List */}
+        {/* Campaigns */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : filteredCampaigns.length === 0 ? (
-          <div className="text-center py-12">
-            <Target className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-            <p className="text-muted-foreground">Brak kampanii</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {filteredCampaigns.map((campaign) => (
-              <Card key={campaign.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-1">
-                        <h3 className="font-semibold text-foreground">{campaign.name}</h3>
-                        <Badge className={statusColors[campaign.status]}>
-                          {statusLabels[campaign.status]}
-                        </Badge>
+          <Card className="border-dashed border-2 border-border/50">
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Target className="w-12 h-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">Brak kampanii</p>
+            </CardContent>
+          </Card>
+        ) : viewMode === 'grid' ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCampaigns.map((campaign) => {
+              const kpis = getCampaignKPIs(campaign.id);
+              return (
+                <Card key={campaign.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-foreground truncate">{campaign.name}</h3>
+                        <p className="text-sm text-muted-foreground truncate">{campaign.clients?.salon_name}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        {campaign.clients?.salon_name}
-                      </p>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {format(new Date(campaign.start_date), 'd MMM yyyy', { locale: pl })}
-                          {campaign.end_date && (
-                            <span> → {format(new Date(campaign.end_date), 'd MMM yyyy', { locale: pl })}</span>
-                          )}
-                        </div>
-                        {campaign.objective && (
-                          <div className="flex items-center gap-1">
-                            <Target className="w-3.5 h-3.5" />
-                            {campaign.objective}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      {campaign.budget && (
-                        <div className="text-right">
-                          <p className="font-semibold text-primary">{formatCurrency(campaign.budget)}</p>
-                          <p className="text-xs text-muted-foreground">budżet</p>
-                        </div>
-                      )}
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -586,26 +867,155 @@ export default function Campaigns() {
                             <BarChart3 className="w-4 h-4 mr-2" />
                             Metryki
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => navigate(`/clients/${campaign.client_id}`)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            Zobacz klienta
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleEdit(campaign)}>
                             <Pencil className="w-4 h-4 mr-2" />
                             Edytuj
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-destructive">
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-red-400">
                             <Trash2 className="w-4 h-4 mr-2" />
                             Usuń
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    <div className="flex items-center gap-2 mb-3">
+                      <Badge className={`${statusColors[campaign.status]} border text-xs`}>
+                        {statusLabels[campaign.status]}
+                      </Badge>
+                      {campaign.clients?.facebook_page && (
+                        <a 
+                          href={campaign.clients.facebook_page.startsWith('http') ? campaign.clients.facebook_page : `https://facebook.com/${campaign.clients.facebook_page}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          FB
+                        </a>
+                      )}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Calendar className="w-3.5 h-3.5" />
+                        {format(new Date(campaign.start_date), 'd MMM yyyy', { locale: pl })}
+                      </div>
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <DollarSign className="w-3.5 h-3.5" />
+                        {formatCurrency(campaign.budget)}
+                      </div>
+                    </div>
+                    
+                    {/* KPIs */}
+                    <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
+                      <div className="text-center">
+                        <p className={`text-sm font-semibold ${kpis.cpc <= KPI_TARGETS.cpc ? 'text-green-400' : 'text-red-400'}`}>
+                          {kpis.cpc.toFixed(2)} zł
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">CPC</p>
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-sm font-semibold ${kpis.ctr >= KPI_TARGETS.ctr ? 'text-green-400' : 'text-yellow-400'}`}>
+                          {kpis.ctr.toFixed(1)}%
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">CTR</p>
+                      </div>
+                      <div className="text-center">
+                        <p className={`text-sm font-semibold ${kpis.roas >= KPI_TARGETS.roas ? 'text-green-400' : 'text-red-400'}`}>
+                          {kpis.roas.toFixed(1)}x
+                        </p>
+                        <p className="text-[10px] text-muted-foreground">ROAS</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredCampaigns.map((campaign) => {
+              const kpis = getCampaignKPIs(campaign.id);
+              return (
+                <Card key={campaign.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-foreground">{campaign.name}</h3>
+                          <Badge className={`${statusColors[campaign.status]} border text-xs`}>
+                            {statusLabels[campaign.status]}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{campaign.clients?.salon_name}</p>
+                      </div>
+                      
+                      <div className="hidden md:flex items-center gap-6 text-sm">
+                        <div className="text-center">
+                          <p className={`font-semibold ${kpis.cpc <= KPI_TARGETS.cpc ? 'text-green-400' : 'text-red-400'}`}>
+                            {kpis.cpc.toFixed(2)} zł
+                          </p>
+                          <p className="text-xs text-muted-foreground">CPC</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={`font-semibold ${kpis.ctr >= KPI_TARGETS.ctr ? 'text-green-400' : 'text-yellow-400'}`}>
+                            {kpis.ctr.toFixed(1)}%
+                          </p>
+                          <p className="text-xs text-muted-foreground">CTR</p>
+                        </div>
+                        <div className="text-center">
+                          <p className={`font-semibold ${kpis.roas >= KPI_TARGETS.roas ? 'text-green-400' : 'text-red-400'}`}>
+                            {kpis.roas.toFixed(1)}x
+                          </p>
+                          <p className="text-xs text-muted-foreground">ROAS</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="font-semibold text-foreground">{formatCurrency(campaign.budget)}</p>
+                          <p className="text-xs text-muted-foreground">Budżet</p>
+                        </div>
+                      </div>
+                      
+                      {campaign.clients?.facebook_page && (
+                        <a 
+                          href={campaign.clients.facebook_page.startsWith('http') ? campaign.clients.facebook_page : `https://facebook.com/${campaign.clients.facebook_page}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleOpenMetrics(campaign)}>
+                            <BarChart3 className="w-4 h-4 mr-2" />
+                            Metryki
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEdit(campaign)}>
+                            <Pencil className="w-4 h-4 mr-2" />
+                            Edytuj
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-red-400">
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Usuń
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
 
@@ -616,9 +1026,9 @@ export default function Campaigns() {
               <DialogTitle>Metryki: {selectedCampaign?.name}</DialogTitle>
             </DialogHeader>
             
-            {/* Add new metrics form */}
+            {/* Add Metrics Form */}
             <form onSubmit={handleAddMetrics} className="space-y-4 p-4 bg-secondary/30 rounded-lg">
-              <h4 className="text-sm font-medium">Dodaj nowy okres</h4>
+              <h4 className="font-medium text-sm">Dodaj nowe metryki</h4>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-xs">Od</Label>
@@ -626,6 +1036,7 @@ export default function Campaigns() {
                     type="date"
                     value={metricsForm.period_start}
                     onChange={(e) => setMetricsForm({ ...metricsForm, period_start: e.target.value })}
+                    className="h-9"
                   />
                 </div>
                 <div>
@@ -634,6 +1045,7 @@ export default function Campaigns() {
                     type="date"
                     value={metricsForm.period_end}
                     onChange={(e) => setMetricsForm({ ...metricsForm, period_end: e.target.value })}
+                    className="h-9"
                   />
                 </div>
               </div>
@@ -644,6 +1056,7 @@ export default function Campaigns() {
                     type="number"
                     value={metricsForm.impressions}
                     onChange={(e) => setMetricsForm({ ...metricsForm, impressions: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
@@ -653,6 +1066,7 @@ export default function Campaigns() {
                     type="number"
                     value={metricsForm.reach}
                     onChange={(e) => setMetricsForm({ ...metricsForm, reach: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
@@ -662,6 +1076,7 @@ export default function Campaigns() {
                     type="number"
                     value={metricsForm.clicks}
                     onChange={(e) => setMetricsForm({ ...metricsForm, clicks: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
@@ -672,6 +1087,7 @@ export default function Campaigns() {
                     step="0.01"
                     value={metricsForm.spend}
                     onChange={(e) => setMetricsForm({ ...metricsForm, spend: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
@@ -683,6 +1099,7 @@ export default function Campaigns() {
                     type="number"
                     value={metricsForm.conversions}
                     onChange={(e) => setMetricsForm({ ...metricsForm, conversions: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
@@ -692,6 +1109,7 @@ export default function Campaigns() {
                     type="number"
                     value={metricsForm.bookings}
                     onChange={(e) => setMetricsForm({ ...metricsForm, bookings: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
@@ -701,48 +1119,55 @@ export default function Campaigns() {
                     type="number"
                     value={metricsForm.messages}
                     onChange={(e) => setMetricsForm({ ...metricsForm, messages: e.target.value })}
+                    className="h-9"
                     placeholder="0"
                   />
                 </div>
               </div>
-              <Button type="submit" size="sm" className="bg-primary hover:bg-primary/90">
-                <Plus className="w-3 h-3 mr-1" />
+              <Button type="submit" size="sm" className="w-full">
+                <Plus className="w-4 h-4 mr-2" />
                 Dodaj metryki
               </Button>
             </form>
-
-            {/* Existing metrics */}
-            <div className="space-y-3 mt-4">
-              <h4 className="text-sm font-medium">Historia metryk</h4>
+            
+            {/* Metrics History */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">Historia metryk</h4>
               {campaignMetrics.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Brak metryk</p>
+                <p className="text-sm text-muted-foreground text-center py-4">Brak zapisanych metryk</p>
               ) : (
-                campaignMetrics.map((m) => (
-                  <Card key={m.id} className="border-border/50">
-                    <CardContent className="p-3">
+                <div className="space-y-2">
+                  {campaignMetrics.map((m) => (
+                    <div key={m.id} className="p-3 bg-secondary/30 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium">
+                        <span className="text-xs text-muted-foreground">
                           {format(new Date(m.period_start), 'd MMM', { locale: pl })} - {format(new Date(m.period_end), 'd MMM yyyy', { locale: pl })}
                         </span>
-                        <span className="text-sm font-semibold text-primary">{formatCurrency(m.spend)}</span>
+                        <span className="text-xs font-medium text-primary">
+                          {formatCurrency(m.spend)}
+                        </span>
                       </div>
                       <div className="grid grid-cols-4 gap-2 text-xs">
                         <div>
-                          <span className="text-muted-foreground">Wyśw.:</span> {m.impressions?.toLocaleString() || 0}
+                          <p className="text-muted-foreground">Wyświetlenia</p>
+                          <p className="font-medium">{m.impressions?.toLocaleString() || 0}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Zasięg:</span> {m.reach?.toLocaleString() || 0}
+                          <p className="text-muted-foreground">Kliknięcia</p>
+                          <p className="font-medium">{m.clicks?.toLocaleString() || 0}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Klik.:</span> {m.clicks || 0}
+                          <p className="text-muted-foreground">Rezerwacje</p>
+                          <p className="font-medium">{m.bookings || 0}</p>
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Rez.:</span> {m.bookings || 0}
+                          <p className="text-muted-foreground">Wiadomości</p>
+                          <p className="font-medium">{m.messages || 0}</p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
-                ))
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </DialogContent>

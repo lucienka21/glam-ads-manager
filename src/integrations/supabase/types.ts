@@ -261,6 +261,7 @@ export type Database = {
       clients: {
         Row: {
           assigned_to: string | null
+          business_manager_url: string | null
           city: string | null
           contract_start_date: string | null
           created_at: string
@@ -281,6 +282,7 @@ export type Database = {
         }
         Insert: {
           assigned_to?: string | null
+          business_manager_url?: string | null
           city?: string | null
           contract_start_date?: string | null
           created_at?: string
@@ -301,6 +303,7 @@ export type Database = {
         }
         Update: {
           assigned_to?: string | null
+          business_manager_url?: string | null
           city?: string | null
           contract_start_date?: string | null
           created_at?: string

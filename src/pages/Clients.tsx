@@ -47,6 +47,7 @@ interface Client {
   email: string | null;
   instagram: string | null;
   facebook_page: string | null;
+  business_manager_url: string | null;
   status: string;
   contract_start_date: string | null;
   monthly_budget: number | null;
@@ -105,6 +106,7 @@ export default function Clients() {
     email: '',
     instagram: '',
     facebook_page: '',
+    business_manager_url: '',
     status: 'active',
     contract_start_date: '',
     monthly_budget: '',
@@ -159,6 +161,7 @@ export default function Clients() {
       email: formData.email || null,
       instagram: formData.instagram || null,
       facebook_page: formData.facebook_page || null,
+      business_manager_url: formData.business_manager_url || null,
       status: formData.status,
       contract_start_date: formData.contract_start_date || null,
       monthly_budget: formData.monthly_budget ? parseFloat(formData.monthly_budget) : null,
@@ -222,6 +225,7 @@ export default function Clients() {
       email: client.email || '',
       instagram: client.instagram || '',
       facebook_page: client.facebook_page || '',
+      business_manager_url: client.business_manager_url || '',
       status: client.status,
       contract_start_date: client.contract_start_date || '',
       monthly_budget: client.monthly_budget?.toString() || '',
@@ -242,6 +246,7 @@ export default function Clients() {
       email: '',
       instagram: '',
       facebook_page: '',
+      business_manager_url: '',
       status: 'active',
       contract_start_date: '',
       monthly_budget: '',
@@ -351,6 +356,16 @@ export default function Clients() {
                     <Input
                       value={formData.facebook_page}
                       onChange={(e) => setFormData({ ...formData, facebook_page: e.target.value })}
+                      placeholder="Link do strony FB"
+                      className="form-input-elegant"
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Business Manager</Label>
+                    <Input
+                      value={formData.business_manager_url}
+                      onChange={(e) => setFormData({ ...formData, business_manager_url: e.target.value })}
+                      placeholder="Link do Business Manager"
                       className="form-input-elegant"
                     />
                   </div>
