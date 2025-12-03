@@ -71,22 +71,43 @@ Deno.serve(async (req) => {
     }
 
     // Delete related data first
-    await supabaseAdmin.from('documents').delete().eq('created_by', userId)
-    await supabaseAdmin.from('user_roles').delete().eq('user_id', userId)
+    console.log('Deleting data for user:', userId)
+    
+    // Delete documents created by user
+    const { error: docError } = await supabaseAdmin.from('documents').delete().eq('created_by', userId)
+    if (docError) console.error('Error deleting documents:', docError)
+    
+    // Delete user roles
+    const { error: roleError } = await supabaseAdmin.from('user_roles').delete().eq('user_id', userId)
+    if (roleError) console.error('Error deleting user_roles:', roleError)
+    
+    // Delete notifications
     await supabaseAdmin.from('notifications').delete().eq('user_id', userId)
     await supabaseAdmin.from('notifications').delete().eq('created_by', userId)
-    await supabaseAdmin.from('team_messages').delete().eq('user_id', userId)
+    
+    // Delete team messages and reactions
     await supabaseAdmin.from('message_reactions').delete().eq('user_id', userId)
+    await supabaseAdmin.from('team_messages').delete().eq('user_id', userId)
+    
+    // Delete task comments
     await supabaseAdmin.from('task_comments').delete().eq('user_id', userId)
     
-    // Delete tasks created by or assigned to user
-    await supabaseAdmin.from('tasks').delete().eq('created_by', userId)
-    await supabaseAdmin.from('tasks').delete().eq('assigned_to', userId)
+    // Unassign tasks (don't delete - just clear assignment)
+    await supabaseAdmin.from('tasks').update({ assigned_to: null }).eq('assigned_to', userId)
+    await supabaseAdmin.from('tasks').update({ completed_by: null }).eq('completed_by', userId)
+    
+    // Delete tasks created by user that have no client
+    await supabaseAdmin.from('tasks').delete().eq('created_by', userId).is('client_id', null)
+    
+    // Unassign clients
+    await supabaseAdmin.from('clients').update({ assigned_to: null }).eq('assigned_to', userId)
     
     // Delete profile
-    await supabaseAdmin.from('profiles').delete().eq('id', userId)
+    const { error: profileError } = await supabaseAdmin.from('profiles').delete().eq('id', userId)
+    if (profileError) console.error('Error deleting profile:', profileError)
 
     // Delete the user from auth.users
+    console.log('Deleting user from auth:', userId)
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
     if (deleteError) {

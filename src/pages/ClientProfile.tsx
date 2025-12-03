@@ -29,8 +29,15 @@ import {
   Copy,
   Building2,
   Pencil,
-  Plus
+  Plus,
+  Save,
+  X
 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Client {
   id: string;
@@ -126,12 +133,44 @@ export default function ClientProfile() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [employees, setEmployees] = useState<Profile[]>([]);
+  
+  // Edit states
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [savingAssignment, setSavingAssignment] = useState(false);
+  const [formData, setFormData] = useState({
+    salon_name: '',
+    owner_name: '',
+    city: '',
+    phone: '',
+    email: '',
+    instagram: '',
+    facebook_page: '',
+    status: 'active',
+    contract_start_date: '',
+    monthly_budget: '',
+    notes: '',
+    assigned_to: '',
+    industry: '',
+  });
 
   useEffect(() => {
     if (id) {
       fetchClientData();
+      fetchEmployees();
     }
   }, [id]);
+
+  const fetchEmployees = async () => {
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, email, full_name')
+      .order('full_name');
+    setEmployees(data || []);
+  };
 
   const fetchClientData = async () => {
     setLoading(true);
@@ -195,6 +234,106 @@ export default function ClientProfile() {
     return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
   };
 
+  const handleAssignEmployee = async (employeeId: string | null) => {
+    if (!id) return;
+    setSavingAssignment(true);
+    
+    const { error } = await supabase
+      .from('clients')
+      .update({ assigned_to: employeeId })
+      .eq('id', id);
+    
+    if (error) {
+      toast.error('Błąd podczas przypisywania opiekuna');
+    } else {
+      toast.success('Opiekun został przypisany');
+      fetchClientData();
+    }
+    setSavingAssignment(false);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!id) return;
+    setSavingNotes(true);
+    
+    const { error } = await supabase
+      .from('clients')
+      .update({ notes: notesValue || null })
+      .eq('id', id);
+    
+    if (error) {
+      toast.error('Błąd podczas zapisywania notatek');
+    } else {
+      toast.success('Notatki zapisane');
+      setClient(prev => prev ? { ...prev, notes: notesValue || null } : null);
+      setEditingNotes(false);
+    }
+    setSavingNotes(false);
+  };
+
+  const openEditDialog = () => {
+    if (!client) return;
+    setFormData({
+      salon_name: client.salon_name,
+      owner_name: client.owner_name || '',
+      city: client.city || '',
+      phone: client.phone || '',
+      email: client.email || '',
+      instagram: client.instagram || '',
+      facebook_page: client.facebook_page || '',
+      status: client.status,
+      contract_start_date: client.contract_start_date || '',
+      monthly_budget: client.monthly_budget?.toString() || '',
+      notes: client.notes || '',
+      assigned_to: client.assigned_to || '',
+      industry: client.industry || '',
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSubmitEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+    
+    const submitData = {
+      salon_name: formData.salon_name,
+      owner_name: formData.owner_name || null,
+      city: formData.city || null,
+      phone: formData.phone || null,
+      email: formData.email || null,
+      instagram: formData.instagram || null,
+      facebook_page: formData.facebook_page || null,
+      status: formData.status,
+      contract_start_date: formData.contract_start_date || null,
+      monthly_budget: formData.monthly_budget ? parseFloat(formData.monthly_budget) : null,
+      notes: formData.notes || null,
+      assigned_to: formData.assigned_to || null,
+      industry: formData.industry || null,
+    };
+    
+    const { error } = await supabase
+      .from('clients')
+      .update(submitData)
+      .eq('id', id);
+    
+    if (error) {
+      toast.error('Błąd aktualizacji klienta');
+    } else {
+      toast.success('Klient zaktualizowany');
+      setIsEditDialogOpen(false);
+      fetchClientData();
+    }
+  };
+
+  const industryOptions = [
+    'Fryzjerstwo', 'Kosmetyka', 'Paznokcie', 'Spa & Wellness', 
+    'Barber', 'Makijaż', 'Brwi i rzęsy', 'Inne'
+  ];
+
+  const statusLabelsEdit: Record<string, string> = {
+    active: 'Aktywny', paused: 'Wstrzymany', churned: 'Zakończony'
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -233,7 +372,7 @@ export default function ClientProfile() {
               <Copy className="w-4 h-4 mr-2" />
               Kopiuj ID
             </Button>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/clients?edit=${client.id}`)}>
+            <Button variant="outline" size="sm" onClick={openEditDialog}>
               <Pencil className="w-4 h-4 mr-2" />
               Edytuj
             </Button>
@@ -402,41 +541,108 @@ export default function ClientProfile() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {assignedEmployee ? (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
-                    {(assignedEmployee.full_name || assignedEmployee.email || '?')[0].toUpperCase()}
+              {/* Employee Assignment */}
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Przypisany opiekun</p>
+                <Select
+                  value={client.assigned_to || "none"}
+                  onValueChange={(v) => handleAssignEmployee(v === "none" ? null : v)}
+                  disabled={savingAssignment}
+                >
+                  <SelectTrigger className="w-full">
+                    {savingAssignment ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <SelectValue placeholder="Wybierz opiekuna" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Brak opiekuna</SelectItem>
+                    {employees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.full_name || emp.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {assignedEmployee && (
+                  <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold">
+                      {(assignedEmployee.full_name || assignedEmployee.email || '?')[0].toUpperCase()}
+                    </div>
+                    <p className="font-medium">{assignedEmployee.full_name || assignedEmployee.email}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Przypisany opiekun</p>
-                    <p className="font-semibold text-lg">{assignedEmployee.full_name || assignedEmployee.email}</p>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/30 border border-dashed border-border">
-                  <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <User className="w-6 h-6 text-zinc-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-muted-foreground">Brak przypisanego opiekuna</p>
-                  </div>
-                  <Button size="sm" variant="outline">
-                    <Plus className="w-4 h-4 mr-1" />
-                    Przypisz
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
               
-              {client.notes ? (
-                <div className="p-4 rounded-lg bg-secondary/30">
-                  <p className="text-xs text-muted-foreground mb-2">Notatki</p>
-                  <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
+              {/* Notes */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">Notatki</p>
+                  {!editingNotes && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="h-6 px-2"
+                      onClick={() => {
+                        setNotesValue(client.notes || '');
+                        setEditingNotes(true);
+                      }}
+                    >
+                      <Pencil className="w-3 h-3 mr-1" />
+                      Edytuj
+                    </Button>
+                  )}
                 </div>
-              ) : (
-                <div className="p-4 rounded-lg bg-secondary/20 border border-dashed border-border text-center">
-                  <p className="text-sm text-muted-foreground">Brak notatek</p>
-                </div>
-              )}
+                {editingNotes ? (
+                  <div className="space-y-2">
+                    <Textarea
+                      value={notesValue}
+                      onChange={(e) => setNotesValue(e.target.value)}
+                      placeholder="Dodaj notatki o kliencie..."
+                      rows={4}
+                      className="resize-none"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingNotes(false)}
+                        disabled={savingNotes}
+                      >
+                        <X className="w-4 h-4 mr-1" />
+                        Anuluj
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleSaveNotes}
+                        disabled={savingNotes}
+                      >
+                        {savingNotes ? (
+                          <Loader2 className="w-4 h-4 animate-spin mr-1" />
+                        ) : (
+                          <Save className="w-4 h-4 mr-1" />
+                        )}
+                        Zapisz
+                      </Button>
+                    </div>
+                  </div>
+                ) : client.notes ? (
+                  <div className="p-3 rounded-lg bg-secondary/30">
+                    <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
+                  </div>
+                ) : (
+                  <div 
+                    className="p-3 rounded-lg bg-secondary/20 border border-dashed border-border text-center cursor-pointer hover:bg-secondary/30 transition-colors"
+                    onClick={() => {
+                      setNotesValue('');
+                      setEditingNotes(true);
+                    }}
+                  >
+                    <p className="text-sm text-muted-foreground">Kliknij aby dodać notatki</p>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -600,6 +806,140 @@ export default function ClientProfile() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edytuj klienta</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmitEdit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="col-span-2">
+                <Label>Nazwa salonu *</Label>
+                <Input
+                  value={formData.salon_name}
+                  onChange={(e) => setFormData({ ...formData, salon_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Właściciel</Label>
+                <Input
+                  value={formData.owner_name}
+                  onChange={(e) => setFormData({ ...formData, owner_name: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Miasto</Label>
+                <Input
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Telefon</Label>
+                <Input
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Instagram</Label>
+                <Input
+                  value={formData.instagram}
+                  onChange={(e) => setFormData({ ...formData, instagram: e.target.value })}
+                  placeholder="@nazwasalonu"
+                />
+              </div>
+              <div>
+                <Label>Facebook</Label>
+                <Input
+                  value={formData.facebook_page}
+                  onChange={(e) => setFormData({ ...formData, facebook_page: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Data rozpoczęcia</Label>
+                <Input
+                  type="date"
+                  value={formData.contract_start_date}
+                  onChange={(e) => setFormData({ ...formData, contract_start_date: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Budżet miesięczny (PLN)</Label>
+                <Input
+                  type="number"
+                  value={formData.monthly_budget}
+                  onChange={(e) => setFormData({ ...formData, monthly_budget: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select value={formData.status} onValueChange={(v) => setFormData({ ...formData, status: v })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(statusLabelsEdit).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Branża</Label>
+                <Select value={formData.industry || "none"} onValueChange={(v) => setFormData({ ...formData, industry: v === "none" ? "" : v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wybierz branżę" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Brak</SelectItem>
+                    {industryOptions.map((ind) => (
+                      <SelectItem key={ind} value={ind}>{ind}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Opiekun klienta</Label>
+                <Select value={formData.assigned_to || "none"} onValueChange={(v) => setFormData({ ...formData, assigned_to: v === "none" ? "" : v })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Wybierz opiekuna" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Brak opiekuna</SelectItem>
+                    {employees.map((emp) => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.full_name || emp.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
+                <Label>Notatki</Label>
+                <Textarea
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  rows={3}
+                />
+              </div>
+            </div>
+            <Button type="submit" className="w-full">
+              Zapisz zmiany
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Shield, Plus, Trash2, Crown, User, Settings, Check, X } from "lucide-react";
+import { Shield, Plus, Trash2, Crown, User, Settings, Check, X, Loader2, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -36,7 +36,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
 
 interface TeamMember {
@@ -96,11 +96,13 @@ const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS);
 export default function RoleManagement() {
   const { user } = useAuth();
   const { isSzef, loading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("members");
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   
   // New role form
   const [isNewRoleDialogOpen, setIsNewRoleDialogOpen] = useState(false);
@@ -111,6 +113,49 @@ export default function RoleManagement() {
   // Edit permissions
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [editingPermissions, setEditingPermissions] = useState<string[]>([]);
+
+  const handleDeleteUser = async (memberId: string) => {
+    if (memberId === user?.id) {
+      toast.error("Nie możesz usunąć własnego konta");
+      return;
+    }
+    
+    setDeletingUserId(memberId);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.access_token) {
+        throw new Error("No session");
+      }
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({ userId: memberId }),
+        }
+      );
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to delete user');
+      }
+      
+      toast.success("Użytkownik został usunięty");
+      fetchMembers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      toast.error("Błąd podczas usuwania użytkownika");
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
 
   useEffect(() => {
     if (!isSzef) return;
@@ -459,7 +504,10 @@ export default function RoleManagement() {
                       const customRole = getCustomRoleForMember(member);
                       return (
                         <div key={member.id} className="py-4 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div 
+                            className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer hover:opacity-80 transition-opacity"
+                            onClick={() => navigate(`/profile/${member.id}`)}
+                          >
                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
                               member.role === 'szef' ? 'bg-amber-500/20' : 'bg-secondary'
                             }`}>
@@ -470,7 +518,7 @@ export default function RoleManagement() {
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="font-medium text-foreground truncate">
+                              <p className="font-medium text-foreground truncate hover:text-primary transition-colors">
                                 {member.fullName || 'Brak imienia'}
                                 {member.id === user?.id && (
                                   <span className="text-xs text-muted-foreground ml-2">(Ty)</span>
@@ -513,27 +561,39 @@ export default function RoleManagement() {
                               </SelectContent>
                             </Select>
 
-                            {member.role && member.id !== user?.id && (
+                            {member.id !== user?.id && (
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                    <Trash2 className="w-4 h-4" />
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="text-destructive hover:text-destructive"
+                                    disabled={deletingUserId === member.id}
+                                  >
+                                    {deletingUserId === member.id ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Trash2 className="w-4 h-4" />
+                                    )}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle>Usunąć rolę?</AlertDialogTitle>
+                                    <AlertDialogTitle className="flex items-center gap-2">
+                                      <AlertTriangle className="w-5 h-5 text-destructive" />
+                                      Usunąć konto użytkownika?
+                                    </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Czy na pewno chcesz usunąć rolę użytkownika {member.fullName || member.email}?
+                                      Ta akcja jest nieodwracalna. Wszystkie dane użytkownika {member.fullName || member.email} zostaną trwale usunięte, w tym dokumenty, wiadomości i historia aktywności.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
                                     <AlertDialogCancel>Anuluj</AlertDialogCancel>
                                     <AlertDialogAction 
-                                      onClick={() => handleRemoveRole(member)}
+                                      onClick={() => handleDeleteUser(member.id)}
                                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                     >
-                                      Usuń
+                                      Usuń konto
                                     </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
