@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,7 +25,11 @@ import {
   Building2,
   Loader2,
   Calendar,
-  DollarSign
+  DollarSign,
+  LayoutGrid,
+  List,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -76,6 +81,7 @@ const statusLabels: Record<string, string> = {
 
 export default function Clients() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -84,6 +90,13 @@ export default function Clients() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [employees, setEmployees] = useState<{ id: string; email: string; full_name: string | null }[]>([]);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  const copyClientId = (e: React.MouseEvent, clientId: string) => {
+    e.stopPropagation();
+    navigator.clipboard.writeText(clientId);
+    toast.success('ID klienta skopiowane');
+  };
   const [formData, setFormData] = useState({
     salon_name: '',
     owner_name: '',
@@ -449,9 +462,28 @@ export default function Clients() {
               ))}
             </SelectContent>
           </Select>
+          {/* View Toggle */}
+          <div className="flex items-center gap-1 p-1 bg-zinc-800/50 rounded-lg border border-zinc-700/50">
+            <Button
+              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode('grid')}
+            >
+              <LayoutGrid className="w-4 h-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setViewMode('list')}
+            >
+              <List className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Clients Grid */}
+        {/* Clients */}
         {loading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -462,7 +494,107 @@ export default function Clients() {
             <p className="text-muted-foreground">Brak klientów</p>
             <p className="text-sm text-muted-foreground/70">Dodaj pierwszego klienta klikając przycisk powyżej</p>
           </div>
+        ) : viewMode === 'list' ? (
+          /* List View */
+          <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-zinc-800/80 text-xs text-zinc-400 uppercase">
+                  <th className="text-left p-4 font-medium">Klient</th>
+                  <th className="text-left p-4 font-medium hidden md:table-cell">Kontakt</th>
+                  <th className="text-left p-4 font-medium hidden lg:table-cell">Lokalizacja</th>
+                  <th className="text-left p-4 font-medium hidden sm:table-cell">Budżet</th>
+                  <th className="text-left p-4 font-medium">Status</th>
+                  <th className="text-right p-4 font-medium">Akcje</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredClients.map((client) => {
+                  const assignedEmployee = employees.find(e => e.id === client.assigned_to);
+                  return (
+                    <tr 
+                      key={client.id}
+                      className="border-b border-zinc-800/50 hover:bg-zinc-800/30 transition-colors cursor-pointer group"
+                      onClick={() => navigate(`/clients/${client.id}`)}
+                    >
+                      <td className="p-4">
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground group-hover:text-pink-400 transition-colors">{client.salon_name}</span>
+                          <span className="text-xs text-muted-foreground">{client.owner_name}</span>
+                          <button
+                            onClick={(e) => copyClientId(e, client.id)}
+                            className="text-[10px] text-zinc-500 hover:text-pink-400 flex items-center gap-1 mt-1 w-fit"
+                          >
+                            <Copy className="w-2.5 h-2.5" />
+                            {client.id.slice(0, 8)}...
+                          </button>
+                        </div>
+                      </td>
+                      <td className="p-4 hidden md:table-cell">
+                        <div className="flex flex-col gap-1 text-sm text-zinc-300">
+                          {client.phone && <span>{client.phone}</span>}
+                          {client.email && <span className="text-xs text-zinc-500 truncate max-w-[200px]">{client.email}</span>}
+                        </div>
+                      </td>
+                      <td className="p-4 hidden lg:table-cell">
+                        <div className="flex flex-col gap-1">
+                          {client.city && <span className="text-sm text-zinc-300">{client.city}</span>}
+                          {client.industry && <span className="text-xs text-zinc-500">{client.industry}</span>}
+                        </div>
+                      </td>
+                      <td className="p-4 hidden sm:table-cell">
+                        <span className="text-sm font-medium text-green-400">{formatCurrency(client.monthly_budget)}</span>
+                      </td>
+                      <td className="p-4">
+                        <Badge className={`${statusColors[client.status]} border text-xs`}>
+                          {statusLabels[client.status]}
+                        </Badge>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={(e) => { e.stopPropagation(); navigate(`/clients/${client.id}`); }}
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }}>
+                                <Pencil className="w-4 h-4 mr-2" />
+                                Edytuj
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={(e) => { e.stopPropagation(); handleDelete(client.id); }}
+                                className="text-destructive focus:text-destructive"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Usuń
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         ) : (
+          /* Grid View */
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {filteredClients.map((client) => {
               const assignedEmployee = employees.find(e => e.id === client.assigned_to);
@@ -470,7 +602,7 @@ export default function Clients() {
                 <Card 
                   key={client.id} 
                   className="group border-border/40 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 hover:from-zinc-800/90 hover:to-zinc-800/50 transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-pink-500/5 hover:border-pink-500/20 overflow-hidden"
-                  onClick={() => window.location.href = `/clients/${client.id}`}
+                  onClick={() => navigate(`/clients/${client.id}`)}
                 >
                   {/* Header with gradient accent */}
                   <div className="h-1 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600" />
@@ -489,6 +621,14 @@ export default function Clients() {
                             {client.owner_name}
                           </p>
                         )}
+                        {/* Client ID */}
+                        <button
+                          onClick={(e) => copyClientId(e, client.id)}
+                          className="text-[10px] text-zinc-500 hover:text-pink-400 flex items-center gap-1 mt-1"
+                        >
+                          <Copy className="w-2.5 h-2.5" />
+                          ID: {client.id.slice(0, 8)}...
+                        </button>
                       </div>
                       <div className="flex items-center gap-2">
                         <Badge className={`${statusColors[client.status]} border text-xs font-medium`}>

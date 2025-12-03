@@ -841,6 +841,23 @@ const ReportGenerator = () => {
                     <ReportPreview data={reportData} />
                   </div>
                 </div>
+                
+                {/* Hidden landscape preview for thumbnail generation */}
+                <div 
+                  className="fixed pointer-events-none" 
+                  style={{ left: '-9999px', top: 0 }}
+                >
+                  <div 
+                    id="report-preview-landscape" 
+                    style={{ 
+                      width: 1600, 
+                      height: 900,
+                      backgroundColor: '#050509'
+                    }}
+                  >
+                    <ReportPreviewLandscape data={reportData} />
+                  </div>
+                </div>
               </div>
             )}
         </div>

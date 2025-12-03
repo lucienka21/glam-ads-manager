@@ -25,7 +25,11 @@ import {
   User,
   CheckSquare,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Copy,
+  Building2,
+  Pencil,
+  Plus
 } from 'lucide-react';
 
 interface Client {
@@ -43,6 +47,7 @@ interface Client {
   notes: string | null;
   created_at: string;
   assigned_to: string | null;
+  industry: string | null;
 }
 
 interface Profile {
@@ -204,148 +209,236 @@ export default function ClientProfile() {
 
   const totalBudgetSpent = campaigns.reduce((sum, c) => sum + (c.budget || 0), 0);
   const activeCampaigns = campaigns.filter(c => c.status === 'active').length;
+  const pendingTasks = tasks.filter(t => t.status !== 'completed').length;
+
+  const copyClientId = () => {
+    navigator.clipboard.writeText(client.id);
+    toast.success('ID klienta skopiowane');
+  };
 
   return (
     <AppLayout>
       <div className="p-6 space-y-6 animate-fade-in">
-        {/* Back Button */}
-        <Button 
-          variant="ghost" 
-          className="mb-2"
-          onClick={() => navigate('/clients')}
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Powrót do klientów
-        </Button>
+        {/* Header with Back & Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/clients')}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Powrót do klientów
+          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={copyClientId}>
+              <Copy className="w-4 h-4 mr-2" />
+              Kopiuj ID
+            </Button>
+            <Button variant="outline" size="sm">
+              <Pencil className="w-4 h-4 mr-2" />
+              Edytuj
+            </Button>
+          </div>
+        </div>
 
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row gap-6">
-          {/* Client Info Card */}
-          <Card className="flex-1 border-border/50 bg-card/80">
-            <CardHeader>
-              <div className="flex items-start justify-between">
-                <div>
-                  <CardTitle className="text-2xl">{client.salon_name}</CardTitle>
-                  {client.owner_name && (
-                    <p className="text-muted-foreground mt-1">{client.owner_name}</p>
+        {/* Main Header Card */}
+        <div className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50">
+          <div className="h-2 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600" />
+          <div className="p-6">
+            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <h1 className="text-3xl font-bold text-foreground">{client.salon_name}</h1>
+                  <Badge className={`${statusColors[client.status]} border`}>
+                    {statusLabels[client.status]}
+                  </Badge>
+                </div>
+                {client.owner_name && (
+                  <p className="text-lg text-muted-foreground mb-4">{client.owner_name}</p>
+                )}
+                
+                {/* Quick Info Pills */}
+                <div className="flex flex-wrap items-center gap-2 mb-4">
+                  {client.city && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 text-sm text-zinc-300">
+                      <MapPin className="w-3.5 h-3.5 text-pink-400" />
+                      {client.city}
+                    </div>
+                  )}
+                  {client.industry && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 text-sm text-zinc-300">
+                      <Building2 className="w-3.5 h-3.5 text-blue-400" />
+                      {client.industry}
+                    </div>
+                  )}
+                  {client.contract_start_date && (
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-800/80 text-sm text-zinc-300">
+                      <Calendar className="w-3.5 h-3.5 text-emerald-400" />
+                      od {format(new Date(client.contract_start_date), 'd MMM yyyy', { locale: pl })}
+                    </div>
                   )}
                 </div>
-                <Badge className={statusColors[client.status]}>
-                  {statusLabels[client.status]}
-                </Badge>
+                
+                {/* Client ID */}
+                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <span>ID:</span>
+                  <code className="px-2 py-0.5 rounded bg-zinc-800/80 font-mono">{client.id}</code>
+                </div>
               </div>
+              
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3 lg:w-72">
+                <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <DollarSign className="w-4 h-4 text-green-400" />
+                    <span className="text-xs text-zinc-400">Budżet/mies.</span>
+                  </div>
+                  <p className="text-xl font-bold text-green-400">{formatCurrency(client.monthly_budget)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Target className="w-4 h-4 text-blue-400" />
+                    <span className="text-xs text-zinc-400">Kampanie</span>
+                  </div>
+                  <p className="text-xl font-bold text-blue-400">{activeCampaigns} aktywnych</p>
+                </div>
+                <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <TrendingUp className="w-4 h-4 text-purple-400" />
+                    <span className="text-xs text-zinc-400">Wydano</span>
+                  </div>
+                  <p className="text-xl font-bold text-purple-400">{formatCurrency(totalBudgetSpent)}</p>
+                </div>
+                <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50">
+                  <div className="flex items-center gap-2 mb-1">
+                    <CheckSquare className="w-4 h-4 text-orange-400" />
+                    <span className="text-xs text-zinc-400">Zadania</span>
+                  </div>
+                  <p className="text-xl font-bold text-orange-400">{pendingTasks} otwartych</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact & Details Grid */}
+        <div className="grid lg:grid-cols-2 gap-6">
+          {/* Contact Info */}
+          <Card className="border-border/50 bg-card/80">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Phone className="w-5 h-5 text-primary" />
+                Dane kontaktowe
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                {client.city && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <MapPin className="w-4 h-4" />
-                    <span>{client.city}</span>
+              {client.phone && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                  <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                    <Phone className="w-5 h-5 text-emerald-400" />
                   </div>
-                )}
-                {client.phone && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Phone className="w-4 h-4" />
-                    <span>{client.phone}</span>
-                  </div>
-                )}
-                {client.email && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Mail className="w-4 h-4" />
-                    <span>{client.email}</span>
-                  </div>
-                )}
-                {client.instagram && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Instagram className="w-4 h-4" />
-                    <span>{client.instagram}</span>
-                  </div>
-                )}
-                {client.facebook_page && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Facebook className="w-4 h-4" />
-                    <span className="truncate">{client.facebook_page}</span>
-                  </div>
-                )}
-                {client.contract_start_date && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="w-4 h-4" />
-                    <span>od {format(new Date(client.contract_start_date), 'd MMMM yyyy', { locale: pl })}</span>
-                  </div>
-                )}
-              </div>
-              {assignedEmployee && (
-                <div className="pt-4 border-t border-border/50">
-                  <div className="flex items-center gap-2 text-sm">
-                    <User className="w-4 h-4 text-primary" />
-                    <span className="text-muted-foreground">Opiekun:</span>
-                    <span className="font-medium">{assignedEmployee.full_name || assignedEmployee.email}</span>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Telefon</p>
+                    <p className="font-medium">{client.phone}</p>
                   </div>
                 </div>
               )}
-              {client.notes && (
-                <div className="pt-4 border-t border-border/50">
-                  <p className="text-sm text-muted-foreground">{client.notes}</p>
+              {client.email && (
+                <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <Mail className="w-5 h-5 text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Email</p>
+                    <p className="font-medium">{client.email}</p>
+                  </div>
                 </div>
+              )}
+              {client.instagram && (
+                <a 
+                  href={`https://instagram.com/${client.instagram.replace('@', '')}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-pink-500/10 flex items-center justify-center">
+                    <Instagram className="w-5 h-5 text-pink-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Instagram</p>
+                    <p className="font-medium">{client.instagram}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                </a>
+              )}
+              {client.facebook_page && (
+                <a 
+                  href={client.facebook_page.startsWith('http') ? client.facebook_page : `https://facebook.com/${client.facebook_page}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-blue-600/10 flex items-center justify-center">
+                    <Facebook className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Facebook</p>
+                    <p className="font-medium truncate">{client.facebook_page}</p>
+                  </div>
+                  <ExternalLink className="w-4 h-4 text-muted-foreground" />
+                </a>
+              )}
+              {!client.phone && !client.email && !client.instagram && !client.facebook_page && (
+                <p className="text-muted-foreground text-sm text-center py-4">Brak danych kontaktowych</p>
               )}
             </CardContent>
           </Card>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 lg:w-64">
-            <Card className="border-border/50 bg-card/80">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <DollarSign className="w-5 h-5 text-primary" />
+          {/* Assigned Employee & Notes */}
+          <Card className="border-border/50 bg-card/80">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <User className="w-5 h-5 text-primary" />
+                Opiekun i notatki
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {assignedEmployee ? (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 border border-pink-500/20">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                    {(assignedEmployee.full_name || assignedEmployee.email || '?')[0].toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-xl font-bold">{formatCurrency(client.monthly_budget)}</p>
-                    <p className="text-xs text-muted-foreground">Budżet miesięczny</p>
+                    <p className="text-xs text-muted-foreground">Przypisany opiekun</p>
+                    <p className="font-semibold text-lg">{assignedEmployee.full_name || assignedEmployee.email}</p>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50 bg-card/80">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <Target className="w-5 h-5 text-green-400" />
+              ) : (
+                <div className="flex items-center gap-3 p-4 rounded-lg bg-secondary/30 border border-dashed border-border">
+                  <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center">
+                    <User className="w-6 h-6 text-zinc-500" />
                   </div>
-                  <div>
-                    <p className="text-xl font-bold">{activeCampaigns}</p>
-                    <p className="text-xs text-muted-foreground">Aktywne kampanie</p>
+                  <div className="flex-1">
+                    <p className="text-muted-foreground">Brak przypisanego opiekuna</p>
                   </div>
+                  <Button size="sm" variant="outline">
+                    <Plus className="w-4 h-4 mr-1" />
+                    Przypisz
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50 bg-card/80">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-blue-500/10">
-                    <TrendingUp className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold">{formatCurrency(totalBudgetSpent)}</p>
-                    <p className="text-xs text-muted-foreground">Łącznie wydane</p>
-                  </div>
+              )}
+              
+              {client.notes ? (
+                <div className="p-4 rounded-lg bg-secondary/30">
+                  <p className="text-xs text-muted-foreground mb-2">Notatki</p>
+                  <p className="text-sm whitespace-pre-wrap">{client.notes}</p>
                 </div>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50 bg-card/80">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-purple-500/10">
-                    <FileText className="w-5 h-5 text-purple-400" />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold">{documents.length}</p>
-                    <p className="text-xs text-muted-foreground">Dokumentów</p>
-                  </div>
+              ) : (
+                <div className="p-4 rounded-lg bg-secondary/20 border border-dashed border-border text-center">
+                  <p className="text-sm text-muted-foreground">Brak notatek</p>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Campaigns Section */}
