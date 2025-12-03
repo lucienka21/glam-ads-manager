@@ -8,6 +8,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
+import { useAuth } from '@/hooks/useAuth';
+import { notifyGuardianAssigned } from '@/lib/notifications';
 import { 
   ArrowLeft,
   Phone, 
@@ -127,6 +129,7 @@ const documentTypeColors: Record<string, string> = {
 export default function ClientProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [client, setClient] = useState<Client | null>(null);
   const [assignedEmployee, setAssignedEmployee] = useState<Profile | null>(null);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -134,6 +137,7 @@ export default function ClientProfile() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [employees, setEmployees] = useState<Profile[]>([]);
+  const [currentUserProfile, setCurrentUserProfile] = useState<Profile | null>(null);
   
   // Edit states
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -170,6 +174,12 @@ export default function ClientProfile() {
       .select('id, email, full_name')
       .order('full_name');
     setEmployees(data || []);
+    
+    // Get current user's profile for notification
+    if (user) {
+      const currentProfile = data?.find(p => p.id === user.id);
+      setCurrentUserProfile(currentProfile || null);
+    }
   };
 
   const fetchClientData = async () => {
@@ -235,7 +245,7 @@ export default function ClientProfile() {
   };
 
   const handleAssignEmployee = async (employeeId: string | null) => {
-    if (!id) return;
+    if (!id || !client) return;
     setSavingAssignment(true);
     
     const { error } = await supabase
@@ -247,6 +257,19 @@ export default function ClientProfile() {
       toast.error('Błąd podczas przypisywania opiekuna');
     } else {
       toast.success('Opiekun został przypisany');
+      
+      // Send notification to the assigned employee
+      if (employeeId && user) {
+        const assignerName = currentUserProfile?.full_name || currentUserProfile?.email || 'Użytkownik';
+        await notifyGuardianAssigned(
+          client.id,
+          client.salon_name,
+          employeeId,
+          assignerName,
+          user.id
+        );
+      }
+      
       fetchClientData();
     }
     setSavingAssignment(false);

@@ -865,12 +865,21 @@ export default function Leads() {
                     </div>
                     <div>
                       <Label>Źródło</Label>
-                      <Input
-                        value={formData.source}
-                        onChange={(e) => setFormData({ ...formData, source: e.target.value })}
-                        placeholder="np. Instagram"
-                        className="form-input-elegant"
-                      />
+                      <Select value={formData.source} onValueChange={(v) => setFormData({ ...formData, source: v })}>
+                        <SelectTrigger className="form-input-elegant">
+                          <SelectValue placeholder="Wybierz źródło" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Instagram">Instagram</SelectItem>
+                          <SelectItem value="Facebook">Facebook</SelectItem>
+                          <SelectItem value="Cold mail">Cold mail</SelectItem>
+                          <SelectItem value="Cold call">Cold call</SelectItem>
+                          <SelectItem value="Polecenie">Polecenie</SelectItem>
+                          <SelectItem value="Google">Google</SelectItem>
+                          <SelectItem value="Strona www">Strona www</SelectItem>
+                          <SelectItem value="Inne">Inne</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
