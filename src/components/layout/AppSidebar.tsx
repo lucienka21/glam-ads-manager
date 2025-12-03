@@ -26,7 +26,9 @@ import {
   Calendar,
   MessageSquare,
   BarChart3,
-  Settings
+  Settings,
+  Wand2,
+  Palette,
 } from "lucide-react";
 import {
   Sidebar,
@@ -69,6 +71,8 @@ const crmItems = [
 ];
 
 const generatorItems = [
+  { title: "Kampania AI", url: "/campaign-generator", icon: Wand2 },
+  { title: "Kreator grafik", url: "/graphics-creator", icon: Palette },
   { title: "Raporty", url: "/report-generator", icon: FileText },
   { title: "Faktury", url: "/invoice-generator", icon: Receipt },
   { title: "Umowy", url: "/contract-generator", icon: FileSignature },
