@@ -25,6 +25,9 @@ import SalesFunnelPage from "./pages/SalesFunnelPage";
 import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
 import Team from "./pages/Team";
+import Calendar from "./pages/Calendar";
+import SmsTemplates from "./pages/SmsTemplates";
+import MonthlyReport from "./pages/MonthlyReport";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +56,9 @@ const App = () => (
               <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
+              <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
+              <Route path="/sms-templates" element={<ProtectedRoute><SmsTemplates /></ProtectedRoute>} />
+              <Route path="/monthly-report" element={<ProtectedRoute><MonthlyReport /></ProtectedRoute>} />
               <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
               <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />
               <Route path="/contract-generator" element={<ProtectedRoute><ContractGenerator /></ProtectedRoute>} />

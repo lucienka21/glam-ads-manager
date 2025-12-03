@@ -79,6 +79,79 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_events: {
+        Row: {
+          all_day: boolean | null
+          client_id: string | null
+          color: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string | null
+          event_type: string
+          id: string
+          lead_id: string | null
+          start_date: string
+          task_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          all_day?: boolean | null
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date?: string | null
+          event_type?: string
+          id?: string
+          lead_id?: string | null
+          start_date: string
+          task_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          all_day?: boolean | null
+          client_id?: string | null
+          color?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string | null
+          event_type?: string
+          id?: string
+          lead_id?: string | null
+          start_date?: string
+          task_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "calendar_events_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "calendar_events_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaign_metrics: {
         Row: {
           bookings: number | null
@@ -494,6 +567,33 @@ export type Database = {
           },
         ]
       }
+      monthly_reports: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          data: Json
+          id: string
+          month: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          data: Json
+          id?: string
+          month: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          id?: string
+          month?: number
+          year?: number
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           content: string | null
@@ -603,6 +703,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sms_templates: {
+        Row: {
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       task_comments: {
         Row: {
