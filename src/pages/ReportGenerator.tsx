@@ -238,22 +238,22 @@ const ReportGenerator = () => {
       description: "Sprawdź podgląd raportu poniżej i pobierz PDF",
     });
     
-    // Generate thumbnail using landscape preview for consistent horizontal thumbnails
+    // Generate landscape thumbnail after render
     if (docId) {
-      // Wait for React to render the landscape preview
       setTimeout(async () => {
         const thumbnail = await genThumb({
           elementId: "report-preview-landscape",
-          backgroundColor: "#050509",
-          pixelRatio: 0.2,
+          backgroundColor: "#000000",
+          pixelRatio: 0.25,
           maxRetries: 5,
-          retryDelay: 800
+          retryDelay: 600
         });
         
         if (thumbnail) {
           await updateThumbnail(docId, thumbnail);
+          console.log("Landscape thumbnail saved successfully");
         }
-      }, 500);
+      }, 800);
     }
   };
 
@@ -890,11 +890,16 @@ const ReportGenerator = () => {
             {/* Always render hidden landscape preview for thumbnail generation */}
             {reportData && (
               <div 
-                className="fixed pointer-events-none"
+                id="report-landscape-container"
                 style={{ 
-                  top: '-9999px',
-                  left: '-9999px',
-                  opacity: 0,
+                  position: 'fixed',
+                  top: 0,
+                  left: 0,
+                  width: 1600,
+                  height: 900,
+                  visibility: 'hidden',
+                  zIndex: -9999,
+                  pointerEvents: 'none',
                 }}
               >
                 <div 
@@ -902,7 +907,7 @@ const ReportGenerator = () => {
                   style={{ 
                     width: 1600, 
                     height: 900,
-                    backgroundColor: '#050509'
+                    backgroundColor: '#000000'
                   }}
                 >
                   <ReportPreviewLandscape data={reportData} />

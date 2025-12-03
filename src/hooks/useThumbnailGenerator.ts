@@ -9,156 +9,84 @@ interface ThumbnailOptions {
   quality?: number;
   maxRetries?: number;
   retryDelay?: number;
-  landscape?: boolean;
-  width?: number;
-  height?: number;
 }
 
 /**
  * Hook for generating thumbnails with robust retry logic
- * Handles off-screen elements by temporarily moving them into view
+ * Handles hidden elements by temporarily making them visible
  */
 export function useThumbnailGenerator() {
   
-  const waitForElement = useCallback((elementId: string, timeout = 5000): Promise<HTMLElement | null> => {
-    return new Promise((resolve) => {
-      const startTime = Date.now();
-      
-      const checkElement = () => {
-        const element = document.getElementById(elementId);
-        
-        if (element) {
-          // For off-screen elements, check computed dimensions instead of getBoundingClientRect
-          const computedStyle = window.getComputedStyle(element);
-          const hasWidth = parseInt(computedStyle.width) > 0 || element.offsetWidth > 0;
-          const hasHeight = parseInt(computedStyle.height) > 0 || element.offsetHeight > 0;
-          
-          if (hasWidth && hasHeight) {
-            resolve(element);
-            return;
-          }
-        }
-        
-        if (Date.now() - startTime < timeout) {
-          requestAnimationFrame(checkElement);
-        } else {
-          resolve(null);
-        }
-      };
-      
-      checkElement();
-    });
-  }, []);
-
   const generateThumbnail = useCallback(async ({
     elementId,
     format = 'png',
-    backgroundColor = '#09090b',
-    pixelRatio = 0.3,
+    backgroundColor = '#000000',
+    pixelRatio = 0.25,
     quality = 0.8,
-    maxRetries = 3,
-    retryDelay = 500,
-    landscape = false,
-    width,
-    height,
+    maxRetries = 5,
+    retryDelay = 600,
   }: ThumbnailOptions): Promise<string | null> => {
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // Wait for element to be ready
-        const element = await waitForElement(elementId);
+        // Wait a bit for rendering
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
         
+        const element = document.getElementById(elementId);
         if (!element) {
           console.warn(`Thumbnail attempt ${attempt + 1}: Element ${elementId} not found`);
-          if (attempt < maxRetries - 1) {
-            await new Promise(resolve => setTimeout(resolve, retryDelay));
-            continue;
-          }
-          return null;
+          continue;
         }
 
-        const parent = element.parentElement;
+        // Get the container (parent) to make visible during capture
+        const container = element.parentElement;
         
-        // Store original styles for both element and parent
-        const originalStyles = {
-          element: {
-            position: element.style.position,
-            top: element.style.top,
-            left: element.style.left,
-            visibility: element.style.visibility,
-            opacity: element.style.opacity,
-            zIndex: element.style.zIndex,
-          },
-          parent: parent ? {
-            position: parent.style.position,
-            top: parent.style.top,
-            left: parent.style.left,
-            visibility: parent.style.visibility,
-            opacity: parent.style.opacity,
-          } : null
-        };
-
-        // Move element into view for capture
-        if (parent) {
-          parent.style.position = 'fixed';
-          parent.style.top = '0';
-          parent.style.left = '0';
-          parent.style.visibility = 'visible';
-          parent.style.opacity = '1';
+        // Store original styles
+        const originalContainerStyles = container ? {
+          visibility: container.style.visibility,
+          zIndex: container.style.zIndex,
+        } : null;
+        
+        // Make container visible for capture
+        if (container) {
+          container.style.visibility = 'visible';
+          container.style.zIndex = '99999';
         }
         
-        element.style.visibility = 'visible';
-        element.style.opacity = '1';
-
-        // Small delay to ensure rendering is complete
-        await new Promise(resolve => setTimeout(resolve, 150));
+        // Wait for browser to render
+        await new Promise(resolve => setTimeout(resolve, 100));
 
         // Generate thumbnail
-        const options: Record<string, unknown> = {
+        const options = {
           cacheBust: true,
           pixelRatio,
           backgroundColor,
           quality,
-          skipAutoScale: true,
+          width: 1600,
+          height: 900,
         };
-
-        if (width) options.width = width;
-        if (height) options.height = height;
 
         const dataUrl = format === 'jpeg' 
           ? await toJpeg(element, options)
           : await toPng(element, options);
         
         // Restore original styles
-        if (parent && originalStyles.parent) {
-          parent.style.position = originalStyles.parent.position;
-          parent.style.top = originalStyles.parent.top;
-          parent.style.left = originalStyles.parent.left;
-          parent.style.visibility = originalStyles.parent.visibility;
-          parent.style.opacity = originalStyles.parent.opacity;
+        if (container && originalContainerStyles) {
+          container.style.visibility = originalContainerStyles.visibility;
+          container.style.zIndex = originalContainerStyles.zIndex;
         }
         
-        element.style.position = originalStyles.element.position;
-        element.style.top = originalStyles.element.top;
-        element.style.left = originalStyles.element.left;
-        element.style.visibility = originalStyles.element.visibility;
-        element.style.opacity = originalStyles.element.opacity;
-        element.style.zIndex = originalStyles.element.zIndex;
-        
+        console.log(`Thumbnail generated successfully on attempt ${attempt + 1}`);
         return dataUrl;
         
       } catch (error) {
         console.warn(`Thumbnail attempt ${attempt + 1} failed:`, error);
-        
-        if (attempt < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-        }
       }
     }
     
     console.error(`Failed to generate thumbnail after ${maxRetries} attempts`);
     return null;
-  }, [waitForElement]);
+  }, []);
 
   return { generateThumbnail };
 }
