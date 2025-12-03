@@ -22,7 +22,10 @@ import {
   CheckSquare,
   TrendingDown,
   Bell,
-  UsersRound
+  UsersRound,
+  Calendar,
+  MessageSquare,
+  BarChart3
 } from "lucide-react";
 import {
   Sidebar,
@@ -57,8 +60,11 @@ const crmItems = [
   { title: "Leady", url: "/leads", icon: UserPlus },
   { title: "Klienci", url: "/clients", icon: Users },
   { title: "Lejek", url: "/funnel", icon: TrendingDown },
+  { title: "Kalendarz", url: "/calendar", icon: Calendar },
   { title: "Kampanie", url: "/campaigns", icon: Target },
   { title: "Szablony email", url: "/email-templates", icon: Mail },
+  { title: "Szablony SMS", url: "/sms-templates", icon: MessageSquare },
+  { title: "Raport miesięczny", url: "/monthly-report", icon: BarChart3 },
 ];
 
 const generatorItems = [
