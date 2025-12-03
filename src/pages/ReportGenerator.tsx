@@ -246,15 +246,7 @@ const ReportGenerator = () => {
             return;
           }
           
-          // Temporarily make visible for capture
-          const container = document.getElementById("thumbnail-capture-container");
-          if (container) {
-            container.style.opacity = "1";
-            container.style.zIndex = "99999";
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 300));
-          
+          // No need to make visible - html-to-image can capture off-screen elements
           const thumbnail = await toPng(element, {
             cacheBust: true,
             pixelRatio: 0.25,
@@ -262,12 +254,6 @@ const ReportGenerator = () => {
             width: 1600,
             height: 900,
           });
-          
-          // Hide again
-          if (container) {
-            container.style.opacity = "0.01";
-            container.style.zIndex = "-1";
-          }
           
           if (thumbnail) {
             await updateThumbnail(docId, thumbnail);
@@ -910,20 +896,18 @@ const ReportGenerator = () => {
               </div>
             )}
             
-            {/* Hidden landscape preview for thumbnail - using iframe-like isolation */}
+            {/* Hidden landscape preview for thumbnail - positioned off-screen */}
             {reportData && (
               <div 
                 id="thumbnail-capture-container"
                 style={{ 
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
+                  position: 'fixed',
+                  top: -10000,
+                  left: -10000,
                   width: 1600,
                   height: 900,
                   overflow: 'hidden',
-                  opacity: 0.01,
                   pointerEvents: 'none',
-                  zIndex: -1,
                 }}
               >
                 <div 
