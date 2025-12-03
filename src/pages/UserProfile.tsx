@@ -15,7 +15,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { toast } from "sonner";
 import { 
   User, Mail, Phone, Briefcase, FileText, Calendar, 
-  Save, Loader2, ArrowLeft, Clock, Trash2, AlertTriangle
+  Save, Loader2, ArrowLeft, Clock, Trash2, AlertTriangle, Crown, Shield
 } from "lucide-react";
 import { format } from "date-fns";
 import { pl } from "date-fns/locale";
@@ -59,6 +59,7 @@ export default function UserProfile() {
   
   const [profile, setProfile] = useState<UserProfileData | null>(null);
   const [documents, setDocuments] = useState<UserDocument[]>([]);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -77,8 +78,19 @@ export default function UserProfile() {
     if (id) {
       fetchProfile();
       fetchUserDocuments();
+      fetchUserRole();
     }
   }, [id]);
+
+  const fetchUserRole = async () => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", id)
+      .single();
+    
+    setUserRole(data?.role || null);
+  };
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -296,7 +308,19 @@ export default function UserProfile() {
                     {profile.position}
                   </p>
                 )}
-                <div className="flex items-center justify-center sm:justify-start gap-2 pt-2">
+                <div className="flex items-center justify-center sm:justify-start gap-2 pt-2 flex-wrap">
+                  {userRole && (
+                    <Badge 
+                      variant="outline" 
+                      className={userRole === "szef" 
+                        ? "gap-1 text-amber-500 border-amber-500/30 bg-amber-500/10" 
+                        : "gap-1 text-blue-400 border-blue-400/30 bg-blue-500/10"
+                      }
+                    >
+                      {userRole === "szef" ? <Crown className="w-3 h-3" /> : <Shield className="w-3 h-3" />}
+                      {userRole === "szef" ? "Szef" : "Pracownik"}
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="gap-1">
                     <div className={`w-2 h-2 rounded-full ${getStatusColor(profile.status)}`} />
                     {getStatusLabel(profile.status)}

@@ -135,10 +135,15 @@ export function AnnouncementComments({ announcementId }: AnnouncementCommentsPro
   };
 
   const handleDelete = async (id: string) => {
+    // Optimistic update - remove immediately from UI
+    setComments(prev => prev.filter(c => c.id !== id));
+    
     const { error } = await supabase.from("announcement_comments").delete().eq("id", id);
 
     if (error) {
       toast.error("Błąd podczas usuwania");
+      // Revert on error
+      fetchComments();
       return;
     }
 
