@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Bell, Check, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Bell, Check, ExternalLink, AtSign, UserPlus, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -25,10 +26,56 @@ interface Notification {
 }
 
 export function NotificationBell() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "mention":
+        return <AtSign className="w-3 h-3 text-pink-400" />;
+      case "task_assigned":
+        return <UserPlus className="w-3 h-3 text-blue-400" />;
+      case "task_completed":
+        return <CheckCircle className="w-3 h-3 text-emerald-400" />;
+      case "client_assigned":
+        return <UserPlus className="w-3 h-3 text-amber-400" />;
+      default:
+        return <Bell className="w-3 h-3 text-muted-foreground" />;
+    }
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id);
+    setOpen(false);
+    
+    if (notification.reference_type && notification.reference_id) {
+      switch (notification.reference_type) {
+        case "task":
+          navigate("/tasks");
+          break;
+        case "client":
+          navigate(`/clients/${notification.reference_id}`);
+          break;
+        case "lead":
+          navigate(`/leads/${notification.reference_id}`);
+          break;
+        case "announcement":
+          navigate("/");
+          break;
+        case "task_comment":
+          navigate("/tasks");
+          break;
+        case "chat":
+          navigate("/team");
+          break;
+        default:
+          break;
+      }
+    }
+  };
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -131,16 +178,24 @@ export function NotificationBell() {
                     "p-3 hover:bg-zinc-800/50 transition-colors cursor-pointer",
                     !notification.is_read && "bg-pink-500/5 border-l-2 border-pink-500"
                   )}
-                  onClick={() => markAsRead(notification.id)}
+                  onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-start gap-2">
+                    <div className="mt-0.5">
+                      {getNotificationIcon(notification.type)}
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <p className={cn(
-                        "text-sm",
-                        !notification.is_read ? "font-semibold text-foreground" : "text-muted-foreground"
-                      )}>
-                        {notification.title}
-                      </p>
+                      <div className="flex items-center gap-1">
+                        <p className={cn(
+                          "text-sm",
+                          !notification.is_read ? "font-semibold text-foreground" : "text-muted-foreground"
+                        )}>
+                          {notification.title}
+                        </p>
+                        {notification.reference_type && (
+                          <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/50" />
+                        )}
+                      </div>
                       {notification.content && (
                         <p className="text-xs text-muted-foreground truncate mt-0.5">
                           {notification.content}
@@ -162,6 +217,18 @@ export function NotificationBell() {
             </div>
           )}
         </ScrollArea>
+        <div className="p-2 border-t border-zinc-700">
+          <Button 
+            variant="ghost" 
+            className="w-full text-xs text-muted-foreground hover:text-foreground"
+            onClick={() => {
+              setOpen(false);
+              navigate("/notifications");
+            }}
+          >
+            Zobacz wszystkie powiadomienia
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
   );

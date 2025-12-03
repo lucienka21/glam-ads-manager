@@ -23,6 +23,8 @@ import Tasks from "./pages/Tasks";
 import RoleManagement from "./pages/RoleManagement";
 import SalesFunnelPage from "./pages/SalesFunnelPage";
 import UserProfile from "./pages/UserProfile";
+import Notifications from "./pages/Notifications";
+import Team from "./pages/Team";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +51,8 @@ const App = () => (
               <Route path="/email-templates" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
               <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
               <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+              <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+              <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
               <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
               <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />
               <Route path="/contract-generator" element={<ProtectedRoute><ContractGenerator /></ProtectedRoute>} />
