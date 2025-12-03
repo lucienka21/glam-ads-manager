@@ -14,7 +14,6 @@ import { ReportPreview } from "@/components/report/ReportPreview";
 import { ReportPreviewLandscape } from "@/components/report/ReportPreviewLandscape";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
-import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
@@ -61,7 +60,6 @@ const ReportGenerator = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const portraitContainerRef = useRef<HTMLDivElement>(null);
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
-  const { generateThumbnail: genThumb } = useThumbnailGenerator();
 
   // Fetch clients for linking
   useEffect(() => {
@@ -238,22 +236,47 @@ const ReportGenerator = () => {
       description: "Sprawdź podgląd raportu poniżej i pobierz PDF",
     });
     
-    // Generate landscape thumbnail after render
+    // Generate landscape thumbnail directly using toPng
     if (docId) {
       setTimeout(async () => {
-        const thumbnail = await genThumb({
-          elementId: "report-preview-landscape",
-          backgroundColor: "#000000",
-          pixelRatio: 0.25,
-          maxRetries: 5,
-          retryDelay: 600
-        });
-        
-        if (thumbnail) {
-          await updateThumbnail(docId, thumbnail);
-          console.log("Landscape thumbnail saved successfully");
+        try {
+          const element = document.getElementById("report-thumbnail-source");
+          if (!element) {
+            console.error("Thumbnail source element not found");
+            return;
+          }
+          
+          // Temporarily make visible for capture
+          const container = document.getElementById("thumbnail-capture-container");
+          if (container) {
+            container.style.opacity = "1";
+            container.style.zIndex = "99999";
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          const thumbnail = await toPng(element, {
+            cacheBust: true,
+            pixelRatio: 0.25,
+            backgroundColor: "#000000",
+            width: 1600,
+            height: 900,
+          });
+          
+          // Hide again
+          if (container) {
+            container.style.opacity = "0.01";
+            container.style.zIndex = "-1";
+          }
+          
+          if (thumbnail) {
+            await updateThumbnail(docId, thumbnail);
+            console.log("Landscape thumbnail generated: 1600x900");
+          }
+        } catch (error) {
+          console.error("Thumbnail generation failed:", error);
         }
-      }, 800);
+      }, 1000);
     }
   };
 
@@ -887,27 +910,29 @@ const ReportGenerator = () => {
               </div>
             )}
             
-            {/* Always render hidden landscape preview for thumbnail generation */}
+            {/* Hidden landscape preview for thumbnail - using iframe-like isolation */}
             {reportData && (
               <div 
-                id="report-landscape-container"
+                id="thumbnail-capture-container"
                 style={{ 
-                  position: 'fixed',
+                  position: 'absolute',
                   top: 0,
                   left: 0,
                   width: 1600,
                   height: 900,
-                  visibility: 'hidden',
-                  zIndex: -9999,
+                  overflow: 'hidden',
+                  opacity: 0.01,
                   pointerEvents: 'none',
+                  zIndex: -1,
                 }}
               >
                 <div 
-                  id="report-preview-landscape" 
+                  id="report-thumbnail-source" 
                   style={{ 
                     width: 1600, 
                     height: 900,
-                    backgroundColor: '#000000'
+                    backgroundColor: '#000000',
+                    overflow: 'hidden',
                   }}
                 >
                   <ReportPreviewLandscape data={reportData} />
