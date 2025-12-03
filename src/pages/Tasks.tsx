@@ -16,6 +16,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
+import { notifyTaskCompleted, notifyTaskAssigned } from '@/lib/notifications';
 import {
   Plus,
   CheckCircle2,
@@ -360,11 +361,23 @@ const payload = {
           toast.error('Błąd dodawania zadania: ' + error.message);
         } else {
           console.log('Task created successfully:', data);
+          const newTask = data?.[0];
           
           // Send notification if task is assigned to someone
-          if (payload.assigned_to && payload.assigned_to !== user.id) {
+          if (payload.assigned_to && payload.assigned_to !== user.id && newTask) {
+            const currentUserProfile = employees.find(e => e.id === user.id);
+            const assignerName = currentUserProfile?.full_name || currentUserProfile?.email || 'Użytkownik';
             const assignedEmployee = employees.find(e => e.id === payload.assigned_to);
             const assignedName = assignedEmployee?.full_name || assignedEmployee?.email || 'użytkownika';
+            
+            await notifyTaskAssigned(
+              newTask.id,
+              formData.title,
+              payload.assigned_to,
+              assignerName,
+              user.id
+            );
+            
             toast.success(`Zadanie "${formData.title}" przypisane do ${assignedName}`);
           } else {
             toast.success('Zadanie dodane');
@@ -416,6 +429,22 @@ const payload = {
         toast.error('Błąd aktualizacji statusu');
       } else {
         toast.success(completed ? 'Zadanie ukończone' : 'Zadanie wznowione');
+        
+        // Send notification when task is completed by someone other than creator/assignee
+        if (completed) {
+          const currentUserProfile = employees.find(e => e.id === user.id);
+          const completedByName = currentUserProfile?.full_name || currentUserProfile?.email || 'Użytkownik';
+          
+          await notifyTaskCompleted(
+            task.id,
+            task.title,
+            user.id,
+            completedByName,
+            task.created_by,
+            task.assigned_to
+          );
+        }
+        
         void loadInitialData();
       }
     } catch (err) {
