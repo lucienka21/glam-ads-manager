@@ -25,7 +25,8 @@ import {
   UsersRound,
   Calendar,
   MessageSquare,
-  BarChart3
+  BarChart3,
+  Settings
 } from "lucide-react";
 import {
   Sidebar,
@@ -303,6 +304,10 @@ export function AppSidebar() {
             <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)}>
               <User className="w-4 h-4 mr-2" />
               Mój profil
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/settings")}>
+              <Settings className="w-4 h-4 mr-2" />
+              Ustawienia
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
               <LogOut className="w-4 h-4 mr-2" />

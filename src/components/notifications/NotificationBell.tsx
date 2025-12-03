@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Check, ExternalLink, AtSign, UserPlus, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useNotificationSound } from "@/hooks/useNotificationSound";
 
 interface Notification {
   id: string;
@@ -31,6 +32,8 @@ export function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const { playSound } = useNotificationSound();
+  const prevUnreadCountRef = useRef(0);
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -88,8 +91,16 @@ export function NotificationBell() {
       .limit(20);
 
     if (!error && data) {
+      const newUnreadCount = data.filter(n => !n.is_read).length;
+      
+      // Play sound if there are new unread notifications
+      if (newUnreadCount > prevUnreadCountRef.current && prevUnreadCountRef.current !== 0) {
+        playSound();
+      }
+      
+      prevUnreadCountRef.current = newUnreadCount;
       setNotifications(data);
-      setUnreadCount(data.filter(n => !n.is_read).length);
+      setUnreadCount(newUnreadCount);
     }
   };
 

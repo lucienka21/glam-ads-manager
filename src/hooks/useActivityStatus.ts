@@ -8,12 +8,21 @@ const UPDATE_INTERVAL = 30 * 1000; // 30 seconds
 export function useActivityStatus() {
   const { user } = useAuth();
   const lastActivityRef = useRef(Date.now());
+  const currentStatusRef = useRef<string>("offline");
   const [currentStatus, setCurrentStatus] = useState<string>("offline");
   const initializedRef = useRef(false);
+  const updatePendingRef = useRef(false);
 
   // Force update status to database
   const forceUpdateStatus = useCallback(async (status: string) => {
     if (!user?.id) return;
+    
+    // Skip if same status to reduce DB calls
+    if (currentStatusRef.current === status && status !== "online") return;
+    
+    // Prevent concurrent updates
+    if (updatePendingRef.current) return;
+    updatePendingRef.current = true;
     
     try {
       const { error } = await supabase
@@ -24,20 +33,16 @@ export function useActivityStatus() {
         })
         .eq("id", user.id);
       
-      if (error) {
-        console.error("Error updating status:", error);
-      } else {
+      if (!error) {
+        currentStatusRef.current = status;
         setCurrentStatus(status);
       }
     } catch (err) {
       console.error("Failed to update status:", err);
+    } finally {
+      updatePendingRef.current = false;
     }
   }, [user?.id]);
-
-  // Reset activity timestamp on user interaction
-  const recordActivity = useCallback(() => {
-    lastActivityRef.current = Date.now();
-  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -51,23 +56,22 @@ export function useActivityStatus() {
     lastActivityRef.current = Date.now();
 
     // Throttled activity handler
-    let activityThrottle: NodeJS.Timeout | null = null;
+    let activityThrottle: ReturnType<typeof setTimeout> | null = null;
     const handleActivity = () => {
-      recordActivity();
+      lastActivityRef.current = Date.now();
       
-      // Throttle status updates to prevent spam
-      if (activityThrottle) return;
-      activityThrottle = setTimeout(() => {
-        activityThrottle = null;
-        // Only update if we were away/offline
-        if (currentStatus !== "online") {
+      // If we're away/offline, immediately set to online
+      if (currentStatusRef.current !== "online") {
+        if (activityThrottle) return;
+        activityThrottle = setTimeout(() => {
+          activityThrottle = null;
           forceUpdateStatus("online");
-        }
-      }, 2000);
+        }, 500);
+      }
     };
 
-    // Activity event listeners
-    const events = ["mousedown", "keydown", "touchstart", "scroll", "mousemove", "click"];
+    // Activity event listeners - fewer events to reduce overhead
+    const events = ["mousedown", "keydown", "touchstart", "click"];
     events.forEach(event => {
       window.addEventListener(event, handleActivity, { passive: true });
     });
@@ -77,10 +81,10 @@ export function useActivityStatus() {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
       
       if (timeSinceActivity >= IDLE_TIMEOUT) {
-        // User is idle
-        forceUpdateStatus("away");
-      } else {
-        // User is active - only update if status changed
+        if (currentStatusRef.current !== "away") {
+          forceUpdateStatus("away");
+        }
+      } else if (currentStatusRef.current !== "online") {
         forceUpdateStatus("online");
       }
     }, UPDATE_INTERVAL);
@@ -88,10 +92,8 @@ export function useActivityStatus() {
     // Handle tab visibility changes
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // Tab hidden - set away
         forceUpdateStatus("away");
       } else {
-        // Tab visible - record activity and set online
         lastActivityRef.current = Date.now();
         forceUpdateStatus("online");
       }
@@ -101,7 +103,6 @@ export function useActivityStatus() {
     // Handle page close - set offline
     const handleBeforeUnload = () => {
       if (user?.id) {
-        // Use sendBeacon for reliable delivery on page close
         const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`;
         const data = JSON.stringify({ 
           status: "offline", 
@@ -113,7 +114,6 @@ export function useActivityStatus() {
           new Blob([data], { type: 'application/json' })
         );
         
-        // Fallback with fetch keepalive
         fetch(url, {
           method: 'PATCH',
           headers: {
@@ -141,7 +141,7 @@ export function useActivityStatus() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       clearInterval(idleCheckInterval);
     };
-  }, [user?.id, forceUpdateStatus, recordActivity, currentStatus]);
+  }, [user?.id, forceUpdateStatus]);
 
   return { updateStatus: forceUpdateStatus, currentStatus };
 }
