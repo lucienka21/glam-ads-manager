@@ -252,11 +252,15 @@ export default function Clients() {
   };
 
   const filteredClients = clients.filter((client) => {
+    const searchLower = search.toLowerCase();
     const matchesSearch =
-      client.salon_name.toLowerCase().includes(search.toLowerCase()) ||
-      client.owner_name?.toLowerCase().includes(search.toLowerCase()) ||
-      client.city?.toLowerCase().includes(search.toLowerCase()) ||
-      client.industry?.toLowerCase().includes(search.toLowerCase());
+      client.salon_name.toLowerCase().includes(searchLower) ||
+      client.owner_name?.toLowerCase().includes(searchLower) ||
+      client.city?.toLowerCase().includes(searchLower) ||
+      client.industry?.toLowerCase().includes(searchLower) ||
+      client.id.toLowerCase().includes(searchLower) ||
+      client.email?.toLowerCase().includes(searchLower) ||
+      client.phone?.toLowerCase().includes(searchLower);
     const matchesStatus = statusFilter === 'all' || client.status === statusFilter;
     const matchesIndustry = industryFilter === 'all' || client.industry === industryFilter;
     return matchesSearch && matchesStatus && matchesIndustry;
@@ -383,12 +387,12 @@ export default function Clients() {
                   </div>
                   <div>
                     <Label>Branża</Label>
-                    <Select value={formData.industry} onValueChange={(v) => setFormData({ ...formData, industry: v })}>
+                    <Select value={formData.industry || "none"} onValueChange={(v) => setFormData({ ...formData, industry: v === "none" ? "" : v })}>
                       <SelectTrigger className="form-input-elegant">
                         <SelectValue placeholder="Wybierz branżę" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Brak</SelectItem>
+                        <SelectItem value="none">Brak</SelectItem>
                         {industryOptions.map((ind) => (
                           <SelectItem key={ind} value={ind}>{ind}</SelectItem>
                         ))}
@@ -396,13 +400,13 @@ export default function Clients() {
                     </Select>
                   </div>
                   <div>
-                    <Label>Przypisany pracownik</Label>
-                    <Select value={formData.assigned_to} onValueChange={(v) => setFormData({ ...formData, assigned_to: v })}>
+                    <Label>Opiekun klienta</Label>
+                    <Select value={formData.assigned_to || "none"} onValueChange={(v) => setFormData({ ...formData, assigned_to: v === "none" ? "" : v })}>
                       <SelectTrigger className="form-input-elegant">
-                        <SelectValue placeholder="Wybierz pracownika" />
+                        <SelectValue placeholder="Wybierz opiekuna" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Brak przypisania</SelectItem>
+                        <SelectItem value="none">Brak opiekuna</SelectItem>
                         {employees.map((emp) => (
                           <SelectItem key={emp.id} value={emp.id}>
                             {emp.full_name || emp.email}
@@ -434,7 +438,7 @@ export default function Clients() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Szukaj po nazwie, właścicielu lub mieście..."
+              placeholder="Szukaj po nazwie, ID, email, telefonie..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-10 form-input-elegant"

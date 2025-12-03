@@ -74,6 +74,17 @@ export function useThumbnailGenerator() {
           return null;
         }
 
+        // Temporarily make element visible for capture
+        const originalVisibility = element.style.visibility;
+        const originalPosition = element.style.position;
+        const parent = element.parentElement;
+        const parentOriginalVisibility = parent?.style.visibility || '';
+        
+        if (parent && parent.style.visibility === 'hidden') {
+          parent.style.visibility = 'visible';
+        }
+        element.style.visibility = 'visible';
+
         // Small delay to ensure any animations/transitions are complete
         await new Promise(resolve => setTimeout(resolve, 100));
 
@@ -83,6 +94,7 @@ export function useThumbnailGenerator() {
           pixelRatio,
           backgroundColor,
           quality,
+          skipAutoScale: true,
         };
 
         // For landscape thumbnails, capture the full element then we'll handle cropping via CSS
@@ -92,6 +104,12 @@ export function useThumbnailGenerator() {
         const dataUrl = format === 'jpeg' 
           ? await toJpeg(element, options)
           : await toPng(element, options);
+        
+        // Restore original visibility
+        element.style.visibility = originalVisibility;
+        if (parent) {
+          parent.style.visibility = parentOriginalVisibility;
+        }
         
         return dataUrl;
         
