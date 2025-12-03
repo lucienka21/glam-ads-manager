@@ -1,18 +1,25 @@
 import { useState, useEffect } from "react";
-import { Download, FileImage, Eye } from "lucide-react";
+import { Download, FileImage, Eye, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FormCard, FormRow } from "@/components/ui/FormCard";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
+import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
 
 type InvoiceType = "advance" | "final" | "full";
+
+interface ClientOption {
+  id: string;
+  salon_name: string;
+}
 
 const InvoiceGenerator = () => {
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
@@ -21,6 +28,8 @@ const InvoiceGenerator = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
@@ -32,6 +41,18 @@ const InvoiceGenerator = () => {
     advanceAmount: "",
     paymentDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
   });
+
+  // Fetch clients
+  useEffect(() => {
+    const fetchClients = async () => {
+      const { data } = await supabase
+        .from('clients')
+        .select('id, salon_name')
+        .order('salon_name');
+      setClients(data || []);
+    };
+    fetchClients();
+  }, []);
 
   // Load document from session storage if coming from history
   useEffect(() => {
@@ -76,18 +97,20 @@ const InvoiceGenerator = () => {
 
     setShowPreview(true);
 
-    // Save to history (async)
+    // Save to history with client linking
     const docId = await saveDocument(
       "invoice",
       formData.clientName,
       `Faktura ${formData.invoiceNumber}`,
-      { ...formData, invoiceType }
+      { ...formData, invoiceType },
+      undefined,
+      selectedClientId || undefined
     );
     setCurrentDocId(docId);
 
     toast.success("Podgląd faktury gotowy!");
 
-    // Generate thumbnail using robust method
+    // Generate thumbnail
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
@@ -206,6 +229,24 @@ const InvoiceGenerator = () => {
                     />
                   </div>
                 </FormRow>
+
+                <div>
+                  <Label className="flex items-center gap-2">
+                    <Link className="w-4 h-4 text-pink-400" />
+                    Połącz z klientem (opcjonalne)
+                  </Label>
+                  <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Wybierz klienta..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Bez powiązania</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 <div>
                   <Label htmlFor="clientAddress">Adres klienta</Label>

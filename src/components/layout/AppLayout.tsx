@@ -3,6 +3,7 @@ import { AppSidebar } from "./AppSidebar";
 import { Menu } from "lucide-react";
 import { TeamChatPanel } from "@/components/chat/TeamChatPanel";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { GlobalSearch } from "@/components/search/GlobalSearch";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -27,11 +28,15 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
               </SidebarTrigger>
               <span className="text-sm font-medium text-foreground">Aurine</span>
             </div>
-            <NotificationBell />
+            <div className="flex items-center gap-2">
+              <GlobalSearch />
+              <NotificationBell />
+            </div>
           </header>
           
-          {/* Desktop notification bell */}
-          <div className="hidden lg:flex justify-end p-4 pb-0">
+          {/* Desktop header with search */}
+          <div className="hidden lg:flex justify-end items-center gap-3 p-4 pb-0">
+            <GlobalSearch />
             <NotificationBell />
           </div>
           

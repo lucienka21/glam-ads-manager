@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef } from "react";
-import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2, Download, Upload } from "lucide-react";
+import { useState, useMemo, useRef, useEffect } from "react";
+import { FileText, Receipt, FileSignature, Presentation, Trash2, Search, Filter, Calendar, User, Loader2, Download, Upload, Users } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { useCloudDocumentHistory, CloudDocumentItem } from "@/hooks/useCloudDocu
 import { DocumentViewer } from "@/components/document/DocumentViewer";
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { pl } from "date-fns/locale";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Select,
   SelectContent,
@@ -49,11 +50,30 @@ const filterOptions = [
   { value: "presentation", label: "Prezentacje" },
 ];
 
+interface ClientOption {
+  id: string;
+  salon_name: string;
+}
+
 export default function DocumentHistory() {
   const [userFilter, setUserFilter] = useState<string | null>(null);
   const { history, loading, teamMembers, isSzef, deleteDocument, clearHistory, saveDocument } = useCloudDocumentHistory(userFilter);
   const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [clientFilter, setClientFilter] = useState<string>("all");
+
+  // Fetch clients for filter
+  useEffect(() => {
+    const fetchClients = async () => {
+      const { data } = await supabase
+        .from('clients')
+        .select('id, salon_name')
+        .order('salon_name');
+      setClients(data || []);
+    };
+    fetchClients();
+  }, []);
 
   // Export history as JSON
   const handleExport = () => {
@@ -134,8 +154,10 @@ export default function DocumentHistory() {
   const filteredHistory = history.filter((doc) => {
     const matchesSearch = 
       doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (doc.subtitle?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      (doc.subtitle?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false) ||
+      (doc.clientId?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesFilter = filterType === "all" || doc.type === filterType;
+    const matchesClient = clientFilter === "all" || doc.clientId === clientFilter;
     
     // Month filter
     let matchesMonth = true;
@@ -148,7 +170,7 @@ export default function DocumentHistory() {
       matchesMonth = isWithinInterval(docDate, { start: monthStart, end: monthEnd });
     }
     
-    return matchesSearch && matchesFilter && matchesMonth;
+    return matchesSearch && matchesFilter && matchesMonth && matchesClient;
   });
 
   const handleOpenDocument = (doc: CloudDocumentItem) => {
@@ -271,6 +293,22 @@ export default function DocumentHistory() {
           )}
           
           {/* Month Filter */}
+          {/* Client filter */}
+          <Select value={clientFilter} onValueChange={setClientFilter}>
+            <SelectTrigger className="w-[200px]">
+              <Users className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Klient" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Wszyscy klienci</SelectItem>
+              {clients.map((client) => (
+                <SelectItem key={client.id} value={client.id}>
+                  {client.salon_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <Select value={monthFilter} onValueChange={setMonthFilter}>
             <SelectTrigger className="w-[180px]">
               <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />

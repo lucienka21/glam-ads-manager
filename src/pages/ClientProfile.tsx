@@ -233,7 +233,7 @@ export default function ClientProfile() {
               <Copy className="w-4 h-4 mr-2" />
               Kopiuj ID
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => navigate(`/clients?edit=${client.id}`)}>
               <Pencil className="w-4 h-4 mr-2" />
               Edytuj
             </Button>
