@@ -8,8 +8,8 @@ const UPDATE_INTERVAL = 30 * 1000; // 30 seconds
 export function useActivityStatus() {
   const { user } = useAuth();
   const lastActivityRef = useRef(Date.now());
-  const [currentStatus, setCurrentStatus] = useState<string>("online");
-  const mountedRef = useRef(false);
+  const [currentStatus, setCurrentStatus] = useState<string>("offline");
+  const initializedRef = useRef(false);
 
   // Force update status to database
   const forceUpdateStatus = useCallback(async (status: string) => {
@@ -34,81 +34,87 @@ export function useActivityStatus() {
     }
   }, [user?.id]);
 
-  const handleActivity = useCallback(() => {
+  // Reset activity timestamp on user interaction
+  const recordActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
-    if (currentStatus !== "online") {
-      forceUpdateStatus("online");
-    }
-  }, [currentStatus, forceUpdateStatus]);
+  }, []);
 
   useEffect(() => {
     if (!user?.id) return;
     
-    // Prevent double initialization in strict mode
-    if (mountedRef.current) return;
-    mountedRef.current = true;
+    // Prevent double initialization
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-    // Immediately set online when hook mounts
+    // Set online immediately on mount
     forceUpdateStatus("online");
+    lastActivityRef.current = Date.now();
 
-    // Track user activity with throttling
-    let activityTimeout: NodeJS.Timeout | null = null;
-    const throttledActivity = () => {
-      if (activityTimeout) return;
-      activityTimeout = setTimeout(() => {
-        handleActivity();
-        activityTimeout = null;
-      }, 1000);
+    // Throttled activity handler
+    let activityThrottle: NodeJS.Timeout | null = null;
+    const handleActivity = () => {
+      recordActivity();
+      
+      // Throttle status updates to prevent spam
+      if (activityThrottle) return;
+      activityThrottle = setTimeout(() => {
+        activityThrottle = null;
+        // Only update if we were away/offline
+        if (currentStatus !== "online") {
+          forceUpdateStatus("online");
+        }
+      }, 2000);
     };
 
-    const events = ["mousedown", "keydown", "touchstart", "scroll", "mousemove"];
+    // Activity event listeners
+    const events = ["mousedown", "keydown", "touchstart", "scroll", "mousemove", "click"];
     events.forEach(event => {
-      window.addEventListener(event, throttledActivity, { passive: true });
+      window.addEventListener(event, handleActivity, { passive: true });
     });
 
-    // Check for idle state
-    const idleCheck = setInterval(() => {
-      const timeSinceLastActivity = Date.now() - lastActivityRef.current;
-      if (timeSinceLastActivity > IDLE_TIMEOUT && currentStatus === "online") {
-        forceUpdateStatus("away");
-      }
-    }, UPDATE_INTERVAL);
-
-    // Periodic heartbeat update - always update to online if active
-    const heartbeat = setInterval(async () => {
-      if (user?.id) {
-        const timeSinceLastActivity = Date.now() - lastActivityRef.current;
-        const newStatus = timeSinceLastActivity < IDLE_TIMEOUT ? "online" : "away";
-        
-        try {
-          await supabase
-            .from("profiles")
-            .update({ 
-              status: newStatus,
-              last_seen_at: new Date().toISOString() 
-            })
-            .eq("id", user.id);
-          setCurrentStatus(newStatus);
-        } catch (err) {
-          console.error("Heartbeat failed:", err);
-        }
-      }
-    }, UPDATE_INTERVAL);
-
-    // Handle visibility change
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
+    // Periodic check for idle state
+    const idleCheckInterval = setInterval(() => {
+      const timeSinceActivity = Date.now() - lastActivityRef.current;
+      
+      if (timeSinceActivity >= IDLE_TIMEOUT) {
+        // User is idle
         forceUpdateStatus("away");
       } else {
+        // User is active - only update if status changed
+        forceUpdateStatus("online");
+      }
+    }, UPDATE_INTERVAL);
+
+    // Handle tab visibility changes
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        // Tab hidden - set away
+        forceUpdateStatus("away");
+      } else {
+        // Tab visible - record activity and set online
         lastActivityRef.current = Date.now();
         forceUpdateStatus("online");
       }
     };
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
-    // Set offline when leaving - use fetch with keepalive
+    // Handle page close - set offline
     const handleBeforeUnload = () => {
       if (user?.id) {
-        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+        // Use sendBeacon for reliable delivery on page close
+        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`;
+        const data = JSON.stringify({ 
+          status: "offline", 
+          last_seen_at: new Date().toISOString() 
+        });
+        
+        navigator.sendBeacon(
+          url,
+          new Blob([data], { type: 'application/json' })
+        );
+        
+        // Fallback with fetch keepalive
+        fetch(url, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
@@ -116,30 +122,26 @@ export function useActivityStatus() {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
             'Prefer': 'return=minimal'
           },
-          body: JSON.stringify({ 
-            status: "offline", 
-            last_seen_at: new Date().toISOString() 
-          }),
+          body: data,
           keepalive: true
         }).catch(() => {});
       }
     };
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("beforeunload", handleBeforeUnload);
 
+    // Cleanup
     return () => {
-      mountedRef.current = false;
-      if (activityTimeout) clearTimeout(activityTimeout);
+      initializedRef.current = false;
+      if (activityThrottle) clearTimeout(activityThrottle);
+      
       events.forEach(event => {
-        window.removeEventListener(event, throttledActivity);
+        window.removeEventListener(event, handleActivity);
       });
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("beforeunload", handleBeforeUnload);
-      clearInterval(idleCheck);
-      clearInterval(heartbeat);
+      clearInterval(idleCheckInterval);
     };
-  }, [user?.id, handleActivity, forceUpdateStatus, currentStatus]);
+  }, [user?.id, forceUpdateStatus, recordActivity, currentStatus]);
 
   return { updateStatus: forceUpdateStatus, currentStatus };
 }
