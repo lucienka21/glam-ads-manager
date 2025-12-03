@@ -1,31 +1,32 @@
-import { useEffect, useCallback, useRef, useState } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./useAuth";
 
 const IDLE_TIMEOUT = 3 * 60 * 1000; // 3 minutes
-const UPDATE_INTERVAL = 30 * 1000; // 30 seconds
+const UPDATE_INTERVAL = 60 * 1000; // 60 seconds - reduced frequency
+const OFFLINE_THRESHOLD = 5 * 60 * 1000; // 5 minutes - consider offline after this
 
 export function useActivityStatus() {
   const { user } = useAuth();
   const lastActivityRef = useRef(Date.now());
+  const lastUpdateRef = useRef(0);
   const currentStatusRef = useRef<string>("offline");
-  const [currentStatus, setCurrentStatus] = useState<string>("offline");
-  const initializedRef = useRef(false);
-  const updatePendingRef = useRef(false);
+  const mountedRef = useRef(false);
 
-  // Force update status to database
-  const forceUpdateStatus = useCallback(async (status: string) => {
+  // Update status in database with throttling
+  const updateStatus = useCallback(async (status: string, force = false) => {
     if (!user?.id) return;
     
-    // Skip if same status to reduce DB calls
-    if (currentStatusRef.current === status && status !== "online") return;
+    const now = Date.now();
+    // Throttle updates to once per 10 seconds unless forced
+    if (!force && now - lastUpdateRef.current < 10000) return;
+    // Skip if same status
+    if (!force && currentStatusRef.current === status) return;
     
-    // Prevent concurrent updates
-    if (updatePendingRef.current) return;
-    updatePendingRef.current = true;
+    lastUpdateRef.current = now;
     
     try {
-      const { error } = await supabase
+      await supabase
         .from("profiles")
         .update({ 
           status, 
@@ -33,115 +34,100 @@ export function useActivityStatus() {
         })
         .eq("id", user.id);
       
-      if (!error) {
-        currentStatusRef.current = status;
-        setCurrentStatus(status);
-      }
+      currentStatusRef.current = status;
     } catch (err) {
       console.error("Failed to update status:", err);
-    } finally {
-      updatePendingRef.current = false;
     }
   }, [user?.id]);
 
   useEffect(() => {
-    if (!user?.id) return;
-    
-    // Prevent double initialization
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    if (!user?.id || mountedRef.current) return;
+    mountedRef.current = true;
 
-    // Set online immediately on mount
-    forceUpdateStatus("online");
+    // Set online immediately
+    updateStatus("online", true);
     lastActivityRef.current = Date.now();
 
-    // Throttled activity handler
-    let activityThrottle: ReturnType<typeof setTimeout> | null = null;
+    // Activity handler - just record activity, don't update DB every time
     const handleActivity = () => {
       lastActivityRef.current = Date.now();
-      
-      // If we're away/offline, immediately set to online
+      // If we were away/offline, immediately go online
       if (currentStatusRef.current !== "online") {
-        if (activityThrottle) return;
-        activityThrottle = setTimeout(() => {
-          activityThrottle = null;
-          forceUpdateStatus("online");
-        }, 500);
+        updateStatus("online", true);
       }
     };
 
-    // Activity event listeners - fewer events to reduce overhead
-    const events = ["mousedown", "keydown", "touchstart", "click"];
+    // Minimal event listeners
+    const events = ["mousedown", "keydown", "touchstart"];
     events.forEach(event => {
       window.addEventListener(event, handleActivity, { passive: true });
     });
 
-    // Periodic check for idle state
-    const idleCheckInterval = setInterval(() => {
+    // Periodic status check
+    const checkInterval = setInterval(() => {
       const timeSinceActivity = Date.now() - lastActivityRef.current;
       
-      if (timeSinceActivity >= IDLE_TIMEOUT) {
-        if (currentStatusRef.current !== "away") {
-          forceUpdateStatus("away");
-        }
-      } else if (currentStatusRef.current !== "online") {
-        forceUpdateStatus("online");
+      if (timeSinceActivity >= IDLE_TIMEOUT && currentStatusRef.current === "online") {
+        updateStatus("away");
+      } else if (timeSinceActivity < IDLE_TIMEOUT && currentStatusRef.current !== "online") {
+        updateStatus("online");
       }
     }, UPDATE_INTERVAL);
 
-    // Handle tab visibility changes
-    const handleVisibilityChange = () => {
+    // Tab visibility
+    const handleVisibility = () => {
       if (document.hidden) {
-        forceUpdateStatus("away");
+        updateStatus("away");
       } else {
         lastActivityRef.current = Date.now();
-        forceUpdateStatus("online");
+        updateStatus("online", true);
       }
     };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibility);
 
-    // Handle page close - set offline
-    const handleBeforeUnload = () => {
-      if (user?.id) {
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`;
-        const data = JSON.stringify({ 
-          status: "offline", 
-          last_seen_at: new Date().toISOString() 
-        });
-        
-        navigator.sendBeacon(
-          url,
-          new Blob([data], { type: 'application/json' })
-        );
-        
-        fetch(url, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-            'Prefer': 'return=minimal'
-          },
-          body: data,
-          keepalive: true
-        }).catch(() => {});
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    // Cleanup
-    return () => {
-      initializedRef.current = false;
-      if (activityThrottle) clearTimeout(activityThrottle);
+    // Page unload - set offline
+    const handleUnload = () => {
+      if (!user?.id) return;
       
-      events.forEach(event => {
-        window.removeEventListener(event, handleActivity);
+      const data = JSON.stringify({ 
+        status: "offline", 
+        last_seen_at: new Date().toISOString() 
       });
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      clearInterval(idleCheckInterval);
+      
+      // Use sendBeacon for reliable delivery
+      navigator.sendBeacon(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`,
+        new Blob([data], { type: 'application/json' })
+      );
     };
-  }, [user?.id, forceUpdateStatus]);
+    window.addEventListener("beforeunload", handleUnload);
 
-  return { updateStatus: forceUpdateStatus, currentStatus };
+    return () => {
+      mountedRef.current = false;
+      events.forEach(event => window.removeEventListener(event, handleActivity));
+      document.removeEventListener("visibilitychange", handleVisibility);
+      window.removeEventListener("beforeunload", handleUnload);
+      clearInterval(checkInterval);
+    };
+  }, [user?.id, updateStatus]);
+
+  return { currentStatus: currentStatusRef.current };
+}
+
+// Helper to check if a user is actually online based on last_seen_at
+export function isUserOnline(lastSeenAt: string | null, status: string | null): 'online' | 'away' | 'offline' {
+  if (!lastSeenAt) return 'offline';
+  
+  const lastSeen = new Date(lastSeenAt).getTime();
+  const now = Date.now();
+  const diff = now - lastSeen;
+  
+  // If last seen more than 5 minutes ago, they're offline regardless of status
+  if (diff > OFFLINE_THRESHOLD) return 'offline';
+  
+  // If last seen more than 3 minutes ago, they're away
+  if (diff > IDLE_TIMEOUT) return 'away';
+  
+  // Otherwise trust the stored status
+  return (status as 'online' | 'away' | 'offline') || 'offline';
 }
