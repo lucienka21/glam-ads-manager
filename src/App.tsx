@@ -28,6 +28,7 @@ import Team from "./pages/Team";
 import Calendar from "./pages/Calendar";
 import SmsTemplates from "./pages/SmsTemplates";
 import MonthlyReport from "./pages/MonthlyReport";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -59,6 +60,7 @@ const App = () => (
               <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
               <Route path="/sms-templates" element={<ProtectedRoute><SmsTemplates /></ProtectedRoute>} />
               <Route path="/monthly-report" element={<ProtectedRoute><MonthlyReport /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
               <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
               <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />
               <Route path="/contract-generator" element={<ProtectedRoute><ContractGenerator /></ProtectedRoute>} />
