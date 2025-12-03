@@ -9,6 +9,9 @@ interface ThumbnailOptions {
   quality?: number;
   maxRetries?: number;
   retryDelay?: number;
+  landscape?: boolean;
+  width?: number;
+  height?: number;
 }
 
 /**
@@ -52,6 +55,9 @@ export function useThumbnailGenerator() {
     quality = 0.8,
     maxRetries = 3,
     retryDelay = 500,
+    landscape = false,
+    width,
+    height,
   }: ThumbnailOptions): Promise<string | null> => {
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -71,13 +77,17 @@ export function useThumbnailGenerator() {
         // Small delay to ensure any animations/transitions are complete
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Generate thumbnail
-        const options = {
+        // Generate thumbnail with optional size constraints
+        const options: Record<string, unknown> = {
           cacheBust: true,
           pixelRatio,
           backgroundColor,
           quality,
         };
+
+        // For landscape thumbnails, capture the full element then we'll handle cropping via CSS
+        if (width) options.width = width;
+        if (height) options.height = height;
 
         const dataUrl = format === 'jpeg' 
           ? await toJpeg(element, options)

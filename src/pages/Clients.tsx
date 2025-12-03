@@ -463,113 +463,156 @@ export default function Clients() {
             <p className="text-sm text-muted-foreground/70">Dodaj pierwszego klienta klikając przycisk powyżej</p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {filteredClients.map((client) => (
-              <Card 
-                key={client.id} 
-                className="border-border/50 bg-card/80 hover:bg-card transition-colors cursor-pointer"
-                onClick={() => window.location.href = `/clients/${client.id}`}
-              >
-                <CardHeader className="pb-2">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base truncate">{client.salon_name}</CardTitle>
-                      {client.owner_name && (
-                        <p className="text-sm text-muted-foreground truncate">{client.owner_name}</p>
-                      )}
-                    </div>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }}>
-                          <Pencil className="w-4 h-4 mr-2" />
-                          Edytuj
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          onClick={(e) => { e.stopPropagation(); handleDelete(client.id); }}
-                          className="text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Usuń
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                  <Badge className={`w-fit ${statusColors[client.status]}`}>
-                    {statusLabels[client.status]}
-                  </Badge>
-                </CardHeader>
-                <CardContent className="space-y-3 text-sm">
-                  {/* Basic Info */}
-                  <div className="grid grid-cols-2 gap-2">
-                    {client.city && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <MapPin className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{client.city}</span>
-                      </div>
-                    )}
-                    {client.industry && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building2 className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{client.industry}</span>
-                      </div>
-                    )}
-                    {client.phone && (
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Phone className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{client.phone}</span>
-                      </div>
-                    )}
-                    {client.email && (
-                      <div className="flex items-center gap-2 text-muted-foreground col-span-2">
-                        <Mail className="w-3.5 h-3.5 shrink-0" />
-                        <span className="truncate">{client.email}</span>
-                      </div>
-                    )}
-                  </div>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {filteredClients.map((client) => {
+              const assignedEmployee = employees.find(e => e.id === client.assigned_to);
+              return (
+                <Card 
+                  key={client.id} 
+                  className="group border-border/40 bg-gradient-to-br from-zinc-900/90 to-zinc-900/50 hover:from-zinc-800/90 hover:to-zinc-800/50 transition-all duration-300 cursor-pointer hover:shadow-xl hover:shadow-pink-500/5 hover:border-pink-500/20 overflow-hidden"
+                  onClick={() => window.location.href = `/clients/${client.id}`}
+                >
+                  {/* Header with gradient accent */}
+                  <div className="h-1 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-600" />
                   
-                  {/* Social Links */}
-                  {(client.instagram || client.facebook_page) && (
-                    <div className="flex items-center gap-3 pt-2 border-t border-border/30">
-                      {client.instagram && (
-                        <div className="flex items-center gap-1.5 text-pink-400 text-xs">
-                          <Instagram className="w-3.5 h-3.5" />
-                          <span>{client.instagram}</span>
+                  <CardHeader className="pb-3 pt-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <CardTitle className="text-lg font-bold text-foreground truncate group-hover:text-pink-400 transition-colors">
+                            {client.salon_name}
+                          </CardTitle>
+                        </div>
+                        {client.owner_name && (
+                          <p className="text-sm text-muted-foreground truncate flex items-center gap-1.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-pink-500/50" />
+                            {client.owner_name}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={`${statusColors[client.status]} border text-xs font-medium`}>
+                          {statusLabels[client.status]}
+                        </Badge>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-800">
+                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleEdit(client); }}>
+                              <Pencil className="w-4 h-4 mr-2" />
+                              Edytuj
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => { e.stopPropagation(); handleDelete(client.id); }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4 mr-2" />
+                              Usuń
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  
+                  <CardContent className="space-y-4 pb-4">
+                    {/* Location & Industry */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {client.city && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-800/80 text-xs text-zinc-300">
+                          <MapPin className="w-3 h-3 text-pink-400" />
+                          {client.city}
+                        </div>
+                      )}
+                      {client.industry && (
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-zinc-800/80 text-xs text-zinc-300">
+                          <Building2 className="w-3 h-3 text-blue-400" />
+                          {client.industry}
                         </div>
                       )}
                     </div>
-                  )}
-                  
-                  {/* Business Info */}
-                  <div className="flex items-center justify-between pt-2 border-t border-border/30 bg-secondary/30 -mx-4 px-4 -mb-4 pb-3 mt-3">
-                    <div className="flex items-center gap-3">
-                      {client.monthly_budget && (
-                        <div className="flex items-center gap-1 text-xs">
-                          <DollarSign className="w-3.5 h-3.5 text-green-400" />
-                          <span className="font-semibold text-green-400">{formatCurrency(client.monthly_budget)}</span>
-                          <span className="text-muted-foreground">/mies.</span>
+                    
+                    {/* Contact Info */}
+                    <div className="grid gap-2">
+                      {client.phone && (
+                        <div className="flex items-center gap-2.5 text-sm">
+                          <div className="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                            <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                          </div>
+                          <span className="text-zinc-300 font-medium">{client.phone}</span>
+                        </div>
+                      )}
+                      {client.email && (
+                        <div className="flex items-center gap-2.5 text-sm">
+                          <div className="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                            <Mail className="w-3.5 h-3.5 text-blue-400" />
+                          </div>
+                          <span className="text-zinc-300 truncate">{client.email}</span>
                         </div>
                       )}
                     </div>
-                    {client.contract_start_date && (
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Calendar className="w-3 h-3" />
-                        <span>od {new Date(client.contract_start_date).toLocaleDateString('pl-PL')}</span>
+                    
+                    {/* Social Links */}
+                    {(client.instagram || client.facebook_page) && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-zinc-800/80">
+                        {client.instagram && (
+                          <a
+                            href={`https://instagram.com/${client.instagram.replace('@', '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-pink-500/10 to-purple-500/10 text-pink-400 text-xs hover:from-pink-500/20 hover:to-purple-500/20 transition-colors"
+                          >
+                            <Instagram className="w-3.5 h-3.5" />
+                            {client.instagram}
+                          </a>
+                        )}
                       </div>
                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    {/* Footer with Budget & Date */}
+                    <div className="flex items-center justify-between pt-3 mt-2 border-t border-zinc-800/80">
+                      <div className="flex items-center gap-4">
+                        {client.monthly_budget ? (
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-6 h-6 rounded-md bg-green-500/10 flex items-center justify-center">
+                              <DollarSign className="w-3.5 h-3.5 text-green-400" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-sm font-bold text-green-400">{formatCurrency(client.monthly_budget)}</span>
+                              <span className="text-[10px] text-zinc-500">miesięcznie</span>
+                            </div>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-zinc-600">Brak budżetu</span>
+                        )}
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        {client.contract_start_date && (
+                          <div className="flex items-center gap-1 text-[10px] text-zinc-500">
+                            <Calendar className="w-3 h-3" />
+                            od {new Date(client.contract_start_date).toLocaleDateString('pl-PL')}
+                          </div>
+                        )}
+                        {assignedEmployee && (
+                          <div className="text-[10px] text-pink-400/70">
+                            {assignedEmployee.full_name || assignedEmployee.email}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

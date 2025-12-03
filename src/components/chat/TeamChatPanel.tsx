@@ -50,6 +50,7 @@ import { toast } from "sonner";
 import { useUserRole } from "@/hooks/useUserRole";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
+import { Mention } from "@/components/ui/Mention";
 
 interface Reaction {
   id: string;
@@ -520,21 +521,13 @@ export function TeamChatPanel() {
         parts.push(content.slice(lastIndex, match.index));
       }
       
-      // Add the mention with beautiful highlight
-      const mentionName = match[1];
+      // Add the mention with the Mention component
       parts.push(
-        <span 
+        <Mention 
           key={match.index} 
-          className={cn(
-            "inline-flex items-center px-1.5 py-0.5 rounded-md font-medium text-sm mx-0.5 transition-all",
-            isOwn 
-              ? "bg-white/25 text-white hover:bg-white/35" 
-              : "bg-gradient-to-r from-pink-500/30 to-rose-500/30 text-pink-300 hover:from-pink-500/40 hover:to-rose-500/40 ring-1 ring-pink-500/40"
-          )}
-        >
-          <span className="opacity-70 mr-0.5">@</span>
-          {mentionName}
-        </span>
+          name={match[1]}
+          variant={isOwn ? 'chat-own' : 'chat-other'}
+        />
       );
       
       lastIndex = match.index + match[0].length;
@@ -1063,8 +1056,9 @@ export function TeamChatPanel() {
             <div className="flex-1 relative">
               {/* Mentions dropdown */}
               {showMentions && filteredMentions.length > 0 && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl overflow-hidden z-50">
-                  <div className="px-3 py-1.5 text-[10px] uppercase tracking-wider text-zinc-500 border-b border-zinc-800">
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900/95 backdrop-blur-xl border border-pink-500/20 rounded-xl shadow-2xl shadow-pink-500/10 overflow-hidden z-50">
+                  <div className="px-4 py-2 text-[11px] uppercase tracking-wider text-pink-400 border-b border-zinc-800 flex items-center gap-2 bg-zinc-800/50">
+                    <AtSign className="w-3.5 h-3.5" />
                     Oznacz użytkownika
                   </div>
                   {filteredMentions.map((member, idx) => (
@@ -1072,18 +1066,18 @@ export function TeamChatPanel() {
                       key={member.id}
                       onClick={() => insertMention(member.name)}
                       className={cn(
-                        "w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors",
+                        "w-full flex items-center gap-3 px-4 py-2.5 text-sm text-left transition-all",
                         idx === mentionIndex 
-                          ? "bg-pink-500/20 text-pink-300" 
-                          : "text-zinc-300 hover:bg-zinc-800"
+                          ? "bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-200 border-l-2 border-pink-500" 
+                          : "text-zinc-300 hover:bg-zinc-800/80 border-l-2 border-transparent"
                       )}
                     >
-                      <Avatar className="w-6 h-6">
-                        <AvatarFallback className="bg-zinc-700 text-zinc-300 text-xs">
+                      <Avatar className="w-7 h-7 ring-2 ring-pink-500/20">
+                        <AvatarFallback className="bg-gradient-to-br from-pink-500/30 to-rose-500/30 text-pink-300 text-xs font-semibold">
                           {getInitials(member.name, null)}
                         </AvatarFallback>
                       </Avatar>
-                      <span>@{member.name.replace(/\s/g, "")}</span>
+                      <span className="font-medium">@{member.name.replace(/\s/g, "")}</span>
                     </button>
                   ))}
                 </div>
@@ -1095,7 +1089,7 @@ export function TeamChatPanel() {
                 value={newMessage}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                className="w-full h-10 bg-zinc-800/50 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-pink-500 rounded-xl"
+                className="w-full h-11 bg-zinc-800/70 border-zinc-700 text-white placeholder:text-zinc-500 focus-visible:ring-pink-500/50 focus-visible:border-pink-500/50 rounded-xl pr-4"
               />
             </div>
             

@@ -28,7 +28,8 @@ const statusColumns = [
   { id: 'new', label: 'Nowe', color: 'bg-blue-500' },
   { id: 'contacted', label: 'Skontaktowano', color: 'bg-yellow-500' },
   { id: 'follow_up', label: 'Follow-up', color: 'bg-orange-500' },
-  { id: 'meeting_scheduled', label: 'Spotkanie', color: 'bg-purple-500' },
+  { id: 'rozmowa', label: 'Rozmowa', color: 'bg-purple-500' },
+  { id: 'no_response', label: 'Brak odpowiedzi', color: 'bg-zinc-500' },
   { id: 'converted', label: 'Skonwertowany', color: 'bg-green-500' },
   { id: 'lost', label: 'Utracony', color: 'bg-red-500' },
 ];
