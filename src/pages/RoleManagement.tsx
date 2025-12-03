@@ -63,30 +63,42 @@ interface RolePermission {
 }
 
 const PERMISSION_LABELS: Record<string, { label: string; category: string }> = {
+  // Leady
   leads_view: { label: "Przeglądanie leadów", category: "Leady" },
   leads_create: { label: "Tworzenie leadów", category: "Leady" },
   leads_edit: { label: "Edycja leadów", category: "Leady" },
   leads_delete: { label: "Usuwanie leadów", category: "Leady" },
+  // Klienci
   clients_view: { label: "Przeglądanie klientów", category: "Klienci" },
   clients_create: { label: "Tworzenie klientów", category: "Klienci" },
   clients_edit: { label: "Edycja klientów", category: "Klienci" },
   clients_delete: { label: "Usuwanie klientów", category: "Klienci" },
+  // Kampanie
   campaigns_view: { label: "Przeglądanie kampanii", category: "Kampanie" },
   campaigns_create: { label: "Tworzenie kampanii", category: "Kampanie" },
   campaigns_edit: { label: "Edycja kampanii", category: "Kampanie" },
   campaigns_delete: { label: "Usuwanie kampanii", category: "Kampanie" },
+  // Dokumenty
   documents_view: { label: "Przeglądanie dokumentów", category: "Dokumenty" },
   documents_create: { label: "Tworzenie dokumentów", category: "Dokumenty" },
   documents_edit: { label: "Edycja dokumentów", category: "Dokumenty" },
   documents_delete: { label: "Usuwanie dokumentów", category: "Dokumenty" },
+  // Zadania
   tasks_view: { label: "Przeglądanie zadań", category: "Zadania" },
   tasks_create: { label: "Tworzenie zadań", category: "Zadania" },
   tasks_edit: { label: "Edycja zadań", category: "Zadania" },
   tasks_delete: { label: "Usuwanie zadań", category: "Zadania" },
+  // Kalendarz
+  calendar_view: { label: "Przeglądanie kalendarza", category: "Kalendarz" },
+  calendar_manage: { label: "Zarządzanie wydarzeniami", category: "Kalendarz" },
+  // Szablony
+  templates_manage: { label: "Zarządzanie szablonami", category: "Szablony" },
+  // Generatory
   reports_generate: { label: "Generowanie raportów", category: "Generatory" },
   invoices_generate: { label: "Generowanie faktur", category: "Generatory" },
   contracts_generate: { label: "Generowanie umów", category: "Generatory" },
   presentations_generate: { label: "Generowanie prezentacji", category: "Generatory" },
+  // Administracja
   team_manage: { label: "Zarządzanie zespołem", category: "Administracja" },
   roles_manage: { label: "Zarządzanie rolami", category: "Administracja" },
 };
