@@ -246,37 +246,40 @@ const ReportGenerator = () => {
             return;
           }
           
-          // Temporarily make visible for capture
+          // Make container visible for capture
           const container = document.getElementById("thumbnail-capture-container");
           if (container) {
             container.style.opacity = "1";
             container.style.zIndex = "99999";
+            container.style.visibility = "visible";
           }
           
-          await new Promise(resolve => setTimeout(resolve, 300));
+          // Wait for render
+          await new Promise(resolve => setTimeout(resolve, 500));
           
+          // Generate thumbnail with forced landscape dimensions
           const thumbnail = await toPng(element, {
             cacheBust: true,
             pixelRatio: 0.25,
             backgroundColor: "#000000",
-            width: 1600,
-            height: 900,
+            canvasWidth: 400,  // 1600 * 0.25
+            canvasHeight: 225, // 900 * 0.25
           });
           
-          // Hide again
+          // Hide container again
           if (container) {
-            container.style.opacity = "0.01";
-            container.style.zIndex = "-1";
+            container.style.opacity = "0";
+            container.style.zIndex = "-9999";
           }
           
           if (thumbnail) {
             await updateThumbnail(docId, thumbnail);
-            console.log("Landscape thumbnail generated: 1600x900");
+            console.log("Landscape thumbnail saved - dimensions: 400x225");
           }
         } catch (error) {
           console.error("Thumbnail generation failed:", error);
         }
-      }, 1000);
+      }, 1200);
     }
   };
 
@@ -910,30 +913,25 @@ const ReportGenerator = () => {
               </div>
             )}
             
-            {/* Hidden landscape preview for thumbnail - using iframe-like isolation */}
+            {/* Hidden landscape preview for thumbnail generation */}
             {reportData && (
               <div 
                 id="thumbnail-capture-container"
                 style={{ 
-                  position: 'absolute',
+                  position: 'fixed',
                   top: 0,
                   left: 0,
                   width: 1600,
                   height: 900,
                   overflow: 'hidden',
-                  opacity: 0.01,
+                  opacity: 0,
                   pointerEvents: 'none',
-                  zIndex: -1,
+                  zIndex: -9999,
                 }}
               >
                 <div 
                   id="report-thumbnail-source" 
-                  style={{ 
-                    width: 1600, 
-                    height: 900,
-                    backgroundColor: '#000000',
-                    overflow: 'hidden',
-                  }}
+                  className="w-[1600px] h-[900px] bg-black"
                 >
                   <ReportPreviewLandscape data={reportData} />
                 </div>
