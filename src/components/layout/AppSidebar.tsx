@@ -73,6 +73,8 @@ const generatorItems = [
   { title: "Faktury", url: "/invoice-generator", icon: Receipt },
   { title: "Umowy", url: "/contract-generator", icon: FileSignature },
   { title: "Prezentacje", url: "/presentation-generator", icon: Presentation },
+  { title: "Oferty", url: "/proposal-generator", icon: Sparkles },
+  { title: "Kalkulator ROI", url: "/roi-calculator", icon: BarChart3 },
 ];
 
 export function AppSidebar() {
