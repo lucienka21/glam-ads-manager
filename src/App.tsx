@@ -31,6 +31,8 @@ import Calendar from "./pages/Calendar";
 import SmsTemplates from "./pages/SmsTemplates";
 import MonthlyReport from "./pages/MonthlyReport";
 import Settings from "./pages/Settings";
+import ROICalculator from "./pages/ROICalculator";
+import ProposalGenerator from "./pages/ProposalGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,6 +68,8 @@ function AppContent() {
           <Route path="/invoice-generator" element={<ProtectedRoute><InvoiceGenerator /></ProtectedRoute>} />
           <Route path="/contract-generator" element={<ProtectedRoute><ContractGenerator /></ProtectedRoute>} />
           <Route path="/presentation-generator" element={<ProtectedRoute><PresentationGenerator /></ProtectedRoute>} />
+          <Route path="/roi-calculator" element={<ProtectedRoute><ROICalculator /></ProtectedRoute>} />
+          <Route path="/proposal-generator" element={<ProtectedRoute><ProposalGenerator /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppErrorBoundary>

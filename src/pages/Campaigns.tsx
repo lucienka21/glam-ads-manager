@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,22 +27,24 @@ import {
   Loader2,
   TrendingUp,
   TrendingDown,
-  Eye,
   BarChart3,
   MousePointer,
-  Users,
-  MessageCircle,
   AlertTriangle,
   ExternalLink,
   LayoutGrid,
   List,
-  Percent
+  Zap,
+  Users,
+  Eye,
+  MessageCircle,
+  ChevronRight,
+  ArrowUpRight,
+  ArrowDownRight
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -54,7 +57,9 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
-  Legend
+  PieChart,
+  Pie,
+  Cell
 } from 'recharts';
 
 interface Campaign {
@@ -94,26 +99,20 @@ interface Client {
   facebook_page: string | null;
 }
 
-const statusColors: Record<string, string> = {
-  active: 'bg-green-500/20 text-green-400 border-green-500/30',
-  paused: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
-  completed: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
-  draft: 'bg-zinc-500/20 text-zinc-400 border-zinc-500/30',
+const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
+  active: { color: 'text-emerald-400', bg: 'bg-emerald-500/10 border-emerald-500/20', label: 'Aktywna' },
+  paused: { color: 'text-amber-400', bg: 'bg-amber-500/10 border-amber-500/20', label: 'Wstrzymana' },
+  completed: { color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/20', label: 'Zakończona' },
+  draft: { color: 'text-zinc-400', bg: 'bg-zinc-500/10 border-zinc-500/20', label: 'Szkic' },
 };
 
-const statusLabels: Record<string, string> = {
-  active: 'Aktywna',
-  paused: 'Wstrzymana',
-  completed: 'Zakończona',
-  draft: 'Szkic',
-};
-
-// KPI target thresholds
 const KPI_TARGETS = {
-  cpc: 2.0, // Max CPC in PLN
-  ctr: 1.0, // Min CTR in %
-  roas: 3.0, // Min ROAS
+  cpc: 2.0,
+  ctr: 1.0,
+  roas: 3.0,
 };
+
+const CHART_COLORS = ['hsl(340, 75%, 55%)', 'hsl(40, 90%, 55%)', 'hsl(160, 70%, 45%)', 'hsl(200, 70%, 50%)', 'hsl(280, 70%, 55%)'];
 
 export default function Campaigns() {
   const navigate = useNavigate();
@@ -130,6 +129,7 @@ export default function Campaigns() {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [campaignMetrics, setCampaignMetrics] = useState<CampaignMetrics[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [activeTab, setActiveTab] = useState('overview');
   
   const [formData, setFormData] = useState({
     client_id: '',
@@ -161,7 +161,6 @@ export default function Campaigns() {
   const fetchData = async () => {
     setLoading(true);
     
-    // Fetch campaigns with client info
     const { data: campaignsData, error: campaignsError } = await supabase
       .from('campaigns')
       .select('*, clients(salon_name, facebook_page)')
@@ -169,12 +168,10 @@ export default function Campaigns() {
 
     if (campaignsError) {
       toast.error('Błąd ładowania kampanii');
-      console.error(campaignsError);
     } else {
       setCampaigns(campaignsData || []);
     }
 
-    // Fetch all metrics for KPI calculations
     const { data: metricsData } = await supabase
       .from('campaign_metrics')
       .select('*')
@@ -182,7 +179,6 @@ export default function Campaigns() {
     
     setAllMetrics(metricsData || []);
 
-    // Fetch clients for dropdown
     const { data: clientsData } = await supabase
       .from('clients')
       .select('id, salon_name, facebook_page')
@@ -193,7 +189,6 @@ export default function Campaigns() {
     setLoading(false);
   };
 
-  // Calculate aggregated KPIs
   const aggregatedKPIs = useMemo(() => {
     const totalImpressions = allMetrics.reduce((sum, m) => sum + (m.impressions || 0), 0);
     const totalClicks = allMetrics.reduce((sum, m) => sum + (m.clicks || 0), 0);
@@ -201,10 +196,11 @@ export default function Campaigns() {
     const totalBookings = allMetrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
     const totalConversions = allMetrics.reduce((sum, m) => sum + (m.conversions || 0), 0);
     const totalReach = allMetrics.reduce((sum, m) => sum + (m.reach || 0), 0);
+    const totalMessages = allMetrics.reduce((sum, m) => sum + (m.messages || 0), 0);
 
     const cpc = totalClicks > 0 ? totalSpend / totalClicks : 0;
     const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
-    const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0; // 200 PLN avg booking value
+    const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0;
     const conversionRate = totalClicks > 0 ? (totalConversions / totalClicks) * 100 : 0;
 
     return {
@@ -218,47 +214,55 @@ export default function Campaigns() {
       totalReach,
       totalBookings,
       totalConversions,
+      totalMessages,
     };
   }, [allMetrics]);
 
-  // Chart data - performance over time
   const chartData = useMemo(() => {
-    const grouped: Record<string, { date: string; spend: number; clicks: number; bookings: number }> = {};
+    const grouped: Record<string, { date: string; spend: number; clicks: number; bookings: number; impressions: number }> = {};
     
     allMetrics.forEach(m => {
       const date = m.period_start;
       if (!grouped[date]) {
-        grouped[date] = { date, spend: 0, clicks: 0, bookings: 0 };
+        grouped[date] = { date, spend: 0, clicks: 0, bookings: 0, impressions: 0 };
       }
       grouped[date].spend += m.spend || 0;
       grouped[date].clicks += m.clicks || 0;
       grouped[date].bookings += m.bookings || 0;
+      grouped[date].impressions += m.impressions || 0;
     });
 
     return Object.values(grouped)
       .sort((a, b) => a.date.localeCompare(b.date))
-      .slice(-12); // Last 12 periods
+      .slice(-12);
   }, [allMetrics]);
 
-  // Campaign comparison data
-  const campaignComparison = useMemo(() => {
-    return campaigns.slice(0, 5).map(campaign => {
-      const metrics = allMetrics.filter(m => m.campaign_id === campaign.id);
-      const totalSpend = metrics.reduce((sum, m) => sum + (m.spend || 0), 0);
-      const totalClicks = metrics.reduce((sum, m) => sum + (m.clicks || 0), 0);
-      const totalBookings = metrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
-      const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0;
-      
-      return {
-        name: campaign.name.substring(0, 15) + (campaign.name.length > 15 ? '...' : ''),
-        spend: totalSpend,
-        roas: Number(roas.toFixed(2)),
-        bookings: totalBookings,
-      };
-    });
+  const statusDistribution = useMemo(() => {
+    const counts = campaigns.reduce((acc, c) => {
+      acc[c.status] = (acc[c.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+    
+    return Object.entries(counts).map(([status, count]) => ({
+      name: statusConfig[status]?.label || status,
+      value: count,
+      status
+    }));
+  }, [campaigns]);
+
+  const topCampaigns = useMemo(() => {
+    return campaigns
+      .map(campaign => {
+        const metrics = allMetrics.filter(m => m.campaign_id === campaign.id);
+        const totalSpend = metrics.reduce((sum, m) => sum + (m.spend || 0), 0);
+        const totalBookings = metrics.reduce((sum, m) => sum + (m.bookings || 0), 0);
+        const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0;
+        return { ...campaign, totalSpend, totalBookings, roas };
+      })
+      .sort((a, b) => b.roas - a.roas)
+      .slice(0, 5);
   }, [campaigns, allMetrics]);
 
-  // Alerts for underperforming campaigns
   const alerts = useMemo(() => {
     const alertsList: { campaign: Campaign; issue: string; severity: 'warning' | 'critical' }[] = [];
     
@@ -276,25 +280,17 @@ export default function Campaigns() {
       const roas = totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0;
       
       if (cpc > KPI_TARGETS.cpc * 1.5) {
-        alertsList.push({ campaign, issue: `CPC (${cpc.toFixed(2)} PLN) znacznie powyżej targetu`, severity: 'critical' });
+        alertsList.push({ campaign, issue: `CPC ${cpc.toFixed(2)} PLN`, severity: 'critical' });
       } else if (cpc > KPI_TARGETS.cpc) {
-        alertsList.push({ campaign, issue: `CPC (${cpc.toFixed(2)} PLN) powyżej targetu`, severity: 'warning' });
-      }
-      
-      if (ctr < KPI_TARGETS.ctr * 0.5) {
-        alertsList.push({ campaign, issue: `CTR (${ctr.toFixed(2)}%) znacznie poniżej targetu`, severity: 'critical' });
-      } else if (ctr < KPI_TARGETS.ctr) {
-        alertsList.push({ campaign, issue: `CTR (${ctr.toFixed(2)}%) poniżej targetu`, severity: 'warning' });
+        alertsList.push({ campaign, issue: `CPC ${cpc.toFixed(2)} PLN`, severity: 'warning' });
       }
       
       if (totalSpend > 100 && roas < KPI_TARGETS.roas * 0.5) {
-        alertsList.push({ campaign, issue: `ROAS (${roas.toFixed(2)}) znacznie poniżej targetu`, severity: 'critical' });
-      } else if (totalSpend > 100 && roas < KPI_TARGETS.roas) {
-        alertsList.push({ campaign, issue: `ROAS (${roas.toFixed(2)}) poniżej targetu`, severity: 'warning' });
+        alertsList.push({ campaign, issue: `ROAS ${roas.toFixed(2)}x`, severity: 'critical' });
       }
     });
     
-    return alertsList;
+    return alertsList.slice(0, 5);
   }, [campaigns, allMetrics]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -414,7 +410,6 @@ export default function Campaigns() {
 
     if (error) {
       toast.error('Błąd dodawania metryk');
-      console.error(error);
     } else {
       toast.success('Metryki dodane');
       handleOpenMetrics(selectedCampaign);
@@ -455,20 +450,9 @@ export default function Campaigns() {
     return matchesSearch && matchesStatus;
   });
 
-  const stats = {
-    total: campaigns.length,
-    active: campaigns.filter(c => c.status === 'active').length,
-    totalBudget: campaigns.reduce((sum, c) => sum + (c.budget || 0), 0),
-  };
-
   const formatCurrency = (value: number | null) => {
     if (value === null) return '-';
     return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
-  };
-
-  const formatFacebookLink = (url: string | null) => {
-    if (!url) return null;
-    return url.replace(/^https?:\/\/(www\.)?facebook\.com\/?/, '').replace(/\/$/, '') || 'Facebook';
   };
 
   const getCampaignKPIs = (campaignId: string) => {
@@ -483,691 +467,726 @@ export default function Campaigns() {
       ctr: totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0,
       roas: totalSpend > 0 ? (totalBookings * 200) / totalSpend : 0,
       spend: totalSpend,
+      bookings: totalBookings,
     };
   };
+
+  if (loading) {
+    return (
+      <AppLayout>
+        <div className="flex items-center justify-center h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
       <div className="p-6 space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Kampanie</h1>
-            <p className="text-muted-foreground text-sm">Zarządzaj kampaniami Facebook Ads</p>
+            <h1 className="text-3xl font-bold text-foreground">Kampanie</h1>
+            <p className="text-muted-foreground">Zarządzaj kampaniami Facebook Ads</p>
           </div>
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) resetForm();
-          }}>
-            <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="w-4 h-4 mr-2" />
-                Nowa kampania
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>{editingCampaign ? 'Edytuj kampanię' : 'Nowa kampania'}</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label>Klient *</Label>
-                  <Select
-                    value={formData.client_id}
-                    onValueChange={(value) => setFormData({ ...formData, client_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz klienta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map((client) => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.salon_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Nazwa kampanii *</Label>
-                  <Input
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="np. Promocja wiosenna"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Status</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) => setFormData({ ...formData, status: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="draft">Szkic</SelectItem>
-                        <SelectItem value="active">Aktywna</SelectItem>
-                        <SelectItem value="paused">Wstrzymana</SelectItem>
-                        <SelectItem value="completed">Zakończona</SelectItem>
-                      </SelectContent>
-                    </Select>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => navigate('/roi-calculator')}>
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Kalkulator ROI
+            </Button>
+            <Dialog open={isDialogOpen} onOpenChange={(open) => {
+              setIsDialogOpen(open);
+              if (!open) resetForm();
+            }}>
+              <DialogTrigger asChild>
+                <Button className="bg-primary hover:bg-primary/90">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nowa kampania
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>{editingCampaign ? 'Edytuj kampanię' : 'Nowa kampania'}</DialogTitle>
+                </DialogHeader>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <Label>Klient *</Label>
+                      <Select value={formData.client_id} onValueChange={(v) => setFormData(p => ({ ...p, client_id: v }))}>
+                        <SelectTrigger><SelectValue placeholder="Wybierz klienta" /></SelectTrigger>
+                        <SelectContent>
+                          {clients.map(c => (
+                            <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Nazwa kampanii *</Label>
+                      <Input value={formData.name} onChange={(e) => setFormData(p => ({ ...p, name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>Status</Label>
+                      <Select value={formData.status} onValueChange={(v) => setFormData(p => ({ ...p, status: v }))}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Szkic</SelectItem>
+                          <SelectItem value="active">Aktywna</SelectItem>
+                          <SelectItem value="paused">Wstrzymana</SelectItem>
+                          <SelectItem value="completed">Zakończona</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>Budżet (PLN)</Label>
+                      <Input type="number" value={formData.budget} onChange={(e) => setFormData(p => ({ ...p, budget: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>Data startu *</Label>
+                      <Input type="date" value={formData.start_date} onChange={(e) => setFormData(p => ({ ...p, start_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label>Data końca</Label>
+                      <Input type="date" value={formData.end_date} onChange={(e) => setFormData(p => ({ ...p, end_date: e.target.value }))} />
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Cel</Label>
+                      <Input value={formData.objective} onChange={(e) => setFormData(p => ({ ...p, objective: e.target.value }))} placeholder="np. Więcej rezerwacji" />
+                    </div>
+                    <div className="col-span-2">
+                      <Label>Notatki</Label>
+                      <Textarea value={formData.notes} onChange={(e) => setFormData(p => ({ ...p, notes: e.target.value }))} rows={2} />
+                    </div>
                   </div>
-                  <div>
-                    <Label>Budżet (PLN)</Label>
-                    <Input
-                      type="number"
-                      value={formData.budget}
-                      onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-                      placeholder="0"
-                    />
+                  <div className="flex justify-end gap-2">
+                    <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Anuluj</Button>
+                    <Button type="submit">{editingCampaign ? 'Zapisz' : 'Dodaj'}</Button>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Data startu *</Label>
-                    <Input
-                      type="date"
-                      value={formData.start_date}
-                      onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Data końca</Label>
-                    <Input
-                      type="date"
-                      value={formData.end_date}
-                      onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label>Cel kampanii</Label>
-                  <Select
-                    value={formData.objective}
-                    onValueChange={(value) => setFormData({ ...formData, objective: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz cel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="reach">Zasięg</SelectItem>
-                      <SelectItem value="traffic">Ruch</SelectItem>
-                      <SelectItem value="engagement">Zaangażowanie</SelectItem>
-                      <SelectItem value="leads">Pozyskiwanie leadów</SelectItem>
-                      <SelectItem value="conversions">Konwersje</SelectItem>
-                      <SelectItem value="messages">Wiadomości</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label>Notatki</Label>
-                  <Textarea
-                    value={formData.notes}
-                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                    rows={2}
-                  />
-                </div>
-                <div className="flex gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="flex-1">
-                    Anuluj
-                  </Button>
-                  <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90">
-                    {editingCampaign ? 'Zapisz' : 'Dodaj'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
-        {/* KPI Dashboard */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-          <Card className="border-border/50 bg-card/80">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/10">
-                  <Target className="w-5 h-5 text-primary" />
-                </div>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">{stats.total}</p>
-                  <p className="text-xs text-muted-foreground">Wszystkie</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">ROAS</p>
+                  <p className="text-2xl font-bold text-foreground">{aggregatedKPIs.roas.toFixed(2)}x</p>
+                </div>
+                <div className={`p-2 rounded-lg ${aggregatedKPIs.roas >= KPI_TARGETS.roas ? 'bg-emerald-500/20' : 'bg-red-500/20'}`}>
+                  {aggregatedKPIs.roas >= KPI_TARGETS.roas ? (
+                    <ArrowUpRight className="h-5 w-5 text-emerald-400" />
+                  ) : (
+                    <ArrowDownRight className="h-5 w-5 text-red-400" />
+                  )}
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Target: {KPI_TARGETS.roas}x</p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+
+          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-500/10">
-                  <TrendingUp className="w-5 h-5 text-green-400" />
-                </div>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">{stats.active}</p>
-                  <p className="text-xs text-muted-foreground">Aktywne</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">CPC</p>
+                  <p className="text-2xl font-bold text-foreground">{aggregatedKPIs.cpc.toFixed(2)} zł</p>
                 </div>
+                <MousePointer className="h-5 w-5 text-amber-400" />
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Target: max {KPI_TARGETS.cpc} zł</p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${aggregatedKPIs.cpc <= KPI_TARGETS.cpc ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                  <MousePointer className={`w-5 h-5 ${aggregatedKPIs.cpc <= KPI_TARGETS.cpc ? 'text-green-400' : 'text-red-400'}`} />
-                </div>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">{aggregatedKPIs.cpc.toFixed(2)} zł</p>
-                  <p className="text-xs text-muted-foreground">CPC</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">CTR</p>
+                  <p className="text-2xl font-bold text-foreground">{aggregatedKPIs.ctr.toFixed(2)}%</p>
                 </div>
+                <Target className="h-5 w-5 text-blue-400" />
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Target: min {KPI_TARGETS.ctr}%</p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+
+          <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border-emerald-500/20">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${aggregatedKPIs.ctr >= KPI_TARGETS.ctr ? 'bg-green-500/10' : 'bg-yellow-500/10'}`}>
-                  <Percent className={`w-5 h-5 ${aggregatedKPIs.ctr >= KPI_TARGETS.ctr ? 'text-green-400' : 'text-yellow-400'}`} />
-                </div>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">{aggregatedKPIs.ctr.toFixed(2)}%</p>
-                  <p className="text-xs text-muted-foreground">CTR</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Rezerwacje</p>
+                  <p className="text-2xl font-bold text-foreground">{aggregatedKPIs.totalBookings}</p>
                 </div>
+                <Calendar className="h-5 w-5 text-emerald-400" />
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Łącznie</p>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+
+          <Card className="bg-gradient-to-br from-violet-500/10 to-violet-500/5 border-violet-500/20">
             <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${aggregatedKPIs.roas >= KPI_TARGETS.roas ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
-                  <BarChart3 className={`w-5 h-5 ${aggregatedKPIs.roas >= KPI_TARGETS.roas ? 'text-green-400' : 'text-red-400'}`} />
-                </div>
+              <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-2xl font-bold">{aggregatedKPIs.roas.toFixed(2)}x</p>
-                  <p className="text-xs text-muted-foreground">ROAS</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide">Wydatki</p>
+                  <p className="text-2xl font-bold text-foreground">{formatCurrency(aggregatedKPIs.totalSpend)}</p>
                 </div>
+                <DollarSign className="h-5 w-5 text-violet-400" />
               </div>
-            </CardContent>
-          </Card>
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-500/10">
-                  <DollarSign className="w-5 h-5 text-blue-400" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">{formatCurrency(aggregatedKPIs.totalSpend)}</p>
-                  <p className="text-xs text-muted-foreground">Wydano</p>
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground mt-1">Łącznie</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Alerts */}
         {alerts.length > 0 && (
-          <Card className="border-yellow-500/30 bg-yellow-500/5">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg flex items-center gap-2 text-yellow-400">
-                <AlertTriangle className="w-5 h-5" />
-                Alerty wydajności ({alerts.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                {alerts.slice(0, 5).map((alert, idx) => (
-                  <div 
+          <Card className="border-amber-500/30 bg-amber-500/5">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="h-5 w-5 text-amber-400" />
+                <h3 className="font-semibold text-foreground">Wymagają uwagi</h3>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {alerts.map((alert, idx) => (
+                  <Badge 
                     key={idx} 
-                    className={`flex items-center justify-between p-3 rounded-lg ${
-                      alert.severity === 'critical' ? 'bg-red-500/10 border border-red-500/30' : 'bg-yellow-500/10 border border-yellow-500/30'
-                    }`}
+                    variant="outline" 
+                    className={alert.severity === 'critical' ? 'border-red-500/50 text-red-400' : 'border-amber-500/50 text-amber-400'}
                   >
-                    <div className="flex items-center gap-3">
-                      {alert.severity === 'critical' ? (
-                        <TrendingDown className="w-4 h-4 text-red-400" />
-                      ) : (
-                        <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium">{alert.campaign.name}</p>
-                        <p className="text-xs text-muted-foreground">{alert.issue}</p>
-                      </div>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={() => handleOpenMetrics(alert.campaign)}>
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
+                    {alert.campaign.name}: {alert.issue}
+                  </Badge>
                 ))}
               </div>
             </CardContent>
           </Card>
         )}
 
-        {/* Charts */}
-        {chartData.length > 0 && (
-          <div className="grid lg:grid-cols-2 gap-6">
-            <Card className="border-border/50 bg-card/80">
-              <CardHeader>
-                <CardTitle className="text-lg">Wydatki w czasie</CardTitle>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList className="bg-secondary/50">
+            <TabsTrigger value="overview">Przegląd</TabsTrigger>
+            <TabsTrigger value="campaigns">Kampanie ({campaigns.length})</TabsTrigger>
+            <TabsTrigger value="analytics">Analityka</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid lg:grid-cols-3 gap-4">
+              {/* Performance Chart */}
+              <Card className="lg:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Wydajność w czasie</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="hsl(var(--muted-foreground))" 
+                          fontSize={12}
+                          tickFormatter={(v) => format(new Date(v), 'd MMM', { locale: pl })}
+                        />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Line type="monotone" dataKey="spend" name="Wydatki" stroke={CHART_COLORS[0]} strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="bookings" name="Rezerwacje" stroke={CHART_COLORS[2]} strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[250px] flex items-center justify-center text-muted-foreground">
+                      Brak danych do wyświetlenia
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Status Distribution */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Status kampanii</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {statusDistribution.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={statusDistribution}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={50}
+                          outerRadius={80}
+                          paddingAngle={2}
+                          dataKey="value"
+                        >
+                          {statusDistribution.map((entry, index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={entry.status === 'active' ? '#10b981' : entry.status === 'paused' ? '#f59e0b' : entry.status === 'completed' ? '#3b82f6' : '#71717a'}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[200px] flex items-center justify-center text-muted-foreground">
+                      Brak kampanii
+                    </div>
+                  )}
+                  <div className="flex flex-wrap gap-2 mt-2 justify-center">
+                    {statusDistribution.map((item, idx) => (
+                      <div key={idx} className="flex items-center gap-1.5 text-xs">
+                        <div 
+                          className="w-2 h-2 rounded-full"
+                          style={{ backgroundColor: item.status === 'active' ? '#10b981' : item.status === 'paused' ? '#f59e0b' : item.status === 'completed' ? '#3b82f6' : '#71717a' }}
+                        />
+                        <span className="text-muted-foreground">{item.name} ({item.value})</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Campaigns */}
+            <Card>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg">Top 5 kampanii (ROAS)</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => setActiveTab('campaigns')}>
+                    Zobacz wszystkie <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                    <XAxis dataKey="date" stroke="#888" fontSize={12} />
-                    <YAxis stroke="#888" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
-                      labelStyle={{ color: '#888' }}
-                    />
-                    <Line type="monotone" dataKey="spend" stroke="#ec4899" strokeWidth={2} dot={false} name="Wydatki (PLN)" />
-                    <Line type="monotone" dataKey="clicks" stroke="#3b82f6" strokeWidth={2} dot={false} name="Kliknięcia" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-            <Card className="border-border/50 bg-card/80">
-              <CardHeader>
-                <CardTitle className="text-lg">Porównanie kampanii</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={campaignComparison}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                    <XAxis dataKey="name" stroke="#888" fontSize={10} angle={-15} />
-                    <YAxis stroke="#888" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{ backgroundColor: '#1a1a1a', border: '1px solid #333' }}
-                      labelStyle={{ color: '#888' }}
-                    />
-                    <Legend />
-                    <Bar dataKey="roas" fill="#22c55e" name="ROAS" />
-                    <Bar dataKey="bookings" fill="#ec4899" name="Rezerwacje" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
-        )}
-
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Szukaj kampanii..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Wszystkie</SelectItem>
-              {Object.entries(statusLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex items-center gap-1 p-1 bg-secondary/50 rounded-lg border border-border/50">
-            <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode('grid')}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode('list')}
-            >
-              <List className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Campaigns */}
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          </div>
-        ) : filteredCampaigns.length === 0 ? (
-          <Card className="border-dashed border-2 border-border/50">
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Target className="w-12 h-12 text-muted-foreground mb-4" />
-              <p className="text-muted-foreground">Brak kampanii</p>
-            </CardContent>
-          </Card>
-        ) : viewMode === 'grid' ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredCampaigns.map((campaign) => {
-              const kpis = getCampaignKPIs(campaign.id);
-              return (
-                <Card key={campaign.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">{campaign.name}</h3>
-                        <p className="text-sm text-muted-foreground truncate">{campaign.clients?.salon_name}</p>
-                      </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenMetrics(campaign)}>
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            Metryki
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(campaign)}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Edytuj
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-red-400">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Usuń
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 mb-3">
-                      <Badge className={`${statusColors[campaign.status]} border text-xs`}>
-                        {statusLabels[campaign.status]}
-                      </Badge>
-                      {campaign.clients?.facebook_page && (
-                        <a 
-                          href={campaign.clients.facebook_page.startsWith('http') ? campaign.clients.facebook_page : `https://facebook.com/${campaign.clients.facebook_page}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                          FB
-                        </a>
-                      )}
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-2 mb-3 text-xs">
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <Calendar className="w-3.5 h-3.5" />
-                        {format(new Date(campaign.start_date), 'd MMM yyyy', { locale: pl })}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-muted-foreground">
-                        <DollarSign className="w-3.5 h-3.5" />
-                        {formatCurrency(campaign.budget)}
-                      </div>
-                    </div>
-                    
-                    {/* KPIs */}
-                    <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border/50">
-                      <div className="text-center">
-                        <p className={`text-sm font-semibold ${kpis.cpc <= KPI_TARGETS.cpc ? 'text-green-400' : 'text-red-400'}`}>
-                          {kpis.cpc.toFixed(2)} zł
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">CPC</p>
-                      </div>
-                      <div className="text-center">
-                        <p className={`text-sm font-semibold ${kpis.ctr >= KPI_TARGETS.ctr ? 'text-green-400' : 'text-yellow-400'}`}>
-                          {kpis.ctr.toFixed(1)}%
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">CTR</p>
-                      </div>
-                      <div className="text-center">
-                        <p className={`text-sm font-semibold ${kpis.roas >= KPI_TARGETS.roas ? 'text-green-400' : 'text-red-400'}`}>
-                          {kpis.roas.toFixed(1)}x
-                        </p>
-                        <p className="text-[10px] text-muted-foreground">ROAS</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {filteredCampaigns.map((campaign) => {
-              const kpis = getCampaignKPIs(campaign.id);
-              return (
-                <Card key={campaign.id} className="border-border/50 bg-card/80 hover:bg-card transition-colors">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-semibold text-foreground">{campaign.name}</h3>
-                          <Badge className={`${statusColors[campaign.status]} border text-xs`}>
-                            {statusLabels[campaign.status]}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{campaign.clients?.salon_name}</p>
-                      </div>
-                      
-                      <div className="hidden md:flex items-center gap-6 text-sm">
-                        <div className="text-center">
-                          <p className={`font-semibold ${kpis.cpc <= KPI_TARGETS.cpc ? 'text-green-400' : 'text-red-400'}`}>
-                            {kpis.cpc.toFixed(2)} zł
-                          </p>
-                          <p className="text-xs text-muted-foreground">CPC</p>
-                        </div>
-                        <div className="text-center">
-                          <p className={`font-semibold ${kpis.ctr >= KPI_TARGETS.ctr ? 'text-green-400' : 'text-yellow-400'}`}>
-                            {kpis.ctr.toFixed(1)}%
-                          </p>
-                          <p className="text-xs text-muted-foreground">CTR</p>
-                        </div>
-                        <div className="text-center">
-                          <p className={`font-semibold ${kpis.roas >= KPI_TARGETS.roas ? 'text-green-400' : 'text-red-400'}`}>
-                            {kpis.roas.toFixed(1)}x
-                          </p>
-                          <p className="text-xs text-muted-foreground">ROAS</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="font-semibold text-foreground">{formatCurrency(campaign.budget)}</p>
-                          <p className="text-xs text-muted-foreground">Budżet</p>
-                        </div>
-                      </div>
-                      
-                      {campaign.clients?.facebook_page && (
-                        <a 
-                          href={campaign.clients.facebook_page.startsWith('http') ? campaign.clients.facebook_page : `https://facebook.com/${campaign.clients.facebook_page}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                      
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleOpenMetrics(campaign)}>
-                            <BarChart3 className="w-4 h-4 mr-2" />
-                            Metryki
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEdit(campaign)}>
-                            <Pencil className="w-4 h-4 mr-2" />
-                            Edytuj
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-red-400">
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            Usuń
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Metrics Dialog */}
-        <Dialog open={metricsDialogOpen} onOpenChange={setMetricsDialogOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Metryki: {selectedCampaign?.name}</DialogTitle>
-            </DialogHeader>
-            
-            {/* Add Metrics Form */}
-            <form onSubmit={handleAddMetrics} className="space-y-4 p-4 bg-secondary/30 rounded-lg">
-              <h4 className="font-medium text-sm">Dodaj nowe metryki</h4>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Od</Label>
-                  <Input
-                    type="date"
-                    value={metricsForm.period_start}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, period_start: e.target.value })}
-                    className="h-9"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Do</Label>
-                  <Input
-                    type="date"
-                    value={metricsForm.period_end}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, period_end: e.target.value })}
-                    className="h-9"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-4 gap-3">
-                <div>
-                  <Label className="text-xs">Wyświetlenia</Label>
-                  <Input
-                    type="number"
-                    value={metricsForm.impressions}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, impressions: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Zasięg</Label>
-                  <Input
-                    type="number"
-                    value={metricsForm.reach}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, reach: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Kliknięcia</Label>
-                  <Input
-                    type="number"
-                    value={metricsForm.clicks}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, clicks: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Wydatki (PLN)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={metricsForm.spend}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, spend: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label className="text-xs">Konwersje</Label>
-                  <Input
-                    type="number"
-                    value={metricsForm.conversions}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, conversions: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Rezerwacje</Label>
-                  <Input
-                    type="number"
-                    value={metricsForm.bookings}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, bookings: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Wiadomości</Label>
-                  <Input
-                    type="number"
-                    value={metricsForm.messages}
-                    onChange={(e) => setMetricsForm({ ...metricsForm, messages: e.target.value })}
-                    className="h-9"
-                    placeholder="0"
-                  />
-                </div>
-              </div>
-              <Button type="submit" size="sm" className="w-full">
-                <Plus className="w-4 h-4 mr-2" />
-                Dodaj metryki
-              </Button>
-            </form>
-            
-            {/* Metrics History */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">Historia metryk</h4>
-              {campaignMetrics.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">Brak zapisanych metryk</p>
-              ) : (
-                <div className="space-y-2">
-                  {campaignMetrics.map((m) => (
-                    <div key={m.id} className="p-3 bg-secondary/30 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(m.period_start), 'd MMM', { locale: pl })} - {format(new Date(m.period_end), 'd MMM yyyy', { locale: pl })}
-                        </span>
-                        <span className="text-xs font-medium text-primary">
-                          {formatCurrency(m.spend)}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-4 gap-2 text-xs">
-                        <div>
-                          <p className="text-muted-foreground">Wyświetlenia</p>
-                          <p className="font-medium">{m.impressions?.toLocaleString() || 0}</p>
+                <div className="space-y-3">
+                  {topCampaigns.map((campaign, idx) => (
+                    <div 
+                      key={campaign.id} 
+                      className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors cursor-pointer"
+                      onClick={() => handleOpenMetrics(campaign)}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
+                          {idx + 1}
                         </div>
                         <div>
-                          <p className="text-muted-foreground">Kliknięcia</p>
-                          <p className="font-medium">{m.clicks?.toLocaleString() || 0}</p>
+                          <p className="font-medium text-foreground">{campaign.name}</p>
+                          <p className="text-xs text-muted-foreground">{campaign.clients?.salon_name}</p>
                         </div>
-                        <div>
+                      </div>
+                      <div className="flex items-center gap-6 text-sm">
+                        <div className="text-right">
+                          <p className="text-muted-foreground">ROAS</p>
+                          <p className="font-semibold text-emerald-400">{campaign.roas.toFixed(2)}x</p>
+                        </div>
+                        <div className="text-right">
                           <p className="text-muted-foreground">Rezerwacje</p>
-                          <p className="font-medium">{m.bookings || 0}</p>
+                          <p className="font-semibold">{campaign.totalBookings}</p>
                         </div>
-                        <div>
-                          <p className="text-muted-foreground">Wiadomości</p>
-                          <p className="font-medium">{m.messages || 0}</p>
+                        <div className="text-right">
+                          <p className="text-muted-foreground">Wydatki</p>
+                          <p className="font-semibold">{formatCurrency(campaign.totalSpend)}</p>
                         </div>
                       </div>
                     </div>
                   ))}
+                  {topCampaigns.length === 0 && (
+                    <p className="text-center text-muted-foreground py-4">Brak kampanii z metrykami</p>
+                  )}
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="campaigns" className="space-y-4">
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Szukaj kampanii..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[160px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Wszystkie</SelectItem>
+                  <SelectItem value="active">Aktywne</SelectItem>
+                  <SelectItem value="paused">Wstrzymane</SelectItem>
+                  <SelectItem value="completed">Zakończone</SelectItem>
+                  <SelectItem value="draft">Szkice</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex border rounded-lg overflow-hidden">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="rounded-none"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="rounded-none"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* Campaigns Grid/List */}
+            {viewMode === 'grid' ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredCampaigns.map((campaign) => {
+                  const kpis = getCampaignKPIs(campaign.id);
+                  const config = statusConfig[campaign.status] || statusConfig.draft;
+                  
+                  return (
+                    <Card key={campaign.id} className="group hover:border-primary/30 transition-all">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-foreground truncate">{campaign.name}</h3>
+                            <p className="text-sm text-muted-foreground truncate">{campaign.clients?.salon_name}</p>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleOpenMetrics(campaign)}>
+                                <BarChart3 className="h-4 w-4 mr-2" />
+                                Metryki
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEdit(campaign)}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edytuj
+                              </DropdownMenuItem>
+                              {campaign.clients?.facebook_page && (
+                                <DropdownMenuItem onClick={() => window.open(campaign.clients!.facebook_page!, '_blank')}>
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Facebook
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-destructive">
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Usuń
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-4">
+                          <Badge variant="outline" className={config.bg}>
+                            {config.label}
+                          </Badge>
+                          {campaign.budget && (
+                            <Badge variant="outline" className="bg-secondary/50">
+                              {formatCurrency(campaign.budget)}
+                            </Badge>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 text-center">
+                          <div className="p-2 rounded-lg bg-secondary/30">
+                            <p className="text-xs text-muted-foreground">ROAS</p>
+                            <p className={`font-semibold ${kpis.roas >= KPI_TARGETS.roas ? 'text-emerald-400' : kpis.roas > 0 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                              {kpis.roas > 0 ? `${kpis.roas.toFixed(2)}x` : '-'}
+                            </p>
+                          </div>
+                          <div className="p-2 rounded-lg bg-secondary/30">
+                            <p className="text-xs text-muted-foreground">CPC</p>
+                            <p className={`font-semibold ${kpis.cpc <= KPI_TARGETS.cpc ? 'text-emerald-400' : kpis.cpc > 0 ? 'text-amber-400' : 'text-muted-foreground'}`}>
+                              {kpis.cpc > 0 ? `${kpis.cpc.toFixed(2)} zł` : '-'}
+                            </p>
+                          </div>
+                          <div className="p-2 rounded-lg bg-secondary/30">
+                            <p className="text-xs text-muted-foreground">Rez.</p>
+                            <p className="font-semibold text-foreground">
+                              {kpis.bookings > 0 ? kpis.bookings : '-'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 pt-3 border-t border-border/50 flex items-center justify-between text-xs text-muted-foreground">
+                          <span>{format(new Date(campaign.start_date), 'd MMM yyyy', { locale: pl })}</span>
+                          {campaign.end_date && (
+                            <span>do {format(new Date(campaign.end_date), 'd MMM yyyy', { locale: pl })}</span>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            ) : (
+              <Card>
+                <CardContent className="p-0">
+                  <div className="divide-y divide-border">
+                    {filteredCampaigns.map((campaign) => {
+                      const kpis = getCampaignKPIs(campaign.id);
+                      const config = statusConfig[campaign.status] || statusConfig.draft;
+                      
+                      return (
+                        <div key={campaign.id} className="flex items-center justify-between p-4 hover:bg-secondary/30 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <h3 className="font-medium text-foreground">{campaign.name}</h3>
+                              <p className="text-sm text-muted-foreground">{campaign.clients?.salon_name}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-6">
+                            <Badge variant="outline" className={config.bg}>{config.label}</Badge>
+                            <div className="text-right w-20">
+                              <p className="text-xs text-muted-foreground">ROAS</p>
+                              <p className="font-semibold">{kpis.roas > 0 ? `${kpis.roas.toFixed(2)}x` : '-'}</p>
+                            </div>
+                            <div className="text-right w-20">
+                              <p className="text-xs text-muted-foreground">Wydatki</p>
+                              <p className="font-semibold">{kpis.spend > 0 ? formatCurrency(kpis.spend) : '-'}</p>
+                            </div>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm"><MoreVertical className="h-4 w-4" /></Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleOpenMetrics(campaign)}>Metryki</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEdit(campaign)}>Edytuj</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDelete(campaign.id)} className="text-destructive">Usuń</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {filteredCampaigns.length === 0 && (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Target className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-1">Brak kampanii</h3>
+                  <p className="text-muted-foreground mb-4">Dodaj pierwszą kampanię, aby rozpocząć</p>
+                  <Button onClick={() => setIsDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Nowa kampania
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="analytics" className="space-y-4">
+            <div className="grid lg:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Wydatki vs Rezerwacje</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="hsl(var(--muted-foreground))" 
+                          fontSize={12}
+                          tickFormatter={(v) => format(new Date(v), 'd MMM', { locale: pl })}
+                        />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Bar dataKey="spend" name="Wydatki (PLN)" fill={CHART_COLORS[0]} radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="bookings" name="Rezerwacje" fill={CHART_COLORS[2]} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                      Brak danych
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Kliknięcia vs Wyświetlenia</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis 
+                          dataKey="date" 
+                          stroke="hsl(var(--muted-foreground))" 
+                          fontSize={12}
+                          tickFormatter={(v) => format(new Date(v), 'd MMM', { locale: pl })}
+                        />
+                        <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }}
+                        />
+                        <Line type="monotone" dataKey="clicks" name="Kliknięcia" stroke={CHART_COLORS[1]} strokeWidth={2} />
+                        <Line type="monotone" dataKey="impressions" name="Wyświetlenia" stroke={CHART_COLORS[3]} strokeWidth={2} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                      Brak danych
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Summary Stats */}
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Eye className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-2xl font-bold">{aggregatedKPIs.totalImpressions.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Wyświetlenia</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Users className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-2xl font-bold">{aggregatedKPIs.totalReach.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Zasięg</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <MousePointer className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-2xl font-bold">{aggregatedKPIs.totalClicks.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Kliknięcia</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <MessageCircle className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-2xl font-bold">{aggregatedKPIs.totalMessages.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground">Wiadomości</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <Zap className="h-5 w-5 mx-auto text-muted-foreground mb-2" />
+                  <p className="text-2xl font-bold">{aggregatedKPIs.totalConversions}</p>
+                  <p className="text-xs text-muted-foreground">Konwersje</p>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Metrics Dialog */}
+        <Dialog open={metricsDialogOpen} onOpenChange={setMetricsDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Metryki: {selectedCampaign?.name}</DialogTitle>
+            </DialogHeader>
+            
+            <form onSubmit={handleAddMetrics} className="space-y-4 border-b pb-4 mb-4">
+              <h4 className="font-medium">Dodaj metryki</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>Od *</Label>
+                  <Input type="date" value={metricsForm.period_start} onChange={(e) => setMetricsForm(p => ({ ...p, period_start: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Do *</Label>
+                  <Input type="date" value={metricsForm.period_end} onChange={(e) => setMetricsForm(p => ({ ...p, period_end: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Wyświetlenia</Label>
+                  <Input type="number" value={metricsForm.impressions} onChange={(e) => setMetricsForm(p => ({ ...p, impressions: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Zasięg</Label>
+                  <Input type="number" value={metricsForm.reach} onChange={(e) => setMetricsForm(p => ({ ...p, reach: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Kliknięcia</Label>
+                  <Input type="number" value={metricsForm.clicks} onChange={(e) => setMetricsForm(p => ({ ...p, clicks: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Wydatki (PLN)</Label>
+                  <Input type="number" step="0.01" value={metricsForm.spend} onChange={(e) => setMetricsForm(p => ({ ...p, spend: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Konwersje</Label>
+                  <Input type="number" value={metricsForm.conversions} onChange={(e) => setMetricsForm(p => ({ ...p, conversions: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Rezerwacje</Label>
+                  <Input type="number" value={metricsForm.bookings} onChange={(e) => setMetricsForm(p => ({ ...p, bookings: e.target.value }))} />
+                </div>
+                <div>
+                  <Label>Wiadomości</Label>
+                  <Input type="number" value={metricsForm.messages} onChange={(e) => setMetricsForm(p => ({ ...p, messages: e.target.value }))} />
+                </div>
+              </div>
+              <Button type="submit" size="sm">Dodaj metryki</Button>
+            </form>
+
+            <div className="space-y-2">
+              <h4 className="font-medium">Historia metryk</h4>
+              {campaignMetrics.length > 0 ? (
+                <div className="space-y-2">
+                  {campaignMetrics.map((m) => (
+                    <div key={m.id} className="p-3 rounded-lg bg-secondary/30 text-sm">
+                      <div className="flex justify-between mb-2">
+                        <span className="font-medium">{format(new Date(m.period_start), 'd MMM', { locale: pl })} - {format(new Date(m.period_end), 'd MMM yyyy', { locale: pl })}</span>
+                        <span className="text-muted-foreground">{formatCurrency(m.spend)}</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-2 text-xs text-muted-foreground">
+                        <span>Wyśw.: {m.impressions?.toLocaleString()}</span>
+                        <span>Klik.: {m.clicks}</span>
+                        <span>Rez.: {m.bookings}</span>
+                        <span>Wiad.: {m.messages}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground text-sm">Brak metryk</p>
               )}
             </div>
           </DialogContent>
