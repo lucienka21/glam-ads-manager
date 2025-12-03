@@ -1,322 +1,110 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Upload,
   Download,
   Image as ImageIcon,
   Wand2,
   RotateCcw,
-  ZoomIn,
-  ZoomOut,
-  SunMedium,
-  Contrast,
-  Palette,
   Sparkles,
   Loader2,
   ArrowRightLeft,
+  LayoutGrid,
+  Film,
+  Square,
+  RectangleVertical,
+  Layers,
 } from 'lucide-react';
 
-interface ImageState {
-  file: File | null;
-  preview: string | null;
-  brightness: number;
-  contrast: number;
-  saturation: number;
-}
-
 const templates = [
-  { id: 'before-after-horizontal', name: 'Przed/Po - Poziomo', aspect: '16:9' },
-  { id: 'before-after-vertical', name: 'Przed/Po - Pionowo', aspect: '9:16' },
-  { id: 'before-after-diagonal', name: 'Przed/Po - Ukośnie', aspect: '1:1' },
-  { id: 'single-promo', name: 'Promocja - Pojedyncze', aspect: '1:1' },
-  { id: 'carousel-item', name: 'Element karuzeli', aspect: '1:1' },
-  { id: 'story', name: 'Story/Reels', aspect: '9:16' },
+  { id: 'before-after-horizontal', name: 'Przed/Po - Poziomo', aspect: '16:9', icon: ArrowRightLeft, category: 'before-after' },
+  { id: 'before-after-vertical', name: 'Przed/Po - Pionowo', aspect: '9:16', icon: RectangleVertical, category: 'before-after' },
+  { id: 'before-after-diagonal', name: 'Przed/Po - Ukośnie', aspect: '1:1', icon: Layers, category: 'before-after' },
+  { id: 'carousel-item', name: 'Karuzela Instagram', aspect: '1:1', icon: LayoutGrid, category: 'social' },
+  { id: 'story', name: 'Story / Reels', aspect: '9:16', icon: Film, category: 'social' },
+  { id: 'promo-square', name: 'Promocja kwadrat', aspect: '1:1', icon: Square, category: 'promo' },
+  { id: 'reels-cover', name: 'Okładka Reels', aspect: '9:16', icon: Film, category: 'social' },
+  { id: 'multi-image-carousel', name: 'Karuzela wielozdj.', aspect: '1:1', icon: LayoutGrid, category: 'social' },
 ];
 
-const overlayColors = [
-  { id: 'pink', name: 'Różowy', color: '#ec4899' },
-  { id: 'gold', name: 'Złoty', color: '#f59e0b' },
-  { id: 'purple', name: 'Fioletowy', color: '#8b5cf6' },
-  { id: 'teal', name: 'Turkusowy', color: '#14b8a6' },
-  { id: 'rose', name: 'Rose', color: '#fb7185' },
+const accentColors = [
+  { id: 'neon-pink', name: 'Neon Pink', color: '#ff1493', tailwind: 'bg-pink-500' },
+  { id: 'rose-gold', name: 'Rose Gold', color: '#b76e79', tailwind: 'bg-rose-400' },
+  { id: 'purple', name: 'Fiolet', color: '#8b5cf6', tailwind: 'bg-violet-500' },
+  { id: 'gold', name: 'Złoty', color: '#f59e0b', tailwind: 'bg-amber-500' },
+  { id: 'teal', name: 'Turkus', color: '#14b8a6', tailwind: 'bg-teal-500' },
+  { id: 'coral', name: 'Koral', color: '#ff6b6b', tailwind: 'bg-red-400' },
 ];
 
 export default function GraphicsCreator() {
-  const [beforeImage, setBeforeImage] = useState<ImageState>({
-    file: null,
-    preview: null,
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-  });
-  
-  const [afterImage, setAfterImage] = useState<ImageState>({
-    file: null,
-    preview: null,
-    brightness: 100,
-    contrast: 100,
-    saturation: 100,
-  });
-
+  const [beforeImage, setBeforeImage] = useState<string | null>(null);
+  const [afterImage, setAfterImage] = useState<string | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState('before-after-horizontal');
-  const [overlayColor, setOverlayColor] = useState('pink');
+  const [accentColor, setAccentColor] = useState('neon-pink');
   const [headline, setHeadline] = useState('');
   const [subheadline, setSubheadline] = useState('');
   const [generating, setGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const beforeInputRef = useRef<HTMLInputElement>(null);
   const afterInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (type: 'before' | 'after', file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
-      const preview = e.target?.result as string;
+      const dataUrl = e.target?.result as string;
       if (type === 'before') {
-        setBeforeImage(prev => ({ ...prev, file, preview }));
+        setBeforeImage(dataUrl);
       } else {
-        setAfterImage(prev => ({ ...prev, file, preview }));
+        setAfterImage(dataUrl);
       }
     };
     reader.readAsDataURL(file);
   };
 
-  const updateImageSettings = (type: 'before' | 'after', key: keyof ImageState, value: number) => {
-    if (type === 'before') {
-      setBeforeImage(prev => ({ ...prev, [key]: value }));
-    } else {
-      setAfterImage(prev => ({ ...prev, [key]: value }));
-    }
-  };
-
-  const getImageStyle = (state: ImageState) => ({
-    filter: `brightness(${state.brightness}%) contrast(${state.contrast}%) saturate(${state.saturation}%)`,
-  });
-
-  const generateGraphic = useCallback(async () => {
-    if (!beforeImage.preview && !afterImage.preview) {
+  const generateGraphic = async () => {
+    if (!beforeImage && !afterImage) {
       toast.error('Dodaj przynajmniej jedno zdjęcie');
       return;
     }
 
     setGenerating(true);
+    const selectedColor = accentColors.find(c => c.id === accentColor)?.color || '#ff1493';
 
     try {
-      const canvas = canvasRef.current;
-      if (!canvas) throw new Error('Canvas not found');
+      const { data, error } = await supabase.functions.invoke('process-graphics', {
+        body: {
+          beforeImage,
+          afterImage,
+          template: selectedTemplate,
+          headline,
+          subheadline,
+          accentColor: selectedColor,
+        },
+      });
 
-      const ctx = canvas.getContext('2d');
-      if (!ctx) throw new Error('Cannot get canvas context');
+      if (error) throw error;
 
-      const template = templates.find(t => t.id === selectedTemplate);
-      const color = overlayColors.find(c => c.id === overlayColor)?.color || '#ec4899';
-
-      // Set canvas size based on template
-      let width = 1080;
-      let height = 1080;
-      if (template?.aspect === '16:9') {
-        width = 1920;
-        height = 1080;
-      } else if (template?.aspect === '9:16') {
-        width = 1080;
-        height = 1920;
+      if (data?.generatedImage) {
+        setGeneratedImage(data.generatedImage);
+        toast.success('Grafika wygenerowana przez AI!');
+      } else if (data?.error) {
+        throw new Error(data.error);
       }
-
-      canvas.width = width;
-      canvas.height = height;
-
-      // Fill background
-      ctx.fillStyle = '#0a0a0a';
-      ctx.fillRect(0, 0, width, height);
-
-      // Load and draw images
-      const loadImage = (src: string): Promise<HTMLImageElement> => {
-        return new Promise((resolve, reject) => {
-          const img = new Image();
-          img.crossOrigin = 'anonymous';
-          img.onload = () => resolve(img);
-          img.onerror = reject;
-          img.src = src;
-        });
-      };
-
-      const applyFilters = (imgState: ImageState) => {
-        ctx.filter = `brightness(${imgState.brightness}%) contrast(${imgState.contrast}%) saturate(${imgState.saturation}%)`;
-      };
-
-      // Draw based on template
-      if (selectedTemplate.includes('before-after')) {
-        if (selectedTemplate === 'before-after-horizontal') {
-          // Side by side
-          if (beforeImage.preview) {
-            const img = await loadImage(beforeImage.preview);
-            applyFilters(beforeImage);
-            ctx.drawImage(img, 0, 0, width / 2 - 5, height);
-          }
-          if (afterImage.preview) {
-            const img = await loadImage(afterImage.preview);
-            applyFilters(afterImage);
-            ctx.drawImage(img, width / 2 + 5, 0, width / 2 - 5, height);
-          }
-          
-          // Divider
-          ctx.filter = 'none';
-          ctx.fillStyle = color;
-          ctx.fillRect(width / 2 - 5, 0, 10, height);
-
-          // Labels
-          ctx.fillStyle = 'rgba(0,0,0,0.7)';
-          ctx.fillRect(20, height - 80, 150, 50);
-          ctx.fillRect(width / 2 + 25, height - 80, 150, 50);
-          
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 28px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('PRZED', 95, height - 45);
-          ctx.fillText('PO', width / 2 + 100, height - 45);
-
-        } else if (selectedTemplate === 'before-after-vertical') {
-          // Top and bottom
-          if (beforeImage.preview) {
-            const img = await loadImage(beforeImage.preview);
-            applyFilters(beforeImage);
-            ctx.drawImage(img, 0, 0, width, height / 2 - 5);
-          }
-          if (afterImage.preview) {
-            const img = await loadImage(afterImage.preview);
-            applyFilters(afterImage);
-            ctx.drawImage(img, 0, height / 2 + 5, width, height / 2 - 5);
-          }
-
-          // Divider
-          ctx.filter = 'none';
-          ctx.fillStyle = color;
-          ctx.fillRect(0, height / 2 - 5, width, 10);
-
-          // Labels
-          ctx.fillStyle = 'rgba(0,0,0,0.7)';
-          ctx.fillRect(width / 2 - 75, 20, 150, 50);
-          ctx.fillRect(width / 2 - 75, height / 2 + 25, 150, 50);
-          
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 28px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('PRZED', width / 2, 55);
-          ctx.fillText('PO', width / 2, height / 2 + 60);
-
-        } else if (selectedTemplate === 'before-after-diagonal') {
-          // Diagonal split
-          if (beforeImage.preview) {
-            const img = await loadImage(beforeImage.preview);
-            applyFilters(beforeImage);
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(width, 0);
-            ctx.lineTo(0, height);
-            ctx.closePath();
-            ctx.clip();
-            ctx.drawImage(img, 0, 0, width, height);
-            ctx.restore();
-          }
-          if (afterImage.preview) {
-            const img = await loadImage(afterImage.preview);
-            applyFilters(afterImage);
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(width, 0);
-            ctx.lineTo(width, height);
-            ctx.lineTo(0, height);
-            ctx.closePath();
-            ctx.clip();
-            ctx.drawImage(img, 0, 0, width, height);
-            ctx.restore();
-          }
-
-          // Diagonal line
-          ctx.filter = 'none';
-          ctx.strokeStyle = color;
-          ctx.lineWidth = 8;
-          ctx.beginPath();
-          ctx.moveTo(width + 4, -4);
-          ctx.lineTo(-4, height + 4);
-          ctx.stroke();
-
-          // Labels
-          ctx.fillStyle = 'rgba(0,0,0,0.7)';
-          ctx.fillRect(20, 20, 150, 50);
-          ctx.fillRect(width - 170, height - 70, 150, 50);
-          
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 28px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('PRZED', 95, 55);
-          ctx.fillText('PO', width - 95, height - 35);
-        }
-      } else {
-        // Single image templates
-        const imgState = beforeImage.preview ? beforeImage : afterImage;
-        if (imgState.preview) {
-          const img = await loadImage(imgState.preview);
-          applyFilters(imgState);
-          ctx.drawImage(img, 0, 0, width, height);
-        }
-      }
-
-      // Add headline if provided
-      ctx.filter = 'none';
-      if (headline) {
-        const padding = 40;
-        ctx.fillStyle = 'rgba(0,0,0,0.8)';
-        ctx.fillRect(padding, padding, width - padding * 2, 100);
-        
-        // Accent bar
-        ctx.fillStyle = color;
-        ctx.fillRect(padding, padding, 8, 100);
-        
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 42px Inter, sans-serif';
-        ctx.textAlign = 'left';
-        ctx.fillText(headline.toUpperCase(), padding + 30, padding + 60);
-        
-        if (subheadline) {
-          ctx.font = '24px Inter, sans-serif';
-          ctx.fillStyle = 'rgba(255,255,255,0.8)';
-          ctx.fillText(subheadline, padding + 30, padding + 90);
-        }
-      }
-
-      // Add watermark/logo area
-      ctx.fillStyle = color;
-      ctx.globalAlpha = 0.9;
-      ctx.fillRect(width - 200, height - 60, 180, 40);
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 18px Inter, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('AURINE', width - 110, height - 32);
-
-      // Export
-      const dataUrl = canvas.toDataURL('image/png', 1);
-      setGeneratedImage(dataUrl);
-      toast.success('Grafika wygenerowana!');
-
     } catch (err) {
       console.error('Error generating graphic:', err);
-      toast.error('Błąd generowania grafiki');
+      toast.error(err instanceof Error ? err.message : 'Błąd generowania grafiki');
     } finally {
       setGenerating(false);
     }
-  }, [beforeImage, afterImage, selectedTemplate, overlayColor, headline, subheadline]);
+  };
 
   const downloadImage = () => {
     if (!generatedImage) return;
@@ -329,12 +117,15 @@ export default function GraphicsCreator() {
   };
 
   const resetAll = () => {
-    setBeforeImage({ file: null, preview: null, brightness: 100, contrast: 100, saturation: 100 });
-    setAfterImage({ file: null, preview: null, brightness: 100, contrast: 100, saturation: 100 });
+    setBeforeImage(null);
+    setAfterImage(null);
     setHeadline('');
     setSubheadline('');
     setGeneratedImage(null);
   };
+
+  const selectedTemplateData = templates.find(t => t.id === selectedTemplate);
+  const isBeforeAfterTemplate = selectedTemplateData?.category === 'before-after';
 
   return (
     <AppLayout>
@@ -343,11 +134,11 @@ export default function GraphicsCreator() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Palette className="w-6 h-6 text-primary" />
-              Kreator Grafik
+              <Sparkles className="w-6 h-6 text-primary" />
+              AI Kreator Grafik
             </h1>
             <p className="text-muted-foreground text-sm">
-              Twórz profesjonalne grafiki przed/po i reklamy
+              Twórz profesjonalne grafiki z pomocą sztucznej inteligencji
             </p>
           </div>
           <div className="flex gap-2">
@@ -368,33 +159,46 @@ export default function GraphicsCreator() {
           {/* Controls */}
           <div className="lg:col-span-1 space-y-4">
             {/* Template Selection */}
-            <Card className="bg-card/50 border-border/50">
+            <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Szablon</CardTitle>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <LayoutGrid className="w-4 h-4 text-primary" />
+                  Wybierz szablon
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
-                  <SelectTrigger className="form-input-elegant">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templates.map(t => (
-                      <SelectItem key={t.id} value={t.id}>
-                        {t.name} ({t.aspect})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-2">
+                  {templates.map(t => {
+                    const Icon = t.icon;
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => setSelectedTemplate(t.id)}
+                        className={`p-3 rounded-lg border-2 transition-all text-left ${
+                          selectedTemplate === t.id 
+                            ? 'border-primary bg-primary/10' 
+                            : 'border-border/50 hover:border-primary/50 bg-card/30'
+                        }`}
+                      >
+                        <Icon className={`w-5 h-5 mb-1 ${selectedTemplate === t.id ? 'text-primary' : 'text-muted-foreground'}`} />
+                        <div className="text-xs font-medium truncate">{t.name}</div>
+                        <div className="text-[10px] text-muted-foreground">{t.aspect}</div>
+                      </button>
+                    );
+                  })}
+                </div>
 
                 <div>
-                  <Label className="text-sm">Kolor akcentu</Label>
-                  <div className="flex gap-2 mt-2">
-                    {overlayColors.map(c => (
+                  <Label className="text-sm mb-2 block">Kolor akcentu</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {accentColors.map(c => (
                       <button
                         key={c.id}
-                        onClick={() => setOverlayColor(c.id)}
-                        className={`w-8 h-8 rounded-full border-2 transition-all ${
-                          overlayColor === c.id ? 'border-white scale-110' : 'border-transparent'
+                        onClick={() => setAccentColor(c.id)}
+                        className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg ${
+                          accentColor === c.id 
+                            ? 'border-white scale-110 ring-2 ring-primary/50' 
+                            : 'border-transparent hover:scale-105'
                         }`}
                         style={{ backgroundColor: c.color }}
                         title={c.name}
@@ -406,118 +210,52 @@ export default function GraphicsCreator() {
             </Card>
 
             {/* Image Uploads */}
-            <Tabs defaultValue="before" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 bg-muted/30">
-                <TabsTrigger value="before">Przed</TabsTrigger>
-                <TabsTrigger value="after">Po</TabsTrigger>
-              </TabsList>
+            <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-primary" />
+                  Zdjęcia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isBeforeAfterTemplate ? (
+                  <Tabs defaultValue="before" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-muted/30">
+                      <TabsTrigger value="before">Przed</TabsTrigger>
+                      <TabsTrigger value="after">Po</TabsTrigger>
+                    </TabsList>
 
-              {['before', 'after'].map((type) => {
-                const state = type === 'before' ? beforeImage : afterImage;
-                const inputRef = type === 'before' ? beforeInputRef : afterInputRef;
-                
-                return (
-                  <TabsContent key={type} value={type} className="mt-4 space-y-4">
-                    <Card className="bg-card/50 border-border/50">
-                      <CardContent className="pt-4 space-y-4">
-                        <input
-                          ref={inputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleImageUpload(type as 'before' | 'after', file);
-                          }}
-                        />
-                        
-                        {state.preview ? (
-                          <div className="relative">
-                            <img
-                              src={state.preview}
-                              alt={type}
-                              className="w-full h-40 object-cover rounded-lg"
-                              style={getImageStyle(state)}
-                            />
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              className="absolute top-2 right-2"
-                              onClick={() => inputRef.current?.click()}
-                            >
-                              Zmień
-                            </Button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={() => inputRef.current?.click()}
-                            className="w-full h-40 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 hover:border-primary/50 transition-colors"
-                          >
-                            <Upload className="w-8 h-8 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">
-                              Kliknij aby dodać zdjęcie
-                            </span>
-                          </button>
-                        )}
+                    <TabsContent value="before" className="mt-4">
+                      <ImageUploadArea
+                        image={beforeImage}
+                        onUpload={(file) => handleImageUpload('before', file)}
+                        inputRef={beforeInputRef}
+                        label="Zdjęcie PRZED"
+                      />
+                    </TabsContent>
 
-                        {state.preview && (
-                          <div className="space-y-3">
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <Label className="text-xs flex items-center gap-1">
-                                  <SunMedium className="w-3 h-3" /> Jasność
-                                </Label>
-                                <span className="text-xs text-muted-foreground">{state.brightness}%</span>
-                              </div>
-                              <Slider
-                                value={[state.brightness]}
-                                onValueChange={([v]) => updateImageSettings(type as 'before' | 'after', 'brightness', v)}
-                                min={50}
-                                max={150}
-                                step={1}
-                              />
-                            </div>
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <Label className="text-xs flex items-center gap-1">
-                                  <Contrast className="w-3 h-3" /> Kontrast
-                                </Label>
-                                <span className="text-xs text-muted-foreground">{state.contrast}%</span>
-                              </div>
-                              <Slider
-                                value={[state.contrast]}
-                                onValueChange={([v]) => updateImageSettings(type as 'before' | 'after', 'contrast', v)}
-                                min={50}
-                                max={150}
-                                step={1}
-                              />
-                            </div>
-                            <div>
-                              <div className="flex items-center justify-between mb-1">
-                                <Label className="text-xs flex items-center gap-1">
-                                  <Palette className="w-3 h-3" /> Nasycenie
-                                </Label>
-                                <span className="text-xs text-muted-foreground">{state.saturation}%</span>
-                              </div>
-                              <Slider
-                                value={[state.saturation]}
-                                onValueChange={([v]) => updateImageSettings(type as 'before' | 'after', 'saturation', v)}
-                                min={0}
-                                max={200}
-                                step={1}
-                              />
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                );
-              })}
-            </Tabs>
+                    <TabsContent value="after" className="mt-4">
+                      <ImageUploadArea
+                        image={afterImage}
+                        onUpload={(file) => handleImageUpload('after', file)}
+                        inputRef={afterInputRef}
+                        label="Zdjęcie PO"
+                      />
+                    </TabsContent>
+                  </Tabs>
+                ) : (
+                  <ImageUploadArea
+                    image={beforeImage}
+                    onUpload={(file) => handleImageUpload('before', file)}
+                    inputRef={beforeInputRef}
+                    label="Główne zdjęcie"
+                  />
+                )}
+              </CardContent>
+            </Card>
 
             {/* Text Options */}
-            <Card className="bg-card/50 border-border/50">
+            <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">Tekst (opcjonalnie)</CardTitle>
               </CardHeader>
@@ -528,7 +266,7 @@ export default function GraphicsCreator() {
                     value={headline}
                     onChange={(e) => setHeadline(e.target.value)}
                     placeholder="np. Metamorfoza"
-                    className="form-input-elegant"
+                    className="bg-background/50 border-border/50"
                   />
                 </div>
                 <div>
@@ -537,7 +275,7 @@ export default function GraphicsCreator() {
                     value={subheadline}
                     onChange={(e) => setSubheadline(e.target.value)}
                     placeholder="np. Salon Beauty"
-                    className="form-input-elegant"
+                    className="bg-background/50 border-border/50"
                   />
                 </div>
               </CardContent>
@@ -545,18 +283,19 @@ export default function GraphicsCreator() {
 
             <Button 
               onClick={generateGraphic}
-              className="w-full bg-primary hover:bg-primary/90"
-              disabled={generating || (!beforeImage.preview && !afterImage.preview)}
+              className="w-full bg-gradient-to-r from-primary to-pink-600 hover:from-primary/90 hover:to-pink-600/90 shadow-lg shadow-primary/25"
+              disabled={generating || (!beforeImage && !afterImage)}
+              size="lg"
             >
               {generating ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generowanie...
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  AI przetwarza...
                 </>
               ) : (
                 <>
-                  <Wand2 className="w-4 h-4 mr-2" />
-                  Generuj grafikę
+                  <Wand2 className="w-5 h-5 mr-2" />
+                  Generuj z AI
                 </>
               )}
             </Button>
@@ -564,37 +303,115 @@ export default function GraphicsCreator() {
 
           {/* Preview */}
           <div className="lg:col-span-2">
-            <Card className="bg-card/50 border-border/50 h-full">
+            <Card className="bg-card/50 border-border/50 backdrop-blur-sm h-full">
               <CardHeader>
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5 text-primary" />
+                  <Sparkles className="w-5 h-5 text-primary" />
                   Podgląd
                 </CardTitle>
                 <CardDescription>
-                  {generatedImage ? 'Wygenerowana grafika' : 'Dodaj zdjęcia i kliknij "Generuj grafikę"'}
+                  {generatedImage 
+                    ? 'Grafika wygenerowana przez AI' 
+                    : 'Dodaj zdjęcia i kliknij "Generuj z AI"'
+                  }
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex items-center justify-center min-h-[400px]">
-                {generatedImage ? (
-                  <img
-                    src={generatedImage}
-                    alt="Generated graphic"
-                    className="max-w-full max-h-[600px] rounded-lg shadow-2xl"
-                  />
+              <CardContent className="flex items-center justify-center min-h-[500px]">
+                {generating ? (
+                  <div className="text-center">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full border-4 border-primary/30 border-t-primary animate-spin" />
+                      <Sparkles className="w-8 h-8 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    </div>
+                    <p className="text-muted-foreground mt-4">AI przetwarza Twoje zdjęcia...</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">To może potrwać do 30 sekund</p>
+                  </div>
+                ) : generatedImage ? (
+                  <div className="relative group">
+                    <img
+                      src={generatedImage}
+                      alt="Generated graphic"
+                      className="max-w-full max-h-[600px] rounded-xl shadow-2xl shadow-primary/10"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-end justify-center pb-4">
+                      <Button onClick={downloadImage} variant="secondary" size="sm">
+                        <Download className="w-4 h-4 mr-2" />
+                        Pobierz
+                      </Button>
+                    </div>
+                  </div>
                 ) : (
                   <div className="text-center text-muted-foreground">
-                    <ArrowRightLeft className="w-16 h-16 mx-auto mb-4 opacity-30" />
-                    <p>Podgląd grafiki pojawi się tutaj</p>
+                    <div className="w-32 h-32 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary/20 to-pink-500/20 flex items-center justify-center">
+                      <Wand2 className="w-12 h-12 text-primary/50" />
+                    </div>
+                    <p className="font-medium">Twoja grafika pojawi się tutaj</p>
+                    <p className="text-sm text-muted-foreground/60 mt-1">
+                      AI przetworzy zdjęcia i stworzy profesjonalną grafikę
+                    </p>
                   </div>
                 )}
               </CardContent>
             </Card>
-
-            {/* Hidden canvas for generation */}
-            <canvas ref={canvasRef} className="hidden" />
           </div>
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+interface ImageUploadAreaProps {
+  image: string | null;
+  onUpload: (file: File) => void;
+  inputRef: React.RefObject<HTMLInputElement>;
+  label: string;
+}
+
+function ImageUploadArea({ image, onUpload, inputRef, label }: ImageUploadAreaProps) {
+  return (
+    <div className="space-y-3">
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+        }}
+      />
+      
+      {image ? (
+        <div className="relative group">
+          <img
+            src={image}
+            alt={label}
+            className="w-full h-48 object-cover rounded-lg"
+          />
+          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => inputRef.current?.click()}
+            >
+              Zmień zdjęcie
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => inputRef.current?.click()}
+          className="w-full h-48 border-2 border-dashed border-border/50 rounded-lg flex flex-col items-center justify-center gap-3 hover:border-primary/50 hover:bg-primary/5 transition-all group"
+        >
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+            <Upload className="w-6 h-6 text-primary" />
+          </div>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">{label}</p>
+            <p className="text-xs text-muted-foreground">Kliknij aby dodać</p>
+          </div>
+        </button>
+      )}
+    </div>
   );
 }
