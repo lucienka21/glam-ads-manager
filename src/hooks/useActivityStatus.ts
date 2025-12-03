@@ -9,18 +9,11 @@ export function useActivityStatus() {
   const { user } = useAuth();
   const lastActivityRef = useRef(Date.now());
   const [currentStatus, setCurrentStatus] = useState<string>("online");
-  const initializedRef = useRef(false);
-  const updatePendingRef = useRef(false);
+  const mountedRef = useRef(false);
 
-  const updateStatus = useCallback(async (status: string) => {
-    if (!user?.id || updatePendingRef.current) return;
-    
-    // Skip if status hasn't changed (unless it's the initial update)
-    if (currentStatus === status && initializedRef.current) return;
-    
-    updatePendingRef.current = true;
-    setCurrentStatus(status);
-    initializedRef.current = true;
+  // Force update status to database
+  const forceUpdateStatus = useCallback(async (status: string) => {
+    if (!user?.id) return;
     
     try {
       const { error } = await supabase
@@ -33,28 +26,30 @@ export function useActivityStatus() {
       
       if (error) {
         console.error("Error updating status:", error);
+      } else {
+        setCurrentStatus(status);
       }
     } catch (err) {
       console.error("Failed to update status:", err);
-    } finally {
-      updatePendingRef.current = false;
     }
-  }, [user?.id, currentStatus]);
+  }, [user?.id]);
 
   const handleActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
     if (currentStatus !== "online") {
-      updateStatus("online");
+      forceUpdateStatus("online");
     }
-  }, [currentStatus, updateStatus]);
+  }, [currentStatus, forceUpdateStatus]);
 
   useEffect(() => {
     if (!user?.id) return;
+    
+    // Prevent double initialization in strict mode
+    if (mountedRef.current) return;
+    mountedRef.current = true;
 
-    // Set online when hook mounts - with small delay to ensure DB is ready
-    const initTimeout = setTimeout(() => {
-      updateStatus("online");
-    }, 500);
+    // Immediately set online when hook mounts
+    forceUpdateStatus("online");
 
     // Track user activity with throttling
     let activityTimeout: NodeJS.Timeout | null = null;
@@ -66,7 +61,7 @@ export function useActivityStatus() {
       }, 1000);
     };
 
-    const events = ["mousedown", "keydown", "touchstart", "scroll"];
+    const events = ["mousedown", "keydown", "touchstart", "scroll", "mousemove"];
     events.forEach(event => {
       window.addEventListener(event, throttledActivity, { passive: true });
     });
@@ -75,18 +70,25 @@ export function useActivityStatus() {
     const idleCheck = setInterval(() => {
       const timeSinceLastActivity = Date.now() - lastActivityRef.current;
       if (timeSinceLastActivity > IDLE_TIMEOUT && currentStatus === "online") {
-        updateStatus("away");
+        forceUpdateStatus("away");
       }
     }, UPDATE_INTERVAL);
 
-    // Periodic heartbeat update of last_seen_at
+    // Periodic heartbeat update - always update to online if active
     const heartbeat = setInterval(async () => {
-      if (currentStatus === "online" && user?.id && !updatePendingRef.current) {
+      if (user?.id) {
+        const timeSinceLastActivity = Date.now() - lastActivityRef.current;
+        const newStatus = timeSinceLastActivity < IDLE_TIMEOUT ? "online" : "away";
+        
         try {
           await supabase
             .from("profiles")
-            .update({ last_seen_at: new Date().toISOString() })
+            .update({ 
+              status: newStatus,
+              last_seen_at: new Date().toISOString() 
+            })
             .eq("id", user.id);
+          setCurrentStatus(newStatus);
         } catch (err) {
           console.error("Heartbeat failed:", err);
         }
@@ -96,27 +98,30 @@ export function useActivityStatus() {
     // Handle visibility change
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        updateStatus("away");
+        forceUpdateStatus("away");
       } else {
         lastActivityRef.current = Date.now();
-        updateStatus("online");
+        forceUpdateStatus("online");
       }
     };
 
-    // Set offline when leaving
-    const handleBeforeUnload = async () => {
-      // Synchronous fallback using sendBeacon
-      if (navigator.sendBeacon) {
-        const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`;
-        const body = JSON.stringify({ status: "offline", last_seen_at: new Date().toISOString() });
-        const headers = {
-          'Content-Type': 'application/json',
-          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          'Prefer': 'return=minimal'
-        };
-        
-        const blob = new Blob([body], { type: 'application/json' });
-        navigator.sendBeacon(url, blob);
+    // Set offline when leaving - use fetch with keepalive
+    const handleBeforeUnload = () => {
+      if (user?.id) {
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${user.id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify({ 
+            status: "offline", 
+            last_seen_at: new Date().toISOString() 
+          }),
+          keepalive: true
+        }).catch(() => {});
       }
     };
 
@@ -124,7 +129,7 @@ export function useActivityStatus() {
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      clearTimeout(initTimeout);
+      mountedRef.current = false;
       if (activityTimeout) clearTimeout(activityTimeout);
       events.forEach(event => {
         window.removeEventListener(event, throttledActivity);
@@ -133,17 +138,8 @@ export function useActivityStatus() {
       window.removeEventListener("beforeunload", handleBeforeUnload);
       clearInterval(idleCheck);
       clearInterval(heartbeat);
-      
-      // Set offline on unmount
-      if (user?.id) {
-        supabase
-          .from("profiles")
-          .update({ status: "offline", last_seen_at: new Date().toISOString() })
-          .eq("id", user.id)
-          .then(() => {});
-      }
     };
-  }, [user?.id, handleActivity, updateStatus, currentStatus]);
+  }, [user?.id, handleActivity, forceUpdateStatus, currentStatus]);
 
-  return { updateStatus, currentStatus };
+  return { updateStatus: forceUpdateStatus, currentStatus };
 }
