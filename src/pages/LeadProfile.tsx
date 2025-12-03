@@ -23,6 +23,7 @@ import {
   CheckCircle2,
   Clock
 } from 'lucide-react';
+import { LeadInteractionTimeline } from '@/components/leads/LeadInteractionTimeline';
 
 interface Lead {
   id: string;
@@ -243,83 +244,37 @@ export default function LeadProfile() {
             </CardContent>
           </Card>
 
-          {/* Follow-up Timeline */}
-          <div className="lg:w-80 space-y-4">
+          {/* Sidebar */}
+          <div className="lg:w-96 space-y-4">
+            {/* Follow-up Sequence */}
             <Card className="border-border/50 bg-card/80">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="w-5 h-5" />
+              <CardHeader className="py-3">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
                   Sekwencja follow-up
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3">
-                {/* Cold Email */}
-                <div className="flex items-start gap-3">
-                  {lead.cold_email_sent ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground mt-0.5" />
-                  )}
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Cold Email</p>
-                    {lead.cold_email_date && (
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(lead.cold_email_date), 'd MMM yyyy', { locale: pl })}
-                      </p>
+              <CardContent className="space-y-2 py-2">
+                {[
+                  { sent: lead.cold_email_sent, date: lead.cold_email_date, label: 'Cold Email' },
+                  { sent: lead.sms_follow_up_sent, date: lead.sms_follow_up_date, label: 'SMS Follow-up' },
+                  { sent: lead.email_follow_up_1_sent, date: lead.email_follow_up_1_date, label: 'Email FU #1' },
+                  { sent: lead.email_follow_up_2_sent, date: lead.email_follow_up_2_date, label: 'Email FU #2' },
+                ].map((step, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    {step.sent ? (
+                      <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
+                    ) : (
+                      <div className="w-4 h-4 rounded-full border-2 border-muted-foreground shrink-0" />
+                    )}
+                    <span className="text-sm flex-1">{step.label}</span>
+                    {step.date && (
+                      <span className="text-xs text-muted-foreground">
+                        {format(new Date(step.date), 'd MMM', { locale: pl })}
+                      </span>
                     )}
                   </div>
-                </div>
-
-                {/* SMS Follow-up */}
-                <div className="flex items-start gap-3">
-                  {lead.sms_follow_up_sent ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground mt-0.5" />
-                  )}
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">SMS Follow-up</p>
-                    {lead.sms_follow_up_date && (
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(lead.sms_follow_up_date), 'd MMM yyyy', { locale: pl })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email Follow-up 1 */}
-                <div className="flex items-start gap-3">
-                  {lead.email_follow_up_1_sent ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground mt-0.5" />
-                  )}
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Email Follow-up #1</p>
-                    {lead.email_follow_up_1_date && (
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(lead.email_follow_up_1_date), 'd MMM yyyy', { locale: pl })}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Email Follow-up 2 */}
-                <div className="flex items-start gap-3">
-                  {lead.email_follow_up_2_sent ? (
-                    <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5" />
-                  ) : (
-                    <div className="w-5 h-5 rounded-full border-2 border-muted-foreground mt-0.5" />
-                  )}
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">Email Follow-up #2</p>
-                    {lead.email_follow_up_2_date && (
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(lead.email_follow_up_2_date), 'd MMM yyyy', { locale: pl })}
-                      </p>
-                    )}
-                  </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
 
@@ -355,6 +310,9 @@ export default function LeadProfile() {
             </Card>
           </div>
         </div>
+
+        {/* Contact History Timeline - Full Width Below */}
+        <LeadInteractionTimeline leadId={lead.id} />
       </div>
     </AppLayout>
   );

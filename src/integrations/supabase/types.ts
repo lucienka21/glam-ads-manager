@@ -430,6 +430,50 @@ export type Database = {
         }
         Relationships: []
       }
+      lead_interactions: {
+        Row: {
+          content: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          lead_id: string
+          new_value: string | null
+          old_value: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id: string
+          new_value?: string | null
+          old_value?: string | null
+          title: string
+          type: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          lead_id?: string
+          new_value?: string | null
+          old_value?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_interactions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           city: string | null
@@ -947,6 +991,9 @@ export type Database = {
         | "presentations_generate"
         | "team_manage"
         | "roles_manage"
+        | "calendar_view"
+        | "calendar_manage"
+        | "templates_manage"
       app_role: "szef" | "pracownik"
     }
     CompositeTypes: {
@@ -1102,6 +1149,9 @@ export const Constants = {
         "presentations_generate",
         "team_manage",
         "roles_manage",
+        "calendar_view",
+        "calendar_manage",
+        "templates_manage",
       ],
       app_role: ["szef", "pracownik"],
     },
