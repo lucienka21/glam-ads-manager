@@ -896,18 +896,20 @@ const ReportGenerator = () => {
               </div>
             )}
             
-            {/* Hidden landscape preview for thumbnail - positioned off-screen */}
+            {/* Hidden landscape preview for thumbnail - using visibility hidden to prevent flash */}
             {reportData && (
               <div 
                 id="thumbnail-capture-container"
                 style={{ 
-                  position: 'fixed',
-                  top: -10000,
-                  left: -10000,
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
                   width: 1600,
                   height: 900,
                   overflow: 'hidden',
                   pointerEvents: 'none',
+                  visibility: 'hidden',
+                  zIndex: -9999,
                 }}
               >
                 <div 

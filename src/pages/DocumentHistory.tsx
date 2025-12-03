@@ -356,29 +356,31 @@ export default function DocumentHistory() {
             </p>
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {filteredHistory.map((doc) => (
               <div
                 key={doc.id}
                 className="bg-secondary/30 border border-border/50 rounded-xl overflow-hidden hover:border-primary/30 transition-colors group"
               >
-                {/* Thumbnail - consistent landscape display with full visibility */}
+                {/* Thumbnail - larger landscape display with full visibility */}
                 <div 
-                  className="aspect-[16/9] bg-zinc-900 relative overflow-hidden cursor-pointer flex items-center justify-center p-2"
+                  className="aspect-[16/9] bg-zinc-900 relative overflow-hidden cursor-pointer"
                   onClick={() => handleOpenDocument(doc)}
                 >
                   {doc.thumbnail ? (
                     <img 
                       src={doc.thumbnail} 
                       alt={doc.title}
-                      className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                     />
                   ) : (
-                    <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
-                      {doc.type === "report" && <FileText className="w-6 h-6" />}
-                      {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
-                      {doc.type === "contract" && <FileSignature className="w-6 h-6" />}
-                      {doc.type === "presentation" && <Presentation className="w-6 h-6" />}
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className={`w-12 h-12 rounded-xl ${typeColors[doc.type]} border flex items-center justify-center`}>
+                        {doc.type === "report" && <FileText className="w-6 h-6" />}
+                        {doc.type === "invoice" && <Receipt className="w-6 h-6" />}
+                        {doc.type === "contract" && <FileSignature className="w-6 h-6" />}
+                        {doc.type === "presentation" && <Presentation className="w-6 h-6" />}
+                      </div>
                     </div>
                   )}
                 </div>
