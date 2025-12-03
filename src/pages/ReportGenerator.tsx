@@ -896,19 +896,19 @@ const ReportGenerator = () => {
               </div>
             )}
             
-            {/* Hidden landscape preview for thumbnail - using visibility hidden to prevent flash */}
+            {/* Hidden landscape preview for thumbnail - using clip-path to hide but still render */}
             {reportData && (
               <div 
                 id="thumbnail-capture-container"
                 style={{ 
-                  position: 'absolute',
+                  position: 'fixed',
                   top: 0,
                   left: 0,
                   width: 1600,
                   height: 900,
                   overflow: 'hidden',
                   pointerEvents: 'none',
-                  visibility: 'hidden',
+                  clipPath: 'inset(100%)',
                   zIndex: -9999,
                 }}
               >
