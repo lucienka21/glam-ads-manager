@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Sparkles, Download, Maximize2, FileImage } from "lucide-react";
+import { ArrowLeft, Sparkles, Download, Maximize2, FileImage, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,11 @@ import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
+
+interface ClientOption {
+  id: string;
+  salon_name: string;
+}
 
 const reportSchema = z.object({
   clientName: z.string().min(1, "Nazwa klienta wymagana").max(100),
@@ -51,10 +56,24 @@ const ReportGenerator = () => {
   const [isLandscape, setIsLandscape] = useState(false);
   const [scale, setScale] = useState(1);
   const [portraitScale, setPortraitScale] = useState(1);
+  const [clients, setClients] = useState<ClientOption[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
   const portraitContainerRef = useRef<HTMLDivElement>(null);
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const { generateThumbnail: genThumb } = useThumbnailGenerator();
+
+  // Fetch clients for linking
+  useEffect(() => {
+    const fetchClients = async () => {
+      const { data } = await supabase
+        .from('clients')
+        .select('id, salon_name')
+        .order('salon_name');
+      setClients(data || []);
+    };
+    fetchClients();
+  }, []);
 
   // Load document from session storage if coming from history
   useEffect(() => {
@@ -204,12 +223,14 @@ const ReportGenerator = () => {
   const onSubmit = async (data: ReportFormData) => {
     setReportData(data);
     
-    // Save to new document history (async)
+    // Save to new document history (async) with client linking
     const docId = await saveDocument(
       "report",
       data.clientName,
       `Raport ${data.period}`,
-      data as Record<string, string>
+      data as Record<string, string>,
+      undefined,
+      selectedClientId || undefined
     );
     
     toast({
@@ -531,6 +552,27 @@ const ReportGenerator = () => {
                   </div>
                 </FormRow>
 
+                <FormRow cols={1}>
+                  <div>
+                    <Label className="flex items-center gap-2">
+                      <Link className="w-4 h-4 text-pink-400" />
+                      Połącz z klientem (opcjonalne)
+                    </Label>
+                    <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Wybierz klienta..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Bez powiązania</SelectItem>
+                        {clients.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground mt-1">Raport pojawi się w profilu klienta</p>
+                  </div>
+                </FormRow>
+
                   <FormRow cols={1}>
                     <div>
                       <Label htmlFor="city">Miasto salonu</Label>
@@ -842,10 +884,16 @@ const ReportGenerator = () => {
                   </div>
                 </div>
                 
-                {/* Hidden landscape preview for thumbnail generation */}
+                {/* Hidden landscape preview for thumbnail generation - use visibility:hidden instead of offscreen for proper capture */}
                 <div 
-                  className="fixed pointer-events-none" 
-                  style={{ left: '-9999px', top: 0 }}
+                  className="fixed pointer-events-none"
+                  style={{ 
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    visibility: 'hidden',
+                    zIndex: -9999,
+                  }}
                 >
                   <div 
                     id="report-preview-landscape" 

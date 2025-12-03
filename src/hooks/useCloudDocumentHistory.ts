@@ -14,6 +14,7 @@ export interface CloudDocumentItem {
   createdAt: string;
   createdBy: string | null;
   creatorName?: string;
+  clientId?: string | null;
 }
 
 export const useCloudDocumentHistory = (filterUserId?: string | null) => {
@@ -42,7 +43,8 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
           data,
           thumbnail,
           created_at,
-          created_by
+          created_by,
+          client_id
         `)
         .order('created_at', { ascending: false });
 
@@ -83,7 +85,8 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
         thumbnail: doc.thumbnail,
         createdAt: doc.created_at,
         createdBy: doc.created_by,
-        creatorName: doc.created_by ? profilesMap[doc.created_by] : undefined
+        creatorName: doc.created_by ? profilesMap[doc.created_by] : undefined,
+        clientId: doc.client_id
       }));
 
       setHistory(formattedData);
@@ -145,7 +148,8 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
     title: string,
     subtitle: string,
     data: Record<string, string>,
-    thumbnail?: string
+    thumbnail?: string,
+    clientId?: string
   ): Promise<string | null> => {
     if (!user) return null;
 
@@ -157,7 +161,8 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
         subtitle,
         data: data as unknown as Json,
         thumbnail,
-        created_by: user.id
+        created_by: user.id,
+        client_id: clientId || null
       })
       .select('id')
       .single();
