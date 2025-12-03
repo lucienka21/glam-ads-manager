@@ -884,27 +884,28 @@ const ReportGenerator = () => {
                   </div>
                 </div>
                 
-                {/* Hidden landscape preview for thumbnail generation - use visibility:hidden instead of offscreen for proper capture */}
+              </div>
+            )}
+            
+            {/* Always render hidden landscape preview for thumbnail generation */}
+            {reportData && (
+              <div 
+                className="fixed pointer-events-none"
+                style={{ 
+                  top: '-9999px',
+                  left: '-9999px',
+                  opacity: 0,
+                }}
+              >
                 <div 
-                  className="fixed pointer-events-none"
+                  id="report-preview-landscape" 
                   style={{ 
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    visibility: 'hidden',
-                    zIndex: -9999,
+                    width: 1600, 
+                    height: 900,
+                    backgroundColor: '#050509'
                   }}
                 >
-                  <div 
-                    id="report-preview-landscape" 
-                    style={{ 
-                      width: 1600, 
-                      height: 900,
-                      backgroundColor: '#050509'
-                    }}
-                  >
-                    <ReportPreviewLandscape data={reportData} />
-                  </div>
+                  <ReportPreviewLandscape data={reportData} />
                 </div>
               </div>
             )}
