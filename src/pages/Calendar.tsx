@@ -8,8 +8,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Phone, MessageSquare, Users, CheckCircle, Star, Loader2 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, parseISO } from 'date-fns';
+import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Phone, MessageSquare, Users, CheckCircle, Star, Loader2, Trash2 } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday, parseISO } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -63,6 +63,7 @@ export default function Calendar() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
@@ -71,8 +72,8 @@ export default function Calendar() {
     start_time: '09:00',
     end_time: '10:00',
     all_day: false,
-    lead_id: '',
-    client_id: '',
+    lead_id: 'none',
+    client_id: 'none',
     color: 'pink',
   });
 
@@ -127,7 +128,12 @@ export default function Calendar() {
   };
 
   const handleAddEvent = async () => {
-    if (!newEvent.title || !newEvent.start_date || !user) return;
+    if (!newEvent.title || !newEvent.start_date || !user) {
+      toast.error('Wypełnij wymagane pola (tytuł i data)');
+      return;
+    }
+
+    setSubmitting(true);
 
     const startDateTime = newEvent.all_day 
       ? `${newEvent.start_date}T00:00:00`
@@ -137,20 +143,23 @@ export default function Calendar() {
       ? null
       : `${newEvent.start_date}T${newEvent.end_time}:00`;
 
-    const { error } = await supabase.from('calendar_events').insert({
+    const eventData = {
       title: newEvent.title,
       description: newEvent.description || null,
       event_type: newEvent.event_type,
       start_date: startDateTime,
       end_date: endDateTime,
       all_day: newEvent.all_day,
-      lead_id: newEvent.lead_id || null,
-      client_id: newEvent.client_id || null,
+      lead_id: newEvent.lead_id !== 'none' ? newEvent.lead_id : null,
+      client_id: newEvent.client_id !== 'none' ? newEvent.client_id : null,
       color: newEvent.color,
       created_by: user.id,
-    });
+    };
+
+    const { error } = await supabase.from('calendar_events').insert(eventData);
 
     if (error) {
+      console.error('Calendar event error:', error);
       toast.error('Błąd podczas dodawania wydarzenia');
     } else {
       toast.success('Wydarzenie dodane');
@@ -163,12 +172,13 @@ export default function Calendar() {
         start_time: '09:00',
         end_time: '10:00',
         all_day: false,
-        lead_id: '',
-        client_id: '',
+        lead_id: 'none',
+        client_id: 'none',
         color: 'pink',
       });
       fetchData();
     }
+    setSubmitting(false);
   };
 
   const handleDeleteEvent = async (eventId: string) => {
@@ -217,6 +227,18 @@ export default function Calendar() {
     }));
   };
 
+  const getClientName = (clientId: string | null) => {
+    if (!clientId) return null;
+    const client = clients.find(c => c.id === clientId);
+    return client?.salon_name;
+  };
+
+  const getLeadName = (leadId: string | null) => {
+    if (!leadId) return null;
+    const lead = leads.find(l => l.id === leadId);
+    return lead?.salon_name;
+  };
+
   if (loading) {
     return (
       <AppLayout>
@@ -252,7 +274,7 @@ export default function Calendar() {
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <Input
-                  placeholder="Tytuł wydarzenia"
+                  placeholder="Tytuł wydarzenia *"
                   value={newEvent.title}
                   onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                 />
@@ -307,25 +329,25 @@ export default function Calendar() {
                     />
                   </div>
                 )}
-                <Select value={newEvent.lead_id} onValueChange={(v) => setNewEvent({ ...newEvent, lead_id: v, client_id: '' })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Powiąż z leadem (opcjonalnie)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Brak</SelectItem>
-                    {leads.map((lead) => (
-                      <SelectItem key={lead.id} value={lead.id}>{lead.salon_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Select value={newEvent.client_id} onValueChange={(v) => setNewEvent({ ...newEvent, client_id: v, lead_id: '' })}>
+                <Select value={newEvent.client_id} onValueChange={(v) => setNewEvent({ ...newEvent, client_id: v, lead_id: 'none' })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Powiąż z klientem (opcjonalnie)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Brak</SelectItem>
+                    <SelectItem value="none">Brak klienta</SelectItem>
                     {clients.map((client) => (
                       <SelectItem key={client.id} value={client.id}>{client.salon_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select value={newEvent.lead_id} onValueChange={(v) => setNewEvent({ ...newEvent, lead_id: v, client_id: 'none' })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Powiąż z leadem (opcjonalnie)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Brak leada</SelectItem>
+                    {leads.map((lead) => (
+                      <SelectItem key={lead.id} value={lead.id}>{lead.salon_name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -333,12 +355,16 @@ export default function Calendar() {
                   {colorOptions.map((color) => (
                     <button
                       key={color.value}
+                      type="button"
                       onClick={() => setNewEvent({ ...newEvent, color: color.value })}
                       className={`w-8 h-8 rounded-full ${color.class} ${newEvent.color === color.value ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
                     />
                   ))}
                 </div>
-                <Button onClick={handleAddEvent} className="w-full">Dodaj wydarzenie</Button>
+                <Button onClick={handleAddEvent} className="w-full" disabled={submitting}>
+                  {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Dodaj wydarzenie
+                </Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -438,26 +464,35 @@ export default function Calendar() {
                           className={`p-3 rounded-lg border ${getEventColor(event)}`}
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <div>
+                            <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm">{event.title}</p>
                               {event.description && (
                                 <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
                               )}
-                              {!event.all_day && (
+                              {!event.all_day && event.end_date && (
                                 <p className="text-xs text-muted-foreground mt-1">
-                                  {format(parseISO(event.start_date), 'HH:mm')}
-                                  {event.end_date && ` - ${format(parseISO(event.end_date), 'HH:mm')}`}
+                                  {format(parseISO(event.start_date), 'HH:mm')} - {format(parseISO(event.end_date), 'HH:mm')}
+                                </p>
+                              )}
+                              {event.client_id && (
+                                <p className="text-xs text-blue-400 mt-1">
+                                  Klient: {getClientName(event.client_id)}
+                                </p>
+                              )}
+                              {event.lead_id && !event.id.startsWith('lead-') && (
+                                <p className="text-xs text-orange-400 mt-1">
+                                  Lead: {getLeadName(event.lead_id)}
                                 </p>
                               )}
                             </div>
                             {!event.id.startsWith('lead-') && (
                               <Button
                                 variant="ghost"
-                                size="sm"
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-6 px-2"
+                                size="icon"
+                                className="h-6 w-6 text-muted-foreground hover:text-destructive"
                                 onClick={() => handleDeleteEvent(event.id)}
                               >
-                                ×
+                                <Trash2 className="w-3 h-3" />
                               </Button>
                             )}
                           </div>
@@ -475,7 +510,7 @@ export default function Calendar() {
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Kliknij dzień w kalendarzu</p>
+                  <p className="text-sm text-muted-foreground">Kliknij na dzień, aby zobaczyć wydarzenia</p>
                 )}
               </CardContent>
             </Card>
@@ -488,37 +523,11 @@ export default function Calendar() {
               <CardContent className="space-y-2">
                 {eventTypes.map((type) => (
                   <div key={type.value} className="flex items-center gap-2 text-sm">
-                    <div className={`w-3 h-3 rounded ${type.color}`} />
+                    <div className={`w-3 h-3 rounded-full ${type.color}`} />
                     <type.icon className="w-4 h-4 text-muted-foreground" />
                     <span className="text-muted-foreground">{type.label}</span>
                   </div>
                 ))}
-              </CardContent>
-            </Card>
-
-            {/* Upcoming events */}
-            <Card className="border-border/50 bg-card/80">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Nadchodzące</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {events
-                    .filter(e => new Date(e.start_date) >= new Date())
-                    .slice(0, 5)
-                    .map((event) => (
-                      <div key={event.id} className="flex items-center gap-2 text-sm">
-                        <div className={`w-2 h-2 rounded-full ${colorOptions.find(c => c.value === event.color)?.class || 'bg-pink-500'}`} />
-                        <span className="truncate flex-1">{event.title}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(parseISO(event.start_date), 'd MMM', { locale: pl })}
-                        </span>
-                      </div>
-                    ))}
-                  {events.filter(e => new Date(e.start_date) >= new Date()).length === 0 && (
-                    <p className="text-sm text-muted-foreground">Brak nadchodzących wydarzeń</p>
-                  )}
-                </div>
               </CardContent>
             </Card>
           </div>
