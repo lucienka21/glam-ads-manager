@@ -33,6 +33,8 @@ import MonthlyReport from "./pages/MonthlyReport";
 import Settings from "./pages/Settings";
 import ROICalculator from "./pages/ROICalculator";
 import ProposalGenerator from "./pages/ProposalGenerator";
+import CampaignGenerator from "./pages/CampaignGenerator";
+import GraphicsCreator from "./pages/GraphicsCreator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +72,8 @@ function AppContent() {
           <Route path="/presentation-generator" element={<ProtectedRoute><PresentationGenerator /></ProtectedRoute>} />
           <Route path="/roi-calculator" element={<ProtectedRoute><ROICalculator /></ProtectedRoute>} />
           <Route path="/proposal-generator" element={<ProtectedRoute><ProposalGenerator /></ProtectedRoute>} />
+          <Route path="/campaign-generator" element={<ProtectedRoute><CampaignGenerator /></ProtectedRoute>} />
+          <Route path="/graphics-creator" element={<ProtectedRoute><GraphicsCreator /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppErrorBoundary>
