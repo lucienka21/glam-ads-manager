@@ -263,67 +263,73 @@ export default function DocumentHistory() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1 max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Szukaj dokumentów..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
+        <div className="space-y-4">
+          {/* Search and dropdown filters row */}
+          <div className="flex flex-col lg:flex-row gap-3">
+            <div className="relative w-full lg:w-80">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Szukaj dokumentów..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+            
+            <div className="flex flex-wrap gap-3">
+              {/* User filter for szef */}
+              {isSzef && teamMembers.length > 0 && (
+                <Select value={userFilter || "all"} onValueChange={(v) => setUserFilter(v === "all" ? null : v)}>
+                  <SelectTrigger className="w-[180px]">
+                    <User className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+                    <SelectValue placeholder="Użytkownik" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id}>
+                        {member.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {/* Client filter */}
+              <Select value={clientFilter} onValueChange={setClientFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Users className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+                  <SelectValue placeholder="Klient" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Wszyscy klienci</SelectItem>
+                  {clients.map((client) => (
+                    <SelectItem key={client.id} value={client.id}>
+                      {client.salon_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Month filter */}
+              <Select value={monthFilter} onValueChange={setMonthFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <Calendar className="w-4 h-4 mr-2 text-muted-foreground shrink-0" />
+                  <SelectValue placeholder="Miesiąc" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Wszystkie miesiące</SelectItem>
+                  {availableMonths.map((monthKey) => (
+                    <SelectItem key={monthKey} value={monthKey}>
+                      {formatMonthLabel(monthKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
-          {/* User filter for szef */}
-          {isSzef && teamMembers.length > 0 && (
-            <Select value={userFilter || "all"} onValueChange={(v) => setUserFilter(v === "all" ? null : v)}>
-              <SelectTrigger className="w-[200px]">
-                <User className="w-4 h-4 mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Użytkownik" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
-                {teamMembers.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    {member.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
-          
-          {/* Month Filter */}
-          {/* Client filter */}
-          <Select value={clientFilter} onValueChange={setClientFilter}>
-            <SelectTrigger className="w-[200px]">
-              <Users className="w-4 h-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Klient" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Wszyscy klienci</SelectItem>
-              {clients.map((client) => (
-                <SelectItem key={client.id} value={client.id}>
-                  {client.salon_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={monthFilter} onValueChange={setMonthFilter}>
-            <SelectTrigger className="w-[180px]">
-              <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Miesiąc" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Wszystkie miesiące</SelectItem>
-              {availableMonths.map((monthKey) => (
-                <SelectItem key={monthKey} value={monthKey}>
-                  {formatMonthLabel(monthKey)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
+          {/* Type filter buttons */}
           <div className="flex gap-2 flex-wrap">
             {filterOptions.map((option) => (
               <Button
