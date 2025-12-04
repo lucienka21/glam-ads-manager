@@ -48,18 +48,41 @@ export const ReportPreviewLandscape = ({ data }: ReportPreviewLandscapeProps) =>
     { name: "Pozostałe", value: 100 - conversionPercentage, color: "#27272a" },
   ];
 
-  const weeklyData = data.weeklyReachData && data.weeklyClicksData
-    ? data.weeklyReachData.split(",").map((reach, i) => ({
+  // Generate weekly trend data from total reach and clicks
+  const generateWeeklyData = () => {
+    if (data.weeklyReachData && data.weeklyClicksData) {
+      return data.weeklyReachData.split(",").map((reach, i) => ({
         label: `T${i + 1}`,
         value1: parseNumber(reach),
         value2: parseNumber(data.weeklyClicksData!.split(",")[i] || "0"),
-      }))
-    : [
-        { label: "T1", value1: 15000, value2: 650 },
-        { label: "T2", value1: 19000, value2: 820 },
-        { label: "T3", value1: 25000, value2: 1100 },
-        { label: "T4", value1: 26000, value2: 930 },
+      }));
+    }
+    
+    const totalReach = parseNumber(data.reach);
+    const totalClicks = parseNumber(data.clicks);
+    
+    if (totalReach === 0 && totalClicks === 0) {
+      return [
+        { label: "T1", value1: 0, value2: 0 },
+        { label: "T2", value1: 0, value2: 0 },
+        { label: "T3", value1: 0, value2: 0 },
+        { label: "T4", value1: 0, value2: 0 },
       ];
+    }
+    
+    // Distribute with realistic variation pattern (gradual growth)
+    const reachDistribution = [0.18, 0.23, 0.28, 0.31];
+    const clicksDistribution = [0.20, 0.24, 0.27, 0.29];
+    
+    return [
+      { label: "T1", value1: Math.round(totalReach * reachDistribution[0]), value2: Math.round(totalClicks * clicksDistribution[0]) },
+      { label: "T2", value1: Math.round(totalReach * reachDistribution[1]), value2: Math.round(totalClicks * clicksDistribution[1]) },
+      { label: "T3", value1: Math.round(totalReach * reachDistribution[2]), value2: Math.round(totalClicks * clicksDistribution[2]) },
+      { label: "T4", value1: Math.round(totalReach * reachDistribution[3]), value2: Math.round(totalClicks * clicksDistribution[3]) },
+    ];
+  };
+  
+  const weeklyData = generateWeeklyData();
 
   const dailyBookings = data.dailyBookingsData
     ? data.dailyBookingsData.split(",").map((val, i) => ({
