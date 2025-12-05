@@ -4,83 +4,69 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Download, RotateCcw, Sparkles, Loader2, Copy, Image as ImageIcon, Type, Wand2, Check, ArrowRight } from 'lucide-react';
-import { TemplateGallery, TEMPLATES, type TemplateVariant, type TemplateCategory } from '@/components/graphics/TemplateGallery';
-import { ImageUploader } from '@/components/graphics/ImageUploader';
-import { MetamorfozaTemplate } from '@/components/graphics/templates/MetamorfozaTemplate';
-import { PromoTemplate } from '@/components/graphics/templates/PromoTemplate';
-import { OfferTemplate } from '@/components/graphics/templates/OfferTemplate';
-import { EffectTemplate } from '@/components/graphics/templates/EffectTemplate';
-import { BookingTemplate } from '@/components/graphics/templates/BookingTemplate';
+import { Download, RotateCcw, Sparkles, Loader2, Upload, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+type TemplateId = 'split-classic' | 'split-diagonal' | 'promo-discount' | 'promo-flash' | 'result-glow' | 'booking-cta';
+
+interface Template {
+  id: TemplateId;
+  name: string;
+  category: 'metamorfoza' | 'promocja' | 'efekt' | 'rezerwacja';
+}
+
+const TEMPLATES: Template[] = [
+  { id: 'split-classic', name: 'Klasyczny Split', category: 'metamorfoza' },
+  { id: 'split-diagonal', name: 'Ukośny Split', category: 'metamorfoza' },
+  { id: 'promo-discount', name: 'Rabat', category: 'promocja' },
+  { id: 'promo-flash', name: 'Flash Sale', category: 'promocja' },
+  { id: 'result-glow', name: 'Efekt Glow', category: 'efekt' },
+  { id: 'booking-cta', name: 'Rezerwacja', category: 'rezerwacja' },
+];
+
 export default function GraphicsCreator() {
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateVariant>('meta-glamour');
-  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
-  
-  // Images
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('split-classic');
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
   const [mainImage, setMainImage] = useState<string | null>(null);
-  
-  // Text fields
   const [headline, setHeadline] = useState('Metamorfoza');
   const [subheadline, setSubheadline] = useState('Zobacz efekt zabiegu');
   const [salonName, setSalonName] = useState('Beauty Studio');
-  const [discountText, setDiscountText] = useState('-30%');
-  const [ctaText, setCtaText] = useState('Zarezerwuj teraz');
-  const [price, setPrice] = useState('299 zł');
-  const [oldPrice, setOldPrice] = useState('499 zł');
-  const [features, setFeatures] = useState('Zabieg premium\nDługotrwały efekt\nNaturalny wygląd');
-  const [serviceName, setServiceName] = useState('Laminacja brwi');
-  const [phone, setPhone] = useState('+48 123 456 789');
-  const [urgencyText, setUrgencyText] = useState('Ostatnie 3 miejsca!');
-  
+  const [discount, setDiscount] = useState('-30%');
+  const [cta, setCta] = useState('Zarezerwuj');
   const [generating, setGenerating] = useState(false);
-  const [activeStep, setActiveStep] = useState<'template' | 'content' | 'preview'>('template');
   const previewRef = useRef<HTMLDivElement>(null);
 
   const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
-  const currentCategory = currentTemplate?.category || 'metamorfoza';
+  const needsBeforeAfter = currentTemplate?.category === 'metamorfoza';
 
-  const handleDownload = async () => {
-    if (!previewRef.current) return;
-    
-    setGenerating(true);
-    try {
-      const dataUrl = await toPng(previewRef.current, {
-        quality: 1,
-        pixelRatio: 3,
-        cacheBust: true,
-      });
-      
-      const link = document.createElement('a');
-      link.download = `beauty-graphic-${selectedTemplate}-${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
-      toast.success('Grafika pobrana pomyślnie!');
-    } catch (err) {
-      console.error('Error generating image:', err);
-      toast.error('Błąd podczas generowania grafiki');
-    } finally {
-      setGenerating(false);
+  const handleImageUpload = (setter: (val: string | null) => void) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Maksymalny rozmiar pliku to 5MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => setter(ev.target?.result as string);
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleCopyToClipboard = async () => {
+  const handleDownload = async () => {
     if (!previewRef.current) return;
-    
     setGenerating(true);
     try {
-      const dataUrl = await toPng(previewRef.current, { quality: 1, pixelRatio: 3 });
-      const blob = await fetch(dataUrl).then(r => r.blob());
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      toast.success('Skopiowano do schowka!');
-    } catch (err) {
-      toast.error('Nie udało się skopiować');
+      const dataUrl = await toPng(previewRef.current, { quality: 1, pixelRatio: 3, cacheBust: true });
+      const link = document.createElement('a');
+      link.download = `grafika-${selectedTemplate}-${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+      toast.success('Grafika pobrana!');
+    } catch {
+      toast.error('Błąd podczas generowania');
     } finally {
       setGenerating(false);
     }
@@ -93,489 +79,305 @@ export default function GraphicsCreator() {
     setHeadline('Metamorfoza');
     setSubheadline('Zobacz efekt zabiegu');
     setSalonName('Beauty Studio');
-    setDiscountText('-30%');
-    setCtaText('Zarezerwuj teraz');
-    setPrice('299 zł');
-    setOldPrice('499 zł');
-    setFeatures('Zabieg premium\nDługotrwały efekt\nNaturalny wygląd');
-    setServiceName('Laminacja brwi');
-    setPhone('+48 123 456 789');
-    setUrgencyText('Ostatnie 3 miejsca!');
+    setDiscount('-30%');
+    setCta('Zarezerwuj');
   };
 
-  const renderPreview = () => {
-    if (currentCategory === 'metamorfoza') {
-      return (
-        <MetamorfozaTemplate
-          variant={selectedTemplate}
-          beforeImage={beforeImage}
-          afterImage={afterImage}
-          headline={headline}
-          subheadline={subheadline}
-          salonName={salonName}
-        />
-      );
-    }
-
-    if (currentCategory === 'promocja') {
-      return (
-        <PromoTemplate
-          variant={selectedTemplate}
-          image={mainImage}
-          headline={headline}
-          subheadline={subheadline}
-          discountText={discountText}
-          ctaText={ctaText}
-          salonName={salonName}
-        />
-      );
-    }
-
-    if (currentCategory === 'oferta') {
-      return (
-        <OfferTemplate
-          variant={selectedTemplate}
-          image={mainImage}
-          headline={headline}
-          subheadline={subheadline}
-          price={price}
-          oldPrice={oldPrice}
-          features={features}
-          ctaText={ctaText}
-          salonName={salonName}
-        />
-      );
-    }
-
-    if (currentCategory === 'efekt') {
-      return (
-        <EffectTemplate
-          variant={selectedTemplate}
-          image={mainImage}
-          headline={headline}
-          subheadline={subheadline}
-          serviceName={serviceName}
-          salonName={salonName}
-        />
-      );
-    }
-
-    if (currentCategory === 'rezerwacja') {
-      return (
-        <BookingTemplate
-          variant={selectedTemplate}
-          image={mainImage}
-          headline={headline}
-          subheadline={subheadline}
-          ctaText={ctaText}
-          urgencyText={urgencyText}
-          salonName={salonName}
-          phone={phone}
-        />
-      );
-    }
-
-    return null;
-  };
-
-  const renderImageUploaders = () => {
-    if (currentCategory === 'metamorfoza') {
-      return (
-        <div className="grid grid-cols-2 gap-4">
-          <ImageUploader
-            label="Zdjęcie PRZED"
-            image={beforeImage}
-            onImageChange={setBeforeImage}
-          />
-          <ImageUploader
-            label="Zdjęcie PO"
-            image={afterImage}
-            onImageChange={setAfterImage}
-          />
+  const ImageUploadBox = ({ 
+    label, 
+    image, 
+    onUpload, 
+    onClear 
+  }: { 
+    label: string; 
+    image: string | null; 
+    onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onClear: () => void;
+  }) => (
+    <div className="space-y-2">
+      <Label className="text-sm font-medium">{label}</Label>
+      {image ? (
+        <div className="relative aspect-square rounded-xl overflow-hidden border-2 border-primary/30">
+          <img src={image} alt={label} className="w-full h-full object-cover" />
+          <button 
+            onClick={onClear}
+            className="absolute top-2 right-2 p-1.5 bg-black/70 rounded-full hover:bg-black transition-colors"
+          >
+            <X className="w-4 h-4 text-white" />
+          </button>
         </div>
-      );
-    }
+      ) : (
+        <label className="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 cursor-pointer transition-colors bg-muted/20 hover:bg-muted/40">
+          <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+          <span className="text-sm text-muted-foreground">Kliknij aby dodać</span>
+          <input type="file" accept="image/*" onChange={onUpload} className="hidden" />
+        </label>
+      )}
+    </div>
+  );
 
-    return (
-      <ImageUploader
-        label="Zdjęcie główne"
-        image={mainImage}
-        onImageChange={setMainImage}
-        className="max-w-sm mx-auto"
-      />
-    );
-  };
-
-  const renderTextFields = () => {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground font-medium">Nagłówek</Label>
-          <Input
-            value={headline}
-            onChange={(e) => setHeadline(e.target.value)}
-            placeholder="np. Metamorfoza"
-            className="h-10"
-          />
-        </div>
-        
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground font-medium">Podtytuł</Label>
-          <Input
-            value={subheadline}
-            onChange={(e) => setSubheadline(e.target.value)}
-            placeholder="np. Zobacz efekt zabiegu"
-            className="h-10"
-          />
-        </div>
-
-        <div className="space-y-1">
-          <Label className="text-xs text-muted-foreground font-medium">Nazwa salonu</Label>
-          <Input
-            value={salonName}
-            onChange={(e) => setSalonName(e.target.value)}
-            placeholder="np. Beauty Studio"
-            className="h-10"
-          />
-        </div>
-
-        {currentCategory === 'promocja' && (
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground font-medium">Rabat</Label>
-            <Input
-              value={discountText}
-              onChange={(e) => setDiscountText(e.target.value)}
-              placeholder="np. -50%"
-              className="h-10"
-            />
-          </div>
-        )}
-
-        {currentCategory === 'oferta' && (
-          <>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground font-medium">Cena</Label>
-              <Input
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                placeholder="np. 299 zł"
-                className="h-10"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground font-medium">Stara cena</Label>
-              <Input
-                value={oldPrice}
-                onChange={(e) => setOldPrice(e.target.value)}
-                placeholder="np. 499 zł"
-                className="h-10"
-              />
-            </div>
-            <div className="col-span-2 space-y-1">
-              <Label className="text-xs text-muted-foreground font-medium">Lista korzyści (każda w nowej linii)</Label>
-              <Textarea
-                value={features}
-                onChange={(e) => setFeatures(e.target.value)}
-                placeholder="Zabieg 1&#10;Zabieg 2&#10;Zabieg 3"
-                className="min-h-[80px]"
-              />
-            </div>
-          </>
-        )}
-
-        {currentCategory === 'efekt' && (
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground font-medium">Nazwa usługi</Label>
-            <Input
-              value={serviceName}
-              onChange={(e) => setServiceName(e.target.value)}
-              placeholder="np. Laminacja brwi"
-              className="h-10"
-            />
-          </div>
-        )}
-
-        {currentCategory === 'rezerwacja' && (
-          <>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground font-medium">Telefon</Label>
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="np. +48 123 456 789"
-                className="h-10"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label className="text-xs text-muted-foreground font-medium">Tekst pilności</Label>
-              <Input
-                value={urgencyText}
-                onChange={(e) => setUrgencyText(e.target.value)}
-                placeholder="np. Ostatnie 3 miejsca!"
-                className="h-10"
-              />
-            </div>
-          </>
-        )}
-
-        {(currentCategory === 'promocja' || currentCategory === 'oferta' || currentCategory === 'rezerwacja') && (
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground font-medium">Przycisk CTA</Label>
-            <Input
-              value={ctaText}
-              onChange={(e) => setCtaText(e.target.value)}
-              placeholder="np. Zarezerwuj teraz"
-              className="h-10"
-            />
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const getPreviewDimensions = () => {
-    if (!currentTemplate) return { width: 400, height: 400 };
+  const renderTemplate = () => {
+    const placeholderBefore = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=600&fit=crop';
+    const placeholderAfter = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&h=600&fit=crop';
+    const placeholderMain = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&h=600&fit=crop';
     
-    switch (currentTemplate.aspectRatio) {
-      case '9:16': return { width: 270, height: 480 };
-      case '16:9': return { width: 640, height: 360 };
-      case '4:5': return { width: 400, height: 500 };
-      default: return { width: 400, height: 400 };
+    const before = beforeImage || placeholderBefore;
+    const after = afterImage || placeholderAfter;
+    const main = mainImage || placeholderMain;
+
+    switch (selectedTemplate) {
+      case 'split-classic':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ background: '#0a0a0a' }}>
+            <div className="absolute inset-4 flex gap-2">
+              <div className="flex-1 relative rounded-2xl overflow-hidden">
+                <img src={before} alt="Before" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-white/10 backdrop-blur-md rounded-full border border-white/20">
+                  <span className="text-white text-xs font-medium tracking-wider">PRZED</span>
+                </div>
+              </div>
+              <div className="w-1 bg-gradient-to-b from-pink-500/0 via-pink-500 to-pink-500/0" style={{ boxShadow: '0 0 20px rgba(236,72,153,0.8)' }} />
+              <div className="flex-1 relative rounded-2xl overflow-hidden ring-2 ring-pink-500/40">
+                <img src={after} alt="After" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-1.5 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full">
+                  <span className="text-white text-xs font-bold tracking-wider">PO</span>
+                </div>
+              </div>
+            </div>
+            <div className="absolute top-0 left-0 right-0 pt-3 text-center">
+              <p className="text-pink-400/60 text-[10px] tracking-[0.3em] uppercase">{salonName}</p>
+              <h2 className="text-white text-xl font-bold tracking-wide">{headline}</h2>
+            </div>
+          </div>
+        );
+
+      case 'split-diagonal':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ background: '#000' }}>
+            <div className="absolute inset-0" style={{ clipPath: 'polygon(0 0, 55% 0, 45% 100%, 0 100%)' }}>
+              <img src={before} alt="Before" className="w-full h-full object-cover scale-110" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+            </div>
+            <div className="absolute inset-0" style={{ clipPath: 'polygon(55% 0, 100% 0, 100% 100%, 45% 100%)' }}>
+              <img src={after} alt="After" className="w-full h-full object-cover scale-110" />
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-1 h-[150%] bg-gradient-to-b from-pink-500/0 via-pink-500 to-pink-500/0 rotate-[8deg]" style={{ boxShadow: '0 0 30px rgba(236,72,153,1)' }} />
+            </div>
+            <div className="absolute top-6 left-6 text-white/80 text-sm tracking-[0.3em]">PRZED</div>
+            <div className="absolute top-6 right-6 text-pink-400 text-sm tracking-[0.3em]" style={{ textShadow: '0 0 15px rgba(236,72,153,0.8)' }}>PO</div>
+            <div className="absolute bottom-6 left-6">
+              <h2 className="text-2xl font-bold text-white">{headline}</h2>
+              <p className="text-pink-300/80 text-sm mt-1">{subheadline}</p>
+            </div>
+            <div className="absolute bottom-6 right-6 text-white/40 text-[9px] tracking-[0.2em] uppercase">{salonName}</div>
+          </div>
+        );
+
+      case 'promo-discount':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a14 100%)' }}>
+            <div className="absolute inset-0">
+              <img src={main} alt="Promo" className="w-full h-full object-cover opacity-30" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/50" />
+            </div>
+            <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+              <div className="px-4 py-1.5 bg-pink-500/20 border border-pink-500/30 rounded-full mb-4">
+                <span className="text-pink-400 text-[10px] tracking-[0.3em] uppercase">Promocja</span>
+              </div>
+              <span className="text-7xl font-black text-white">{discount}</span>
+              <h2 className="text-xl font-bold text-white mt-3">{headline}</h2>
+              <p className="text-zinc-400 text-sm mt-1">{subheadline}</p>
+              <button className="mt-6 px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full text-white font-bold shadow-lg" style={{ boxShadow: '0 10px 40px rgba(236,72,153,0.4)' }}>
+                {cta}
+              </button>
+            </div>
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-b from-pink-500 to-transparent" />
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-px h-12 bg-gradient-to-t from-pink-500 to-transparent" />
+          </div>
+        );
+
+      case 'promo-flash':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ background: '#0a0a0a' }}>
+            <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, rgba(236,72,153,0.2) 0%, transparent 70%)' }} />
+            <div className="relative h-full flex flex-col items-center justify-center p-6 text-center">
+              <div className="flex items-center gap-2 px-4 py-2 bg-yellow-500 rounded-full mb-4 shadow-lg" style={{ boxShadow: '0 0 30px rgba(234,179,8,0.4)' }}>
+                <span className="text-black text-xs font-bold">⚡ FLASH SALE ⚡</span>
+              </div>
+              <span className="text-8xl font-black text-white" style={{ textShadow: '0 0 60px rgba(236,72,153,0.5)' }}>{discount}</span>
+              <h2 className="text-xl font-bold text-white mt-2">{headline}</h2>
+              <p className="text-zinc-400 text-sm mt-1">{subheadline}</p>
+              <button className="mt-6 px-8 py-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full text-black font-bold shadow-lg" style={{ boxShadow: '0 10px 40px rgba(234,179,8,0.4)' }}>
+                {cta}
+              </button>
+              <div className="mt-6 flex gap-2">
+                {['12', '34', '56'].map((n, i) => (
+                  <div key={i} className="w-12 h-12 bg-white/10 rounded-lg flex items-center justify-center border border-white/10">
+                    <span className="text-white font-mono font-bold text-lg">{n}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'result-glow':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, #150810 100%)' }}>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-[80px]" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[60%] w-[60%] aspect-square rounded-full overflow-hidden ring-4 ring-pink-500/40" style={{ boxShadow: '0 0 60px rgba(236,72,153,0.4)' }}>
+              <img src={main} alt="Result" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+              <h2 className="text-2xl font-bold text-white">{headline}</h2>
+              <p className="text-pink-300/70 text-sm mt-1">{subheadline}</p>
+              <p className="text-zinc-500 text-[10px] tracking-[0.3em] uppercase mt-4">{salonName}</p>
+            </div>
+            <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-pink-500/30" />
+            <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-pink-500/30" />
+          </div>
+        );
+
+      case 'booking-cta':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ background: 'linear-gradient(135deg, #080808 0%, #150810 100%)' }}>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-pink-500/15 rounded-full blur-[80px]" />
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[55%] aspect-square rounded-full overflow-hidden ring-4 ring-pink-500/50" style={{ boxShadow: '0 0 60px rgba(236,72,153,0.3)' }}>
+              <img src={main} alt="Booking" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
+              <h2 className="text-2xl font-bold text-white">{headline}</h2>
+              <p className="text-pink-300/70 text-sm mt-1 mb-4">{subheadline}</p>
+              <button className="px-8 py-3 bg-gradient-to-r from-pink-500 to-rose-500 rounded-full text-white font-bold shadow-lg" style={{ boxShadow: '0 10px 40px rgba(236,72,153,0.4)' }}>
+                {cta}
+              </button>
+              <p className="text-zinc-500 text-[10px] tracking-[0.3em] uppercase mt-4">{salonName}</p>
+            </div>
+            <div className="absolute top-3 left-3 w-8 h-8 border-l-2 border-t-2 border-pink-500/30" />
+            <div className="absolute top-3 right-3 w-8 h-8 border-r-2 border-t-2 border-pink-500/30" />
+          </div>
+        );
+
+      default:
+        return <div className="w-full aspect-square bg-zinc-900 flex items-center justify-center text-zinc-500">Wybierz szablon</div>;
     }
   };
-
-  const dimensions = getPreviewDimensions();
-
-  const steps = [
-    { id: 'template', label: 'Szablon', icon: Wand2 },
-    { id: 'content', label: 'Treść', icon: Type },
-    { id: 'preview', label: 'Podgląd', icon: ImageIcon },
-  ] as const;
 
   return (
     <AppLayout>
-      <div className="min-h-screen bg-background">
-        {/* Header */}
-        <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-          <div className="px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
-                  <Sparkles className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-foreground">Kreator Grafik</h1>
-                  <p className="text-sm text-muted-foreground">{TEMPLATES.length} profesjonalnych szablonów dla FB Ads</p>
-                </div>
+      <div className="min-h-screen bg-background p-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg">
+                <Sparkles className="w-6 h-6 text-white" />
               </div>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" onClick={handleReset}>
-                  <RotateCcw className="w-4 h-4 mr-2" />
-                  Reset
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleCopyToClipboard} disabled={generating}>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Kopiuj
-                </Button>
-                <Button size="sm" onClick={handleDownload} disabled={generating} className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600">
-                  {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
-                  Pobierz PNG
-                </Button>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Kreator Grafik</h1>
+                <p className="text-sm text-muted-foreground">Twórz profesjonalne grafiki dla FB Ads</p>
               </div>
             </div>
-
-            {/* Step indicators */}
-            <div className="flex items-center gap-2 mt-4">
-              {steps.map((step, index) => (
-                <button
-                  key={step.id}
-                  onClick={() => setActiveStep(step.id)}
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                    activeStep === step.id
-                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  <step.icon className="w-4 h-4" />
-                  {step.label}
-                  {index < steps.length - 1 && (
-                    <ArrowRight className="w-3 h-3 ml-1 opacity-50" />
-                  )}
-                </button>
-              ))}
+            <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={handleReset}>
+                <RotateCcw className="w-4 h-4 mr-2" />
+                Reset
+              </Button>
+              <Button onClick={handleDownload} disabled={generating} className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600">
+                {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
+                Pobierz PNG
+              </Button>
             </div>
           </div>
-        </div>
 
-        {/* Main Content */}
-        <div className="flex">
-          {/* Left Panel - Controls */}
-          <div className="w-[400px] flex-shrink-0 border-r border-border/50 bg-muted/10 min-h-[calc(100vh-140px)]">
-            <ScrollArea className="h-[calc(100vh-140px)]">
-              <div className="p-6 space-y-6">
-                {/* Step 1: Templates */}
-                {activeStep === 'template' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-xs text-primary font-bold">1</span>
-                      </div>
-                      Wybierz szablon
-                    </div>
-                    <TemplateGallery
-                      selectedTemplate={selectedTemplate}
-                      onSelectTemplate={(t) => {
-                        setSelectedTemplate(t);
-                        // Auto advance to next step
-                        setTimeout(() => setActiveStep('content'), 200);
-                      }}
-                      selectedCategory={selectedCategory}
-                      onSelectCategory={setSelectedCategory}
-                    />
-                    
-                    {currentTemplate && (
-                      <div className="p-4 rounded-xl bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20">
-                        <p className="text-sm font-medium text-foreground">{currentTemplate.name}</p>
-                        <p className="text-xs text-muted-foreground mt-1">{currentTemplate.description}</p>
-                        <div className="flex items-center gap-2 mt-2">
-                          <span className="text-[10px] px-2 py-0.5 bg-pink-500/20 text-pink-400 rounded-full">
-                            {currentTemplate.aspectRatio}
-                          </span>
-                          <span className="text-[10px] px-2 py-0.5 bg-muted text-muted-foreground rounded-full">
-                            {currentTemplate.category}
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Step 2: Content */}
-                {activeStep === 'content' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-xs text-primary font-bold">2</span>
-                      </div>
-                      Dodaj treść
-                    </div>
-
-                    {/* Images Section */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-                        <ImageIcon className="w-4 h-4 text-pink-500" />
-                        {currentCategory === 'metamorfoza' ? 'Zdjęcia przed/po' : 'Zdjęcie'}
-                      </h3>
-                      {renderImageUploaders()}
-                    </div>
-
-                    {/* Text Section */}
-                    <div className="space-y-3">
-                      <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
-                        <Type className="w-4 h-4 text-pink-500" />
-                        Treść grafiki
-                      </h3>
-                      {renderTextFields()}
-                    </div>
-
-                    <Button 
-                      className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
-                      onClick={() => setActiveStep('preview')}
+          <div className="grid lg:grid-cols-[1fr_500px] gap-8">
+            {/* Left: Controls */}
+            <div className="space-y-6">
+              {/* Templates */}
+              <Card className="p-6">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Wybierz szablon</h3>
+                <div className="grid grid-cols-3 gap-3">
+                  {TEMPLATES.map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setSelectedTemplate(t.id)}
+                      className={cn(
+                        'p-3 rounded-xl border-2 transition-all text-left',
+                        selectedTemplate === t.id
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border hover:border-primary/50 hover:bg-muted/50'
+                      )}
                     >
-                      Przejdź do podglądu
-                      <ArrowRight className="w-4 h-4 ml-2" />
-                    </Button>
+                      <span className="text-sm font-medium text-foreground">{t.name}</span>
+                      <span className="text-xs text-muted-foreground block mt-0.5 capitalize">{t.category}</span>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+
+              {/* Images */}
+              <Card className="p-6">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Zdjęcia</h3>
+                {needsBeforeAfter ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <ImageUploadBox label="Zdjęcie PRZED" image={beforeImage} onUpload={handleImageUpload(setBeforeImage)} onClear={() => setBeforeImage(null)} />
+                    <ImageUploadBox label="Zdjęcie PO" image={afterImage} onUpload={handleImageUpload(setAfterImage)} onClear={() => setAfterImage(null)} />
+                  </div>
+                ) : (
+                  <div className="max-w-xs">
+                    <ImageUploadBox label="Zdjęcie główne" image={mainImage} onUpload={handleImageUpload(setMainImage)} onClear={() => setMainImage(null)} />
                   </div>
                 )}
+              </Card>
 
-                {/* Step 3: Preview info */}
-                {activeStep === 'preview' && (
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-xs text-primary font-bold">3</span>
-                      </div>
-                      Podgląd i eksport
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
-                      <div className="flex items-center gap-2 text-green-500 mb-2">
-                        <Check className="w-4 h-4" />
-                        <span className="text-sm font-medium">Grafika gotowa!</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Twoja grafika jest gotowa do pobrania. Kliknij "Pobierz PNG" aby zapisać ją na swoim urządzeniu.
-                      </p>
-                    </div>
-
+              {/* Text */}
+              <Card className="p-6">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Treść</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Nagłówek</Label>
+                    <Input value={headline} onChange={(e) => setHeadline(e.target.value)} placeholder="Metamorfoza" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Podtytuł</Label>
+                    <Input value={subheadline} onChange={(e) => setSubheadline(e.target.value)} placeholder="Zobacz efekt" />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Nazwa salonu</Label>
+                    <Input value={salonName} onChange={(e) => setSalonName(e.target.value)} placeholder="Beauty Studio" />
+                  </div>
+                  {(currentTemplate?.category === 'promocja') && (
                     <div className="space-y-2">
-                      <Button 
-                        className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
-                        onClick={handleDownload}
-                        disabled={generating}
-                      >
-                        {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
-                        Pobierz PNG (3x)
-                      </Button>
-                      <Button 
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleCopyToClipboard}
-                        disabled={generating}
-                      >
-                        <Copy className="w-4 h-4 mr-2" />
-                        Kopiuj do schowka
-                      </Button>
+                      <Label className="text-sm">Rabat</Label>
+                      <Input value={discount} onChange={(e) => setDiscount(e.target.value)} placeholder="-30%" />
                     </div>
+                  )}
+                  {(currentTemplate?.category === 'promocja' || currentTemplate?.category === 'rezerwacja') && (
+                    <div className="space-y-2">
+                      <Label className="text-sm">Przycisk CTA</Label>
+                      <Input value={cta} onChange={(e) => setCta(e.target.value)} placeholder="Zarezerwuj" />
+                    </div>
+                  )}
+                </div>
+              </Card>
+            </div>
 
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="ghost"
-                        className="flex-1"
-                        onClick={() => setActiveStep('template')}
-                      >
-                        Zmień szablon
-                      </Button>
-                      <Button 
-                        variant="ghost"
-                        className="flex-1"
-                        onClick={() => setActiveStep('content')}
-                      >
-                        Edytuj treść
-                      </Button>
-                    </div>
+            {/* Right: Preview */}
+            <div className="lg:sticky lg:top-6 h-fit">
+              <Card className="p-6">
+                <h3 className="text-sm font-semibold text-foreground mb-4">Podgląd</h3>
+                <div className="bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzFhMWExYSIvPgo8cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIxMCIgaGVpZ2h0PSIxMCIgZmlsbD0iIzFhMWExYSIvPgo8cmVjdCB4PSIxMCIgd2lkdGg9IjEwIiBoZWlnaHQ9IjEwIiBmaWxsPSIjMjIyMjIyIi8+CjxyZWN0IHk9IjEwIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIGZpbGw9IiMyMjIyMjIiLz4KPC9zdmc+')] rounded-xl p-4">
+                  <div ref={previewRef} className="rounded-lg overflow-hidden shadow-2xl">
+                    {renderTemplate()}
                   </div>
-                )}
-              </div>
-            </ScrollArea>
-          </div>
-
-          {/* Right Panel - Preview */}
-          <div className="flex-1 flex items-center justify-center p-8 bg-[#1a1a1a] min-h-[calc(100vh-140px)]">
-            <div className="relative">
-              {/* Checkerboard background */}
-              <div 
-                className="absolute inset-0 rounded-xl overflow-hidden" 
-                style={{
-                  backgroundImage: 'linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%)',
-                  backgroundSize: '20px 20px',
-                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
-                }} 
-              />
-              
-              <div 
-                ref={previewRef}
-                className="relative shadow-2xl rounded-xl overflow-hidden"
-                style={{ width: dimensions.width, height: dimensions.height }}
-              >
-                {renderPreview()}
-              </div>
-
-              {/* Dimension indicator */}
-              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
-                {dimensions.width} × {dimensions.height}px • {currentTemplate?.aspectRatio}
-              </div>
+                </div>
+                <p className="text-xs text-muted-foreground text-center mt-4">
+                  Format: 1:1 (1080×1080px) • Optymalne dla Facebook Ads
+                </p>
+              </Card>
             </div>
           </div>
         </div>
