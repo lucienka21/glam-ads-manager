@@ -1,13 +1,10 @@
 project_id = "fpxtyttunxzxjzcpcwpy"
 
 [functions.generate-recommendations]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-campaign]
-verify_jwt = false
+verify_jwt = true
 
 [functions.delete-user]
 verify_jwt = true
-
-[functions.process-graphics]
-verify_jwt = false
