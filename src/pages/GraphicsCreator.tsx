@@ -7,38 +7,44 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Download, RotateCcw, Sparkles, Loader2, Star } from 'lucide-react';
+import { Download, RotateCcw, Sparkles, Loader2, Copy, Image as ImageIcon, Type, Palette } from 'lucide-react';
 import { TemplateGallery, TEMPLATES, TEMPLATE_CATEGORIES, type TemplateVariant, type TemplateCategory } from '@/components/graphics/TemplateGallery';
 import { ImageUploader } from '@/components/graphics/ImageUploader';
-import { BeforeAfterTemplate } from '@/components/graphics/templates/BeforeAfterTemplate';
+import { MetamorfozaTemplate } from '@/components/graphics/templates/MetamorfozaTemplate';
 import { PromoTemplate } from '@/components/graphics/templates/PromoTemplate';
-import { TestimonialTemplate } from '@/components/graphics/templates/TestimonialTemplate';
-import { QuoteTemplate } from '@/components/graphics/templates/QuoteTemplate';
-import { SingleImageTemplate } from '@/components/graphics/templates/SingleImageTemplate';
-import { StoryTemplate } from '@/components/graphics/templates/StoryTemplate';
-import { Slider } from '@/components/ui/slider';
+import { OfferTemplate } from '@/components/graphics/templates/OfferTemplate';
+import { EffectTemplate } from '@/components/graphics/templates/EffectTemplate';
+import { BookingTemplate } from '@/components/graphics/templates/BookingTemplate';
 
 export default function GraphicsCreator() {
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateVariant>('elegant-split');
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateVariant>('meta-glamour');
   const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
+  
+  // Images
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
   const [mainImage, setMainImage] = useState<string | null>(null);
+  
+  // Text fields
   const [headline, setHeadline] = useState('');
   const [subheadline, setSubheadline] = useState('');
+  const [salonName, setSalonName] = useState('');
   const [discountText, setDiscountText] = useState('-30%');
-  const [ctaText, setCtaText] = useState('');
-  const [testimonialText, setTestimonialText] = useState('');
-  const [authorName, setAuthorName] = useState('');
-  const [authorTitle, setAuthorTitle] = useState('');
-  const [rating, setRating] = useState(5);
-  const [generating, setGenerating] = useState(false);
+  const [ctaText, setCtaText] = useState('Zarezerwuj teraz');
+  const [price, setPrice] = useState('');
+  const [oldPrice, setOldPrice] = useState('');
+  const [features, setFeatures] = useState('');
+  const [serviceName, setServiceName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [urgencyText, setUrgencyText] = useState('');
   
+  const [generating, setGenerating] = useState(false);
   const previewRef = useRef<HTMLDivElement>(null);
 
   const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
-  const currentCategory = currentTemplate?.category || 'before-after';
+  const currentCategory = currentTemplate?.category || 'metamorfoza';
 
   const handleDownload = async () => {
     if (!previewRef.current) return;
@@ -52,7 +58,7 @@ export default function GraphicsCreator() {
       });
       
       const link = document.createElement('a');
-      link.download = `grafika-${selectedTemplate}-${Date.now()}.png`;
+      link.download = `beauty-graphic-${selectedTemplate}-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
       toast.success('Grafika pobrana!');
@@ -64,98 +70,107 @@ export default function GraphicsCreator() {
     }
   };
 
+  const handleCopyToClipboard = async () => {
+    if (!previewRef.current) return;
+    
+    setGenerating(true);
+    try {
+      const dataUrl = await toPng(previewRef.current, { quality: 1, pixelRatio: 3 });
+      const blob = await fetch(dataUrl).then(r => r.blob());
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      toast.success('Skopiowano do schowka!');
+    } catch (err) {
+      toast.error('Nie udało się skopiować');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   const handleReset = () => {
     setBeforeImage(null);
     setAfterImage(null);
     setMainImage(null);
     setHeadline('');
     setSubheadline('');
+    setSalonName('');
     setDiscountText('-30%');
-    setCtaText('');
-    setTestimonialText('');
-    setAuthorName('');
-    setAuthorTitle('');
-    setRating(5);
+    setCtaText('Zarezerwuj teraz');
+    setPrice('');
+    setOldPrice('');
+    setFeatures('');
+    setServiceName('');
+    setPhone('');
+    setUrgencyText('');
   };
 
   const renderPreview = () => {
-    // Before/After templates
-    if (['elegant-split', 'diagonal-glam', 'neon-frame', 'minimal-luxury', 'bold-contrast', 'soft-glow', 'vertical-stack', 'circle-reveal', 'sliding-compare'].includes(selectedTemplate)) {
+    if (currentCategory === 'metamorfoza') {
       return (
-        <BeforeAfterTemplate
-          variant={selectedTemplate as any}
+        <MetamorfozaTemplate
+          variant={selectedTemplate}
           beforeImage={beforeImage}
           afterImage={afterImage}
           headline={headline}
           subheadline={subheadline}
+          salonName={salonName}
         />
       );
     }
 
-    // Promo templates
-    if (['promo-sale', 'promo-new-service', 'promo-discount', 'promo-announcement'].includes(selectedTemplate)) {
+    if (currentCategory === 'promocja') {
       return (
         <PromoTemplate
-          variant={selectedTemplate as any}
+          variant={selectedTemplate}
           image={mainImage}
           headline={headline}
           subheadline={subheadline}
           discountText={discountText}
           ctaText={ctaText}
+          salonName={salonName}
         />
       );
     }
 
-    // Testimonial templates
-    if (['testimonial-card', 'testimonial-photo', 'testimonial-minimal'].includes(selectedTemplate)) {
+    if (currentCategory === 'oferta') {
       return (
-        <TestimonialTemplate
-          variant={selectedTemplate as any}
-          image={mainImage}
-          testimonialText={testimonialText}
-          authorName={authorName}
-          authorTitle={authorTitle}
-          rating={rating}
-        />
-      );
-    }
-
-    // Quote templates
-    if (['quote-elegant', 'quote-bold', 'quote-minimal'].includes(selectedTemplate)) {
-      return (
-        <QuoteTemplate
-          variant={selectedTemplate as any}
-          image={mainImage}
-          quoteText={testimonialText || headline}
-          authorName={authorName}
-        />
-      );
-    }
-
-    // Single image templates
-    if (['single-hero', 'single-portfolio', 'single-feature'].includes(selectedTemplate)) {
-      return (
-        <SingleImageTemplate
-          variant={selectedTemplate as any}
+        <OfferTemplate
+          variant={selectedTemplate}
           image={mainImage}
           headline={headline}
           subheadline={subheadline}
-        />
-      );
-    }
-
-    // Story templates
-    if (['story-promo', 'story-testimonial', 'story-announcement'].includes(selectedTemplate)) {
-      return (
-        <StoryTemplate
-          variant={selectedTemplate as any}
-          image={mainImage}
-          headline={headline}
-          subheadline={subheadline}
-          discountText={discountText}
-          testimonialText={testimonialText}
-          authorName={authorName}
+          price={price}
+          oldPrice={oldPrice}
+          features={features}
           ctaText={ctaText}
+          salonName={salonName}
+        />
+      );
+    }
+
+    if (currentCategory === 'efekt') {
+      return (
+        <EffectTemplate
+          variant={selectedTemplate}
+          image={mainImage}
+          headline={headline}
+          subheadline={subheadline}
+          serviceName={serviceName}
+          salonName={salonName}
+        />
+      );
+    }
+
+    if (currentCategory === 'rezerwacja') {
+      return (
+        <BookingTemplate
+          variant={selectedTemplate}
+          image={mainImage}
+          headline={headline}
+          subheadline={subheadline}
+          ctaText={ctaText}
+          urgencyText={urgencyText}
+          salonName={salonName}
+          phone={phone}
         />
       );
     }
@@ -164,9 +179,9 @@ export default function GraphicsCreator() {
   };
 
   const renderImageUploaders = () => {
-    if (currentCategory === 'before-after') {
+    if (currentCategory === 'metamorfoza') {
       return (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-3">
           <ImageUploader
             label="Zdjęcie PRZED"
             image={beforeImage}
@@ -192,238 +207,256 @@ export default function GraphicsCreator() {
 
   const renderTextFields = () => {
     return (
-      <div className="space-y-4">
-        {/* Common fields */}
+      <div className="space-y-3">
         <div>
-          <Label className="text-sm">Nagłówek</Label>
+          <Label className="text-xs text-muted-foreground">Nagłówek</Label>
           <Input
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
-            placeholder={currentCategory === 'promo' ? 'np. MEGA WYPRZEDAŻ' : 'np. Metamorfoza'}
-            className="bg-background/50 border-border/50 mt-1"
+            placeholder="np. Metamorfoza"
+            className="mt-1 h-9"
           />
         </div>
         
         <div>
-          <Label className="text-sm">Podtytuł</Label>
+          <Label className="text-xs text-muted-foreground">Podtytuł</Label>
           <Input
             value={subheadline}
             onChange={(e) => setSubheadline(e.target.value)}
-            placeholder="np. Studio Beauty"
-            className="bg-background/50 border-border/50 mt-1"
+            placeholder="np. Zobacz efekt zabiegu"
+            className="mt-1 h-9"
           />
         </div>
 
-        {/* Promo specific fields */}
-        {(currentCategory === 'promo' || currentCategory === 'story') && (
+        <div>
+          <Label className="text-xs text-muted-foreground">Nazwa salonu</Label>
+          <Input
+            value={salonName}
+            onChange={(e) => setSalonName(e.target.value)}
+            placeholder="np. Beauty Studio"
+            className="mt-1 h-9"
+          />
+        </div>
+
+        {(currentCategory === 'promocja') && (
+          <div>
+            <Label className="text-xs text-muted-foreground">Rabat</Label>
+            <Input
+              value={discountText}
+              onChange={(e) => setDiscountText(e.target.value)}
+              placeholder="np. -50%"
+              className="mt-1 h-9"
+            />
+          </div>
+        )}
+
+        {(currentCategory === 'oferta') && (
           <>
-            <div>
-              <Label className="text-sm">Tekst rabatu</Label>
-              <Input
-                value={discountText}
-                onChange={(e) => setDiscountText(e.target.value)}
-                placeholder="np. -50%"
-                className="bg-background/50 border-border/50 mt-1"
-              />
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label className="text-xs text-muted-foreground">Cena</Label>
+                <Input
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  placeholder="np. 299 zł"
+                  className="mt-1 h-9"
+                />
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Stara cena</Label>
+                <Input
+                  value={oldPrice}
+                  onChange={(e) => setOldPrice(e.target.value)}
+                  placeholder="np. 499 zł"
+                  className="mt-1 h-9"
+                />
+              </div>
             </div>
             <div>
-              <Label className="text-sm">Przycisk CTA</Label>
-              <Input
-                value={ctaText}
-                onChange={(e) => setCtaText(e.target.value)}
-                placeholder="np. Zarezerwuj teraz"
-                className="bg-background/50 border-border/50 mt-1"
+              <Label className="text-xs text-muted-foreground">Lista korzyści (każda w nowej linii)</Label>
+              <Textarea
+                value={features}
+                onChange={(e) => setFeatures(e.target.value)}
+                placeholder="Zabieg 1&#10;Zabieg 2&#10;Zabieg 3"
+                className="mt-1 min-h-[80px]"
               />
             </div>
           </>
         )}
 
-        {/* Testimonial/Quote specific fields */}
-        {(currentCategory === 'testimonial' || currentCategory === 'quote' || selectedTemplate === 'story-testimonial') && (
+        {(currentCategory === 'efekt') && (
+          <div>
+            <Label className="text-xs text-muted-foreground">Nazwa usługi</Label>
+            <Input
+              value={serviceName}
+              onChange={(e) => setServiceName(e.target.value)}
+              placeholder="np. Laminacja brwi"
+              className="mt-1 h-9"
+            />
+          </div>
+        )}
+
+        {(currentCategory === 'rezerwacja') && (
           <>
             <div>
-              <Label className="text-sm">Treść opinii / cytatu</Label>
-              <Textarea
-                value={testimonialText}
-                onChange={(e) => setTestimonialText(e.target.value)}
-                placeholder="np. Najlepszy salon w mieście!"
-                className="bg-background/50 border-border/50 mt-1 min-h-[80px]"
+              <Label className="text-xs text-muted-foreground">Telefon</Label>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="np. +48 123 456 789"
+                className="mt-1 h-9"
               />
             </div>
             <div>
-              <Label className="text-sm">Imię i nazwisko</Label>
+              <Label className="text-xs text-muted-foreground">Tekst pilności</Label>
               <Input
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="np. Anna Kowalska"
-                className="bg-background/50 border-border/50 mt-1"
+                value={urgencyText}
+                onChange={(e) => setUrgencyText(e.target.value)}
+                placeholder="np. Ostatnie 3 miejsca!"
+                className="mt-1 h-9"
               />
             </div>
-            {currentCategory === 'testimonial' && (
-              <div>
-                <Label className="text-sm">Podpis / tytuł</Label>
-                <Input
-                  value={authorTitle}
-                  onChange={(e) => setAuthorTitle(e.target.value)}
-                  placeholder="np. Stała klientka"
-                  className="bg-background/50 border-border/50 mt-1"
-                />
-              </div>
-            )}
-            {currentCategory === 'testimonial' && (
-              <div>
-                <Label className="text-sm flex items-center gap-2">
-                  <Star className="w-4 h-4 text-yellow-400" />
-                  Ocena ({rating} gwiazdek)
-                </Label>
-                <Slider
-                  value={[rating]}
-                  onValueChange={(v) => setRating(v[0])}
-                  min={1}
-                  max={5}
-                  step={1}
-                  className="mt-2"
-                />
-              </div>
-            )}
           </>
+        )}
+
+        {(currentCategory === 'promocja' || currentCategory === 'oferta' || currentCategory === 'rezerwacja') && (
+          <div>
+            <Label className="text-xs text-muted-foreground">Przycisk CTA</Label>
+            <Input
+              value={ctaText}
+              onChange={(e) => setCtaText(e.target.value)}
+              placeholder="np. Zarezerwuj teraz"
+              className="mt-1 h-9"
+            />
+          </div>
         )}
       </div>
     );
   };
 
-  const getPreviewMaxWidth = () => {
-    if (!currentTemplate) return 'max-w-lg';
-    if (currentTemplate.aspectRatio === 'story') return 'max-w-xs';
-    if (currentTemplate.aspectRatio === 'landscape') return 'max-w-2xl';
-    if (currentTemplate.aspectRatio === 'portrait') return 'max-w-sm';
-    return 'max-w-lg';
+  const getPreviewContainerClass = () => {
+    if (!currentTemplate) return 'max-w-md';
+    if (currentTemplate.aspectRatio === '9:16') return 'max-w-[280px]';
+    if (currentTemplate.aspectRatio === '16:9') return 'max-w-2xl';
+    return 'max-w-md';
   };
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <Sparkles className="w-6 h-6 text-primary" />
-              Kreator Grafik
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {TEMPLATES.length} szablonów w {TEMPLATE_CATEGORIES.length} kategoriach
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handleReset}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Reset
-            </Button>
-            <Button 
-              onClick={handleDownload}
-              disabled={generating}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {generating ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="w-4 h-4 mr-2" />
-              )}
-              Pobierz PNG
-            </Button>
+      <div className="h-[calc(100vh-4rem)] flex flex-col">
+        {/* Compact Header */}
+        <div className="flex-shrink-0 px-4 py-3 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Kreator Grafik</h1>
+                <p className="text-xs text-muted-foreground">{TEMPLATES.length} szablonów dla FB Ads Beauty</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleReset}>
+                <RotateCcw className="w-4 h-4" />
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleCopyToClipboard} disabled={generating}>
+                <Copy className="w-4 h-4 mr-1" />
+                Kopiuj
+              </Button>
+              <Button size="sm" onClick={handleDownload} disabled={generating} className="bg-pink-500 hover:bg-pink-600">
+                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
+                Pobierz PNG
+              </Button>
+            </div>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-5 gap-6">
-          {/* Left panel - Controls */}
-          <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="templates" className="w-full">
-              <TabsList className="grid w-full grid-cols-3 bg-muted/30">
-                <TabsTrigger value="templates">Szablony</TabsTrigger>
-                <TabsTrigger value="images">Zdjęcia</TabsTrigger>
-                <TabsTrigger value="text">Tekst</TabsTrigger>
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Panel - Controls */}
+          <div className="w-[340px] flex-shrink-0 border-r border-border/50 bg-muted/20">
+            <Tabs defaultValue="templates" className="h-full flex flex-col">
+              <TabsList className="flex-shrink-0 mx-3 mt-3 grid grid-cols-3 h-9">
+                <TabsTrigger value="templates" className="text-xs gap-1">
+                  <Palette className="w-3 h-3" /> Szablony
+                </TabsTrigger>
+                <TabsTrigger value="images" className="text-xs gap-1">
+                  <ImageIcon className="w-3 h-3" /> Zdjęcia
+                </TabsTrigger>
+                <TabsTrigger value="text" className="text-xs gap-1">
+                  <Type className="w-3 h-3" /> Tekst
+                </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="templates" className="mt-4">
-                <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Wybierz szablon</CardTitle>
-                  </CardHeader>
-                  <CardContent>
+              <div className="flex-1 overflow-hidden">
+                <TabsContent value="templates" className="h-full m-0 p-3">
+                  <ScrollArea className="h-full">
                     <TemplateGallery
                       selectedTemplate={selectedTemplate}
                       onSelectTemplate={setSelectedTemplate}
                       selectedCategory={selectedCategory}
                       onSelectCategory={setSelectedCategory}
                     />
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                  </ScrollArea>
+                </TabsContent>
 
-              <TabsContent value="images" className="mt-4">
-                <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Dodaj zdjęcia</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {renderImageUploaders()}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                <TabsContent value="images" className="h-full m-0 p-3">
+                  <ScrollArea className="h-full">
+                    <div className="space-y-4">
+                      <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+                        <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4 text-pink-500" />
+                          {currentCategory === 'metamorfoza' ? 'Zdjęcia przed/po' : 'Zdjęcie główne'}
+                        </h3>
+                        {renderImageUploaders()}
+                      </div>
+                      
+                      {currentTemplate && (
+                        <div className="p-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
+                          <p className="text-xs text-pink-400">
+                            <span className="font-medium">{currentTemplate.name}</span>
+                            <span className="text-pink-400/60"> • {currentTemplate.aspectRatio}</span>
+                          </p>
+                          <p className="text-xs text-pink-400/60 mt-0.5">{currentTemplate.description}</p>
+                        </div>
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
 
-              <TabsContent value="text" className="mt-4">
-                <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Treść</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {renderTextFields()}
-                  </CardContent>
-                </Card>
-              </TabsContent>
+                <TabsContent value="text" className="h-full m-0 p-3">
+                  <ScrollArea className="h-full">
+                    <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
+                      <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                        <Type className="w-4 h-4 text-pink-500" />
+                        Treść grafiki
+                      </h3>
+                      {renderTextFields()}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </div>
             </Tabs>
-
-            {/* Template info */}
-            {currentTemplate && (
-              <Card className="bg-gradient-to-br from-primary/10 to-pink-500/10 border-primary/20">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-foreground">{currentTemplate.name}</h3>
-                      <p className="text-sm text-muted-foreground">{currentTemplate.description}</p>
-                    </div>
-                    <div className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
-                      {currentTemplate.aspectRatio === 'story' ? '9:16' : 
-                       currentTemplate.aspectRatio === 'portrait' ? '4:5' :
-                       currentTemplate.aspectRatio === 'landscape' ? '16:9' : '1:1'}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
-          {/* Right panel - Preview */}
-          <div className="lg:col-span-3">
-            <Card className="bg-card/50 border-border/50 backdrop-blur-sm h-full">
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  Podgląd
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-center p-6">
-                <div 
-                  ref={previewRef}
-                  className={`w-full ${getPreviewMaxWidth()} shadow-2xl shadow-black/20 rounded-xl overflow-hidden`}
-                >
-                  {renderPreview()}
-                </div>
-              </CardContent>
-            </Card>
+          {/* Right Panel - Preview */}
+          <div className="flex-1 flex items-center justify-center p-6 bg-[#1a1a1a] overflow-auto">
+            <div className="relative">
+              {/* Checkerboard background for transparency */}
+              <div className="absolute inset-0 rounded-xl overflow-hidden" style={{
+                backgroundImage: 'linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%)',
+                backgroundSize: '20px 20px',
+                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+              }} />
+              
+              <div 
+                ref={previewRef}
+                className={`relative ${getPreviewContainerClass()} shadow-2xl rounded-xl overflow-hidden`}
+              >
+                {renderPreview()}
+              </div>
+            </div>
           </div>
         </div>
       </div>
