@@ -10,6 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Mail } from 'lucide-react';
+import { emailTemplateSchema } from '@/lib/validationSchemas';
 
 interface EmailTemplate {
   id: string;
@@ -61,6 +62,18 @@ export default function EmailTemplates() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate form data with Zod
+    const validationResult = emailTemplateSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast({
+        title: "Błąd walidacji",
+        description: firstError.message,
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       if (editingTemplate) {

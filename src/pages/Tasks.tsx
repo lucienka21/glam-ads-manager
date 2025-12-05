@@ -3,6 +3,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { taskSchema } from '@/lib/validationSchemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -318,8 +319,17 @@ const openEditTaskDialog = (task: TaskRow) => {
       return;
     }
 
-    if (!formData.title.trim()) {
-      toast.error('Tytuł zadania jest wymagany');
+    // Validate form data with Zod
+    const dataToValidate = {
+      ...formData,
+      assigned_to: formData.assigned_to === UNASSIGNED_VALUE ? null : formData.assigned_to || null,
+      client_id: formData.client_id || null,
+    };
+    
+    const validationResult = taskSchema.safeParse(dataToValidate);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 
