@@ -6,21 +6,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Download, RotateCcw, Sparkles, Loader2 } from 'lucide-react';
-import { TemplateGallery, TEMPLATES, type TemplateVariant } from '@/components/graphics/TemplateGallery';
+import { Download, RotateCcw, Sparkles, Loader2, Star } from 'lucide-react';
+import { TemplateGallery, TEMPLATES, TEMPLATE_CATEGORIES, type TemplateVariant, type TemplateCategory } from '@/components/graphics/TemplateGallery';
 import { ImageUploader } from '@/components/graphics/ImageUploader';
 import { BeforeAfterTemplate } from '@/components/graphics/templates/BeforeAfterTemplate';
+import { PromoTemplate } from '@/components/graphics/templates/PromoTemplate';
+import { TestimonialTemplate } from '@/components/graphics/templates/TestimonialTemplate';
+import { QuoteTemplate } from '@/components/graphics/templates/QuoteTemplate';
+import { SingleImageTemplate } from '@/components/graphics/templates/SingleImageTemplate';
+import { StoryTemplate } from '@/components/graphics/templates/StoryTemplate';
+import { Slider } from '@/components/ui/slider';
 
 export default function GraphicsCreator() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateVariant>('elegant-split');
+  const [selectedCategory, setSelectedCategory] = useState<TemplateCategory | 'all'>('all');
   const [beforeImage, setBeforeImage] = useState<string | null>(null);
   const [afterImage, setAfterImage] = useState<string | null>(null);
+  const [mainImage, setMainImage] = useState<string | null>(null);
   const [headline, setHeadline] = useState('');
   const [subheadline, setSubheadline] = useState('');
+  const [discountText, setDiscountText] = useState('-30%');
+  const [ctaText, setCtaText] = useState('');
+  const [testimonialText, setTestimonialText] = useState('');
+  const [authorName, setAuthorName] = useState('');
+  const [authorTitle, setAuthorTitle] = useState('');
+  const [rating, setRating] = useState(5);
   const [generating, setGenerating] = useState(false);
   
   const previewRef = useRef<HTMLDivElement>(null);
+
+  const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
+  const currentCategory = currentTemplate?.category || 'before-after';
 
   const handleDownload = async () => {
     if (!previewRef.current) return;
@@ -29,7 +47,7 @@ export default function GraphicsCreator() {
     try {
       const dataUrl = await toPng(previewRef.current, {
         quality: 1,
-        pixelRatio: 2,
+        pixelRatio: 3,
         cacheBust: true,
       });
       
@@ -49,11 +67,238 @@ export default function GraphicsCreator() {
   const handleReset = () => {
     setBeforeImage(null);
     setAfterImage(null);
+    setMainImage(null);
     setHeadline('');
     setSubheadline('');
+    setDiscountText('-30%');
+    setCtaText('');
+    setTestimonialText('');
+    setAuthorName('');
+    setAuthorTitle('');
+    setRating(5);
   };
 
-  const selectedTemplateData = TEMPLATES.find(t => t.id === selectedTemplate);
+  const renderPreview = () => {
+    // Before/After templates
+    if (['elegant-split', 'diagonal-glam', 'neon-frame', 'minimal-luxury', 'bold-contrast', 'soft-glow', 'vertical-stack', 'circle-reveal', 'sliding-compare'].includes(selectedTemplate)) {
+      return (
+        <BeforeAfterTemplate
+          variant={selectedTemplate as any}
+          beforeImage={beforeImage}
+          afterImage={afterImage}
+          headline={headline}
+          subheadline={subheadline}
+        />
+      );
+    }
+
+    // Promo templates
+    if (['promo-sale', 'promo-new-service', 'promo-discount', 'promo-announcement'].includes(selectedTemplate)) {
+      return (
+        <PromoTemplate
+          variant={selectedTemplate as any}
+          image={mainImage}
+          headline={headline}
+          subheadline={subheadline}
+          discountText={discountText}
+          ctaText={ctaText}
+        />
+      );
+    }
+
+    // Testimonial templates
+    if (['testimonial-card', 'testimonial-photo', 'testimonial-minimal'].includes(selectedTemplate)) {
+      return (
+        <TestimonialTemplate
+          variant={selectedTemplate as any}
+          image={mainImage}
+          testimonialText={testimonialText}
+          authorName={authorName}
+          authorTitle={authorTitle}
+          rating={rating}
+        />
+      );
+    }
+
+    // Quote templates
+    if (['quote-elegant', 'quote-bold', 'quote-minimal'].includes(selectedTemplate)) {
+      return (
+        <QuoteTemplate
+          variant={selectedTemplate as any}
+          image={mainImage}
+          quoteText={testimonialText || headline}
+          authorName={authorName}
+        />
+      );
+    }
+
+    // Single image templates
+    if (['single-hero', 'single-portfolio', 'single-feature'].includes(selectedTemplate)) {
+      return (
+        <SingleImageTemplate
+          variant={selectedTemplate as any}
+          image={mainImage}
+          headline={headline}
+          subheadline={subheadline}
+        />
+      );
+    }
+
+    // Story templates
+    if (['story-promo', 'story-testimonial', 'story-announcement'].includes(selectedTemplate)) {
+      return (
+        <StoryTemplate
+          variant={selectedTemplate as any}
+          image={mainImage}
+          headline={headline}
+          subheadline={subheadline}
+          discountText={discountText}
+          testimonialText={testimonialText}
+          authorName={authorName}
+          ctaText={ctaText}
+        />
+      );
+    }
+
+    return null;
+  };
+
+  const renderImageUploaders = () => {
+    if (currentCategory === 'before-after') {
+      return (
+        <div className="grid grid-cols-2 gap-4">
+          <ImageUploader
+            label="Zdjęcie PRZED"
+            image={beforeImage}
+            onImageChange={setBeforeImage}
+          />
+          <ImageUploader
+            label="Zdjęcie PO"
+            image={afterImage}
+            onImageChange={setAfterImage}
+          />
+        </div>
+      );
+    }
+
+    return (
+      <ImageUploader
+        label="Zdjęcie"
+        image={mainImage}
+        onImageChange={setMainImage}
+      />
+    );
+  };
+
+  const renderTextFields = () => {
+    return (
+      <div className="space-y-4">
+        {/* Common fields */}
+        <div>
+          <Label className="text-sm">Nagłówek</Label>
+          <Input
+            value={headline}
+            onChange={(e) => setHeadline(e.target.value)}
+            placeholder={currentCategory === 'promo' ? 'np. MEGA WYPRZEDAŻ' : 'np. Metamorfoza'}
+            className="bg-background/50 border-border/50 mt-1"
+          />
+        </div>
+        
+        <div>
+          <Label className="text-sm">Podtytuł</Label>
+          <Input
+            value={subheadline}
+            onChange={(e) => setSubheadline(e.target.value)}
+            placeholder="np. Studio Beauty"
+            className="bg-background/50 border-border/50 mt-1"
+          />
+        </div>
+
+        {/* Promo specific fields */}
+        {(currentCategory === 'promo' || currentCategory === 'story') && (
+          <>
+            <div>
+              <Label className="text-sm">Tekst rabatu</Label>
+              <Input
+                value={discountText}
+                onChange={(e) => setDiscountText(e.target.value)}
+                placeholder="np. -50%"
+                className="bg-background/50 border-border/50 mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Przycisk CTA</Label>
+              <Input
+                value={ctaText}
+                onChange={(e) => setCtaText(e.target.value)}
+                placeholder="np. Zarezerwuj teraz"
+                className="bg-background/50 border-border/50 mt-1"
+              />
+            </div>
+          </>
+        )}
+
+        {/* Testimonial/Quote specific fields */}
+        {(currentCategory === 'testimonial' || currentCategory === 'quote' || selectedTemplate === 'story-testimonial') && (
+          <>
+            <div>
+              <Label className="text-sm">Treść opinii / cytatu</Label>
+              <Textarea
+                value={testimonialText}
+                onChange={(e) => setTestimonialText(e.target.value)}
+                placeholder="np. Najlepszy salon w mieście!"
+                className="bg-background/50 border-border/50 mt-1 min-h-[80px]"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">Imię i nazwisko</Label>
+              <Input
+                value={authorName}
+                onChange={(e) => setAuthorName(e.target.value)}
+                placeholder="np. Anna Kowalska"
+                className="bg-background/50 border-border/50 mt-1"
+              />
+            </div>
+            {currentCategory === 'testimonial' && (
+              <div>
+                <Label className="text-sm">Podpis / tytuł</Label>
+                <Input
+                  value={authorTitle}
+                  onChange={(e) => setAuthorTitle(e.target.value)}
+                  placeholder="np. Stała klientka"
+                  className="bg-background/50 border-border/50 mt-1"
+                />
+              </div>
+            )}
+            {currentCategory === 'testimonial' && (
+              <div>
+                <Label className="text-sm flex items-center gap-2">
+                  <Star className="w-4 h-4 text-yellow-400" />
+                  Ocena ({rating} gwiazdek)
+                </Label>
+                <Slider
+                  value={[rating]}
+                  onValueChange={(v) => setRating(v[0])}
+                  min={1}
+                  max={5}
+                  step={1}
+                  className="mt-2"
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    );
+  };
+
+  const getPreviewMaxWidth = () => {
+    if (!currentTemplate) return 'max-w-lg';
+    if (currentTemplate.aspectRatio === 'story') return 'max-w-xs';
+    if (currentTemplate.aspectRatio === 'landscape') return 'max-w-2xl';
+    if (currentTemplate.aspectRatio === 'portrait') return 'max-w-sm';
+    return 'max-w-lg';
+  };
 
   return (
     <AppLayout>
@@ -66,7 +311,7 @@ export default function GraphicsCreator() {
               Kreator Grafik
             </h1>
             <p className="text-muted-foreground text-sm">
-              Wybierz szablon i dodaj zdjęcia przed/po
+              {TEMPLATES.length} szablonów w {TEMPLATE_CATEGORIES.length} kategoriach
             </p>
           </div>
           <div className="flex gap-2">
@@ -84,7 +329,7 @@ export default function GraphicsCreator() {
               ) : (
                 <Download className="w-4 h-4 mr-2" />
               )}
-              Pobierz
+              Pobierz PNG
             </Button>
           </div>
         </div>
@@ -108,6 +353,8 @@ export default function GraphicsCreator() {
                     <TemplateGallery
                       selectedTemplate={selectedTemplate}
                       onSelectTemplate={setSelectedTemplate}
+                      selectedCategory={selectedCategory}
+                      onSelectCategory={setSelectedCategory}
                     />
                   </CardContent>
                 </Card>
@@ -119,18 +366,7 @@ export default function GraphicsCreator() {
                     <CardTitle className="text-base">Dodaj zdjęcia</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 gap-4">
-                      <ImageUploader
-                        label="Zdjęcie PRZED"
-                        image={beforeImage}
-                        onImageChange={setBeforeImage}
-                      />
-                      <ImageUploader
-                        label="Zdjęcie PO"
-                        image={afterImage}
-                        onImageChange={setAfterImage}
-                      />
-                    </div>
+                    {renderImageUploaders()}
                   </CardContent>
                 </Card>
               </TabsContent>
@@ -138,43 +374,31 @@ export default function GraphicsCreator() {
               <TabsContent value="text" className="mt-4">
                 <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-base">Tekst (opcjonalnie)</CardTitle>
+                    <CardTitle className="text-base">Treść</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div>
-                      <Label className="text-sm">Nagłówek</Label>
-                      <Input
-                        value={headline}
-                        onChange={(e) => setHeadline(e.target.value)}
-                        placeholder="np. Metamorfoza"
-                        className="bg-background/50 border-border/50 mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-sm">Podtytuł</Label>
-                      <Input
-                        value={subheadline}
-                        onChange={(e) => setSubheadline(e.target.value)}
-                        placeholder="np. Studio Beauty"
-                        className="bg-background/50 border-border/50 mt-1"
-                      />
-                    </div>
+                  <CardContent>
+                    {renderTextFields()}
                   </CardContent>
                 </Card>
               </TabsContent>
             </Tabs>
 
             {/* Template info */}
-            {selectedTemplateData && (
+            {currentTemplate && (
               <Card className="bg-gradient-to-br from-primary/10 to-pink-500/10 border-primary/20">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Sparkles className="w-5 h-5 text-primary" />
                     </div>
-                    <div>
-                      <h3 className="font-medium text-foreground">{selectedTemplateData.name}</h3>
-                      <p className="text-sm text-muted-foreground">{selectedTemplateData.description}</p>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-foreground">{currentTemplate.name}</h3>
+                      <p className="text-sm text-muted-foreground">{currentTemplate.description}</p>
+                    </div>
+                    <div className="text-xs px-2 py-1 rounded-full bg-primary/20 text-primary">
+                      {currentTemplate.aspectRatio === 'story' ? '9:16' : 
+                       currentTemplate.aspectRatio === 'portrait' ? '4:5' :
+                       currentTemplate.aspectRatio === 'landscape' ? '16:9' : '1:1'}
                     </div>
                   </div>
                 </CardContent>
@@ -194,15 +418,9 @@ export default function GraphicsCreator() {
               <CardContent className="flex items-center justify-center p-6">
                 <div 
                   ref={previewRef}
-                  className="w-full max-w-lg shadow-2xl shadow-black/20 rounded-xl overflow-hidden"
+                  className={`w-full ${getPreviewMaxWidth()} shadow-2xl shadow-black/20 rounded-xl overflow-hidden`}
                 >
-                  <BeforeAfterTemplate
-                    variant={selectedTemplate}
-                    beforeImage={beforeImage}
-                    afterImage={afterImage}
-                    headline={headline}
-                    subheadline={subheadline}
-                  />
+                  {renderPreview()}
                 </div>
               </CardContent>
             </Card>
