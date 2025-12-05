@@ -1,223 +1,72 @@
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 
-export type TemplateCategory = 'before-after' | 'promo' | 'testimonial' | 'quote' | 'single' | 'story';
+export type TemplateCategory = 'metamorfoza' | 'promocja' | 'oferta' | 'efekt' | 'rezerwacja';
 
 export type TemplateVariant = 
-  // Before/After templates
-  | 'elegant-split' | 'diagonal-glam' | 'neon-frame' | 'minimal-luxury' | 'bold-contrast' | 'soft-glow'
-  | 'vertical-stack' | 'circle-reveal' | 'sliding-compare'
-  // Promo templates
-  | 'promo-sale' | 'promo-new-service' | 'promo-discount' | 'promo-announcement'
-  // Testimonial templates
-  | 'testimonial-card' | 'testimonial-photo' | 'testimonial-minimal'
-  // Quote templates
-  | 'quote-elegant' | 'quote-bold' | 'quote-minimal'
-  // Single image templates
-  | 'single-hero' | 'single-portfolio' | 'single-feature'
-  // Story templates
-  | 'story-promo' | 'story-testimonial' | 'story-announcement';
+  // Metamorfoza (Before/After) - główna kategoria
+  | 'meta-glamour' | 'meta-neon' | 'meta-luxury' | 'meta-diagonal' | 'meta-circle' | 'meta-minimal' 
+  | 'meta-dark' | 'meta-gold' | 'meta-pastel' | 'meta-bold' | 'meta-story' | 'meta-wide'
+  // Promocja/Rabat
+  | 'promo-neon' | 'promo-elegant' | 'promo-bold' | 'promo-flash' | 'promo-story'
+  // Oferta specjalna
+  | 'offer-luxury' | 'offer-seasonal' | 'offer-package' | 'offer-vip' | 'offer-story'
+  // Efekt/Rezultat
+  | 'effect-glow' | 'effect-wow' | 'effect-premium' | 'effect-story'
+  // Rezerwacja
+  | 'book-now' | 'book-limited' | 'book-story';
 
 interface Template {
   id: TemplateVariant;
   name: string;
   description: string;
   category: TemplateCategory;
-  aspectRatio: 'square' | 'portrait' | 'landscape' | 'story';
+  aspectRatio: '1:1' | '4:5' | '9:16' | '16:9';
 }
 
-export const TEMPLATE_CATEGORIES: { id: TemplateCategory; name: string; icon: string }[] = [
-  { id: 'before-after', name: 'Przed/Po', icon: '↔️' },
-  { id: 'promo', name: 'Promocje', icon: '🏷️' },
-  { id: 'testimonial', name: 'Opinie', icon: '💬' },
-  { id: 'quote', name: 'Cytaty', icon: '✨' },
-  { id: 'single', name: 'Portfolio', icon: '📸' },
-  { id: 'story', name: 'Stories', icon: '📱' },
+export const TEMPLATE_CATEGORIES: { id: TemplateCategory; name: string; icon: string; description: string }[] = [
+  { id: 'metamorfoza', name: 'Metamorfozy', icon: '✨', description: 'Przed i po zabiegu' },
+  { id: 'promocja', name: 'Promocje', icon: '🔥', description: 'Rabaty i wyprzedaże' },
+  { id: 'oferta', name: 'Oferty', icon: '💎', description: 'Pakiety i oferty specjalne' },
+  { id: 'efekt', name: 'Efekty', icon: '⭐', description: 'Prezentacja rezultatów' },
+  { id: 'rezerwacja', name: 'Rezerwacje', icon: '📅', description: 'CTA do rezerwacji' },
 ];
 
 export const TEMPLATES: Template[] = [
-  // Before/After templates
-  {
-    id: 'elegant-split',
-    name: 'Elegancki Podział',
-    description: 'Klasyczny podział z neonowymi akcentami',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'diagonal-glam',
-    name: 'Diagonalny Glam',
-    description: 'Dynamiczne ukośne przejście',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'neon-frame',
-    name: 'Neonowa Ramka',
-    description: 'Świecąca ramka z efektem glow',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'minimal-luxury',
-    name: 'Minimalistyczny Lux',
-    description: 'Elegancja w jasnych tonach',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'bold-contrast',
-    name: 'Mocny Kontrast',
-    description: 'Odważny overlap zdjęć',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'soft-glow',
-    name: 'Delikatna Poświata',
-    description: 'Miękkie pastelowe tło',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'vertical-stack',
-    name: 'Pionowy Stos',
-    description: 'Zdjęcia jedno pod drugim',
-    category: 'before-after',
-    aspectRatio: 'portrait',
-  },
-  {
-    id: 'circle-reveal',
-    name: 'Okrągłe Ramki',
-    description: 'Efektowne okrągłe zdjęcia',
-    category: 'before-after',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'sliding-compare',
-    name: 'Porównanie',
-    description: 'Klasyczne porównanie z podziałem',
-    category: 'before-after',
-    aspectRatio: 'landscape',
-  },
-  // Promo templates
-  {
-    id: 'promo-sale',
-    name: 'Wyprzedaż',
-    description: 'Promocja z dużym rabatem',
-    category: 'promo',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'promo-new-service',
-    name: 'Nowa Usługa',
-    description: 'Prezentacja nowej oferty',
-    category: 'promo',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'promo-discount',
-    name: 'Rabat',
-    description: 'Kod rabatowy lub zniżka',
-    category: 'promo',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'promo-announcement',
-    name: 'Ogłoszenie',
-    description: 'Ważna informacja',
-    category: 'promo',
-    aspectRatio: 'square',
-  },
-  // Testimonial templates
-  {
-    id: 'testimonial-card',
-    name: 'Karta Opinii',
-    description: 'Klasyczna karta z opinią klienta',
-    category: 'testimonial',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'testimonial-photo',
-    name: 'Opinia ze Zdjęciem',
-    description: 'Opinia z dużym zdjęciem',
-    category: 'testimonial',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'testimonial-minimal',
-    name: 'Minimalna Opinia',
-    description: 'Prosta, elegancka forma',
-    category: 'testimonial',
-    aspectRatio: 'square',
-  },
-  // Quote templates
-  {
-    id: 'quote-elegant',
-    name: 'Elegancki Cytat',
-    description: 'Cytat z ozdobnikami',
-    category: 'quote',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'quote-bold',
-    name: 'Wyrazisty Cytat',
-    description: 'Duża, odważna typografia',
-    category: 'quote',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'quote-minimal',
-    name: 'Minimalny Cytat',
-    description: 'Prosta forma tekstowa',
-    category: 'quote',
-    aspectRatio: 'square',
-  },
-  // Single image templates
-  {
-    id: 'single-hero',
-    name: 'Hero',
-    description: 'Duże zdjęcie z tekstem',
-    category: 'single',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'single-portfolio',
-    name: 'Portfolio',
-    description: 'Elegancka prezentacja pracy',
-    category: 'single',
-    aspectRatio: 'square',
-  },
-  {
-    id: 'single-feature',
-    name: 'Wyróżnienie',
-    description: 'Prezentacja z akcentami',
-    category: 'single',
-    aspectRatio: 'square',
-  },
-  // Story templates
-  {
-    id: 'story-promo',
-    name: 'Story Promo',
-    description: 'Promocja na Stories',
-    category: 'story',
-    aspectRatio: 'story',
-  },
-  {
-    id: 'story-testimonial',
-    name: 'Story Opinia',
-    description: 'Opinia klienta na Stories',
-    category: 'story',
-    aspectRatio: 'story',
-  },
-  {
-    id: 'story-announcement',
-    name: 'Story Ogłoszenie',
-    description: 'Ogłoszenie na Stories',
-    category: 'story',
-    aspectRatio: 'story',
-  },
+  // METAMORFOZY - 12 szablonów
+  { id: 'meta-glamour', name: 'Glamour', description: 'Elegancki split z neonowym akcentem', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-neon', name: 'Neon Glow', description: 'Świecące ramki z efektem glow', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-luxury', name: 'Luxury Gold', description: 'Złote akcenty premium', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-diagonal', name: 'Diagonal Cut', description: 'Dynamiczne ukośne cięcie', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-circle', name: 'Circle Frame', description: 'Okrągłe ramki z efektem', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-minimal', name: 'Minimal Chic', description: 'Minimalistyczna elegancja', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-dark', name: 'Dark Mode', description: 'Ciemna estetyka premium', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-gold', name: 'Rose Gold', description: 'Różowe złoto i blask', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-pastel', name: 'Soft Pastel', description: 'Delikatne pastelowe tło', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-bold', name: 'Bold Impact', description: 'Mocny kontrast i overlap', category: 'metamorfoza', aspectRatio: '1:1' },
+  { id: 'meta-story', name: 'Story Format', description: 'Format pionowy 9:16', category: 'metamorfoza', aspectRatio: '9:16' },
+  { id: 'meta-wide', name: 'Wide Banner', description: 'Szeroki format 16:9', category: 'metamorfoza', aspectRatio: '16:9' },
+  // PROMOCJE - 5 szablonów
+  { id: 'promo-neon', name: 'Neon Sale', description: 'Neonowy efekt wyprzedaży', category: 'promocja', aspectRatio: '1:1' },
+  { id: 'promo-elegant', name: 'Elegant Promo', description: 'Elegancka promocja', category: 'promocja', aspectRatio: '1:1' },
+  { id: 'promo-bold', name: 'Bold Discount', description: 'Mocny rabat w centrum', category: 'promocja', aspectRatio: '1:1' },
+  { id: 'promo-flash', name: 'Flash Sale', description: 'Błyskawiczna promocja', category: 'promocja', aspectRatio: '1:1' },
+  { id: 'promo-story', name: 'Promo Story', description: 'Promocja na Stories', category: 'promocja', aspectRatio: '9:16' },
+  // OFERTY - 5 szablonów
+  { id: 'offer-luxury', name: 'Luxury Package', description: 'Pakiet premium', category: 'oferta', aspectRatio: '1:1' },
+  { id: 'offer-seasonal', name: 'Seasonal', description: 'Oferta sezonowa', category: 'oferta', aspectRatio: '1:1' },
+  { id: 'offer-package', name: 'Bundle Deal', description: 'Pakiet usług', category: 'oferta', aspectRatio: '1:1' },
+  { id: 'offer-vip', name: 'VIP Offer', description: 'Ekskluzywna oferta VIP', category: 'oferta', aspectRatio: '1:1' },
+  { id: 'offer-story', name: 'Offer Story', description: 'Oferta na Stories', category: 'oferta', aspectRatio: '9:16' },
+  // EFEKTY - 4 szablony
+  { id: 'effect-glow', name: 'Glow Effect', description: 'Efekt blasku', category: 'efekt', aspectRatio: '1:1' },
+  { id: 'effect-wow', name: 'WOW Result', description: 'Spektakularny efekt', category: 'efekt', aspectRatio: '1:1' },
+  { id: 'effect-premium', name: 'Premium Look', description: 'Premium prezentacja', category: 'efekt', aspectRatio: '1:1' },
+  { id: 'effect-story', name: 'Effect Story', description: 'Efekt na Stories', category: 'efekt', aspectRatio: '9:16' },
+  // REZERWACJE - 3 szablony
+  { id: 'book-now', name: 'Book Now', description: 'Zarezerwuj teraz', category: 'rezerwacja', aspectRatio: '1:1' },
+  { id: 'book-limited', name: 'Limited Spots', description: 'Ostatnie miejsca', category: 'rezerwacja', aspectRatio: '1:1' },
+  { id: 'book-story', name: 'Book Story', description: 'Rezerwacja na Stories', category: 'rezerwacja', aspectRatio: '9:16' },
 ];
 
 interface TemplateGalleryProps {
@@ -227,60 +76,57 @@ interface TemplateGalleryProps {
   onSelectCategory: (category: TemplateCategory | 'all') => void;
 }
 
-function TemplatePreview({ template }: { template: Template }) {
-  const getPreviewStyle = () => {
-    switch (template.category) {
-      case 'before-after':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center gap-1 p-2">
-            <div className="flex-1 h-full bg-zinc-700 rounded" />
-            <div className="flex-1 h-full bg-gradient-to-br from-pink-500/50 to-rose-500/50 rounded" />
-          </div>
-        );
-      case 'promo':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center p-2">
-            <div className="text-white text-center">
-              <div className="text-lg font-bold">-50%</div>
-              <div className="text-[8px] opacity-80">PROMOCJA</div>
-            </div>
-          </div>
-        );
-      case 'testimonial':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex flex-col items-center justify-center p-2">
-            <div className="text-pink-400 text-lg">"</div>
-            <div className="w-8 h-8 rounded-full bg-pink-500/30 mt-1" />
-          </div>
-        );
-      case 'quote':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-pink-50 to-rose-50 flex items-center justify-center p-2">
-            <div className="text-pink-500 text-2xl font-serif">"</div>
-          </div>
-        );
-      case 'single':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900 flex items-center justify-center p-2">
-            <div className="w-3/4 h-3/4 bg-gradient-to-br from-pink-500/30 to-rose-500/30 rounded" />
-          </div>
-        );
-      case 'story':
-        return (
-          <div className="w-full h-full bg-gradient-to-br from-pink-600 to-purple-700 flex items-center justify-center p-1">
-            <div className="w-full h-full border-2 border-white/30 rounded flex items-center justify-center">
-              <div className="text-white/60 text-[8px]">9:16</div>
-            </div>
-          </div>
-        );
-      default:
-        return <div className="w-full h-full bg-zinc-800" />;
+function TemplatePreviewMini({ template }: { template: Template }) {
+  const getAspectClass = () => {
+    switch (template.aspectRatio) {
+      case '9:16': return 'aspect-[9/16]';
+      case '16:9': return 'aspect-video';
+      case '4:5': return 'aspect-[4/5]';
+      default: return 'aspect-square';
     }
   };
 
+  const getPreviewContent = () => {
+    if (template.category === 'metamorfoza') {
+      return (
+        <div className="absolute inset-1 flex gap-0.5 rounded overflow-hidden">
+          <div className="flex-1 bg-gradient-to-br from-zinc-600 to-zinc-700" />
+          <div className="w-px bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
+          <div className="flex-1 bg-gradient-to-br from-pink-500/30 to-rose-500/30" />
+        </div>
+      );
+    }
+    if (template.category === 'promocja') {
+      return (
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-600 to-rose-600 flex items-center justify-center">
+          <span className="text-white font-black text-lg">%</span>
+        </div>
+      );
+    }
+    if (template.category === 'oferta') {
+      return (
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+          <span className="text-white font-black text-sm">VIP</span>
+        </div>
+      );
+    }
+    if (template.category === 'efekt') {
+      return (
+        <div className="absolute inset-0 bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center">
+          <span className="text-white text-lg">✨</span>
+        </div>
+      );
+    }
+    return (
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+        <span className="text-white font-bold text-xs">📅</span>
+      </div>
+    );
+  };
+
   return (
-    <div className="w-full h-full overflow-hidden rounded-lg">
-      {getPreviewStyle()}
+    <div className={cn('relative bg-zinc-800 rounded-lg overflow-hidden', getAspectClass())}>
+      {getPreviewContent()}
     </div>
   );
 }
@@ -295,80 +141,66 @@ export function TemplateGallery({
     ? TEMPLATES 
     : TEMPLATES.filter(t => t.category === selectedCategory);
 
+  const getCategoryCount = (catId: TemplateCategory) => TEMPLATES.filter(t => t.category === catId).length;
+
   return (
     <div className="space-y-4">
       {/* Category filters */}
-      <div className="flex flex-wrap gap-2">
-        <Badge
-          variant={selectedCategory === 'all' ? 'default' : 'outline'}
-          className={cn(
-            'cursor-pointer transition-all',
-            selectedCategory === 'all' && 'bg-primary text-primary-foreground'
-          )}
+      <div className="flex flex-wrap gap-1.5">
+        <button
           onClick={() => onSelectCategory('all')}
+          className={cn(
+            'px-3 py-1.5 rounded-full text-xs font-medium transition-all',
+            selectedCategory === 'all' 
+              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+              : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+          )}
         >
-          Wszystkie
-        </Badge>
+          Wszystkie ({TEMPLATES.length})
+        </button>
         {TEMPLATE_CATEGORIES.map((cat) => (
-          <Badge
+          <button
             key={cat.id}
-            variant={selectedCategory === cat.id ? 'default' : 'outline'}
-            className={cn(
-              'cursor-pointer transition-all',
-              selectedCategory === cat.id && 'bg-primary text-primary-foreground'
-            )}
             onClick={() => onSelectCategory(cat.id)}
+            className={cn(
+              'px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1',
+              selectedCategory === cat.id 
+                ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30' 
+                : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+            )}
           >
-            {cat.icon} {cat.name}
-          </Badge>
+            <span>{cat.icon}</span>
+            <span>{cat.name}</span>
+            <span className="opacity-60">({getCategoryCount(cat.id)})</span>
+          </button>
         ))}
       </div>
 
       {/* Templates grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2 max-h-[400px] overflow-y-auto pr-1">
         {filteredTemplates.map((template) => (
           <button
             key={template.id}
             onClick={() => onSelectTemplate(template.id)}
             className={cn(
-              'group relative rounded-xl overflow-hidden transition-all duration-300 aspect-square',
-              'hover:ring-2 hover:ring-primary/50 hover:shadow-lg hover:shadow-primary/10',
-              selectedTemplate === template.id && 'ring-2 ring-primary shadow-lg shadow-primary/20'
+              'group relative rounded-lg overflow-hidden transition-all duration-200 p-1',
+              'hover:bg-primary/10',
+              selectedTemplate === template.id && 'bg-primary/20 ring-2 ring-primary'
             )}
           >
-            <TemplatePreview template={template} />
+            <TemplatePreviewMini template={template} />
             
-            {/* Overlay with info */}
-            <div className={cn(
-              'absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent',
-              'flex flex-col justify-end p-2 transition-opacity',
-              'opacity-0 group-hover:opacity-100',
-              selectedTemplate === template.id && 'opacity-100'
-            )}>
-              <h3 className="text-white text-xs font-medium truncate">{template.name}</h3>
-              <p className="text-white/60 text-[10px] truncate">{template.description}</p>
+            {/* Info */}
+            <div className="mt-1 text-left">
+              <p className="text-[10px] font-medium text-foreground truncate">{template.name}</p>
+              <p className="text-[8px] text-muted-foreground">{template.aspectRatio}</p>
             </div>
 
-            {/* Aspect ratio badge */}
-            <div className="absolute top-1 left-1">
-              <span className={cn(
-                'text-[8px] px-1.5 py-0.5 rounded-full',
-                template.aspectRatio === 'story' ? 'bg-purple-500/80 text-white' :
-                template.aspectRatio === 'portrait' ? 'bg-blue-500/80 text-white' :
-                template.aspectRatio === 'landscape' ? 'bg-green-500/80 text-white' :
-                'bg-zinc-500/80 text-white'
-              )}>
-                {template.aspectRatio === 'story' ? '9:16' : 
-                 template.aspectRatio === 'portrait' ? '4:5' :
-                 template.aspectRatio === 'landscape' ? '16:9' : '1:1'}
-              </span>
-            </div>
-
-            {/* Selected indicator */}
+            {/* Selected */}
             {selectedTemplate === template.id && (
-              <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
             )}
