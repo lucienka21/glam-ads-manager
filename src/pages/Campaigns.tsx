@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { campaignSchema, campaignMetricsSchema } from '@/lib/validationSchemas';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -296,8 +297,11 @@ export default function Campaigns() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.client_id || !formData.start_date) {
-      toast.error('Wypełnij wymagane pola');
+    // Validate form data with Zod
+    const validationResult = campaignSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
       return;
     }
 
@@ -388,8 +392,16 @@ export default function Campaigns() {
   const handleAddMetrics = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedCampaign || !metricsForm.period_start || !metricsForm.period_end) {
-      toast.error('Wybierz okres');
+    // Validate metrics form data with Zod
+    const validationResult = campaignMetricsSchema.safeParse(metricsForm);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.errors[0];
+      toast.error(firstError.message);
+      return;
+    }
+
+    if (!selectedCampaign) {
+      toast.error('Wybierz kampanię');
       return;
     }
 
