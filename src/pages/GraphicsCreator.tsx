@@ -4,19 +4,18 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
-import { Download, RotateCcw, Sparkles, Loader2, Copy, Image as ImageIcon, Type, Palette } from 'lucide-react';
-import { TemplateGallery, TEMPLATES, TEMPLATE_CATEGORIES, type TemplateVariant, type TemplateCategory } from '@/components/graphics/TemplateGallery';
+import { Download, RotateCcw, Sparkles, Loader2, Copy, Image as ImageIcon, Type, Wand2, Check, ArrowRight } from 'lucide-react';
+import { TemplateGallery, TEMPLATES, type TemplateVariant, type TemplateCategory } from '@/components/graphics/TemplateGallery';
 import { ImageUploader } from '@/components/graphics/ImageUploader';
 import { MetamorfozaTemplate } from '@/components/graphics/templates/MetamorfozaTemplate';
 import { PromoTemplate } from '@/components/graphics/templates/PromoTemplate';
 import { OfferTemplate } from '@/components/graphics/templates/OfferTemplate';
 import { EffectTemplate } from '@/components/graphics/templates/EffectTemplate';
 import { BookingTemplate } from '@/components/graphics/templates/BookingTemplate';
+import { cn } from '@/lib/utils';
 
 export default function GraphicsCreator() {
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateVariant>('meta-glamour');
@@ -28,19 +27,20 @@ export default function GraphicsCreator() {
   const [mainImage, setMainImage] = useState<string | null>(null);
   
   // Text fields
-  const [headline, setHeadline] = useState('');
-  const [subheadline, setSubheadline] = useState('');
-  const [salonName, setSalonName] = useState('');
+  const [headline, setHeadline] = useState('Metamorfoza');
+  const [subheadline, setSubheadline] = useState('Zobacz efekt zabiegu');
+  const [salonName, setSalonName] = useState('Beauty Studio');
   const [discountText, setDiscountText] = useState('-30%');
   const [ctaText, setCtaText] = useState('Zarezerwuj teraz');
-  const [price, setPrice] = useState('');
-  const [oldPrice, setOldPrice] = useState('');
-  const [features, setFeatures] = useState('');
-  const [serviceName, setServiceName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [urgencyText, setUrgencyText] = useState('');
+  const [price, setPrice] = useState('299 zł');
+  const [oldPrice, setOldPrice] = useState('499 zł');
+  const [features, setFeatures] = useState('Zabieg premium\nDługotrwały efekt\nNaturalny wygląd');
+  const [serviceName, setServiceName] = useState('Laminacja brwi');
+  const [phone, setPhone] = useState('+48 123 456 789');
+  const [urgencyText, setUrgencyText] = useState('Ostatnie 3 miejsca!');
   
   const [generating, setGenerating] = useState(false);
+  const [activeStep, setActiveStep] = useState<'template' | 'content' | 'preview'>('template');
   const previewRef = useRef<HTMLDivElement>(null);
 
   const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
@@ -61,7 +61,7 @@ export default function GraphicsCreator() {
       link.download = `beauty-graphic-${selectedTemplate}-${Date.now()}.png`;
       link.href = dataUrl;
       link.click();
-      toast.success('Grafika pobrana!');
+      toast.success('Grafika pobrana pomyślnie!');
     } catch (err) {
       console.error('Error generating image:', err);
       toast.error('Błąd podczas generowania grafiki');
@@ -90,17 +90,17 @@ export default function GraphicsCreator() {
     setBeforeImage(null);
     setAfterImage(null);
     setMainImage(null);
-    setHeadline('');
-    setSubheadline('');
-    setSalonName('');
+    setHeadline('Metamorfoza');
+    setSubheadline('Zobacz efekt zabiegu');
+    setSalonName('Beauty Studio');
     setDiscountText('-30%');
     setCtaText('Zarezerwuj teraz');
-    setPrice('');
-    setOldPrice('');
-    setFeatures('');
-    setServiceName('');
-    setPhone('');
-    setUrgencyText('');
+    setPrice('299 zł');
+    setOldPrice('499 zł');
+    setFeatures('Zabieg premium\nDługotrwały efekt\nNaturalny wygląd');
+    setServiceName('Laminacja brwi');
+    setPhone('+48 123 456 789');
+    setUrgencyText('Ostatnie 3 miejsca!');
   };
 
   const renderPreview = () => {
@@ -181,7 +181,7 @@ export default function GraphicsCreator() {
   const renderImageUploaders = () => {
     if (currentCategory === 'metamorfoza') {
       return (
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-4">
           <ImageUploader
             label="Zdjęcie PRZED"
             image={beforeImage}
@@ -198,135 +198,134 @@ export default function GraphicsCreator() {
 
     return (
       <ImageUploader
-        label="Zdjęcie"
+        label="Zdjęcie główne"
         image={mainImage}
         onImageChange={setMainImage}
+        className="max-w-sm mx-auto"
       />
     );
   };
 
   const renderTextFields = () => {
     return (
-      <div className="space-y-3">
-        <div>
-          <Label className="text-xs text-muted-foreground">Nagłówek</Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground font-medium">Nagłówek</Label>
           <Input
             value={headline}
             onChange={(e) => setHeadline(e.target.value)}
             placeholder="np. Metamorfoza"
-            className="mt-1 h-9"
+            className="h-10"
           />
         </div>
         
-        <div>
-          <Label className="text-xs text-muted-foreground">Podtytuł</Label>
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground font-medium">Podtytuł</Label>
           <Input
             value={subheadline}
             onChange={(e) => setSubheadline(e.target.value)}
             placeholder="np. Zobacz efekt zabiegu"
-            className="mt-1 h-9"
+            className="h-10"
           />
         </div>
 
-        <div>
-          <Label className="text-xs text-muted-foreground">Nazwa salonu</Label>
+        <div className="space-y-1">
+          <Label className="text-xs text-muted-foreground font-medium">Nazwa salonu</Label>
           <Input
             value={salonName}
             onChange={(e) => setSalonName(e.target.value)}
             placeholder="np. Beauty Studio"
-            className="mt-1 h-9"
+            className="h-10"
           />
         </div>
 
-        {(currentCategory === 'promocja') && (
-          <div>
-            <Label className="text-xs text-muted-foreground">Rabat</Label>
+        {currentCategory === 'promocja' && (
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground font-medium">Rabat</Label>
             <Input
               value={discountText}
               onChange={(e) => setDiscountText(e.target.value)}
               placeholder="np. -50%"
-              className="mt-1 h-9"
+              className="h-10"
             />
           </div>
         )}
 
-        {(currentCategory === 'oferta') && (
+        {currentCategory === 'oferta' && (
           <>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <Label className="text-xs text-muted-foreground">Cena</Label>
-                <Input
-                  value={price}
-                  onChange={(e) => setPrice(e.target.value)}
-                  placeholder="np. 299 zł"
-                  className="mt-1 h-9"
-                />
-              </div>
-              <div>
-                <Label className="text-xs text-muted-foreground">Stara cena</Label>
-                <Input
-                  value={oldPrice}
-                  onChange={(e) => setOldPrice(e.target.value)}
-                  placeholder="np. 499 zł"
-                  className="mt-1 h-9"
-                />
-              </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground font-medium">Cena</Label>
+              <Input
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="np. 299 zł"
+                className="h-10"
+              />
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Lista korzyści (każda w nowej linii)</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground font-medium">Stara cena</Label>
+              <Input
+                value={oldPrice}
+                onChange={(e) => setOldPrice(e.target.value)}
+                placeholder="np. 499 zł"
+                className="h-10"
+              />
+            </div>
+            <div className="col-span-2 space-y-1">
+              <Label className="text-xs text-muted-foreground font-medium">Lista korzyści (każda w nowej linii)</Label>
               <Textarea
                 value={features}
                 onChange={(e) => setFeatures(e.target.value)}
                 placeholder="Zabieg 1&#10;Zabieg 2&#10;Zabieg 3"
-                className="mt-1 min-h-[80px]"
+                className="min-h-[80px]"
               />
             </div>
           </>
         )}
 
-        {(currentCategory === 'efekt') && (
-          <div>
-            <Label className="text-xs text-muted-foreground">Nazwa usługi</Label>
+        {currentCategory === 'efekt' && (
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground font-medium">Nazwa usługi</Label>
             <Input
               value={serviceName}
               onChange={(e) => setServiceName(e.target.value)}
               placeholder="np. Laminacja brwi"
-              className="mt-1 h-9"
+              className="h-10"
             />
           </div>
         )}
 
-        {(currentCategory === 'rezerwacja') && (
+        {currentCategory === 'rezerwacja' && (
           <>
-            <div>
-              <Label className="text-xs text-muted-foreground">Telefon</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground font-medium">Telefon</Label>
               <Input
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="np. +48 123 456 789"
-                className="mt-1 h-9"
+                className="h-10"
               />
             </div>
-            <div>
-              <Label className="text-xs text-muted-foreground">Tekst pilności</Label>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground font-medium">Tekst pilności</Label>
               <Input
                 value={urgencyText}
                 onChange={(e) => setUrgencyText(e.target.value)}
                 placeholder="np. Ostatnie 3 miejsca!"
-                className="mt-1 h-9"
+                className="h-10"
               />
             </div>
           </>
         )}
 
         {(currentCategory === 'promocja' || currentCategory === 'oferta' || currentCategory === 'rezerwacja') && (
-          <div>
-            <Label className="text-xs text-muted-foreground">Przycisk CTA</Label>
+          <div className="space-y-1">
+            <Label className="text-xs text-muted-foreground font-medium">Przycisk CTA</Label>
             <Input
               value={ctaText}
               onChange={(e) => setCtaText(e.target.value)}
               placeholder="np. Zarezerwuj teraz"
-              className="mt-1 h-9"
+              className="h-10"
             />
           </div>
         )}
@@ -334,127 +333,248 @@ export default function GraphicsCreator() {
     );
   };
 
-  const getPreviewContainerClass = () => {
-    if (!currentTemplate) return 'max-w-md';
-    if (currentTemplate.aspectRatio === '9:16') return 'max-w-[280px]';
-    if (currentTemplate.aspectRatio === '16:9') return 'max-w-2xl';
-    return 'max-w-md';
+  const getPreviewDimensions = () => {
+    if (!currentTemplate) return { width: 400, height: 400 };
+    
+    switch (currentTemplate.aspectRatio) {
+      case '9:16': return { width: 270, height: 480 };
+      case '16:9': return { width: 640, height: 360 };
+      case '4:5': return { width: 400, height: 500 };
+      default: return { width: 400, height: 400 };
+    }
   };
+
+  const dimensions = getPreviewDimensions();
+
+  const steps = [
+    { id: 'template', label: 'Szablon', icon: Wand2 },
+    { id: 'content', label: 'Treść', icon: Type },
+    { id: 'preview', label: 'Podgląd', icon: ImageIcon },
+  ] as const;
 
   return (
     <AppLayout>
-      <div className="h-[calc(100vh-4rem)] flex flex-col">
-        {/* Compact Header */}
-        <div className="flex-shrink-0 px-4 py-3 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
-                <Sparkles className="w-5 h-5 text-white" />
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <div className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
+          <div className="px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg shadow-pink-500/20">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-foreground">Kreator Grafik</h1>
+                  <p className="text-sm text-muted-foreground">{TEMPLATES.length} profesjonalnych szablonów dla FB Ads</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-foreground">Kreator Grafik</h1>
-                <p className="text-xs text-muted-foreground">{TEMPLATES.length} szablonów dla FB Ads Beauty</p>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="sm" onClick={handleReset}>
+                  <RotateCcw className="w-4 h-4 mr-2" />
+                  Reset
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleCopyToClipboard} disabled={generating}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Kopiuj
+                </Button>
+                <Button size="sm" onClick={handleDownload} disabled={generating} className="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600">
+                  {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
+                  Pobierz PNG
+                </Button>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleReset}>
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleCopyToClipboard} disabled={generating}>
-                <Copy className="w-4 h-4 mr-1" />
-                Kopiuj
-              </Button>
-              <Button size="sm" onClick={handleDownload} disabled={generating} className="bg-pink-500 hover:bg-pink-600">
-                {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 mr-1" />}
-                Pobierz PNG
-              </Button>
+
+            {/* Step indicators */}
+            <div className="flex items-center gap-2 mt-4">
+              {steps.map((step, index) => (
+                <button
+                  key={step.id}
+                  onClick={() => setActiveStep(step.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                    activeStep === step.id
+                      ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                      : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  )}
+                >
+                  <step.icon className="w-4 h-4" />
+                  {step.label}
+                  {index < steps.length - 1 && (
+                    <ArrowRight className="w-3 h-3 ml-1 opacity-50" />
+                  )}
+                </button>
+              ))}
             </div>
           </div>
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex">
           {/* Left Panel - Controls */}
-          <div className="w-[340px] flex-shrink-0 border-r border-border/50 bg-muted/20">
-            <Tabs defaultValue="templates" className="h-full flex flex-col">
-              <TabsList className="flex-shrink-0 mx-3 mt-3 grid grid-cols-3 h-9">
-                <TabsTrigger value="templates" className="text-xs gap-1">
-                  <Palette className="w-3 h-3" /> Szablony
-                </TabsTrigger>
-                <TabsTrigger value="images" className="text-xs gap-1">
-                  <ImageIcon className="w-3 h-3" /> Zdjęcia
-                </TabsTrigger>
-                <TabsTrigger value="text" className="text-xs gap-1">
-                  <Type className="w-3 h-3" /> Tekst
-                </TabsTrigger>
-              </TabsList>
-
-              <div className="flex-1 overflow-hidden">
-                <TabsContent value="templates" className="h-full m-0 p-3">
-                  <ScrollArea className="h-full">
+          <div className="w-[400px] flex-shrink-0 border-r border-border/50 bg-muted/10 min-h-[calc(100vh-140px)]">
+            <ScrollArea className="h-[calc(100vh-140px)]">
+              <div className="p-6 space-y-6">
+                {/* Step 1: Templates */}
+                {activeStep === 'template' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-xs text-primary font-bold">1</span>
+                      </div>
+                      Wybierz szablon
+                    </div>
                     <TemplateGallery
                       selectedTemplate={selectedTemplate}
-                      onSelectTemplate={setSelectedTemplate}
+                      onSelectTemplate={(t) => {
+                        setSelectedTemplate(t);
+                        // Auto advance to next step
+                        setTimeout(() => setActiveStep('content'), 200);
+                      }}
                       selectedCategory={selectedCategory}
                       onSelectCategory={setSelectedCategory}
                     />
-                  </ScrollArea>
-                </TabsContent>
-
-                <TabsContent value="images" className="h-full m-0 p-3">
-                  <ScrollArea className="h-full">
-                    <div className="space-y-4">
-                      <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
-                        <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
-                          <ImageIcon className="w-4 h-4 text-pink-500" />
-                          {currentCategory === 'metamorfoza' ? 'Zdjęcia przed/po' : 'Zdjęcie główne'}
-                        </h3>
-                        {renderImageUploaders()}
-                      </div>
-                      
-                      {currentTemplate && (
-                        <div className="p-3 rounded-lg bg-pink-500/10 border border-pink-500/20">
-                          <p className="text-xs text-pink-400">
-                            <span className="font-medium">{currentTemplate.name}</span>
-                            <span className="text-pink-400/60"> • {currentTemplate.aspectRatio}</span>
-                          </p>
-                          <p className="text-xs text-pink-400/60 mt-0.5">{currentTemplate.description}</p>
+                    
+                    {currentTemplate && (
+                      <div className="p-4 rounded-xl bg-gradient-to-br from-pink-500/10 to-rose-500/10 border border-pink-500/20">
+                        <p className="text-sm font-medium text-foreground">{currentTemplate.name}</p>
+                        <p className="text-xs text-muted-foreground mt-1">{currentTemplate.description}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span className="text-[10px] px-2 py-0.5 bg-pink-500/20 text-pink-400 rounded-full">
+                            {currentTemplate.aspectRatio}
+                          </span>
+                          <span className="text-[10px] px-2 py-0.5 bg-muted text-muted-foreground rounded-full">
+                            {currentTemplate.category}
+                          </span>
                         </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                <TabsContent value="text" className="h-full m-0 p-3">
-                  <ScrollArea className="h-full">
-                    <div className="p-3 rounded-lg bg-muted/50 border border-border/50">
-                      <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                {/* Step 2: Content */}
+                {activeStep === 'content' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-xs text-primary font-bold">2</span>
+                      </div>
+                      Dodaj treść
+                    </div>
+
+                    {/* Images Section */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <ImageIcon className="w-4 h-4 text-pink-500" />
+                        {currentCategory === 'metamorfoza' ? 'Zdjęcia przed/po' : 'Zdjęcie'}
+                      </h3>
+                      {renderImageUploaders()}
+                    </div>
+
+                    {/* Text Section */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-medium text-foreground flex items-center gap-2">
                         <Type className="w-4 h-4 text-pink-500" />
                         Treść grafiki
                       </h3>
                       {renderTextFields()}
                     </div>
-                  </ScrollArea>
-                </TabsContent>
+
+                    <Button 
+                      className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
+                      onClick={() => setActiveStep('preview')}
+                    >
+                      Przejdź do podglądu
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                )}
+
+                {/* Step 3: Preview info */}
+                {activeStep === 'preview' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-xs text-primary font-bold">3</span>
+                      </div>
+                      Podgląd i eksport
+                    </div>
+
+                    <div className="p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 border border-green-500/20">
+                      <div className="flex items-center gap-2 text-green-500 mb-2">
+                        <Check className="w-4 h-4" />
+                        <span className="text-sm font-medium">Grafika gotowa!</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Twoja grafika jest gotowa do pobrania. Kliknij "Pobierz PNG" aby zapisać ją na swoim urządzeniu.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Button 
+                        className="w-full bg-gradient-to-r from-pink-500 to-rose-500"
+                        onClick={handleDownload}
+                        disabled={generating}
+                      >
+                        {generating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Download className="w-4 h-4 mr-2" />}
+                        Pobierz PNG (3x)
+                      </Button>
+                      <Button 
+                        variant="outline"
+                        className="w-full"
+                        onClick={handleCopyToClipboard}
+                        disabled={generating}
+                      >
+                        <Copy className="w-4 h-4 mr-2" />
+                        Kopiuj do schowka
+                      </Button>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <Button 
+                        variant="ghost"
+                        className="flex-1"
+                        onClick={() => setActiveStep('template')}
+                      >
+                        Zmień szablon
+                      </Button>
+                      <Button 
+                        variant="ghost"
+                        className="flex-1"
+                        onClick={() => setActiveStep('content')}
+                      >
+                        Edytuj treść
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
-            </Tabs>
+            </ScrollArea>
           </div>
 
           {/* Right Panel - Preview */}
-          <div className="flex-1 flex items-center justify-center p-6 bg-[#1a1a1a] overflow-auto">
+          <div className="flex-1 flex items-center justify-center p-8 bg-[#1a1a1a] min-h-[calc(100vh-140px)]">
             <div className="relative">
-              {/* Checkerboard background for transparency */}
-              <div className="absolute inset-0 rounded-xl overflow-hidden" style={{
-                backgroundImage: 'linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%)',
-                backgroundSize: '20px 20px',
-                backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
-              }} />
+              {/* Checkerboard background */}
+              <div 
+                className="absolute inset-0 rounded-xl overflow-hidden" 
+                style={{
+                  backgroundImage: 'linear-gradient(45deg, #2a2a2a 25%, transparent 25%), linear-gradient(-45deg, #2a2a2a 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #2a2a2a 75%), linear-gradient(-45deg, transparent 75%, #2a2a2a 75%)',
+                  backgroundSize: '20px 20px',
+                  backgroundPosition: '0 0, 0 10px, 10px -10px, -10px 0px'
+                }} 
+              />
               
               <div 
                 ref={previewRef}
-                className={`relative ${getPreviewContainerClass()} shadow-2xl rounded-xl overflow-hidden`}
+                className="relative shadow-2xl rounded-xl overflow-hidden"
+                style={{ width: dimensions.width, height: dimensions.height }}
               >
                 {renderPreview()}
+              </div>
+
+              {/* Dimension indicator */}
+              <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-xs text-muted-foreground">
+                {dimensions.width} × {dimensions.height}px • {currentTemplate?.aspectRatio}
               </div>
             </div>
           </div>
