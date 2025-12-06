@@ -1119,6 +1119,39 @@ export default function Leads() {
           </div>
         </div>
 
+        {/* Cold Mail Alert Banner - similar to Auto Follow-ups */}
+        {stats.pendingColdEmail > 0 && (
+          <Card className="border-0 bg-gradient-to-r from-amber-500/20 via-orange-500/10 to-transparent border-l-4 border-l-amber-500">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                    <Send className="w-6 h-6 text-amber-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-lg flex items-center gap-2">
+                      Cold maile do wysłania dziś
+                      <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">
+                        {stats.pendingColdEmail}
+                      </Badge>
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      Leady oczekujące na cold mail - kliknij zakładkę "Do wysłania: Cold" aby zobaczyć listę
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => { setActiveTab('pending_cold_email'); setTabFilter('due'); }}
+                  className="bg-amber-500 hover:bg-amber-600 text-black"
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Zobacz listę
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <Card className="border-border/50 bg-card/80">
@@ -1134,20 +1167,20 @@ export default function Leads() {
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+          <Card className="border-border/50 bg-card/80 cursor-pointer hover:bg-card/90 transition-colors" onClick={() => { setActiveTab('pending_cold_email'); setTabFilter('due'); }}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-yellow-500/10">
                   <Send className="w-4 h-4 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.pendingColdEmail}</p>
-                  <p className="text-xs text-muted-foreground">Cold mail</p>
+                  <p className="text-2xl font-bold text-yellow-400">{stats.pendingColdEmail}</p>
+                  <p className="text-xs text-muted-foreground">Cold mail dziś</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+          <Card className="border-border/50 bg-card/80 cursor-pointer hover:bg-card/90 transition-colors" onClick={() => { setActiveTab('pending_sms'); setTabFilter('due'); }}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-cyan-500/10">
@@ -1155,12 +1188,12 @@ export default function Leads() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.pendingSms}</p>
-                  <p className="text-xs text-muted-foreground">SMS</p>
+                  <p className="text-xs text-muted-foreground">SMS dziś</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+          <Card className="border-border/50 bg-card/80 cursor-pointer hover:bg-card/90 transition-colors" onClick={() => { setActiveTab('pending_email'); setTabFilter('due'); }}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-orange-500/10">
@@ -1168,19 +1201,19 @@ export default function Leads() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{stats.pendingEmail}</p>
-                  <p className="text-xs text-muted-foreground">Email FU</p>
+                  <p className="text-xs text-muted-foreground">Email FU dziś</p>
                 </div>
               </div>
             </CardContent>
           </Card>
-          <Card className="border-border/50 bg-card/80">
+          <Card className="border-border/50 bg-card/80 cursor-pointer hover:bg-card/90 transition-colors" onClick={() => setActiveTab('responded')}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-green-500/10">
                   <CheckCircle2 className="w-4 h-4 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{stats.responded}</p>
+                  <p className="text-2xl font-bold text-green-400">{stats.responded}</p>
                   <p className="text-xs text-muted-foreground">Odpowiedzi</p>
                 </div>
               </div>
