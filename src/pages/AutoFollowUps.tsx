@@ -12,7 +12,7 @@ import { format, addDays, isPast, isToday, isFuture } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import {
   Loader2, Mail, Send, Clock, CheckCircle2, AlertCircle,
-  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, Settings2, FileText, MessageSquare, Key, Save, Eye, EyeOff
+  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, Settings2, FileText, MessageSquare, Key, Save, Eye, EyeOff, History, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -22,6 +22,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface LeadFollowUp {
   id: string;
@@ -46,13 +47,29 @@ interface ZohoCredentials {
   refresh_token: string;
 }
 
+interface FollowUpLog {
+  id: string;
+  lead_id: string;
+  lead_name: string;
+  email_to: string;
+  email_from: string;
+  template_name: string | null;
+  followup_type: string;
+  status: string;
+  error_message: string | null;
+  created_at: string;
+}
+
 export default function AutoFollowUps() {
   const navigate = useNavigate();
   const [leads, setLeads] = useState<LeadFollowUp[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
+  const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [credentials, setCredentials] = useState<ZohoCredentials[]>([]);
+  const [logs, setLogs] = useState<FollowUpLog[]>([]);
+  const [logsLoading, setLogsLoading] = useState(false);
   const [savingCredentials, setSavingCredentials] = useState(false);
   const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
   
@@ -73,7 +90,22 @@ export default function AutoFollowUps() {
   useEffect(() => {
     fetchLeads();
     fetchCredentials();
+    fetchLogs();
   }, []);
+
+  const fetchLogs = async () => {
+    setLogsLoading(true);
+    const { data, error } = await supabase
+      .from('auto_followup_logs')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(100);
+    
+    if (!error && data) {
+      setLogs(data);
+    }
+    setLogsLoading(false);
+  };
 
   const fetchCredentials = async () => {
     const { data, error } = await supabase
@@ -169,12 +201,17 @@ export default function AutoFollowUps() {
       
       toast.success(`Wysłano ${data.sent} follow-upów automatycznie`);
       fetchLeads();
+      fetchLogs();
     } catch (error: any) {
       toast.error('Błąd podczas przetwarzania follow-upów');
       console.error(error);
     }
     setProcessing(false);
   };
+
+  const recentLogs = logs.slice(0, 10);
+  const sentCount = logs.filter(l => l.status === 'sent').length;
+  const failedCount = logs.filter(l => l.status === 'failed').length;
 
   const getFollowUpStatus = (lead: LeadFollowUp) => {
     if (lead.email_follow_up_2_sent) return { label: 'Zakończono', color: 'bg-green-500/20 text-green-400', step: 3 };
@@ -398,6 +435,87 @@ export default function AutoFollowUps() {
                 Szablony
               </Button>
             </Link>
+            <Dialog open={showLogsDialog} onOpenChange={setShowLogsDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <History className="w-4 h-4" />
+                  Historia ({logs.length})
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl max-h-[80vh]">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <History className="w-5 h-5" />
+                    Historia wysyłek follow-upów
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {/* Stats */}
+                  <div className="flex gap-4">
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30">
+                      <CheckCircle2 className="w-4 h-4 text-green-400" />
+                      <span className="text-sm text-green-400 font-medium">{sentCount} wysłanych</span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-500/10 border border-red-500/30">
+                      <XCircle className="w-4 h-4 text-red-400" />
+                      <span className="text-sm text-red-400 font-medium">{failedCount} błędów</span>
+                    </div>
+                  </div>
+
+                  {/* Logs List */}
+                  <ScrollArea className="h-[400px]">
+                    {logsLoading ? (
+                      <div className="flex items-center justify-center py-12">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                      </div>
+                    ) : logs.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <History className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>Brak historii wysyłek</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 pr-4">
+                        {logs.map((log) => (
+                          <div
+                            key={log.id}
+                            className={`p-3 rounded-lg border ${
+                              log.status === 'sent' 
+                                ? 'bg-green-500/5 border-green-500/20' 
+                                : 'bg-red-500/5 border-red-500/20'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                {log.status === 'sent' ? (
+                                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                                ) : (
+                                  <XCircle className="w-4 h-4 text-red-400" />
+                                )}
+                                <span className="font-medium text-foreground">{log.lead_name}</span>
+                                <Badge variant="outline" className="text-xs">
+                                  {log.followup_type === 'followup_1' ? 'FU #1' : 'FU #2'}
+                                </Badge>
+                              </div>
+                              <span className="text-xs text-muted-foreground">
+                                {format(new Date(log.created_at), 'd MMM yyyy, HH:mm', { locale: pl })}
+                              </span>
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              <span>z {log.email_from}</span>
+                              <span className="mx-2">→</span>
+                              <span>{log.email_to}</span>
+                            </div>
+                            {log.error_message && (
+                              <p className="text-xs text-red-400 mt-1">{log.error_message}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </ScrollArea>
+                </div>
+              </DialogContent>
+            </Dialog>
             <Button 
               onClick={runAutoFollowUps} 
               disabled={processing}

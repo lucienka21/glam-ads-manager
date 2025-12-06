@@ -123,6 +123,7 @@ async function sendEmailViaZoho(
       return false;
     }
 
+    // Send with sender name "Aurine" for both accounts
     const sendResponse = await fetch(
       `https://mail.zoho.eu/api/accounts/${account.accountId}/messages`,
       {
@@ -132,7 +133,7 @@ async function sendEmailViaZoho(
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          fromAddress: fromEmail,
+          fromAddress: `"Aurine" <${fromEmail}>`,
           toAddress: to,
           subject,
           content: body,
@@ -146,7 +147,7 @@ async function sendEmailViaZoho(
       return false;
     }
 
-    console.log(`Email sent successfully from ${fromEmail} to ${to}`);
+    console.log(`Email sent successfully from Aurine <${fromEmail}> to ${to}`);
     return true;
   } catch (e) {
     console.error("Send email error:", e);
@@ -163,6 +164,34 @@ function replacePlaceholders(template: string, lead: any): string {
     .replace(/\{email\}/g, lead.email || '')
     .replace(/\{phone\}/g, lead.phone || '')
     .replace(/\{industry\}/g, lead.industry || '');
+}
+
+// Log follow-up send to database
+async function logFollowUpSend(
+  supabase: any,
+  leadId: string,
+  leadName: string,
+  emailTo: string,
+  emailFrom: string,
+  templateName: string,
+  followupType: string,
+  status: 'sent' | 'failed',
+  errorMessage?: string
+) {
+  try {
+    await supabase.from("auto_followup_logs").insert({
+      lead_id: leadId,
+      lead_name: leadName,
+      email_to: emailTo,
+      email_from: emailFrom,
+      template_name: templateName,
+      followup_type: followupType,
+      status,
+      error_message: errorMessage || null,
+    });
+  } catch (e) {
+    console.error("Error logging follow-up:", e);
+  }
 }
 
 serve(async (req) => {
@@ -183,9 +212,9 @@ serve(async (req) => {
       .from("email_templates")
       .select("*");
 
-    const templateMap: Record<string, { subject: string; body: string }> = {};
+    const templateMap: Record<string, { subject: string; body: string; name: string }> = {};
     for (const t of templates || []) {
-      templateMap[t.template_name] = { subject: t.subject, body: t.body };
+      templateMap[t.template_name] = { subject: t.subject, body: t.body, name: t.template_name };
     }
 
     // Default templates if none in database
@@ -195,6 +224,7 @@ serve(async (req) => {
 <p>Piszę w nawiązaniu do mojej poprzedniej wiadomości dotyczącej współpracy z salonem {salon_name}.</p>
 <p>Czy udało się zapoznać z moją propozycją? Chętnie porozmawiam o szczegółach.</p>
 <p>Pozdrawiam,<br/>Zespół Aurine</p>`,
+      name: "Follow-up 1 (domyślny)",
     };
 
     const defaultFollowUp2 = {
@@ -203,6 +233,7 @@ serve(async (req) => {
 <p>To moja ostatnia wiadomość w tej sprawie. Jeśli nie jesteś zainteresowana współpracą, całkowicie to rozumiem.</p>
 <p>Jeśli jednak chciałabyś porozmawiać o tym, jak mogę pomóc {salon_name} pozyskać więcej klientów przez Facebook Ads, daj mi znać.</p>
 <p>Pozdrawiam,<br/>Zespół Aurine</p>`,
+      name: "Follow-up 2 (domyślny)",
     };
 
     // Get Follow-up 1 template
@@ -243,6 +274,7 @@ serve(async (req) => {
         
         if (!accessToken) {
           console.error(`Failed to get access token for ${emailFrom}`);
+          await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp1Template.name || "Follow-up 1", "followup_1", "failed", "Brak tokena dostępu");
           results.failed++;
           continue;
         }
@@ -265,16 +297,20 @@ serve(async (req) => {
             lead_id: lead.id,
             type: "email_follow_up_1",
             title: "Automatyczny Follow-up #1",
-            content: `Email wysłany automatycznie z ${emailFrom} do ${lead.email}`,
+            content: `Email wysłany automatycznie z Aurine <${emailFrom}> do ${lead.email}`,
           });
+
+          await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp1Template.name || "Follow-up 1", "followup_1", "sent");
 
           results.sent++;
           results.processed.push(lead.salon_name);
         } else {
+          await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp1Template.name || "Follow-up 1", "followup_1", "failed", "Błąd wysyłki Zoho");
           results.failed++;
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(`Error processing lead ${lead.id}:`, e);
+        await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, lead.email_from, followUp1Template.name || "Follow-up 1", "followup_1", "failed", e.message);
         results.failed++;
       }
     }
@@ -287,6 +323,7 @@ serve(async (req) => {
         
         if (!accessToken) {
           console.error(`Failed to get access token for ${emailFrom}`);
+          await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp2Template.name || "Follow-up 2", "followup_2", "failed", "Brak tokena dostępu");
           results.failed++;
           continue;
         }
@@ -309,16 +346,20 @@ serve(async (req) => {
             lead_id: lead.id,
             type: "email_follow_up_2",
             title: "Automatyczny Follow-up #2",
-            content: `Email wysłany automatycznie z ${emailFrom} do ${lead.email}`,
+            content: `Email wysłany automatycznie z Aurine <${emailFrom}> do ${lead.email}`,
           });
+
+          await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp2Template.name || "Follow-up 2", "followup_2", "sent");
 
           results.sent++;
           results.processed.push(lead.salon_name);
         } else {
+          await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp2Template.name || "Follow-up 2", "followup_2", "failed", "Błąd wysyłki Zoho");
           results.failed++;
         }
-      } catch (e) {
+      } catch (e: any) {
         console.error(`Error processing lead ${lead.id}:`, e);
+        await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, lead.email_from, followUp2Template.name || "Follow-up 2", "followup_2", "failed", e.message);
         results.failed++;
       }
     }
