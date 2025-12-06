@@ -11,7 +11,7 @@ import {
   MessageSquare, Phone, Copy, Check, User, MapPin, Loader2, 
   RefreshCw, CheckCircle2, Download, Upload, FileText 
 } from 'lucide-react';
-import { declineCityToLocative, declineNameToVocative, declineToGenitive, formatPhoneNumber } from '@/lib/polishDeclension';
+import { declineCityToLocative, getOwnerFirstName, declineSalonNameToGenitive, formatPhoneNumber } from '@/lib/polishDeclension';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
 
@@ -100,18 +100,17 @@ export function SmsFollowUpToday() {
 
     let content = template.content;
     
-    // Replace placeholders with declined/formatted values
-    const ownerFirstName = lead.owner_name?.split(' ')[0] || '';
-    const declinedName = declineNameToVocative(ownerFirstName);
+    // Replace placeholders with properly formatted values
+    const ownerFirstName = getOwnerFirstName(lead.owner_name || '');
     const declinedCity = lead.city ? declineCityToLocative(lead.city) : '';
-    const declinedSalon = declineToGenitive(lead.salon_name || '');
+    const declinedSalon = declineSalonNameToGenitive(lead.salon_name || '');
     
     // Support both Polish and English placeholder names
-    content = content.replace(/{imie}/gi, declinedName);
+    content = content.replace(/{imie}/gi, ownerFirstName);
     content = content.replace(/{salon}/gi, declinedSalon);
     content = content.replace(/{salonu}/gi, declinedSalon);
     content = content.replace(/{miasto}/gi, declinedCity);
-    content = content.replace(/{owner_name}/gi, declinedName);
+    content = content.replace(/{owner_name}/gi, ownerFirstName);
     content = content.replace(/{salon_name}/gi, declinedSalon);
     content = content.replace(/{city}/gi, declinedCity);
 
