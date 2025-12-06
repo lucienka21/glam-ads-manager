@@ -11,10 +11,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Mail, MessageSquare, MailOpen, MoreVertical, Copy, Loader2 } from 'lucide-react';
+import { Plus, Edit, Trash2, Mail, MessageSquare, MailOpen, MoreVertical, Copy, Loader2, Calendar } from 'lucide-react';
 import { emailTemplateSchema } from '@/lib/validationSchemas';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
+import { SmsFollowUpToday } from '@/components/templates/SmsFollowUpToday';
 
 interface EmailTemplate {
   id: string;
@@ -51,7 +52,7 @@ const smsPlaceholders = [
 export default function Templates() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('cold-email');
+  const [activeTab, setActiveTab] = useState('sms-today');
   const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
   const [smsTemplates, setSmsTemplates] = useState<SmsTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -399,7 +400,11 @@ export default function Templates() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
+            <TabsTrigger value="sms-today" className="gap-2">
+              <Calendar className="w-4 h-4" />
+              SMS na dziś
+            </TabsTrigger>
             <TabsTrigger value="cold-email" className="gap-2">
               <Mail className="w-4 h-4" />
               Cold Email
@@ -410,9 +415,14 @@ export default function Templates() {
             </TabsTrigger>
             <TabsTrigger value="sms" className="gap-2">
               <MessageSquare className="w-4 h-4" />
-              SMS
+              Szablony SMS
             </TabsTrigger>
           </TabsList>
+
+          {/* SMS Today Tab */}
+          <TabsContent value="sms-today" className="mt-6">
+            <SmsFollowUpToday />
+          </TabsContent>
 
           {/* Cold Email Tab */}
           <TabsContent value="cold-email" className="mt-6">

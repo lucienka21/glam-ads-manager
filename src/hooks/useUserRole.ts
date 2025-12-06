@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -11,32 +11,47 @@ interface UserRole {
 }
 
 export function useUserRole(): UserRole {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
+    // Wait for auth to finish loading first
+    if (authLoading) {
+      return;
+    }
+
     if (!user) {
       setRole(null);
       setLoading(false);
+      fetchedRef.current = false;
+      return;
+    }
+
+    // Prevent duplicate fetches
+    if (fetchedRef.current) {
       return;
     }
 
     const fetchRole = async () => {
       try {
+        fetchedRef.current = true;
         const { data, error } = await supabase
           .from('user_roles')
           .select('role')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error fetching user role:', error);
+          setRole(null);
+        } else {
+          setRole(data?.role as AppRole || null);
         }
-        
-        setRole(data?.role as AppRole || null);
       } catch (err) {
         console.error('Error fetching role:', err);
+        setRole(null);
       } finally {
         setLoading(false);
       }
@@ -46,7 +61,7 @@ export function useUserRole(): UserRole {
 
     // Subscribe to role changes
     const channel = supabase
-      .channel('user-role-changes')
+      .channel(`user-role-changes-${user.id}`)
       .on(
         'postgres_changes',
         {
@@ -56,6 +71,7 @@ export function useUserRole(): UserRole {
           filter: `user_id=eq.${user.id}`
         },
         () => {
+          fetchedRef.current = false;
           fetchRole();
         }
       )
@@ -64,11 +80,11 @@ export function useUserRole(): UserRole {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user, authLoading]);
 
   return {
     role,
     isSzef: role === 'szef',
-    loading
+    loading: authLoading || loading
   };
 }
