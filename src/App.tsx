@@ -20,6 +20,7 @@ import LeadProfile from "./pages/LeadProfile";
 import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Campaigns from "./pages/Campaigns";
+import CampaignDetails from "./pages/CampaignDetails";
 import EmailTemplates from "./pages/EmailTemplates";
 import Tasks from "./pages/Tasks";
 import RoleManagement from "./pages/RoleManagement";
@@ -35,12 +36,12 @@ import ROICalculator from "./pages/ROICalculator";
 import ProposalGenerator from "./pages/ProposalGenerator";
 import CampaignGenerator from "./pages/CampaignGenerator";
 import GraphicsCreator from "./pages/GraphicsCreator";
+import AutoFollowUps from "./pages/AutoFollowUps";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function AppContent() {
-  // Initialize app settings and apply theme
   useAppSettings();
   
   return (
@@ -56,6 +57,7 @@ function AppContent() {
           <Route path="/clients" element={<ProtectedRoute><Clients /></ProtectedRoute>} />
           <Route path="/clients/:id" element={<ProtectedRoute><ClientProfile /></ProtectedRoute>} />
           <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
+          <Route path="/campaigns/:id" element={<ProtectedRoute><CampaignDetails /></ProtectedRoute>} />
           <Route path="/funnel" element={<ProtectedRoute><SalesFunnelPage /></ProtectedRoute>} />
           <Route path="/email-templates" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
           <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
@@ -74,6 +76,7 @@ function AppContent() {
           <Route path="/proposal-generator" element={<ProtectedRoute><ProposalGenerator /></ProtectedRoute>} />
           <Route path="/campaign-generator" element={<ProtectedRoute><CampaignGenerator /></ProtectedRoute>} />
           <Route path="/graphics-creator" element={<ProtectedRoute><GraphicsCreator /></ProtectedRoute>} />
+          <Route path="/auto-followups" element={<ProtectedRoute><AutoFollowUps /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppErrorBoundary>

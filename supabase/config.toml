@@ -11,3 +11,9 @@ verify_jwt = true
 
 [functions.process-graphics]
 verify_jwt = true
+
+[functions.send-zoho-email]
+verify_jwt = true
+
+[functions.process-auto-followups]
+verify_jwt = false

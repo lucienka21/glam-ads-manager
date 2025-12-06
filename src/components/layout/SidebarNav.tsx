@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, FileText, Receipt, FileSignature, Presentation,
-  History, Sparkles, Users, UserPlus, LogOut, User, Shield, Crown,
+  History, Users, UserPlus, LogOut, User, Shield, Crown,
   Target, Mail, CheckSquare, TrendingDown, Bell, UsersRound, Calendar,
-  MessageSquare, BarChart3, Settings, Wand2, Palette, Zap, Briefcase, X,
+  Settings, Zap, X, MailCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,13 +42,14 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
   const { isSzef, role } = useUserRole();
   const currentPath = location.pathname;
   const [incompleteTasks, setIncompleteTasks] = useState(0);
+  const [pendingFollowUps, setPendingFollowUps] = useState(0);
 
   const isActive = (path: string) => currentPath === path;
 
   useEffect(() => {
     if (!user) return;
 
-    const loadIncompleteTasks = async () => {
+    const loadData = async () => {
       const { data: userRoles } = await supabase
         .from('user_roles')
         .select('role')
@@ -57,29 +58,40 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
 
       const isSzefUser = userRoles?.role === 'szef';
 
-      const { data, error } = await supabase
+      const { data: tasksData } = await supabase
         .from('tasks')
         .select('id, status, assigned_to, is_agency_task, created_by')
         .neq('status', 'completed');
 
-      if (error) return;
+      if (tasksData) {
+        const incomplete = tasksData.filter((task) => {
+          if (isSzefUser) {
+            return task.assigned_to === user.id || task.is_agency_task || 
+                   (task.created_by === user.id && !task.assigned_to && !task.is_agency_task);
+          }
+          return task.assigned_to === user.id || task.is_agency_task;
+        }).length;
+        setIncompleteTasks(incomplete);
+      }
 
-      const incomplete = (data || []).filter((task) => {
-        if (isSzefUser) {
-          return task.assigned_to === user.id || task.is_agency_task || 
-                 (task.created_by === user.id && !task.assigned_to && !task.is_agency_task);
-        }
-        return task.assigned_to === user.id || task.is_agency_task;
-      }).length;
+      // Get pending follow-ups count
+      const today = new Date().toISOString().split('T')[0];
+      const { data: followUpsData } = await supabase
+        .from('leads')
+        .select('id')
+        .eq('cold_email_sent', true)
+        .not('status', 'in', '("converted","lost")')
+        .or(`and(email_follow_up_1_sent.eq.false,email_follow_up_1_date.lte.${today}),and(email_follow_up_1_sent.eq.true,email_follow_up_2_sent.eq.false,email_follow_up_2_date.lte.${today})`);
 
-      setIncompleteTasks(incomplete);
+      setPendingFollowUps(followUpsData?.length || 0);
     };
 
-    loadIncompleteTasks();
+    loadData();
 
     const channel = supabase
-      .channel('task-changes-sidebar')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadIncompleteTasks)
+      .channel('sidebar-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, loadData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, loadData)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -108,6 +120,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
     { title: "Lejek", url: "/funnel", icon: TrendingDown },
     { title: "Kalendarz", url: "/calendar", icon: Calendar },
     { title: "Kampanie", url: "/campaigns", icon: Target },
+    { title: "Auto Follow-up", url: "/auto-followups", icon: MailCheck, badge: pendingFollowUps || undefined },
   ];
 
   const toolItems: NavItem[] = [

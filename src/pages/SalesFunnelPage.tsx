@@ -1,37 +1,21 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  TrendingUp, 
-  Users, 
-  Target,
-  CheckCircle, 
-  XCircle,
-  ArrowRight,
-  Loader2,
-  Clock,
-  DollarSign,
-  Flame,
-  Phone,
-  Mail,
-  MessageSquare,
-  AlertCircle,
-  ChevronRight,
-  Sparkles,
-  Copy,
-  ArrowDown,
-  CalendarDays,
-  UserPlus
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { format, differenceInDays, subDays, isToday, isPast, isFuture } from 'date-fns';
+import { format, differenceInDays, subDays, isToday, isPast } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { toast } from 'sonner';
+import {
+  Loader2, Target, Users, TrendingUp, CheckCircle, XCircle,
+  ArrowRight, Clock, DollarSign, Flame, Phone, Mail, Copy,
+  ChevronRight, UserPlus, Calendar, AlertCircle, Zap,
+  ArrowDown, MessageSquare, Building2
+} from 'lucide-react';
 
-interface LeadSummary {
+interface Lead {
   id: string;
   salon_name: string;
   owner_name: string | null;
@@ -43,141 +27,95 @@ interface LeadSummary {
   next_follow_up_date: string | null;
   phone: string | null;
   email: string | null;
+  industry: string | null;
 }
 
-interface FunnelStage {
-  key: string;
-  label: string;
-  count: number;
-  leads: LeadSummary[];
-  color: string;
-  bgColor: string;
-}
+const statusConfig: Record<string, { label: string; color: string; bgGradient: string }> = {
+  new: { label: 'Nowy', color: 'text-blue-400', bgGradient: 'from-blue-500 to-blue-600' },
+  contacted: { label: 'Kontakt', color: 'text-cyan-400', bgGradient: 'from-cyan-500 to-cyan-600' },
+  follow_up: { label: 'Follow-up', color: 'text-amber-400', bgGradient: 'from-amber-500 to-orange-500' },
+  rozmowa: { label: 'Rozmowa', color: 'text-pink-400', bgGradient: 'from-pink-500 to-rose-500' },
+  no_response: { label: 'Brak odp.', color: 'text-zinc-400', bgGradient: 'from-zinc-500 to-zinc-600' },
+};
 
-const AVG_CLIENT_VALUE = 2000;
+const priorityConfig: Record<string, { label: string; color: string }> = {
+  high: { label: 'Wysoki', color: 'bg-red-500/20 text-red-400' },
+  medium: { label: 'Średni', color: 'bg-amber-500/20 text-amber-400' },
+  low: { label: 'Niski', color: 'bg-zinc-500/20 text-zinc-400' },
+};
+
+const AVG_CLIENT_VALUE = 2500;
 
 export default function SalesFunnelPage() {
   const navigate = useNavigate();
-  const [leads, setLeads] = useState<LeadSummary[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [avgDaysToConvert, setAvgDaysToConvert] = useState(0);
-  const [weeklyConverted, setWeeklyConverted] = useState(0);
-  const [weeklyNew, setWeeklyNew] = useState(0);
+  const [selectedStage, setSelectedStage] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const { data: leadsData, error } = await supabase
-        .from('leads')
-        .select('id, salon_name, owner_name, city, status, created_at, updated_at, priority, next_follow_up_date, phone, email')
-        .order('updated_at', { ascending: false });
-
-      if (!error && leadsData) {
-        const weekAgo = subDays(new Date(), 7);
-        let thisWeekNew = 0;
-        let thisWeekConverted = 0;
-        let totalDays = 0;
-        let convertedCount = 0;
-
-        leadsData.forEach((lead) => {
-          if (new Date(lead.created_at) >= weekAgo) thisWeekNew++;
-          if (lead.status === 'converted' && new Date(lead.updated_at) >= weekAgo) thisWeekConverted++;
-          if (lead.status === 'converted') {
-            totalDays += differenceInDays(new Date(lead.updated_at), new Date(lead.created_at));
-            convertedCount++;
-          }
-        });
-
-        setLeads(leadsData);
-        setWeeklyNew(thisWeekNew);
-        setWeeklyConverted(thisWeekConverted);
-        setAvgDaysToConvert(convertedCount > 0 ? Math.round(totalDays / convertedCount) : 0);
-      }
-      setLoading(false);
-    };
-
     fetchData();
   }, []);
 
-  // Build funnel stages
-  const stages: FunnelStage[] = [
-    { 
-      key: 'new', 
-      label: 'Nowe', 
-      count: 0, 
-      leads: [],
-      color: 'text-blue-400',
-      bgColor: 'from-blue-500 to-blue-600'
-    },
-    { 
-      key: 'contacted', 
-      label: 'Skontaktowano', 
-      count: 0, 
-      leads: [],
-      color: 'text-amber-400',
-      bgColor: 'from-amber-500 to-orange-500'
-    },
-    { 
-      key: 'follow_up', 
-      label: 'Follow-up', 
-      count: 0, 
-      leads: [],
-      color: 'text-orange-400',
-      bgColor: 'from-orange-500 to-red-500'
-    },
-    { 
-      key: 'rozmowa', 
-      label: 'Rozmowa', 
-      count: 0, 
-      leads: [],
-      color: 'text-pink-400',
-      bgColor: 'from-pink-500 to-rose-500'
-    },
-    { 
-      key: 'no_response', 
-      label: 'Brak odpowiedzi', 
-      count: 0, 
-      leads: [],
-      color: 'text-zinc-400',
-      bgColor: 'from-zinc-500 to-zinc-600'
-    },
-  ];
+  const fetchData = async () => {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('updated_at', { ascending: false });
 
-  leads.forEach(lead => {
-    let status = lead.status;
-    if (status === 'meeting_scheduled') status = 'rozmowa';
-    const stage = stages.find(s => s.key === status);
-    if (stage) {
-      stage.count++;
-      stage.leads.push(lead);
+    if (!error && data) {
+      setLeads(data);
     }
+    setLoading(false);
+  };
+
+  const stages = Object.keys(statusConfig).map(key => {
+    const config = statusConfig[key];
+    const stageLeads = leads.filter(l => l.status === key);
+    return {
+      key,
+      label: config.label,
+      color: config.color,
+      bgGradient: config.bgGradient,
+      count: stageLeads.length,
+      leads: stageLeads,
+    };
   });
 
-  const activeTotal = stages.reduce((sum, s) => sum + s.count, 0);
-  const convertedCount = leads.filter(l => l.status === 'converted').length;
-  const lostCount = leads.filter(l => l.status === 'lost').length;
-  const totalLeads = leads.length;
-  const conversionRate = totalLeads > 0 ? Math.round((convertedCount / totalLeads) * 100) : 0;
-  const pipelineValue = stages.filter(s => ['rozmowa', 'follow_up'].includes(s.key))
+  const totalActive = stages.reduce((sum, s) => sum + s.count, 0);
+  const converted = leads.filter(l => l.status === 'converted');
+  const lost = leads.filter(l => l.status === 'lost');
+  const conversionRate = leads.length > 0 ? Math.round((converted.length / leads.length) * 100) : 0;
+
+  const weekAgo = subDays(new Date(), 7);
+  const weeklyNew = leads.filter(l => new Date(l.created_at) >= weekAgo).length;
+  const weeklyConverted = converted.filter(l => new Date(l.updated_at) >= weekAgo).length;
+
+  const avgDaysToConvert = converted.length > 0
+    ? Math.round(converted.reduce((sum, l) => sum + differenceInDays(new Date(l.updated_at), new Date(l.created_at)), 0) / converted.length)
+    : 0;
+
+  const pipelineValue = stages
+    .filter(s => ['rozmowa', 'follow_up'].includes(s.key))
     .reduce((sum, s) => sum + s.count, 0) * AVG_CLIENT_VALUE * (conversionRate / 100);
 
-  // Urgent follow-ups
-  const today = new Date();
-  const urgentFollowUps = leads.filter(lead => {
-    if (!lead.next_follow_up_date) return false;
-    if (lead.status === 'converted' || lead.status === 'lost') return false;
-    const followUpDate = new Date(lead.next_follow_up_date);
-    return isPast(followUpDate) || isToday(followUpDate);
-  }).slice(0, 5);
+  const urgentFollowUps = leads.filter(l => {
+    if (!l.next_follow_up_date || ['converted', 'lost'].includes(l.status)) return false;
+    const date = new Date(l.next_follow_up_date);
+    return isPast(date) || isToday(date);
+  }).slice(0, 6);
 
-  // Hot leads (in rozmowa or high priority)
-  const hotLeads = leads.filter(lead => 
-    lead.status === 'rozmowa' || lead.priority === 'high'
-  ).slice(0, 5);
+  const hotLeads = leads.filter(l => 
+    (l.status === 'rozmowa' || l.priority === 'high') && !['converted', 'lost'].includes(l.status)
+  ).slice(0, 6);
 
   const copyId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success('ID skopiowane');
   };
+
+  const selectedLeads = selectedStage 
+    ? stages.find(s => s.key === selectedStage)?.leads || []
+    : [];
 
   if (loading) {
     return (
@@ -196,60 +134,63 @@ export default function SalesFunnelPage() {
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
-                <Target className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-lg shadow-pink-500/25">
+                <Target className="w-6 h-6 text-white" />
               </div>
               Lejek Sprzedażowy
             </h1>
-            <p className="text-muted-foreground mt-1">Wizualizacja procesu pozyskiwania klientów</p>
+            <p className="text-muted-foreground mt-2">Wizualizacja procesu pozyskiwania klientów</p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" onClick={() => navigate('/leads')} className="border-border/50">
+            <Button variant="outline" onClick={() => navigate('/leads')}>
               <Users className="w-4 h-4 mr-2" />
-              Lista leadów
+              Wszystkie leady
             </Button>
-            <Button onClick={() => navigate('/leads')} className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0">
+            <Button 
+              onClick={() => navigate('/leads')}
+              className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0 shadow-lg shadow-pink-500/25"
+            >
               <UserPlus className="w-4 h-4 mr-2" />
               Dodaj lead
             </Button>
           </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-          <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-blue-600/5">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-blue-600/5 hover:from-blue-500/15 transition-all">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-blue-500/20 flex items-center justify-center">
                   <Users className="w-5 h-5 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{activeTotal}</p>
-                  <p className="text-xs text-muted-foreground">Aktywne leady</p>
+                  <p className="text-2xl font-bold text-foreground">{totalActive}</p>
+                  <p className="text-xs text-muted-foreground">Aktywne</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-600/5">
+          <Card className="border-0 bg-gradient-to-br from-green-500/10 to-green-600/5 hover:from-green-500/15 transition-all">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-green-500/20 flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-green-400">{convertedCount}</p>
-                  <p className="text-xs text-muted-foreground">Skonwertowane</p>
+                  <p className="text-2xl font-bold text-green-400">{converted.length}</p>
+                  <p className="text-xs text-muted-foreground">Konwersje</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-br from-pink-500/10 to-pink-600/5">
+          <Card className="border-0 bg-gradient-to-br from-pink-500/10 to-pink-600/5 hover:from-pink-500/15 transition-all">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-pink-500/20 flex items-center justify-center">
-                  <Target className="w-5 h-5 text-pink-400" />
+                <div className="w-11 h-11 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-pink-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-pink-400">{conversionRate}%</p>
@@ -259,78 +200,91 @@ export default function SalesFunnelPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-br from-amber-500/10 to-amber-600/5">
+          <Card className="border-0 bg-gradient-to-br from-amber-500/10 to-amber-600/5 hover:from-amber-500/15 transition-all">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-amber-500/20 flex items-center justify-center">
                   <Clock className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
                   <p className="text-2xl font-bold text-foreground">{avgDaysToConvert}</p>
-                  <p className="text-xs text-muted-foreground">Dni do konwersji</p>
+                  <p className="text-xs text-muted-foreground">Dni śr.</p>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-0 bg-gradient-to-br from-violet-500/10 to-violet-600/5">
+          <Card className="border-0 bg-gradient-to-br from-violet-500/10 to-violet-600/5 hover:from-violet-500/15 transition-all">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
+                <div className="w-11 h-11 rounded-xl bg-violet-500/20 flex items-center justify-center">
                   <DollarSign className="w-5 h-5 text-violet-400" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold text-foreground">{(pipelineValue / 1000).toFixed(0)}k</p>
-                  <p className="text-xs text-muted-foreground">Wartość pipeline</p>
+                  <p className="text-2xl font-bold text-foreground">{Math.round(pipelineValue / 1000)}k</p>
+                  <p className="text-xs text-muted-foreground">Pipeline</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 bg-gradient-to-br from-red-500/10 to-red-600/5 hover:from-red-500/15 transition-all">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-red-500/20 flex items-center justify-center">
+                  <XCircle className="w-5 h-5 text-red-400" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-red-400">{lost.length}</p>
+                  <p className="text-xs text-muted-foreground">Utracone</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
+        {/* Main Content */}
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main Funnel */}
-          <div className="lg:col-span-2 space-y-4">
+          {/* Funnel Visualization */}
+          <div className="lg:col-span-2">
             <Card className="border-border/50 overflow-hidden">
-              <CardHeader className="border-b border-border/50 pb-4">
+              <CardHeader className="border-b border-border/50 bg-gradient-to-r from-pink-500/5 to-transparent">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-pink-400" />
-                  Przepływ leadów
+                  Lejek konwersji
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                {/* Funnel Visualization */}
-                <div className="relative space-y-2">
+                <div className="space-y-3">
                   {stages.map((stage, index) => {
-                    const widthPercent = 100 - (index * 15);
-                    const maxCount = Math.max(...stages.map(s => s.count), 1);
-                    const fillPercent = (stage.count / maxCount) * 100;
+                    const widthPercent = Math.max(30, 100 - (index * 14));
+                    const isSelected = selectedStage === stage.key;
                     
                     return (
-                      <div key={stage.key} className="relative">
+                      <div key={stage.key}>
                         <div 
-                          className="relative mx-auto transition-all duration-300 cursor-pointer group"
+                          className={`relative mx-auto transition-all duration-300 cursor-pointer group ${isSelected ? 'scale-[1.02]' : ''}`}
                           style={{ width: `${widthPercent}%` }}
-                          onClick={() => navigate('/leads')}
+                          onClick={() => setSelectedStage(isSelected ? null : stage.key)}
                         >
-                          <div className={`bg-gradient-to-r ${stage.bgColor} rounded-xl p-4 flex items-center justify-between group-hover:scale-[1.02] transition-transform shadow-lg`}>
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center font-bold text-white">
+                          <div className={`bg-gradient-to-r ${stage.bgGradient} rounded-xl p-4 flex items-center justify-between shadow-lg transition-all ${isSelected ? 'ring-2 ring-white/30 shadow-xl' : 'group-hover:shadow-xl'}`}>
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center font-bold text-white text-xl backdrop-blur-sm">
                                 {stage.count}
                               </div>
                               <div>
-                                <p className="font-semibold text-white">{stage.label}</p>
-                                <p className="text-xs text-white/70">
-                                  {activeTotal > 0 ? Math.round((stage.count / activeTotal) * 100) : 0}% aktywnych
+                                <p className="font-semibold text-white text-lg">{stage.label}</p>
+                                <p className="text-sm text-white/70">
+                                  {totalActive > 0 ? Math.round((stage.count / totalActive) * 100) : 0}% aktywnych
                                 </p>
                               </div>
                             </div>
-                            <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-white transition-colors" />
+                            <ChevronRight className={`w-6 h-6 text-white/50 transition-all ${isSelected ? 'rotate-90 text-white' : 'group-hover:text-white'}`} />
                           </div>
                         </div>
                         {index < stages.length - 1 && (
-                          <div className="flex justify-center py-1">
-                            <ArrowDown className="w-4 h-4 text-muted-foreground/50" />
+                          <div className="flex justify-center py-2">
+                            <ArrowDown className="w-5 h-5 text-muted-foreground/40" />
                           </div>
                         )}
                       </div>
@@ -338,7 +292,7 @@ export default function SalesFunnelPage() {
                   })}
                 </div>
 
-                {/* Results */}
+                {/* Results Row */}
                 <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-border/50">
                   <div 
                     className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/15 transition-all group"
@@ -346,39 +300,82 @@ export default function SalesFunnelPage() {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <CheckCircle className="w-6 h-6 text-green-400" />
+                        <CheckCircle className="w-7 h-7 text-green-400" />
                         <div>
-                          <p className="font-medium text-foreground">Klienci</p>
+                          <p className="font-semibold text-foreground">Klienci</p>
                           <p className="text-xs text-muted-foreground">Skonwertowane</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-2xl font-bold text-green-400">{convertedCount}</span>
-                        <ChevronRight className="w-4 h-4 text-muted-foreground group-hover:text-green-400" />
+                        <span className="text-3xl font-bold text-green-400">{converted.length}</span>
+                        <ChevronRight className="w-5 h-5 text-muted-foreground group-hover:text-green-400" />
                       </div>
                     </div>
                   </div>
                   <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <XCircle className="w-6 h-6 text-red-400" />
+                        <XCircle className="w-7 h-7 text-red-400" />
                         <div>
-                          <p className="font-medium text-foreground">Utracone</p>
+                          <p className="font-semibold text-foreground">Utracone</p>
                           <p className="text-xs text-muted-foreground">Nie zamknięte</p>
                         </div>
                       </div>
-                      <span className="text-2xl font-bold text-red-400">{lostCount}</span>
+                      <span className="text-3xl font-bold text-red-400">{lost.length}</span>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Weekly Stats */}
-            <Card className="border-border/50">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <CalendarDays className="w-4 h-4 text-pink-400" />
+            {/* Selected Stage Details */}
+            {selectedStage && selectedLeads.length > 0 && (
+              <Card className="border-border/50 mt-6">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Building2 className="w-5 h-5 text-primary" />
+                    {statusConfig[selectedStage]?.label} ({selectedLeads.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {selectedLeads.slice(0, 10).map((lead) => (
+                      <div
+                        key={lead.id}
+                        className="flex items-center justify-between p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 cursor-pointer transition-all"
+                        onClick={() => navigate(`/leads/${lead.id}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Building2 className="w-4 h-4 text-primary" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-foreground">{lead.salon_name}</p>
+                            <p className="text-sm text-muted-foreground">{lead.city || 'Brak miasta'}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {lead.priority && (
+                            <Badge className={priorityConfig[lead.priority]?.color || ''}>
+                              {priorityConfig[lead.priority]?.label}
+                            </Badge>
+                          )}
+                          <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); copyId(lead.id); }}>
+                            <Copy className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Weekly Performance */}
+            <Card className="border-border/50 mt-6">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-primary" />
                   Ten tydzień
                 </CardTitle>
               </CardHeader>
@@ -386,71 +383,63 @@ export default function SalesFunnelPage() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
                     <p className="text-3xl font-bold text-blue-400">+{weeklyNew}</p>
-                    <p className="text-sm text-muted-foreground">Nowe leady</p>
+                    <p className="text-sm text-muted-foreground mt-1">Nowe leady</p>
                   </div>
                   <div className="text-center p-4 rounded-xl bg-green-500/10 border border-green-500/20">
                     <p className="text-3xl font-bold text-green-400">+{weeklyConverted}</p>
-                    <p className="text-sm text-muted-foreground">Konwersje</p>
+                    <p className="text-sm text-muted-foreground mt-1">Konwersje</p>
                   </div>
                   <div className="text-center p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
                     <p className={`text-3xl font-bold ${weeklyConverted >= weeklyNew ? 'text-green-400' : 'text-amber-400'}`}>
                       {weeklyConverted - weeklyNew >= 0 ? '+' : ''}{weeklyConverted - weeklyNew}
                     </p>
-                    <p className="text-sm text-muted-foreground">Bilans netto</p>
+                    <p className="text-sm text-muted-foreground mt-1">Bilans</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Right Column - Actions */}
-          <div className="space-y-4">
+          {/* Right Column */}
+          <div className="space-y-6">
             {/* Urgent Follow-ups */}
-            <Card className="border-border/50 overflow-hidden">
-              <CardHeader className="pb-2 bg-gradient-to-r from-red-500/10 to-orange-500/5 border-b border-border/50">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-400" />
-                  Pilne follow-upy
+            <Card className="border-red-500/30 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-red-500/10 to-orange-500/5 border-b border-border/50">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5 text-red-400" />
+                    Pilne follow-upy
+                  </div>
                   {urgentFollowUps.length > 0 && (
-                    <Badge variant="destructive" className="ml-auto">
-                      {urgentFollowUps.length}
-                    </Badge>
+                    <Badge variant="destructive">{urgentFollowUps.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 {urgentFollowUps.length === 0 ? (
                   <div className="p-6 text-center text-muted-foreground text-sm">
-                    Brak zaległych follow-upów
+                    <CheckCircle className="w-10 h-10 mx-auto mb-2 text-green-400/50" />
+                    Wszystko na bieżąco!
                   </div>
                 ) : (
                   <div className="divide-y divide-border/50">
                     {urgentFollowUps.map((lead) => (
                       <div 
                         key={lead.id}
-                        className="p-4 hover:bg-secondary/30 cursor-pointer transition-colors"
+                        className="p-4 hover:bg-red-500/5 cursor-pointer transition-colors"
                         onClick={() => navigate(`/leads/${lead.id}`)}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground truncate">{lead.salon_name}</p>
-                            <p className="text-xs text-muted-foreground">{lead.city || 'Brak miasta'}</p>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
+                            <Phone className="w-4 h-4 text-red-400" />
                           </div>
-                          <Badge variant="outline" className="text-red-400 border-red-500/30 shrink-0">
-                            {lead.next_follow_up_date && format(new Date(lead.next_follow_up_date), 'd MMM', { locale: pl })}
-                          </Badge>
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                          {lead.phone && (
-                            <a href={`tel:${lead.phone}`} onClick={(e) => e.stopPropagation()} className="p-1.5 rounded bg-secondary/50 hover:bg-secondary">
-                              <Phone className="w-3 h-3 text-muted-foreground" />
-                            </a>
-                          )}
-                          {lead.email && (
-                            <a href={`mailto:${lead.email}`} onClick={(e) => e.stopPropagation()} className="p-1.5 rounded bg-secondary/50 hover:bg-secondary">
-                              <Mail className="w-3 h-3 text-muted-foreground" />
-                            </a>
-                          )}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">{lead.salon_name}</p>
+                            <p className="text-xs text-red-400">
+                              {isToday(new Date(lead.next_follow_up_date!)) ? 'Dzisiaj' : 'Zaległe'}
+                            </p>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-muted-foreground" />
                         </div>
                       </div>
                     ))}
@@ -460,15 +449,15 @@ export default function SalesFunnelPage() {
             </Card>
 
             {/* Hot Leads */}
-            <Card className="border-border/50 overflow-hidden">
-              <CardHeader className="pb-2 bg-gradient-to-r from-orange-500/10 to-amber-500/5 border-b border-border/50">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Flame className="w-5 h-5 text-orange-400" />
-                  Hot Leads
+            <Card className="border-orange-500/30 overflow-hidden">
+              <CardHeader className="bg-gradient-to-r from-orange-500/10 to-amber-500/5 border-b border-border/50">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-orange-400" />
+                    Gorące leady
+                  </div>
                   {hotLeads.length > 0 && (
-                    <Badge className="ml-auto bg-orange-500/20 text-orange-400 border-orange-500/30">
-                      {hotLeads.length}
-                    </Badge>
+                    <Badge className="bg-orange-500/20 text-orange-400">{hotLeads.length}</Badge>
                   )}
                 </CardTitle>
               </CardHeader>
@@ -482,27 +471,20 @@ export default function SalesFunnelPage() {
                     {hotLeads.map((lead) => (
                       <div 
                         key={lead.id}
-                        className="p-4 hover:bg-secondary/30 cursor-pointer transition-colors"
+                        className="p-4 hover:bg-orange-500/5 cursor-pointer transition-colors"
                         onClick={() => navigate(`/leads/${lead.id}`)}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <p className="font-medium text-foreground truncate">{lead.salon_name}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <p className="text-xs text-muted-foreground">{lead.city || 'Brak miasta'}</p>
-                              {lead.priority === 'high' && (
-                                <Badge variant="outline" className="text-pink-400 border-pink-500/30 text-xs px-1.5">
-                                  Priorytet
-                                </Badge>
-                              )}
-                            </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                            <Flame className="w-4 h-4 text-orange-400" />
                           </div>
-                          <button 
-                            onClick={(e) => { e.stopPropagation(); copyId(lead.id); }}
-                            className="p-1.5 rounded hover:bg-secondary/50 text-muted-foreground hover:text-foreground"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-foreground truncate">{lead.salon_name}</p>
+                            <p className="text-xs text-muted-foreground">{lead.city || 'Brak miasta'}</p>
+                          </div>
+                          {lead.priority === 'high' && (
+                            <Badge className="bg-red-500/20 text-red-400 text-[10px]">Wysoki</Badge>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -511,18 +493,24 @@ export default function SalesFunnelPage() {
               </CardContent>
             </Card>
 
-            {/* Tips Card */}
-            <Card className="border-border/50 bg-gradient-to-br from-pink-500/5 to-rose-500/5">
+            {/* Quick Tip */}
+            <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-4 h-4 text-pink-400" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <p className="font-medium text-foreground text-sm">Wskazówka dnia</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Leady w statusie "Rozmowa" mają najwyższy potencjał konwersji. 
-                      Skontaktuj się z nimi w ciągu 24h.
+                    <p className="font-semibold text-foreground mb-1">Tip dnia</p>
+                    <p className="text-sm text-muted-foreground">
+                      {conversionRate < 10 
+                        ? "Skup się na jakości leadów. Lepiej mieć mniej, ale bardziej zaangażowanych potencjalnych klientów."
+                        : avgDaysToConvert > 14
+                        ? "Skróć czas konwersji poprzez szybsze follow-upy. Pierwszy kontakt w ciągu 24h zwiększa szanse o 60%."
+                        : urgentFollowUps.length > 3
+                        ? "Masz zaległe follow-upy! Regularny kontakt buduje zaufanie i zwiększa konwersję."
+                        : "Świetna robota! Utrzymuj tempo i monitoruj gorące leady."
+                      }
                     </p>
                   </div>
                 </div>
