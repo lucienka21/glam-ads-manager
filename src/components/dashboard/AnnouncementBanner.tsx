@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
-import { Megaphone, Plus, X, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
+import { Megaphone, Plus, Pin, Trash2, Edit2, MessageSquare, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { pl } from "date-fns/locale";
 import { processMentions } from "@/lib/notifications";
 import { renderMentions } from "@/components/ui/Mention";
@@ -54,7 +55,6 @@ export function AnnouncementBanner() {
     if (!error && data) {
       setAnnouncements(data);
       
-      // Fetch comment counts
       const counts: Record<string, number> = {};
       for (const announcement of data) {
         const { count } = await supabase
@@ -110,16 +110,8 @@ export function AnnouncementBanner() {
         return;
       }
       
-      // Process mentions in announcement content
       if (data) {
-        await processMentions(
-          content,
-          profiles,
-          user.id,
-          "komunikacie",
-          "announcement",
-          data.id
-        );
+        await processMentions(content, profiles, user.id, "komunikacie", "announcement", data.id);
       }
       
       toast.success("Komunikat dodany");
@@ -150,146 +142,115 @@ export function AnnouncementBanner() {
   };
 
   if (loading) return null;
+  if (announcements.length === 0 && !isSzef) return null;
 
   return (
-    <div className="space-y-3">
-      {/* Header with add button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Megaphone className="w-4 h-4 text-amber-400" />
-          <h3 className="text-sm font-semibold text-foreground">Komunikaty</h3>
-        </div>
-        {isSzef && (
-          <Dialog open={dialogOpen} onOpenChange={(open) => {
-            setDialogOpen(open);
-            if (!open) {
-              setEditingAnnouncement(null);
-              setTitle("");
-              setContent("");
-              setIsPinned(false);
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button size="sm" variant="ghost" className="h-7 text-xs">
-                <Plus className="w-3.5 h-3.5 mr-1" />
-                Dodaj
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingAnnouncement ? "Edytuj komunikat" : "Nowy komunikat"}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <Input
-                  placeholder="Tytuł komunikatu"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                />
-                <Textarea
-                  placeholder="Treść komunikatu..."
-                  value={content}
-                  onChange={(e) => setContent(e.target.value)}
-                  rows={4}
-                />
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={isPinned}
-                    onChange={(e) => setIsPinned(e.target.checked)}
-                    className="rounded border-border"
-                  />
-                  <Pin className="w-3.5 h-3.5 text-amber-400" />
-                  Przypnij na górze
-                </label>
-                <Button onClick={handleSubmit} className="w-full">
-                  {editingAnnouncement ? "Zapisz zmiany" : "Opublikuj"}
+    <Card className="border-amber-500/30 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent">
+      <CardContent className="p-4">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <Megaphone className="w-4 h-4 text-amber-400" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-foreground">Komunikaty zespołu</h3>
+              <p className="text-xs text-muted-foreground">{announcements.length} aktywnych</p>
+            </div>
+          </div>
+          {isSzef && (
+            <Dialog open={dialogOpen} onOpenChange={(open) => {
+              setDialogOpen(open);
+              if (!open) {
+                setEditingAnnouncement(null);
+                setTitle("");
+                setContent("");
+                setIsPinned(false);
+              }
+            }}>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="outline" className="border-amber-500/30 text-amber-400 hover:bg-amber-500/10">
+                  <Plus className="w-4 h-4 mr-1" />
+                  Dodaj
                 </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </div>
-
-      {/* Announcements list */}
-      {announcements.length === 0 ? (
-        <div className="text-center py-4 text-sm text-muted-foreground">
-          Brak komunikatów
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {announcements.map((announcement) => (
-            <div
-              key={announcement.id}
-              className={`p-3 rounded-lg border transition-colors ${
-                announcement.is_pinned
-                  ? "bg-amber-500/10 border-amber-500/30"
-                  : "bg-secondary/30 border-border/50"
-              }`}
-            >
-              <div className="flex items-start justify-between gap-2">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    {announcement.is_pinned && (
-                      <Pin className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                    )}
-                    <h4 className="font-medium text-sm text-foreground truncate">
-                      {announcement.title}
-                    </h4>
-                  </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2">
-                    {renderMentions(announcement.content)}
-                  </p>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <p className="text-[10px] text-muted-foreground/60">
-                      {format(new Date(announcement.created_at), "d MMM, HH:mm", { locale: pl })}
-                    </p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExpandedId(expandedId === announcement.id ? null : announcement.id);
-                      }}
-                      className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      <MessageSquare className="w-3 h-3" />
-                      {commentCounts[announcement.id] || 0}
-                      {expandedId === announcement.id ? (
-                        <ChevronUp className="w-3 h-3" />
-                      ) : (
-                        <ChevronDown className="w-3 h-3" />
-                      )}
-                    </button>
-                  </div>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{editingAnnouncement ? "Edytuj komunikat" : "Nowy komunikat"}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <Input placeholder="Tytuł komunikatu" value={title} onChange={(e) => setTitle(e.target.value)} />
+                  <Textarea placeholder="Treść komunikatu... (możesz użyć @nazwa)" value={content} onChange={(e) => setContent(e.target.value)} rows={4} />
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={isPinned} onChange={(e) => setIsPinned(e.target.checked)} className="rounded border-border" />
+                    <Pin className="w-3.5 h-3.5 text-amber-400" />
+                    Przypnij na górze
+                  </label>
+                  <Button onClick={handleSubmit} className="w-full">{editingAnnouncement ? "Zapisz zmiany" : "Opublikuj"}</Button>
                 </div>
-                {isSzef && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6"
-                      onClick={() => handleEdit(announcement)}
-                    >
-                      <Edit2 className="w-3 h-3" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6 text-destructive hover:text-destructive"
-                      onClick={() => handleDelete(announcement.id)}
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
+              </DialogContent>
+            </Dialog>
+          )}
+        </div>
+
+        {/* Announcements List */}
+        {announcements.length === 0 ? (
+          <div className="text-center py-6 text-sm text-muted-foreground">
+            Brak komunikatów. {isSzef && "Kliknij 'Dodaj' aby utworzyć pierwszy."}
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {announcements.map((announcement) => (
+              <div
+                key={announcement.id}
+                className={`p-3 rounded-xl border transition-all ${
+                  announcement.is_pinned
+                    ? "bg-amber-500/10 border-amber-500/30"
+                    : "bg-background/50 border-border/30"
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      {announcement.is_pinned && <Pin className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />}
+                      <h4 className="font-medium text-foreground">{announcement.title}</h4>
+                    </div>
+                    <div className="text-sm text-muted-foreground">{renderMentions(announcement.content)}</div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <span className="text-xs text-muted-foreground/60">
+                        {formatDistanceToNow(new Date(announcement.created_at), { locale: pl, addSuffix: true })}
+                      </span>
+                      <button
+                        onClick={() => setExpandedId(expandedId === announcement.id ? null : announcement.id)}
+                        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        {commentCounts[announcement.id] || 0} komentarzy
+                        {expandedId === announcement.id ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    </div>
+                  </div>
+                  {isSzef && (
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => handleEdit(announcement)}>
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </Button>
+                      <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(announcement.id)}>
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {expandedId === announcement.id && (
+                  <div className="mt-3 pt-3 border-t border-border/30">
+                    <AnnouncementComments announcementId={announcement.id} />
                   </div>
                 )}
               </div>
-              {expandedId === announcement.id && (
-                <AnnouncementComments announcementId={announcement.id} />
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }

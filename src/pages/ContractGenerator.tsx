@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
-import { Download, FileImage, Eye, Link } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Download, FileImage, ArrowLeft, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ContractPreview } from "@/components/contract/ContractPreview";
@@ -21,13 +21,16 @@ interface ClientOption {
 }
 
 const ContractGenerator = () => {
+  const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const { generateThumbnail: genThumb } = useThumbnailGenerator();
-  const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [previewScale, setPreviewScale] = useState(0.5);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
@@ -40,19 +43,14 @@ const ContractGenerator = () => {
     contractDuration: "3 miesiące",
   });
 
-  // Fetch clients
   useEffect(() => {
     const fetchClients = async () => {
-      const { data } = await supabase
-        .from('clients')
-        .select('id, salon_name')
-        .order('salon_name');
+      const { data } = await supabase.from('clients').select('id, salon_name').order('salon_name');
       setClients(data || []);
     };
     fetchClients();
   }, []);
 
-  // Load document from session storage if coming from history
   useEffect(() => {
     const stored = sessionStorage.getItem("loadDocument");
     if (stored) {
@@ -60,7 +58,6 @@ const ContractGenerator = () => {
         const doc = JSON.parse(stored);
         if (doc.type === "contract") {
           setFormData(doc.data as typeof formData);
-          setShowPreview(true);
         }
       } catch (e) {
         console.error("Error loading document:", e);
@@ -69,19 +66,30 @@ const ContractGenerator = () => {
     }
   }, []);
 
+  useEffect(() => {
+    const updateScale = () => {
+      if (previewContainerRef.current) {
+        const width = previewContainerRef.current.clientWidth;
+        setPreviewScale(Math.min(width / 794, 0.7));
+      }
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleGenerate = async () => {
-    if (!formData.clientName || !formData.contractNumber || !formData.contractValue) {
+  const hasRequiredFields = formData.clientName && formData.contractNumber && formData.contractValue;
+
+  const handleSave = async () => {
+    if (!hasRequiredFields) {
       toast.error("Uzupełnij wszystkie wymagane pola");
       return;
     }
 
-    setShowPreview(true);
-
-    // Save to history with client linking
     const docId = await saveDocument(
       "contract",
       formData.clientName,
@@ -91,10 +99,8 @@ const ContractGenerator = () => {
       selectedClientId || undefined
     );
     setCurrentDocId(docId);
+    toast.success("Umowa zapisana!");
 
-    toast.success("Podgląd umowy gotowy!");
-
-    // Generate thumbnail
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
@@ -104,9 +110,7 @@ const ContractGenerator = () => {
           maxRetries: 5,
           retryDelay: 800
         });
-        if (thumbnail) {
-          await updateThumbnail(docId, thumbnail);
-        }
+        if (thumbnail) await updateThumbnail(docId, thumbnail);
       }, 500);
     }
   };
@@ -116,21 +120,13 @@ const ContractGenerator = () => {
     if (!element) return;
 
     setIsGenerating(true);
-
     try {
       const canvas = await toPng(element, { cacheBust: true, pixelRatio: 3, backgroundColor: "#ffffff" });
-
-      const img = new Image();
-      img.src = canvas;
-      await new Promise((resolve) => { img.onload = resolve; });
-
       const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
       pdf.addImage(canvas, "PNG", 0, 0, 794, 1123, undefined, "FAST");
       pdf.save(`${formData.contractNumber.replace(/\//g, "-")}.pdf`);
-
       toast.success("Umowa PDF pobrana!");
     } catch (error) {
-      console.error("Error generating PDF:", error);
       toast.error("Nie udało się wygenerować PDF");
     } finally {
       setIsGenerating(false);
@@ -142,18 +138,14 @@ const ContractGenerator = () => {
     if (!element) return;
 
     setIsGenerating(true);
-
     try {
       const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#ffffff" });
-
       const link = document.createElement("a");
       link.download = `${formData.contractNumber.replace(/\//g, "-")}.png`;
       link.href = imgData;
       link.click();
-
       toast.success("Umowa PNG pobrana!");
     } catch (error) {
-      console.error("Error downloading image:", error);
       toast.error("Nie udało się pobrać obrazu");
     } finally {
       setIsGenerating(false);
@@ -162,171 +154,182 @@ const ContractGenerator = () => {
 
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Generator Umów</h1>
-          <p className="text-muted-foreground">Profesjonalne umowy marketingowe</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Form */}
-          <div className="space-y-6">
-            <FormCard title="Dane klienta">
-              <div className="space-y-5">
-                <FormRow>
-                  <div>
-                    <Label htmlFor="clientName">Nazwa klienta *</Label>
-                    <Input
-                      id="clientName"
-                      value={formData.clientName}
-                      onChange={(e) => handleInputChange("clientName", e.target.value)}
-                      placeholder="Salon Beauty XYZ"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contractNumber">Numer umowy *</Label>
-                    <Input
-                      id="contractNumber"
-                      value={formData.contractNumber}
-                      onChange={(e) => handleInputChange("contractNumber", e.target.value)}
-                      placeholder="UM/2025/001"
-                    />
-                  </div>
-                </FormRow>
-
-                <div>
-                  <Label className="flex items-center gap-2">
-                    <Link className="w-4 h-4 text-pink-400" />
-                    Połącz z klientem (opcjonalne)
-                  </Label>
-                  <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz klienta..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Bez powiązania</SelectItem>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="clientAddress">Adres klienta</Label>
-                  <Input
-                    id="clientAddress"
-                    value={formData.clientAddress}
-                    onChange={(e) => handleInputChange("clientAddress", e.target.value)}
-                    placeholder="ul. Przykładowa 123, 00-000 Warszawa"
-                  />
-                </div>
-
-                <FormRow>
-                  <div>
-                    <Label htmlFor="clientNIP">NIP klienta</Label>
-                    <Input
-                      id="clientNIP"
-                      value={formData.clientNIP}
-                      onChange={(e) => handleInputChange("clientNIP", e.target.value)}
-                      placeholder="1234567890"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="signDate">Data podpisania</Label>
-                    <Input
-                      id="signDate"
-                      type="date"
-                      value={formData.signDate}
-                      onChange={(e) => handleInputChange("signDate", e.target.value)}
-                    />
-                  </div>
-                </FormRow>
+      <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Panel - Form */}
+        <div className="w-full lg:w-[360px] xl:w-[400px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card/30">
+          <div className="p-4 border-b border-border/50 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Generator Umów</h1>
+                <p className="text-xs text-muted-foreground">Profesjonalne umowy marketingowe</p>
               </div>
-            </FormCard>
-
-            <FormCard title="Warunki umowy">
-              <div className="space-y-5">
-                <FormRow>
-                  <div>
-                    <Label htmlFor="contractValue">Wartość umowy (PLN) *</Label>
-                    <Input
-                      id="contractValue"
-                      type="number"
-                      value={formData.contractValue}
-                      onChange={(e) => handleInputChange("contractValue", e.target.value)}
-                      placeholder="15000"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="contractDuration">Czas trwania</Label>
-                    <Input
-                      id="contractDuration"
-                      value={formData.contractDuration}
-                      onChange={(e) => handleInputChange("contractDuration", e.target.value)}
-                      placeholder="3 miesiące"
-                    />
-                  </div>
-                </FormRow>
-
-                <div>
-                  <Label htmlFor="paymentTerms">Warunki płatności</Label>
-                  <Input
-                    id="paymentTerms"
-                    value={formData.paymentTerms}
-                    onChange={(e) => handleInputChange("paymentTerms", e.target.value)}
-                    placeholder="7 dni od wystawienia faktury"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="serviceScope">Zakres usług</Label>
-                  <Textarea
-                    id="serviceScope"
-                    value={formData.serviceScope}
-                    onChange={(e) => handleInputChange("serviceScope", e.target.value)}
-                    className="min-h-[100px] bg-secondary/30 border-border/50 focus:border-primary/50"
-                    placeholder="Prowadzenie kampanii reklamowych Facebook Ads..."
-                  />
-                </div>
-
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="text-primary font-medium">Info:</span> Umowa zawiera standardowe klauzule prawne i zabezpieczenia
-                  </p>
-                </div>
-
-                <Button onClick={handleGenerate} className="w-full">
-                  <Eye className="w-5 h-5 mr-2" />
-                  Generuj podgląd umowy
-                </Button>
-              </div>
-            </FormCard>
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
-          {/* Preview */}
-          {showPreview && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground font-sans">Podgląd umowy</h2>
-                <div className="flex gap-2">
-                  <Button onClick={downloadAsImage} disabled={isGenerating} size="sm" variant="success">
-                    <FileImage className="w-4 h-4 mr-2" />
-                    {isGenerating ? "..." : "PNG"}
-                  </Button>
-                  <Button onClick={generatePDF} disabled={isGenerating} size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    {isGenerating ? "..." : "PDF"}
-                  </Button>
+          <div className="p-4 space-y-4">
+            {/* Form Fields */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs">Nazwa klienta *</Label>
+                <Input
+                  value={formData.clientName}
+                  onChange={(e) => handleInputChange("clientName", e.target.value)}
+                  placeholder="Salon Beauty XYZ"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Numer umowy *</Label>
+                  <Input
+                    value={formData.contractNumber}
+                    onChange={(e) => handleInputChange("contractNumber", e.target.value)}
+                    placeholder="UM/2025/001"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Wartość (PLN) *</Label>
+                  <Input
+                    type="number"
+                    value={formData.contractValue}
+                    onChange={(e) => handleInputChange("contractValue", e.target.value)}
+                    placeholder="15000"
+                    className="h-9 mt-1"
+                  />
                 </div>
               </div>
-              <div className="border border-border/50 rounded-xl overflow-hidden bg-white shadow-lg">
-                <div className="transform scale-[0.6] origin-top-left w-[166%]">
-                  <ContractPreview data={formData} />
+
+              <div>
+                <Label className="text-xs flex items-center gap-1">
+                  <Link className="w-3 h-3 text-primary" />
+                  Połącz z klientem
+                </Label>
+                <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
+                  <SelectTrigger className="h-9 mt-1">
+                    <SelectValue placeholder="Opcjonalne..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Bez powiązania</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Adres klienta</Label>
+                <Input
+                  value={formData.clientAddress}
+                  onChange={(e) => handleInputChange("clientAddress", e.target.value)}
+                  placeholder="ul. Przykładowa 123, 00-000 Warszawa"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">NIP klienta</Label>
+                  <Input
+                    value={formData.clientNIP}
+                    onChange={(e) => handleInputChange("clientNIP", e.target.value)}
+                    placeholder="1234567890"
+                    className="h-9 mt-1"
+                  />
                 </div>
+                <div>
+                  <Label className="text-xs">Data podpisania</Label>
+                  <Input
+                    type="date"
+                    value={formData.signDate}
+                    onChange={(e) => handleInputChange("signDate", e.target.value)}
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Czas trwania</Label>
+                  <Input
+                    value={formData.contractDuration}
+                    onChange={(e) => handleInputChange("contractDuration", e.target.value)}
+                    placeholder="3 miesiące"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Warunki płatności</Label>
+                  <Input
+                    value={formData.paymentTerms}
+                    onChange={(e) => handleInputChange("paymentTerms", e.target.value)}
+                    placeholder="7 dni"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs">Zakres usług</Label>
+                <Textarea
+                  value={formData.serviceScope}
+                  onChange={(e) => handleInputChange("serviceScope", e.target.value)}
+                  className="mt-1 min-h-[80px] bg-secondary/30 border-border/50"
+                  placeholder="Prowadzenie kampanii reklamowych..."
+                />
               </div>
             </div>
-          )}
+
+            {/* Actions */}
+            <div className="pt-4 border-t border-border/50 space-y-2">
+              <Button onClick={handleSave} className="w-full" disabled={!hasRequiredFields}>
+                Zapisz umowę
+              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button onClick={downloadAsImage} disabled={isGenerating || !hasRequiredFields} variant="outline" size="sm">
+                  <FileImage className="w-4 h-4 mr-1" />
+                  PNG
+                </Button>
+                <Button onClick={generatePDF} disabled={isGenerating || !hasRequiredFields} variant="secondary" size="sm">
+                  <Download className="w-4 h-4 mr-1" />
+                  PDF
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Live Preview */}
+        <div ref={previewContainerRef} className="flex-1 overflow-auto bg-muted/30 p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo</h2>
+          </div>
+          
+          <div className="flex justify-center">
+            <div 
+              className="bg-white rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
+              style={{ 
+                width: `${794 * previewScale}px`,
+                height: `${1123 * previewScale}px`,
+              }}
+            >
+              <div 
+                style={{ 
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top left',
+                  width: '794px',
+                  height: '1123px',
+                }}
+              >
+                <ContractPreview data={formData} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>
