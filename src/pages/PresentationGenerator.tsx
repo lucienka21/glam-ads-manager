@@ -123,7 +123,10 @@ const PresentationGenerator = () => {
       "presentation",
       formData.salonName,
       `Prezentacja dla ${formData.ownerName}`,
-      formData
+      formData,
+      undefined,
+      undefined,
+      selectedLeadId || undefined
     );
     setCurrentDocId(docId);
     toast.success("Prezentacja zapisana!");
@@ -160,7 +163,10 @@ const PresentationGenerator = () => {
           "presentation",
           formData.salonName,
           `Prezentacja dla ${formData.ownerName}`,
-          formData
+          formData,
+          undefined,
+          undefined,
+          selectedLeadId || undefined
         );
         setCurrentDocId(docId);
         
