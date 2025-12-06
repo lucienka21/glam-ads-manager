@@ -149,7 +149,8 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
     subtitle: string,
     data: Record<string, string>,
     thumbnail?: string,
-    clientId?: string
+    clientId?: string,
+    leadId?: string
   ): Promise<string | null> => {
     if (!user) return null;
 
@@ -162,7 +163,8 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
         data: data as unknown as Json,
         thumbnail,
         created_by: user.id,
-        client_id: clientId || null
+        client_id: clientId || null,
+        lead_id: leadId || null
       })
       .select('id')
       .single();
