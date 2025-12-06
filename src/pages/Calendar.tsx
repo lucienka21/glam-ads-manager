@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,8 +9,24 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Calendar as CalendarIcon, Plus, ChevronLeft, ChevronRight, Phone, MessageSquare, Users, CheckCircle, Star, Loader2, Trash2 } from 'lucide-react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday, parseISO } from 'date-fns';
+import { 
+  Calendar as CalendarIcon, 
+  Plus, 
+  ChevronLeft, 
+  ChevronRight, 
+  Phone, 
+  MessageSquare, 
+  Users, 
+  CheckCircle, 
+  Star, 
+  Loader2, 
+  Trash2,
+  Clock,
+  MapPin,
+  ArrowRight,
+  Zap
+} from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, isToday, parseISO, startOfWeek, addDays, isSameMonth } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { toast } from 'sonner';
 
@@ -31,6 +48,7 @@ interface Lead {
   id: string;
   salon_name: string;
   next_follow_up_date: string | null;
+  city: string | null;
 }
 
 interface Client {
@@ -39,11 +57,11 @@ interface Client {
 }
 
 const eventTypes = [
-  { value: 'follow_up', label: 'Follow-up', icon: MessageSquare, color: 'bg-orange-500' },
-  { value: 'meeting', label: 'Spotkanie', icon: Users, color: 'bg-purple-500' },
-  { value: 'call', label: 'Rozmowa', icon: Phone, color: 'bg-blue-500' },
-  { value: 'task', label: 'Zadanie', icon: CheckCircle, color: 'bg-green-500' },
-  { value: 'custom', label: 'Własne', icon: Star, color: 'bg-pink-500' },
+  { value: 'follow_up', label: 'Follow-up', icon: MessageSquare, color: 'bg-orange-500', textColor: 'text-orange-400' },
+  { value: 'meeting', label: 'Spotkanie', icon: Users, color: 'bg-purple-500', textColor: 'text-purple-400' },
+  { value: 'call', label: 'Rozmowa', icon: Phone, color: 'bg-blue-500', textColor: 'text-blue-400' },
+  { value: 'task', label: 'Zadanie', icon: CheckCircle, color: 'bg-green-500', textColor: 'text-green-400' },
+  { value: 'custom', label: 'Własne', icon: Star, color: 'bg-pink-500', textColor: 'text-pink-400' },
 ];
 
 const colorOptions = [
@@ -55,20 +73,21 @@ const colorOptions = [
 ];
 
 export default function Calendar() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [clients, setClients] = useState<Client[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [newEvent, setNewEvent] = useState({
     title: '',
     description: '',
     event_type: 'custom',
-    start_date: '',
+    start_date: format(new Date(), 'yyyy-MM-dd'),
     start_time: '09:00',
     end_time: '10:00',
     all_day: false,
@@ -95,7 +114,7 @@ export default function Calendar() {
         .order('start_date', { ascending: true }),
       supabase
         .from('leads')
-        .select('id, salon_name, next_follow_up_date')
+        .select('id, salon_name, next_follow_up_date, city')
         .not('status', 'in', '("converted","lost")'),
       supabase
         .from('clients')
@@ -103,13 +122,12 @@ export default function Calendar() {
     ]);
 
     if (eventsRes.data) {
-      // Add follow-up events from leads
       const leadFollowUps: CalendarEvent[] = (leadsRes.data || [])
         .filter(lead => lead.next_follow_up_date)
         .map(lead => ({
           id: `lead-${lead.id}`,
           title: `Follow-up: ${lead.salon_name}`,
-          description: null,
+          description: lead.city || null,
           event_type: 'follow_up',
           start_date: lead.next_follow_up_date!,
           end_date: null,
@@ -168,7 +186,7 @@ export default function Calendar() {
         title: '',
         description: '',
         event_type: 'custom',
-        start_date: '',
+        start_date: selectedDate ? format(selectedDate, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
         start_time: '09:00',
         end_time: '10:00',
         all_day: false,
@@ -196,10 +214,10 @@ export default function Calendar() {
     }
   };
 
-  const days = eachDayOfInterval({
-    start: startOfMonth(currentMonth),
-    end: endOfMonth(currentMonth),
-  });
+  // Get days for calendar grid (including days from prev/next months)
+  const monthStart = startOfMonth(currentMonth);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const days = Array.from({ length: 42 }, (_, i) => addDays(calendarStart, i));
 
   const getEventsForDay = (day: Date) => {
     return events.filter(event => {
@@ -208,15 +226,8 @@ export default function Calendar() {
     });
   };
 
-  const getEventColor = (event: CalendarEvent) => {
-    const colorMap: Record<string, string> = {
-      pink: 'bg-pink-500/20 border-pink-500/50 text-pink-400',
-      blue: 'bg-blue-500/20 border-blue-500/50 text-blue-400',
-      green: 'bg-green-500/20 border-green-500/50 text-green-400',
-      orange: 'bg-orange-500/20 border-orange-500/50 text-orange-400',
-      purple: 'bg-purple-500/20 border-purple-500/50 text-purple-400',
-    };
-    return colorMap[event.color] || colorMap.pink;
+  const getEventTypeInfo = (type: string) => {
+    return eventTypes.find(t => t.value === type) || eventTypes[4];
   };
 
   const handleDayClick = (day: Date) => {
@@ -227,17 +238,8 @@ export default function Calendar() {
     }));
   };
 
-  const getClientName = (clientId: string | null) => {
-    if (!clientId) return null;
-    const client = clients.find(c => c.id === clientId);
-    return client?.salon_name;
-  };
-
-  const getLeadName = (leadId: string | null) => {
-    if (!leadId) return null;
-    const lead = leads.find(l => l.id === leadId);
-    return lead?.salon_name;
-  };
+  const selectedDayEvents = selectedDate ? getEventsForDay(selectedDate) : [];
+  const todayEvents = getEventsForDay(new Date());
 
   if (loading) {
     return (
@@ -253,19 +255,21 @@ export default function Calendar() {
     <AppLayout>
       <div className="p-6 space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <CalendarIcon className="w-6 h-6 text-pink-400" />
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                <CalendarIcon className="w-5 h-5 text-white" />
+              </div>
               Kalendarz
             </h1>
-            <p className="text-muted-foreground text-sm">Planuj spotkania, rozmowy i follow-upy</p>
+            <p className="text-muted-foreground mt-1">Planuj spotkania i zarządzaj czasem</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-primary hover:bg-primary/90">
+              <Button className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0">
                 <Plus className="w-4 h-4 mr-2" />
-                Dodaj wydarzenie
+                Nowe wydarzenie
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md">
@@ -284,37 +288,37 @@ export default function Calendar() {
                   onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                   rows={2}
                 />
-                <Select value={newEvent.event_type} onValueChange={(v) => setNewEvent({ ...newEvent, event_type: v })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Typ wydarzenia" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {eventTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div className="flex items-center gap-2">
-                          <type.icon className="w-4 h-4" />
-                          {type.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="grid grid-cols-2 gap-2">
+                  {eventTypes.map((type) => (
+                    <button
+                      key={type.value}
+                      type="button"
+                      onClick={() => setNewEvent({ ...newEvent, event_type: type.value })}
+                      className={`p-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-2 ${
+                        newEvent.event_type === type.value
+                          ? `border-primary bg-primary/10 ${type.textColor}`
+                          : 'border-border/50 hover:border-primary/30 text-muted-foreground'
+                      }`}
+                    >
+                      <type.icon className="w-3 h-3" />
+                      {type.label}
+                    </button>
+                  ))}
+                </div>
                 <Input
                   type="date"
                   value={newEvent.start_date}
                   onChange={(e) => setNewEvent({ ...newEvent, start_date: e.target.value })}
                 />
-                <div className="flex items-center gap-2">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={newEvent.all_day}
-                      onChange={(e) => setNewEvent({ ...newEvent, all_day: e.target.checked })}
-                      className="rounded"
-                    />
-                    Cały dzień
-                  </label>
-                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={newEvent.all_day}
+                    onChange={(e) => setNewEvent({ ...newEvent, all_day: e.target.checked })}
+                    className="rounded"
+                  />
+                  Cały dzień
+                </label>
                 {!newEvent.all_day && (
                   <div className="grid grid-cols-2 gap-2">
                     <Input
@@ -329,17 +333,6 @@ export default function Calendar() {
                     />
                   </div>
                 )}
-                <Select value={newEvent.client_id} onValueChange={(v) => setNewEvent({ ...newEvent, client_id: v, lead_id: 'none' })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Powiąż z klientem (opcjonalnie)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Brak klienta</SelectItem>
-                    {clients.map((client) => (
-                      <SelectItem key={client.id} value={client.id}>{client.salon_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
                 <Select value={newEvent.lead_id} onValueChange={(v) => setNewEvent({ ...newEvent, lead_id: v, client_id: 'none' })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Powiąż z leadem (opcjonalnie)" />
@@ -351,13 +344,24 @@ export default function Calendar() {
                     ))}
                   </SelectContent>
                 </Select>
+                <Select value={newEvent.client_id} onValueChange={(v) => setNewEvent({ ...newEvent, client_id: v, lead_id: 'none' })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Powiąż z klientem (opcjonalnie)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Brak klienta</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>{client.salon_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <div className="flex gap-2">
                   {colorOptions.map((color) => (
                     <button
                       key={color.value}
                       type="button"
                       onClick={() => setNewEvent({ ...newEvent, color: color.value })}
-                      className={`w-8 h-8 rounded-full ${color.class} ${newEvent.color === color.value ? 'ring-2 ring-white ring-offset-2 ring-offset-background' : ''}`}
+                      className={`w-8 h-8 rounded-full ${color.class} transition-all ${newEvent.color === color.value ? 'ring-2 ring-white ring-offset-2 ring-offset-background scale-110' : 'hover:scale-105'}`}
                     />
                   ))}
                 </div>
@@ -370,15 +374,35 @@ export default function Calendar() {
           </Dialog>
         </div>
 
+        {/* Today's summary */}
+        {todayEvents.length > 0 && (
+          <Card className="border-0 bg-gradient-to-r from-pink-500/10 to-rose-500/5 backdrop-blur-sm">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-pink-400" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-foreground">Dzisiaj masz {todayEvents.length} wydarzeń</p>
+                  <p className="text-xs text-muted-foreground">
+                    {todayEvents.slice(0, 3).map(e => e.title).join(', ')}
+                    {todayEvents.length > 3 && ` i ${todayEvents.length - 3} więcej`}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid lg:grid-cols-4 gap-6">
           {/* Calendar Grid */}
           <Card className="lg:col-span-3 border-border/50 bg-card/80">
-            <CardHeader className="pb-4">
+            <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
-                <CardTitle className="text-xl">
+                <CardTitle className="text-xl font-semibold capitalize">
                   {format(currentMonth, 'LLLL yyyy', { locale: pl })}
                 </CardTitle>
                 <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}>
@@ -386,7 +410,7 @@ export default function Calendar() {
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-4">
               {/* Day headers */}
               <div className="grid grid-cols-7 gap-1 mb-2">
                 {['Pon', 'Wt', 'Śr', 'Czw', 'Pt', 'Sob', 'Ndz'].map((day) => (
@@ -398,42 +422,43 @@ export default function Calendar() {
               
               {/* Calendar days */}
               <div className="grid grid-cols-7 gap-1">
-                {/* Empty cells for days before month start */}
-                {Array.from({ length: (days[0].getDay() + 6) % 7 }).map((_, i) => (
-                  <div key={`empty-${i}`} className="aspect-square" />
-                ))}
-                
                 {days.map((day) => {
                   const dayEvents = getEventsForDay(day);
                   const isSelected = selectedDate && isSameDay(day, selectedDate);
+                  const isCurrentMonth = isSameMonth(day, currentMonth);
                   
                   return (
                     <div
                       key={day.toISOString()}
                       onClick={() => handleDayClick(day)}
-                      className={`aspect-square p-1 border rounded-lg cursor-pointer transition-all overflow-hidden ${
+                      className={`min-h-[80px] p-2 border rounded-lg cursor-pointer transition-all ${
                         isToday(day)
                           ? 'bg-pink-500/20 border-pink-500/50'
                           : isSelected
                           ? 'bg-secondary border-primary/50'
+                          : !isCurrentMonth
+                          ? 'border-transparent opacity-40'
                           : 'border-border/30 hover:border-border/60 hover:bg-secondary/30'
                       }`}
                     >
-                      <div className={`text-xs font-medium mb-0.5 ${isToday(day) ? 'text-pink-400' : 'text-foreground'}`}>
+                      <div className={`text-sm font-medium mb-1 ${isToday(day) ? 'text-pink-400' : 'text-foreground'}`}>
                         {format(day, 'd')}
                       </div>
-                      <div className="space-y-0.5">
-                        {dayEvents.slice(0, 3).map((event) => (
-                          <div
-                            key={event.id}
-                            className={`text-[10px] px-1 py-0.5 rounded truncate border ${getEventColor(event)}`}
-                          >
-                            {event.title}
-                          </div>
-                        ))}
-                        {dayEvents.length > 3 && (
+                      <div className="space-y-1">
+                        {dayEvents.slice(0, 2).map((event) => {
+                          const typeInfo = getEventTypeInfo(event.event_type);
+                          return (
+                            <div
+                              key={event.id}
+                              className={`text-[10px] px-1.5 py-0.5 rounded truncate ${typeInfo.color} text-white`}
+                            >
+                              {event.title}
+                            </div>
+                          );
+                        })}
+                        {dayEvents.length > 2 && (
                           <div className="text-[10px] text-muted-foreground text-center">
-                            +{dayEvents.length - 3}
+                            +{dayEvents.length - 2} więcej
                           </div>
                         )}
                       </div>
@@ -447,87 +472,130 @@ export default function Calendar() {
           {/* Selected Day Details */}
           <div className="space-y-4">
             <Card className="border-border/50 bg-card/80">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">
-                  {selectedDate ? format(selectedDate, 'd MMMM yyyy', { locale: pl }) : 'Wybierz dzień'}
+              <CardHeader className="pb-2 border-b border-border/50">
+                <CardTitle className="text-base flex items-center justify-between">
+                  <span>
+                    {selectedDate 
+                      ? format(selectedDate, 'd MMMM', { locale: pl })
+                      : 'Wybierz dzień'
+                    }
+                  </span>
+                  {selectedDate && (
+                    <Button 
+                      size="sm" 
+                      variant="ghost"
+                      onClick={() => {
+                        setNewEvent(prev => ({
+                          ...prev,
+                          start_date: format(selectedDate, 'yyyy-MM-dd'),
+                        }));
+                        setIsAddDialogOpen(true);
+                      }}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  )}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                {selectedDate ? (
-                  <div className="space-y-2">
-                    {getEventsForDay(selectedDate).length === 0 ? (
-                      <p className="text-sm text-muted-foreground">Brak wydarzeń</p>
-                    ) : (
-                      getEventsForDay(selectedDate).map((event) => (
-                        <div
-                          key={event.id}
-                          className={`p-3 rounded-lg border ${getEventColor(event)}`}
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm">{event.title}</p>
-                              {event.description && (
-                                <p className="text-xs text-muted-foreground mt-1">{event.description}</p>
-                              )}
-                              {!event.all_day && event.end_date && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {format(parseISO(event.start_date), 'HH:mm')} - {format(parseISO(event.end_date), 'HH:mm')}
-                                </p>
-                              )}
-                              {event.client_id && (
-                                <p className="text-xs text-blue-400 mt-1">
-                                  Klient: {getClientName(event.client_id)}
-                                </p>
-                              )}
-                              {event.lead_id && !event.id.startsWith('lead-') && (
-                                <p className="text-xs text-orange-400 mt-1">
-                                  Lead: {getLeadName(event.lead_id)}
-                                </p>
-                              )}
-                            </div>
-                            {!event.id.startsWith('lead-') && (
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                                onClick={() => handleDeleteEvent(event.id)}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full mt-2"
-                      onClick={() => setIsAddDialogOpen(true)}
+              <CardContent className="p-0">
+                {selectedDayEvents.length === 0 ? (
+                  <div className="p-6 text-center">
+                    <CalendarIcon className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Brak wydarzeń</p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="mt-3"
+                      onClick={() => {
+                        if (selectedDate) {
+                          setNewEvent(prev => ({
+                            ...prev,
+                            start_date: format(selectedDate, 'yyyy-MM-dd'),
+                          }));
+                        }
+                        setIsAddDialogOpen(true);
+                      }}
                     >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Dodaj wydarzenie
+                      <Plus className="w-3 h-3 mr-1" />
+                      Dodaj
                     </Button>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Kliknij na dzień, aby zobaczyć wydarzenia</p>
+                  <div className="divide-y divide-border/50">
+                    {selectedDayEvents.map((event) => {
+                      const typeInfo = getEventTypeInfo(event.event_type);
+                      const Icon = typeInfo.icon;
+                      const isAutoFollowUp = event.id.startsWith('lead-');
+                      
+                      return (
+                        <div 
+                          key={event.id}
+                          className="p-4 hover:bg-secondary/30 transition-colors group"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`w-8 h-8 rounded-lg ${typeInfo.color} flex items-center justify-center flex-shrink-0`}>
+                              <Icon className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate">{event.title}</p>
+                              {!event.all_day && (
+                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5">
+                                  <Clock className="w-3 h-3" />
+                                  {format(parseISO(event.start_date), 'HH:mm')}
+                                  {event.end_date && ` - ${format(parseISO(event.end_date), 'HH:mm')}`}
+                                </p>
+                              )}
+                              {event.description && (
+                                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                                  <MapPin className="w-3 h-3" />
+                                  {event.description}
+                                </p>
+                              )}
+                            </div>
+                            {!isAutoFollowUp && (
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7"
+                                onClick={() => handleDeleteEvent(event.id)}
+                              >
+                                <Trash2 className="w-3 h-3 text-muted-foreground hover:text-destructive" />
+                              </Button>
+                            )}
+                          </div>
+                          {event.lead_id && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="mt-2 text-xs h-7"
+                              onClick={() => navigate(`/leads/${event.lead_id}`)}
+                            >
+                              Zobacz lead
+                              <ArrowRight className="w-3 h-3 ml-1" />
+                            </Button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 )}
               </CardContent>
             </Card>
 
-            {/* Legend */}
+            {/* Event Type Legend */}
             <Card className="border-border/50 bg-card/80">
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">Legenda</CardTitle>
+                <CardTitle className="text-sm text-muted-foreground">Typy wydarzeń</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-2">
-                {eventTypes.map((type) => (
-                  <div key={type.value} className="flex items-center gap-2 text-sm">
-                    <div className={`w-3 h-3 rounded-full ${type.color}`} />
-                    <type.icon className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">{type.label}</span>
-                  </div>
-                ))}
+              <CardContent className="pt-0">
+                <div className="space-y-2">
+                  {eventTypes.map((type) => (
+                    <div key={type.value} className="flex items-center gap-2 text-xs">
+                      <div className={`w-3 h-3 rounded ${type.color}`} />
+                      <span className="text-muted-foreground">{type.label}</span>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>

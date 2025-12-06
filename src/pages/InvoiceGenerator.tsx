@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, FileImage, ArrowLeft, Link } from "lucide-react";
+import { Download, FileImage, ArrowLeft, Link, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +21,11 @@ interface ClientOption {
   salon_name: string;
 }
 
+interface LeadOption {
+  id: string;
+  salon_name: string;
+}
+
 const InvoiceGenerator = () => {
   const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
@@ -29,7 +34,9 @@ const InvoiceGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [leads, setLeads] = useState<LeadOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const [previewScale, setPreviewScale] = useState(0.5);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
@@ -46,11 +53,15 @@ const InvoiceGenerator = () => {
   });
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const { data } = await supabase.from('clients').select('id, salon_name').order('salon_name');
-      setClients(data || []);
+    const fetchData = async () => {
+      const [clientsRes, leadsRes] = await Promise.all([
+        supabase.from('clients').select('id, salon_name').order('salon_name'),
+        supabase.from('leads').select('id, salon_name').not('status', 'in', '("converted","lost")').order('salon_name')
+      ]);
+      setClients(clientsRes.data || []);
+      setLeads(leadsRes.data || []);
     };
-    fetchClients();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -104,7 +115,8 @@ const InvoiceGenerator = () => {
       `Faktura ${formData.invoiceNumber}`,
       { ...formData, invoiceType },
       undefined,
-      selectedClientId || undefined
+      selectedClientId || undefined,
+      selectedLeadId || undefined
     );
     setCurrentDocId(docId);
     toast.success("Faktura zapisana!");
@@ -147,7 +159,8 @@ const InvoiceGenerator = () => {
           `Faktura ${formData.invoiceNumber}`,
           { ...formData, invoiceType },
           undefined,
-          selectedClientId || undefined
+          selectedClientId || undefined,
+          selectedLeadId || undefined
         );
         setCurrentDocId(docId);
         
@@ -286,22 +299,41 @@ const InvoiceGenerator = () => {
                 </div>
               )}
 
-              <div>
-                <Label className="text-xs flex items-center gap-1">
-                  <Link className="w-3 h-3 text-primary" />
-                  Połącz z klientem
-                </Label>
-                <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
-                  <SelectTrigger className="h-9 mt-1">
-                    <SelectValue placeholder="Opcjonalne..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Bez powiązania</SelectItem>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs flex items-center gap-1">
+                    <Link className="w-3 h-3 text-primary" />
+                    Klient
+                  </Label>
+                  <Select value={selectedClientId || "none"} onValueChange={(v) => { setSelectedClientId(v === "none" ? "" : v); setSelectedLeadId(""); }}>
+                    <SelectTrigger className="h-9 mt-1">
+                      <SelectValue placeholder="Opcjonalne..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Bez powiązania</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs flex items-center gap-1">
+                    <Users className="w-3 h-3 text-primary" />
+                    Lead
+                  </Label>
+                  <Select value={selectedLeadId || "none"} onValueChange={(v) => { setSelectedLeadId(v === "none" ? "" : v); setSelectedClientId(""); }}>
+                    <SelectTrigger className="h-9 mt-1">
+                      <SelectValue placeholder="Opcjonalne..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Bez powiązania</SelectItem>
+                      {leads.map((l) => (
+                        <SelectItem key={l.id} value={l.id}>{l.salon_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
