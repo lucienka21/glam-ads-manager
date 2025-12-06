@@ -18,12 +18,14 @@ interface DocumentViewerProps {
 }
 
 const TOTAL_SLIDES = 6;
+const SLIDES_ARRAY = [1, 2, 3, 4, 5, 6];
 
 export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const captureRef = useRef<HTMLDivElement>(null);
+  const hiddenSlidesRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingSlide, setGeneratingSlide] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(1);
   const { toast } = useToast();
 
@@ -84,6 +86,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
   const generatePDF = async () => {
     if (!document) return;
     setIsGenerating(true);
+    setGeneratingSlide(0);
 
     try {
       let orientation: "landscape" | "portrait" = "landscape";
@@ -98,10 +101,10 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         bgColor = "#ffffff";
       }
 
-      // For presentations, use the hidden capture element
+      // For presentations, capture from pre-rendered hidden slides
       if (document.type === "presentation") {
-        const element = captureRef.current;
-        if (!element) {
+        const hiddenContainer = hiddenSlidesRef.current;
+        if (!hiddenContainer) {
           toast({ title: "Błąd", description: "Brak elementu do eksportu", variant: "destructive" });
           setIsGenerating(false);
           return;
@@ -114,25 +117,28 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           compress: true,
         });
 
-        for (let i = 1; i <= TOTAL_SLIDES; i++) {
-          setCurrentSlide(i);
-          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        for (let i = 0; i < TOTAL_SLIDES; i++) {
+          setGeneratingSlide(i + 1);
+          
+          const slideElement = hiddenContainer.children[i] as HTMLElement;
+          if (!slideElement) continue;
 
-          const dataUrl = await toJpeg(element, {
+          await new Promise(resolve => setTimeout(resolve, 100));
+
+          const dataUrl = await toJpeg(slideElement, {
             width: 1600,
             height: 900,
-            pixelRatio: 1,
+            pixelRatio: 2,
             backgroundColor: "#000000",
             quality: 0.92,
             skipFonts: true,
           });
 
-          if (i > 1) pdf.addPage([1600, 900], "landscape");
+          if (i > 0) pdf.addPage([1600, 900], "landscape");
           pdf.addImage(dataUrl, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
         }
 
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
-        setCurrentSlide(1);
       } else {
         // For other documents, capture from the display element
         const elementId = document.type === "report" ? "report-preview-landscape" 
@@ -149,7 +155,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         const dataUrl = await toJpeg(element, {
           width,
           height,
-          pixelRatio: 1,
+          pixelRatio: 2,
           backgroundColor: bgColor,
           quality: 0.92,
           skipFonts: true,
@@ -172,6 +178,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       toast({ title: "Błąd", description: "Nie udało się wygenerować PDF", variant: "destructive" });
     } finally {
       setIsGenerating(false);
+      setGeneratingSlide(0);
     }
   };
 
@@ -208,10 +215,12 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
               onClick={generatePDF}
               disabled={isGenerating}
               size="sm"
-              className="bg-pink-600 hover:bg-pink-700"
+              className="bg-pink-600 hover:bg-pink-700 min-w-[120px]"
             >
               <Download className="w-4 h-4 mr-1.5" />
-              {isGenerating ? "..." : "PDF"}
+              {isGenerating 
+                ? (generatingSlide > 0 ? `Slajd ${generatingSlide}/${TOTAL_SLIDES}` : "Generuję...")
+                : "Pobierz PDF"}
             </Button>
             <Button
               onClick={onClose}
@@ -296,21 +305,32 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           </div>
         </div>
 
-        {/* Hidden capture element for presentations */}
+        {/* Hidden pre-rendered slides for PDF generation */}
         {document.type === "presentation" && (
           <div 
-            ref={captureRef}
+            ref={hiddenSlidesRef}
             style={{
               position: 'fixed',
-              left: '-9999px',
+              left: '-99999px',
               top: 0,
-              width: '1600px',
-              height: '900px',
-              backgroundColor: '#000000',
-              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
             }}
           >
-            <PresentationPreview data={document.data as any} currentSlide={currentSlide} />
+            {SLIDES_ARRAY.map((slideNum) => (
+              <div
+                key={slideNum}
+                style={{
+                  width: '1600px',
+                  height: '900px',
+                  backgroundColor: '#000000',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}
+              >
+                <PresentationPreview data={document.data as any} currentSlide={slideNum} />
+              </div>
+            ))}
           </div>
         )}
       </DialogContent>
