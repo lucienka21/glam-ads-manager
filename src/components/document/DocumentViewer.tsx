@@ -143,9 +143,9 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
 
           const dataUrl = await toJpeg(element, {
             cacheBust: true,
-            pixelRatio: 1,
+            pixelRatio: 2,
             backgroundColor: "#000000",
-            quality: 0.85,
+            quality: 0.92,
           });
 
           if (i > 1) pdf.addPage([1600, 900], "landscape");
@@ -157,9 +157,9 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       } else {
         const dataUrl = await toJpeg(element, {
           cacheBust: true,
-          pixelRatio: 1,
+          pixelRatio: 2,
           backgroundColor: bgColor,
-          quality: 0.85,
+          quality: 0.92,
         });
 
         const pdf = new jsPDF({
