@@ -642,6 +642,7 @@ export default function Tasks() {
                 onDelete={handleDeleteTask}
                 onToggleComplete={handleToggleCompleted}
                 onOpenComments={openComments}
+                onStatusChange={handleStatusChange}
               />
             )}
           </TabsContent>
@@ -669,6 +670,7 @@ export default function Tasks() {
                 onDelete={handleDeleteTask}
                 onToggleComplete={handleToggleCompleted}
                 onOpenComments={openComments}
+                onStatusChange={handleStatusChange}
               />
             )}
           </TabsContent>
@@ -697,6 +699,7 @@ export default function Tasks() {
                   onDelete={handleDeleteTask}
                   onToggleComplete={handleToggleCompleted}
                   onOpenComments={openComments}
+                  onStatusChange={handleStatusChange}
                 />
               )}
             </TabsContent>
@@ -712,6 +715,7 @@ export default function Tasks() {
               onDelete={handleDeleteTask}
               onToggleComplete={handleToggleCompleted}
               onOpenComments={openComments}
+              onStatusChange={handleStatusChange}
               showHistory
             />
           </TabsContent>

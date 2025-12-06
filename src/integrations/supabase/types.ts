@@ -366,6 +366,7 @@ export type Database = {
           created_by: string | null
           data: Json
           id: string
+          lead_id: string | null
           subtitle: string | null
           thumbnail: string | null
           title: string
@@ -377,6 +378,7 @@ export type Database = {
           created_by?: string | null
           data: Json
           id?: string
+          lead_id?: string | null
           subtitle?: string | null
           thumbnail?: string | null
           title: string
@@ -388,6 +390,7 @@ export type Database = {
           created_by?: string | null
           data?: Json
           id?: string
+          lead_id?: string | null
           subtitle?: string | null
           thumbnail?: string | null
           title?: string
@@ -399,6 +402,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
             referencedColumns: ["id"]
           },
         ]

@@ -1,7 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -22,7 +21,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { renderMentions } from '@/components/ui/Mention';
+import { TaskQuickActions } from './TaskQuickActions';
 
 interface Task {
   id: string;
@@ -69,6 +68,7 @@ interface TaskListViewProps {
   onDelete: (task: Task) => void;
   onToggleComplete: (task: Task, completed: boolean) => void;
   onOpenComments: (task: Task) => void;
+  onStatusChange: (task: Task, newStatus: string) => void;
   showHistory?: boolean;
 }
 
@@ -104,6 +104,7 @@ export function TaskListView({
   onDelete,
   onToggleComplete,
   onOpenComments,
+  onStatusChange,
   showHistory = false,
 }: TaskListViewProps) {
   if (tasks.length === 0) {
@@ -135,14 +136,6 @@ export function TaskListView({
           >
             <CardContent className="p-4">
               <div className="flex items-start gap-4">
-                {/* Checkbox */}
-                {!showHistory && (
-                  <Checkbox
-                    checked={task.status === 'completed'}
-                    onCheckedChange={(checked) => onToggleComplete(task, Boolean(checked))}
-                    className="mt-1"
-                  />
-                )}
 
                 {/* Main content */}
                 <div className="flex-1 min-w-0 space-y-2">
@@ -187,13 +180,16 @@ export function TaskListView({
                     </DropdownMenu>
                   </div>
 
+                  {/* Quick Status Actions */}
+                  {!showHistory && (
+                    <TaskQuickActions
+                      currentStatus={task.status}
+                      onStatusChange={(newStatus) => onStatusChange(task, newStatus)}
+                    />
+                  )}
+
                   {/* Badges row */}
                   <div className="flex flex-wrap gap-2">
-                    {!showHistory && (
-                      <Badge className={status.color}>
-                        {status.label}
-                      </Badge>
-                    )}
                     <Badge className={priority.color}>
                       {priority.label}
                     </Badge>
