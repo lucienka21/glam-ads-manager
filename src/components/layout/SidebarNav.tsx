@@ -141,7 +141,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
   if (isSzef) {
     sections.push({
       label: "Admin",
-      items: [{ title: "Role", url: "/roles", icon: Shield }],
+      items: [{ title: "Panel admina", url: "/admin", icon: Shield }],
     });
   }
 

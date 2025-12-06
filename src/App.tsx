@@ -23,7 +23,7 @@ import Campaigns from "./pages/Campaigns";
 import CampaignDetails from "./pages/CampaignDetails";
 import Templates from "./pages/Templates";
 import Tasks from "./pages/Tasks";
-import RoleManagement from "./pages/RoleManagement";
+import AdminPanel from "./pages/AdminPanel";
 import SalesFunnelPage from "./pages/SalesFunnelPage";
 import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
@@ -59,7 +59,7 @@ function AppContent() {
           <Route path="/campaigns/:id" element={<ProtectedRoute><CampaignDetails /></ProtectedRoute>} />
           <Route path="/funnel" element={<ProtectedRoute><SalesFunnelPage /></ProtectedRoute>} />
           <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
-          <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminPanel /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
