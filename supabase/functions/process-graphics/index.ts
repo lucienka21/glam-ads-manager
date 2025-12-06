@@ -1,9 +1,34 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Allowed templates
+const allowedTemplates = [
+  'before-after-horizontal',
+  'before-after-vertical', 
+  'before-after-diagonal',
+  'carousel-item',
+  'story',
+  'promo-square',
+  'reels-cover',
+  'multi-image-carousel'
+] as const;
+
+// Input validation schema
+const inputSchema = z.object({
+  beforeImage: z.string().url().max(10000).optional(),
+  afterImage: z.string().url().max(10000).optional(),
+  template: z.enum(allowedTemplates).default('before-after-horizontal'),
+  headline: z.string().max(200).optional(),
+  subheadline: z.string().max(300).optional(),
+  accentColor: z.string().max(50).regex(/^[a-zA-Z0-9#\s]+$/).optional().default('pink'),
+}).refine((data) => data.beforeImage || data.afterImage, {
+  message: "At least one image is required",
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,14 +41,24 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { beforeImage, afterImage, template, headline, subheadline, accentColor } = await req.json();
-
-    if (!beforeImage && !afterImage) {
-      throw new Error('At least one image is required');
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = inputSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Nieprawidłowe dane wejściowe',
+        details: validationResult.error.errors.map(e => e.message)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
+    const { beforeImage, afterImage, template, headline, subheadline, accentColor } = validationResult.data;
+
     // Build prompt based on template
-    let prompt = "";
     const templatePrompts: Record<string, string> = {
       'before-after-horizontal': `Create a professional horizontal before/after comparison graphic for a beauty salon social media post. 
         Split the image into two equal halves side by side. 
@@ -81,10 +116,12 @@ serve(async (req) => {
         Make it cohesive and professional for beauty salon marketing.`
     };
 
-    prompt = templatePrompts[template] || templatePrompts['before-after-horizontal'];
+    const prompt = templatePrompts[template] || templatePrompts['before-after-horizontal'];
 
     // Prepare messages with images
-    const content: any[] = [{ type: "text", text: prompt }];
+    const content: { type: string; text?: string; image_url?: { url: string } }[] = [
+      { type: "text", text: prompt }
+    ];
     
     if (beforeImage) {
       content.push({
