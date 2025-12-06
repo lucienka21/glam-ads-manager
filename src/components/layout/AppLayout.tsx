@@ -1,6 +1,7 @@
-import { Menu, Sparkles } from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState } from "react";
 import { AppSidebar } from "./AppSidebar";
+import { SidebarNav } from "./SidebarNav";
 import { TeamChatPanel } from "@/components/chat/TeamChatPanel";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { GlobalSearch } from "@/components/search/GlobalSearch";
@@ -39,7 +40,11 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-64 p-0 bg-sidebar border-sidebar-border">
-              <AppSidebar />
+              <SidebarNav 
+                onNavigate={() => setMobileMenuOpen(false)} 
+                showCloseButton 
+                onClose={() => setMobileMenuOpen(false)} 
+              />
             </SheetContent>
           </Sheet>
           <div className="flex items-center gap-2">
@@ -65,7 +70,7 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         <div className="lg:hidden h-14" />
         
         {/* Page content */}
-        <div className="overflow-auto">
+        <div className="min-h-[calc(100vh-64px)]">
           {children}
         </div>
       </main>
