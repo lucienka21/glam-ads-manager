@@ -6,32 +6,77 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-async function getZohoAccessToken(): Promise<string> {
-  const clientId = Deno.env.get("ZOHO_CLIENT_ID");
-  const clientSecret = Deno.env.get("ZOHO_CLIENT_SECRET");
-  const refreshToken = Deno.env.get("ZOHO_REFRESH_TOKEN");
+// Get Zoho credentials based on email account
+function getZohoCredentials(emailFrom: string): { clientId: string; clientSecret: string; refreshToken: string } | null {
+  if (emailFrom === "kontakt@aurine.pl") {
+    const clientId = Deno.env.get("ZOHO_KONTAKT_CLIENT_ID");
+    const clientSecret = Deno.env.get("ZOHO_KONTAKT_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("ZOHO_KONTAKT_REFRESH_TOKEN");
+    
+    if (!clientId || !clientSecret || !refreshToken) {
+      console.error("Missing ZOHO_KONTAKT credentials");
+      return null;
+    }
+    return { clientId, clientSecret, refreshToken };
+  } else if (emailFrom === "biuro@aurine.pl") {
+    const clientId = Deno.env.get("ZOHO_BIURO_CLIENT_ID");
+    const clientSecret = Deno.env.get("ZOHO_BIURO_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("ZOHO_BIURO_REFRESH_TOKEN");
+    
+    if (!clientId || !clientSecret || !refreshToken) {
+      console.error("Missing ZOHO_BIURO credentials");
+      return null;
+    }
+    return { clientId, clientSecret, refreshToken };
+  }
+  
+  console.error(`Unknown email account: ${emailFrom}`);
+  return null;
+}
 
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error("Zoho credentials not configured");
+// Cache for access tokens per email account
+const accessTokenCache: Record<string, { token: string; expiry: number }> = {};
+
+async function getZohoAccessToken(emailFrom: string): Promise<string | null> {
+  // Check cache first
+  const cached = accessTokenCache[emailFrom];
+  if (cached && cached.expiry > Date.now()) {
+    return cached.token;
   }
 
-  const response = await fetch("https://accounts.zoho.eu/oauth/v2/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      grant_type: "refresh_token",
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
-    }),
-  });
+  const credentials = getZohoCredentials(emailFrom);
+  if (!credentials) return null;
 
-  if (!response.ok) {
-    throw new Error("Failed to get Zoho access token");
+  try {
+    const response = await fetch("https://accounts.zoho.eu/oauth/v2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        client_id: credentials.clientId,
+        client_secret: credentials.clientSecret,
+        refresh_token: credentials.refreshToken,
+      }),
+    });
+
+    if (!response.ok) {
+      console.error(`Failed to get Zoho token for ${emailFrom}:`, await response.text());
+      return null;
+    }
+
+    const data = await response.json();
+    
+    // Cache token for 50 minutes (Zoho tokens typically last 1 hour)
+    accessTokenCache[emailFrom] = {
+      token: data.access_token,
+      expiry: Date.now() + 50 * 60 * 1000,
+    };
+    
+    return data.access_token;
+  } catch (e) {
+    console.error(`Error getting Zoho token for ${emailFrom}:`, e);
+    return null;
   }
-
-  const data = await response.json();
-  return data.access_token;
 }
 
 async function sendEmailViaZoho(
@@ -46,14 +91,22 @@ async function sendEmailViaZoho(
       headers: { Authorization: `Zoho-oauthtoken ${accessToken}` },
     });
 
-    if (!accountsResponse.ok) return false;
+    if (!accountsResponse.ok) {
+      console.error("Failed to get Zoho accounts:", await accountsResponse.text());
+      return false;
+    }
 
     const accountsData = await accountsResponse.json();
+    console.log("Available accounts:", accountsData.data?.map((a: any) => a.primaryEmailAddress));
+    
     const account = accountsData.data?.find((acc: any) => 
       acc.primaryEmailAddress === fromEmail
     );
 
-    if (!account) return false;
+    if (!account) {
+      console.error(`Account ${fromEmail} not found in Zoho accounts`);
+      return false;
+    }
 
     const sendResponse = await fetch(
       `https://mail.zoho.eu/api/accounts/${account.accountId}/messages`,
@@ -73,11 +126,28 @@ async function sendEmailViaZoho(
       }
     );
 
-    return sendResponse.ok;
+    if (!sendResponse.ok) {
+      console.error("Failed to send email:", await sendResponse.text());
+      return false;
+    }
+
+    console.log(`Email sent successfully from ${fromEmail} to ${to}`);
+    return true;
   } catch (e) {
     console.error("Send email error:", e);
     return false;
   }
+}
+
+// Replace placeholders in email template
+function replacePlaceholders(template: string, lead: any): string {
+  return template
+    .replace(/\{salon_name\}/g, lead.salon_name || '')
+    .replace(/\{owner_name\}/g, lead.owner_name || '')
+    .replace(/\{city\}/g, lead.city || '')
+    .replace(/\{email\}/g, lead.email || '')
+    .replace(/\{phone\}/g, lead.phone || '')
+    .replace(/\{industry\}/g, lead.industry || '');
 }
 
 serve(async (req) => {
@@ -92,6 +162,37 @@ serve(async (req) => {
     );
 
     const today = new Date().toISOString().split("T")[0];
+
+    // Fetch email templates from database
+    const { data: templates } = await supabase
+      .from("email_templates")
+      .select("*");
+
+    const templateMap: Record<string, { subject: string; body: string }> = {};
+    for (const t of templates || []) {
+      templateMap[t.template_name] = { subject: t.subject, body: t.body };
+    }
+
+    // Default templates if none in database
+    const defaultFollowUp1 = {
+      subject: "Re: Współpraca z {salon_name}",
+      body: `<p>Cześć {owner_name},</p>
+<p>Piszę w nawiązaniu do mojej poprzedniej wiadomości dotyczącej współpracy z salonem {salon_name}.</p>
+<p>Czy udało się zapoznać z moją propozycją? Chętnie porozmawiam o szczegółach.</p>
+<p>Pozdrawiam,<br/>Zespół Aurine</p>`,
+    };
+
+    const defaultFollowUp2 = {
+      subject: "Ostatnia wiadomość - {salon_name}",
+      body: `<p>Cześć {owner_name},</p>
+<p>To moja ostatnia wiadomość w tej sprawie. Jeśli nie jesteś zainteresowana współpracą, całkowicie to rozumiem.</p>
+<p>Jeśli jednak chciałabyś porozmawiać o tym, jak mogę pomóc {salon_name} pozyskać więcej klientów przez Facebook Ads, daj mi znać.</p>
+<p>Pozdrawiam,<br/>Zespół Aurine</p>`,
+    };
+
+    // Get Follow-up 1 template
+    const followUp1Template = templateMap["follow_up_1"] || templateMap["Follow-up 1"] || defaultFollowUp1;
+    const followUp2Template = templateMap["follow_up_2"] || templateMap["Follow-up 2"] || defaultFollowUp2;
 
     // Get leads that need follow-up emails today
     const { data: leadsForFollowUp1 } = await supabase
@@ -114,23 +215,27 @@ serve(async (req) => {
       .lte("email_follow_up_2_date", today)
       .not("status", "in", '("converted","lost")');
 
-    let accessToken: string | null = null;
     const results = { sent: 0, failed: 0, processed: [] as string[] };
+
+    console.log(`Found ${leadsForFollowUp1?.length || 0} leads for Follow-up 1`);
+    console.log(`Found ${leadsForFollowUp2?.length || 0} leads for Follow-up 2`);
 
     // Process Follow-up 1
     for (const lead of leadsForFollowUp1 || []) {
       try {
-        if (!accessToken) accessToken = await getZohoAccessToken();
+        const emailFrom = lead.email_from;
+        const accessToken = await getZohoAccessToken(emailFrom);
         
-        const subject = `Re: Współpraca z ${lead.salon_name}`;
-        const body = `
-          <p>Cześć ${lead.owner_name || ''},</p>
-          <p>Piszę w nawiązaniu do mojej poprzedniej wiadomości dotyczącej współpracy z salonem ${lead.salon_name}.</p>
-          <p>Czy udało się zapoznać z moją propozycją? Chętnie porozmawiam o szczegółach.</p>
-          <p>Pozdrawiam,<br/>Zespół Aurine</p>
-        `;
+        if (!accessToken) {
+          console.error(`Failed to get access token for ${emailFrom}`);
+          results.failed++;
+          continue;
+        }
+        
+        const subject = replacePlaceholders(followUp1Template.subject, lead);
+        const body = replacePlaceholders(followUp1Template.body, lead);
 
-        const sent = await sendEmailViaZoho(accessToken, lead.email_from, lead.email, subject, body);
+        const sent = await sendEmailViaZoho(accessToken, emailFrom, lead.email, subject, body);
         
         if (sent) {
           await supabase.from("leads").update({
@@ -143,9 +248,9 @@ serve(async (req) => {
 
           await supabase.from("lead_interactions").insert({
             lead_id: lead.id,
-            type: "email_auto",
+            type: "email_follow_up_1",
             title: "Automatyczny Follow-up #1",
-            content: `Email wysłany automatycznie z ${lead.email_from}`,
+            content: `Email wysłany automatycznie z ${emailFrom} do ${lead.email}`,
           });
 
           results.sent++;
@@ -162,17 +267,19 @@ serve(async (req) => {
     // Process Follow-up 2
     for (const lead of leadsForFollowUp2 || []) {
       try {
-        if (!accessToken) accessToken = await getZohoAccessToken();
+        const emailFrom = lead.email_from;
+        const accessToken = await getZohoAccessToken(emailFrom);
         
-        const subject = `Ostatnia wiadomość - ${lead.salon_name}`;
-        const body = `
-          <p>Cześć ${lead.owner_name || ''},</p>
-          <p>To moja ostatnia wiadomość w tej sprawie. Jeśli nie jesteś zainteresowana współpracą, całkowicie to rozumiem.</p>
-          <p>Jeśli jednak chciałabyś porozmawiać o tym, jak mogę pomóc ${lead.salon_name} pozyskać więcej klientów przez Facebook Ads, daj mi znać.</p>
-          <p>Pozdrawiam,<br/>Zespół Aurine</p>
-        `;
+        if (!accessToken) {
+          console.error(`Failed to get access token for ${emailFrom}`);
+          results.failed++;
+          continue;
+        }
+        
+        const subject = replacePlaceholders(followUp2Template.subject, lead);
+        const body = replacePlaceholders(followUp2Template.body, lead);
 
-        const sent = await sendEmailViaZoho(accessToken, lead.email_from, lead.email, subject, body);
+        const sent = await sendEmailViaZoho(accessToken, emailFrom, lead.email, subject, body);
         
         if (sent) {
           await supabase.from("leads").update({
@@ -185,9 +292,9 @@ serve(async (req) => {
 
           await supabase.from("lead_interactions").insert({
             lead_id: lead.id,
-            type: "email_auto",
+            type: "email_follow_up_2",
             title: "Automatyczny Follow-up #2",
-            content: `Email wysłany automatycznie z ${lead.email_from}`,
+            content: `Email wysłany automatycznie z ${emailFrom} do ${lead.email}`,
           });
 
           results.sent++;

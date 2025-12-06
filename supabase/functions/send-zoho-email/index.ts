@@ -15,13 +15,38 @@ interface SendEmailRequest {
   followUpType?: "cold_email" | "email_follow_up_1" | "email_follow_up_2";
 }
 
-async function getZohoAccessToken(): Promise<string> {
-  const clientId = Deno.env.get("ZOHO_CLIENT_ID");
-  const clientSecret = Deno.env.get("ZOHO_CLIENT_SECRET");
-  const refreshToken = Deno.env.get("ZOHO_REFRESH_TOKEN");
+// Get Zoho credentials based on email account
+function getZohoCredentials(emailFrom: string): { clientId: string; clientSecret: string; refreshToken: string } | null {
+  if (emailFrom === "kontakt@aurine.pl") {
+    const clientId = Deno.env.get("ZOHO_KONTAKT_CLIENT_ID");
+    const clientSecret = Deno.env.get("ZOHO_KONTAKT_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("ZOHO_KONTAKT_REFRESH_TOKEN");
+    
+    if (!clientId || !clientSecret || !refreshToken) {
+      console.error("Missing ZOHO_KONTAKT credentials");
+      return null;
+    }
+    return { clientId, clientSecret, refreshToken };
+  } else if (emailFrom === "biuro@aurine.pl") {
+    const clientId = Deno.env.get("ZOHO_BIURO_CLIENT_ID");
+    const clientSecret = Deno.env.get("ZOHO_BIURO_CLIENT_SECRET");
+    const refreshToken = Deno.env.get("ZOHO_BIURO_REFRESH_TOKEN");
+    
+    if (!clientId || !clientSecret || !refreshToken) {
+      console.error("Missing ZOHO_BIURO credentials");
+      return null;
+    }
+    return { clientId, clientSecret, refreshToken };
+  }
+  
+  console.error(`Unknown email account: ${emailFrom}`);
+  return null;
+}
 
-  if (!clientId || !clientSecret || !refreshToken) {
-    throw new Error("Zoho credentials not configured");
+async function getZohoAccessToken(emailFrom: string): Promise<string> {
+  const credentials = getZohoCredentials(emailFrom);
+  if (!credentials) {
+    throw new Error(`No credentials for ${emailFrom}`);
   }
 
   const response = await fetch("https://accounts.zoho.eu/oauth/v2/token", {
@@ -31,15 +56,15 @@ async function getZohoAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({
       grant_type: "refresh_token",
-      client_id: clientId,
-      client_secret: clientSecret,
-      refresh_token: refreshToken,
+      client_id: credentials.clientId,
+      client_secret: credentials.clientSecret,
+      refresh_token: credentials.refreshToken,
     }),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error("Zoho token error:", errorText);
+    console.error(`Zoho token error for ${emailFrom}:`, errorText);
     throw new Error("Failed to get Zoho access token");
   }
 
@@ -54,8 +79,6 @@ async function sendEmailViaZoho(
   subject: string,
   body: string
 ): Promise<void> {
-  const accountId = fromEmail === "kontakt@aurine.pl" ? "kontakt" : "biuro";
-  
   // Get account ID first
   const accountsResponse = await fetch("https://mail.zoho.eu/api/accounts", {
     headers: {
@@ -134,8 +157,8 @@ serve(async (req) => {
 
     const senderEmail = fromEmail === "kontakt" ? "kontakt@aurine.pl" : "biuro@aurine.pl";
 
-    // Get Zoho access token and send email
-    const accessToken = await getZohoAccessToken();
+    // Get Zoho access token for the specific email account
+    const accessToken = await getZohoAccessToken(senderEmail);
     await sendEmailViaZoho(accessToken, senderEmail, to, subject, body);
 
     // Update lead in database
@@ -147,6 +170,14 @@ serve(async (req) => {
     if (followUpType === "cold_email") {
       updateData.cold_email_sent = true;
       updateData.cold_email_date = new Date().toISOString().split('T')[0];
+      // Set follow-up dates: 3 days and 7 days after cold email
+      const followUp1Date = new Date();
+      followUp1Date.setDate(followUp1Date.getDate() + 3);
+      updateData.email_follow_up_1_date = followUp1Date.toISOString().split('T')[0];
+      
+      const followUp2Date = new Date();
+      followUp2Date.setDate(followUp2Date.getDate() + 7);
+      updateData.email_follow_up_2_date = followUp2Date.toISOString().split('T')[0];
     } else if (followUpType === "email_follow_up_1") {
       updateData.email_follow_up_1_sent = true;
       updateData.email_follow_up_1_date = new Date().toISOString().split('T')[0];
