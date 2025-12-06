@@ -126,16 +126,10 @@ export default function AutoFollowUps() {
             <p className="text-muted-foreground mt-1">Zarządzaj sekwencją email follow-upów</p>
           </div>
           <div className="flex items-center gap-2">
-            <Link to="/email-templates">
+            <Link to="/templates">
               <Button variant="outline" className="gap-2">
                 <FileText className="w-4 h-4" />
-                Szablony Email
-              </Button>
-            </Link>
-            <Link to="/sms-templates">
-              <Button variant="outline" className="gap-2">
-                <MessageSquare className="w-4 h-4" />
-                Szablony SMS
+                Szablony
               </Button>
             </Link>
             <Button 

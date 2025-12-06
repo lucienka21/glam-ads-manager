@@ -21,7 +21,7 @@ import Clients from "./pages/Clients";
 import ClientProfile from "./pages/ClientProfile";
 import Campaigns from "./pages/Campaigns";
 import CampaignDetails from "./pages/CampaignDetails";
-import EmailTemplates from "./pages/EmailTemplates";
+import Templates from "./pages/Templates";
 import Tasks from "./pages/Tasks";
 import RoleManagement from "./pages/RoleManagement";
 import SalesFunnelPage from "./pages/SalesFunnelPage";
@@ -29,7 +29,6 @@ import UserProfile from "./pages/UserProfile";
 import Notifications from "./pages/Notifications";
 import Team from "./pages/Team";
 import Calendar from "./pages/Calendar";
-import SmsTemplates from "./pages/SmsTemplates";
 import MonthlyReport from "./pages/MonthlyReport";
 import Settings from "./pages/Settings";
 import ROICalculator from "./pages/ROICalculator";
@@ -59,13 +58,12 @@ function AppContent() {
           <Route path="/campaigns" element={<ProtectedRoute><Campaigns /></ProtectedRoute>} />
           <Route path="/campaigns/:id" element={<ProtectedRoute><CampaignDetails /></ProtectedRoute>} />
           <Route path="/funnel" element={<ProtectedRoute><SalesFunnelPage /></ProtectedRoute>} />
-          <Route path="/email-templates" element={<ProtectedRoute><EmailTemplates /></ProtectedRoute>} />
+          <Route path="/templates" element={<ProtectedRoute><Templates /></ProtectedRoute>} />
           <Route path="/roles" element={<ProtectedRoute><RoleManagement /></ProtectedRoute>} />
           <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
           <Route path="/team" element={<ProtectedRoute><Team /></ProtectedRoute>} />
           <Route path="/calendar" element={<ProtectedRoute><Calendar /></ProtectedRoute>} />
-          <Route path="/sms-templates" element={<ProtectedRoute><SmsTemplates /></ProtectedRoute>} />
           <Route path="/monthly-report" element={<ProtectedRoute><MonthlyReport /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/report-generator" element={<ProtectedRoute><ReportGenerator /></ProtectedRoute>} />
