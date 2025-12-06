@@ -8,7 +8,7 @@ import { ContractPreview } from "@/components/contract/ContractPreview";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import { DocumentHistoryItem } from "@/hooks/useDocumentHistory";
 import jsPDF from "jspdf";
-import domtoimage from "dom-to-image-more";
+import { toJpeg } from "html-to-image";
 import { useToast } from "@/hooks/use-toast";
 
 interface DocumentViewerProps {
@@ -17,12 +17,11 @@ interface DocumentViewerProps {
   onClose: () => void;
 }
 
-const doc = window.document;
-
 const TOTAL_SLIDES = 6;
 
 export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(0.4);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(1);
@@ -56,7 +55,6 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       setScale(newScale);
     };
 
-    // Delay to ensure dialog is rendered
     const timer = setTimeout(updateScale, 100);
     window.addEventListener('resize', updateScale);
     return () => {
@@ -88,48 +86,27 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
     setIsGenerating(true);
 
     try {
-      let elementId = "";
       let orientation: "landscape" | "portrait" = "landscape";
       let width = 1600;
       let height = 900;
       let bgColor = "#000000";
 
-      switch (document.type) {
-        case "report":
-          elementId = "report-preview-landscape";
-          break;
-        case "invoice":
-          elementId = "invoice-preview";
-          orientation = "portrait";
-          width = 794;
-          height = 1123;
-          bgColor = "#ffffff";
-          break;
-        case "contract":
-          elementId = "contract-preview";
-          orientation = "portrait";
-          width = 794;
-          height = 1123;
-          bgColor = "#ffffff";
-          break;
-        case "presentation":
-          elementId = "presentation-preview";
-          break;
+      if (document.type === "invoice" || document.type === "contract") {
+        orientation = "portrait";
+        width = 794;
+        height = 1123;
+        bgColor = "#ffffff";
       }
 
-      const element = doc.getElementById(elementId);
-      if (!element) {
-        toast({
-          title: "Błąd",
-          description: "Nie można znaleźć elementu do eksportu",
-          variant: "destructive",
-        });
-        setIsGenerating(false);
-        return;
-      }
-
-      // For presentations, generate multi-page PDF using dom-to-image-more
+      // For presentations, use the hidden capture element
       if (document.type === "presentation") {
+        const element = captureRef.current;
+        if (!element) {
+          toast({ title: "Błąd", description: "Brak elementu do eksportu", variant: "destructive" });
+          setIsGenerating(false);
+          return;
+        }
+
         const pdf = new jsPDF({
           orientation: "landscape",
           unit: "px",
@@ -137,35 +114,45 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           compress: true,
         });
 
-        // Capture all slides quickly
-        const slides: string[] = [];
         for (let i = 1; i <= TOTAL_SLIDES; i++) {
           setCurrentSlide(i);
-          await new Promise(resolve => setTimeout(resolve, 30));
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-          const dataUrl = await domtoimage.toJpeg(element, {
+          const dataUrl = await toJpeg(element, {
             width: 1600,
             height: 900,
+            pixelRatio: 1,
+            backgroundColor: "#000000",
             quality: 0.92,
-            bgcolor: "#000000",
+            skipFonts: true,
           });
-          slides.push(dataUrl);
-        }
 
-        // Add all to PDF
-        slides.forEach((dataUrl, index) => {
-          if (index > 0) pdf.addPage([1600, 900], "landscape");
+          if (i > 1) pdf.addPage([1600, 900], "landscape");
           pdf.addImage(dataUrl, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
-        });
+        }
 
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
         setCurrentSlide(1);
       } else {
-        const dataUrl = await domtoimage.toJpeg(element, {
+        // For other documents, capture from the display element
+        const elementId = document.type === "report" ? "report-preview-landscape" 
+          : document.type === "invoice" ? "invoice-preview" 
+          : "contract-preview";
+        
+        const element = window.document.getElementById(elementId);
+        if (!element) {
+          toast({ title: "Błąd", description: "Brak elementu do eksportu", variant: "destructive" });
+          setIsGenerating(false);
+          return;
+        }
+
+        const dataUrl = await toJpeg(element, {
           width,
           height,
+          pixelRatio: 1,
+          backgroundColor: bgColor,
           quality: 0.92,
-          bgcolor: bgColor,
+          skipFonts: true,
         });
 
         const pdf = new jsPDF({
@@ -179,17 +166,10 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
       }
 
-      toast({
-        title: "Sukces",
-        description: "PDF został wygenerowany",
-      });
+      toast({ title: "Sukces", description: "PDF został wygenerowany" });
     } catch (error) {
       console.error("PDF generation error:", error);
-      toast({
-        title: "Błąd",
-        description: "Nie udało się wygenerować PDF",
-        variant: "destructive",
-      });
+      toast({ title: "Błąd", description: "Nie udało się wygenerować PDF", variant: "destructive" });
     } finally {
       setIsGenerating(false);
     }
@@ -315,6 +295,24 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
             )}
           </div>
         </div>
+
+        {/* Hidden capture element for presentations */}
+        {document.type === "presentation" && (
+          <div 
+            ref={captureRef}
+            style={{
+              position: 'fixed',
+              left: '-9999px',
+              top: 0,
+              width: '1600px',
+              height: '900px',
+              backgroundColor: '#000000',
+              overflow: 'hidden',
+            }}
+          >
+            <PresentationPreview data={document.data as any} currentSlide={currentSlide} />
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
