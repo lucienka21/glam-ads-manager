@@ -132,6 +132,11 @@ const PresentationGenerator = () => {
     setIsGenerating(true);
     
     try {
+      // Create a hidden container for full-size rendering
+      const container = document.createElement('div');
+      container.style.cssText = 'position: fixed; top: -10000px; left: -10000px; width: 1600px; height: 900px; overflow: hidden;';
+      document.body.appendChild(container);
+      
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "px",
@@ -141,26 +146,39 @@ const PresentationGenerator = () => {
 
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
         setCurrentSlide(i);
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 400));
         
         const element = document.getElementById("presentation-preview");
         if (!element) continue;
+        
+        // Clone the element at full size
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone.style.cssText = 'width: 1600px; height: 900px; transform: none; position: relative;';
+        container.innerHTML = '';
+        container.appendChild(clone);
+        
+        await new Promise(resolve => setTimeout(resolve, 100));
 
-        const imgData = await toJpeg(element, {
+        const imgData = await toJpeg(clone, {
           cacheBust: true,
-          pixelRatio: 1.8,
+          pixelRatio: 1,
           backgroundColor: "#000000",
-          quality: 0.92,
+          quality: 0.95,
+          width: 1600,
+          height: 900,
         });
 
         if (i > 1) pdf.addPage([1600, 900], "landscape");
         pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
       }
+      
+      document.body.removeChild(container);
 
       const sanitizedName = formData.salonName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       pdf.save(`prezentacja-${sanitizedName}.pdf`);
       toast.success("Prezentacja PDF pobrana!");
     } catch (error) {
+      console.error("PDF generation error:", error);
       toast.error("Nie udało się wygenerować PDF");
     } finally {
       setIsGenerating(false);
