@@ -12,7 +12,7 @@ import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
-import { toPng } from "html-to-image";
+import { toPng, toJpeg } from "html-to-image";
 
 type InvoiceType = "advance" | "final" | "full";
 
@@ -113,13 +113,17 @@ const InvoiceGenerator = () => {
       setTimeout(async () => {
         const thumbnail = await genThumb({
           elementId: "invoice-preview",
+          format: 'jpeg',
           backgroundColor: "#ffffff",
-          pixelRatio: 0.3,
-          maxRetries: 5,
-          retryDelay: 800
+          pixelRatio: 0.2,
+          quality: 0.7,
+          maxRetries: 3,
+          retryDelay: 300,
+          width: 794,
+          height: 1123
         });
         if (thumbnail) await updateThumbnail(docId, thumbnail);
-      }, 500);
+      }, 300);
     }
   };
 
@@ -129,9 +133,9 @@ const InvoiceGenerator = () => {
 
     setIsGenerating(true);
     try {
-      const canvas = await toPng(element, { cacheBust: true, pixelRatio: 3, backgroundColor: "#ffffff" });
+      const canvas = await toJpeg(element, { cacheBust: true, pixelRatio: 1, backgroundColor: "#ffffff", quality: 0.92 });
       const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
-      pdf.addImage(canvas, "PNG", 0, 0, 794, 1123, undefined, "FAST");
+      pdf.addImage(canvas, "JPEG", 0, 0, 794, 1123, undefined, "FAST");
       pdf.save(`${formData.invoiceNumber.replace(/\//g, "-")}.pdf`);
       toast.success("Faktura PDF pobrana!");
     } catch (error) {
