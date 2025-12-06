@@ -9,27 +9,30 @@ interface ThumbnailOptions {
   quality?: number;
   maxRetries?: number;
   retryDelay?: number;
+  width?: number;
+  height?: number;
 }
 
 /**
  * Hook for generating thumbnails with robust retry logic
- * Handles hidden elements by temporarily making them visible
+ * Creates a clean clone at full size for accurate capture without black space
  */
 export function useThumbnailGenerator() {
   
   const generateThumbnail = useCallback(async ({
     elementId,
-    format = 'png',
+    format = 'jpeg',
     backgroundColor = '#000000',
-    pixelRatio = 0.25,
-    quality = 0.8,
-    maxRetries = 5,
-    retryDelay = 600,
+    pixelRatio = 0.2,
+    quality = 0.7,
+    maxRetries = 3,
+    retryDelay = 300,
+    width = 1600,
+    height = 900,
   }: ThumbnailOptions): Promise<string | null> => {
     
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        // Wait a bit for rendering
         await new Promise(resolve => setTimeout(resolve, retryDelay));
         
         const element = document.getElementById(elementId);
@@ -38,43 +41,33 @@ export function useThumbnailGenerator() {
           continue;
         }
 
-        // Get the container (parent) to make visible during capture
-        const container = element.parentElement;
-        
-        // Store original styles
-        const originalContainerStyles = container ? {
-          visibility: container.style.visibility,
-          zIndex: container.style.zIndex,
-        } : null;
-        
-        // Make container visible for capture
-        if (container) {
-          container.style.visibility = 'visible';
-          container.style.zIndex = '99999';
-        }
-        
-        // Wait for browser to render
+        // Create hidden container for clean capture
+        const container = document.createElement('div');
+        container.style.cssText = `position: fixed; top: -10000px; left: -10000px; width: ${width}px; height: ${height}px; overflow: hidden;`;
+        document.body.appendChild(container);
+
+        // Clone element at full size
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone.style.cssText = `width: ${width}px; height: ${height}px; transform: none; position: relative;`;
+        container.appendChild(clone);
+
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Generate thumbnail
         const options = {
           cacheBust: true,
           pixelRatio,
           backgroundColor,
           quality,
-          width: 1600,
-          height: 900,
+          width,
+          height,
         };
 
         const dataUrl = format === 'jpeg' 
-          ? await toJpeg(element, options)
-          : await toPng(element, options);
+          ? await toJpeg(clone, options)
+          : await toPng(clone, options);
         
-        // Restore original styles
-        if (container && originalContainerStyles) {
-          container.style.visibility = originalContainerStyles.visibility;
-          container.style.zIndex = originalContainerStyles.zIndex;
-        }
+        // Cleanup
+        document.body.removeChild(container);
         
         console.log(`Thumbnail generated successfully on attempt ${attempt + 1}`);
         return dataUrl;

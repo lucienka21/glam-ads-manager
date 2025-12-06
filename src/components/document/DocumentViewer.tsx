@@ -8,7 +8,7 @@ import { ContractPreview } from "@/components/contract/ContractPreview";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import { DocumentHistoryItem } from "@/hooks/useDocumentHistory";
 import jsPDF from "jspdf";
-import { toPng } from "html-to-image";
+import { toJpeg } from "html-to-image";
 import { useToast } from "@/hooks/use-toast";
 
 interface DocumentViewerProps {
@@ -16,6 +16,8 @@ interface DocumentViewerProps {
   open: boolean;
   onClose: () => void;
 }
+
+const doc = window.document;
 
 const TOTAL_SLIDES = 6;
 
@@ -112,36 +114,54 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           break;
       }
 
+      // Create hidden container for clean rendering
+      const container = doc.createElement('div');
+      container.style.cssText = `position: fixed; top: -10000px; left: -10000px; width: ${width}px; height: ${height}px; overflow: hidden;`;
+      doc.body.appendChild(container);
+
       // For presentations, generate multi-page PDF
       if (document.type === "presentation") {
         const pdf = new jsPDF({
           orientation: "landscape",
           unit: "px",
           format: [1600, 900],
+          compress: true,
         });
 
         for (let i = 1; i <= TOTAL_SLIDES; i++) {
           setCurrentSlide(i);
-          await new Promise(resolve => setTimeout(resolve, 300));
+          await new Promise(resolve => setTimeout(resolve, 200));
           
-          const element = window.document.getElementById(elementId);
+          const element = doc.getElementById(elementId);
           if (!element) continue;
 
-          const dataUrl = await toPng(element, {
-            quality: 0.9,
-            pixelRatio: 2,
+          // Clone at full size
+          const clone = element.cloneNode(true) as HTMLElement;
+          clone.style.cssText = 'width: 1600px; height: 900px; transform: none; position: relative;';
+          container.innerHTML = '';
+          container.appendChild(clone);
+          
+          await new Promise(resolve => setTimeout(resolve, 50));
+
+          const dataUrl = await toJpeg(clone, {
+            cacheBust: true,
+            pixelRatio: 1,
             backgroundColor: "#000000",
+            quality: 0.92,
+            width: 1600,
+            height: 900,
           });
 
           if (i > 1) pdf.addPage([1600, 900], "landscape");
-          pdf.addImage(dataUrl, "PNG", 0, 0, 1600, 900);
+          pdf.addImage(dataUrl, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
         }
 
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
         setCurrentSlide(1);
       } else {
-        const element = window.document.getElementById(elementId);
+        const element = doc.getElementById(elementId);
         if (!element) {
+          doc.body.removeChild(container);
           toast({
             title: "Błąd",
             description: "Nie można znaleźć elementu do eksportu",
@@ -150,21 +170,35 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           return;
         }
 
-        const dataUrl = await toPng(element, {
-          quality: 0.95,
-          pixelRatio: 2,
+        // Clone at full size
+        const clone = element.cloneNode(true) as HTMLElement;
+        clone.style.cssText = `width: ${width}px; height: ${height}px; transform: none; position: relative;`;
+        container.innerHTML = '';
+        container.appendChild(clone);
+        
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const dataUrl = await toJpeg(clone, {
+          cacheBust: true,
+          pixelRatio: 1,
           backgroundColor: "#000000",
+          quality: 0.92,
+          width,
+          height,
         });
 
         const pdf = new jsPDF({
           orientation,
           unit: "px",
           format: [width, height],
+          compress: true,
         });
 
-        pdf.addImage(dataUrl, "PNG", 0, 0, width, height);
+        pdf.addImage(dataUrl, "JPEG", 0, 0, width, height, undefined, "FAST");
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
       }
+
+      doc.body.removeChild(container);
 
       toast({
         title: "Sukces",

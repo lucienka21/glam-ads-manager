@@ -119,12 +119,15 @@ const PresentationGenerator = () => {
           elementId: "presentation-preview",
           format: 'jpeg',
           backgroundColor: "#000000",
-          pixelRatio: 0.3,
-          maxRetries: 5,
-          retryDelay: 800
+          pixelRatio: 0.2,
+          quality: 0.7,
+          maxRetries: 3,
+          retryDelay: 300,
+          width: 1600,
+          height: 900
         });
         if (thumbnail) await updateThumbnail(docId, thumbnail);
-      }, 500);
+      }, 300);
     }
   };
 
