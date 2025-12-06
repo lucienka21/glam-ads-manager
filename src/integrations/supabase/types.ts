@@ -955,6 +955,36 @@ export type Database = {
           },
         ]
       }
+      zoho_credentials: {
+        Row: {
+          client_id: string
+          client_secret: string
+          created_at: string
+          email_account: string
+          id: string
+          refresh_token: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_secret: string
+          created_at?: string
+          email_account: string
+          id?: string
+          refresh_token: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_secret?: string
+          created_at?: string
+          email_account?: string
+          id?: string
+          refresh_token?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

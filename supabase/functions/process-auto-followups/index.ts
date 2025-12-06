@@ -6,49 +6,53 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Get Zoho credentials based on email account
-function getZohoCredentials(emailFrom: string): { clientId: string; clientSecret: string; refreshToken: string } | null {
-  if (emailFrom === "kontakt@aurine.pl") {
-    const clientId = Deno.env.get("ZOHO_KONTAKT_CLIENT_ID");
-    const clientSecret = Deno.env.get("ZOHO_KONTAKT_CLIENT_SECRET");
-    const refreshToken = Deno.env.get("ZOHO_KONTAKT_REFRESH_TOKEN");
-    
-    if (!clientId || !clientSecret || !refreshToken) {
-      console.error("Missing ZOHO_KONTAKT credentials");
-      return null;
-    }
-    return { clientId, clientSecret, refreshToken };
-  } else if (emailFrom === "biuro@aurine.pl") {
-    const clientId = Deno.env.get("ZOHO_BIURO_CLIENT_ID");
-    const clientSecret = Deno.env.get("ZOHO_BIURO_CLIENT_SECRET");
-    const refreshToken = Deno.env.get("ZOHO_BIURO_REFRESH_TOKEN");
-    
-    if (!clientId || !clientSecret || !refreshToken) {
-      console.error("Missing ZOHO_BIURO credentials");
-      return null;
-    }
-    return { clientId, clientSecret, refreshToken };
-  }
-  
-  console.error(`Unknown email account: ${emailFrom}`);
-  return null;
-}
-
-// Cache for access tokens per email account
+// Cache for credentials and access tokens
+const credentialsCache: Record<string, { clientId: string; clientSecret: string; refreshToken: string }> = {};
 const accessTokenCache: Record<string, { token: string; expiry: number }> = {};
 
-async function getZohoAccessToken(emailFrom: string): Promise<string | null> {
+async function getZohoCredentialsFromDB(supabase: any, emailFrom: string): Promise<{ clientId: string; clientSecret: string; refreshToken: string } | null> {
+  // Check cache first
+  if (credentialsCache[emailFrom]) {
+    return credentialsCache[emailFrom];
+  }
+
+  const { data, error } = await supabase
+    .from("zoho_credentials")
+    .select("*")
+    .eq("email_account", emailFrom)
+    .single();
+
+  if (error || !data) {
+    console.error(`No credentials found for ${emailFrom}:`, error?.message);
+    return null;
+  }
+
+  const credentials = {
+    clientId: data.client_id,
+    clientSecret: data.client_secret,
+    refreshToken: data.refresh_token,
+  };
+
+  // Cache it
+  credentialsCache[emailFrom] = credentials;
+  return credentials;
+}
+
+async function getZohoAccessToken(supabase: any, emailFrom: string): Promise<string | null> {
   // Check cache first
   const cached = accessTokenCache[emailFrom];
   if (cached && cached.expiry > Date.now()) {
     return cached.token;
   }
 
-  const credentials = getZohoCredentials(emailFrom);
-  if (!credentials) return null;
+  const credentials = await getZohoCredentialsFromDB(supabase, emailFrom);
+  if (!credentials) {
+    console.error(`No credentials found in database for ${emailFrom}`);
+    return null;
+  }
 
   try {
-    console.log(`Getting Zoho token for ${emailFrom}, client_id: ${credentials.clientId?.substring(0, 20)}...`);
+    console.log(`Getting Zoho token for ${emailFrom}`);
     
     const response = await fetch("https://accounts.zoho.eu/oauth/v2/token", {
       method: "POST",
@@ -235,7 +239,7 @@ serve(async (req) => {
     for (const lead of leadsForFollowUp1 || []) {
       try {
         const emailFrom = lead.email_from;
-        const accessToken = await getZohoAccessToken(emailFrom);
+        const accessToken = await getZohoAccessToken(supabase, emailFrom);
         
         if (!accessToken) {
           console.error(`Failed to get access token for ${emailFrom}`);
@@ -279,7 +283,7 @@ serve(async (req) => {
     for (const lead of leadsForFollowUp2 || []) {
       try {
         const emailFrom = lead.email_from;
-        const accessToken = await getZohoAccessToken(emailFrom);
+        const accessToken = await getZohoAccessToken(supabase, emailFrom);
         
         if (!accessToken) {
           console.error(`Failed to get access token for ${emailFrom}`);
