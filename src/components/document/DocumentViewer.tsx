@@ -92,6 +92,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       let orientation: "landscape" | "portrait" = "landscape";
       let width = 1600;
       let height = 900;
+      let bgColor = "#000000";
 
       switch (document.type) {
         case "report":
@@ -102,22 +103,30 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           orientation = "portrait";
           width = 794;
           height = 1123;
+          bgColor = "#ffffff";
           break;
         case "contract":
           elementId = "contract-preview";
           orientation = "portrait";
           width = 794;
           height = 1123;
+          bgColor = "#ffffff";
           break;
         case "presentation":
           elementId = "presentation-preview";
           break;
       }
 
-      // Create hidden container for clean rendering
-      const container = doc.createElement('div');
-      container.style.cssText = `position: fixed; top: -10000px; left: -10000px; width: ${width}px; height: ${height}px; overflow: hidden;`;
-      doc.body.appendChild(container);
+      const element = doc.getElementById(elementId);
+      if (!element) {
+        toast({
+          title: "Błąd",
+          description: "Nie można znaleźć elementu do eksportu",
+          variant: "destructive",
+        });
+        setIsGenerating(false);
+        return;
+      }
 
       // For presentations, generate multi-page PDF
       if (document.type === "presentation") {
@@ -130,26 +139,13 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
 
         for (let i = 1; i <= TOTAL_SLIDES; i++) {
           setCurrentSlide(i);
-          await new Promise(resolve => setTimeout(resolve, 200));
-          
-          const element = doc.getElementById(elementId);
-          if (!element) continue;
+          await new Promise(resolve => setTimeout(resolve, 80));
 
-          // Clone at full size
-          const clone = element.cloneNode(true) as HTMLElement;
-          clone.style.cssText = 'width: 1600px; height: 900px; transform: none; position: relative;';
-          container.innerHTML = '';
-          container.appendChild(clone);
-          
-          await new Promise(resolve => setTimeout(resolve, 50));
-
-          const dataUrl = await toJpeg(clone, {
+          const dataUrl = await toJpeg(element, {
             cacheBust: true,
             pixelRatio: 1,
             backgroundColor: "#000000",
-            quality: 0.92,
-            width: 1600,
-            height: 900,
+            quality: 0.85,
           });
 
           if (i > 1) pdf.addPage([1600, 900], "landscape");
@@ -159,32 +155,11 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
         setCurrentSlide(1);
       } else {
-        const element = doc.getElementById(elementId);
-        if (!element) {
-          doc.body.removeChild(container);
-          toast({
-            title: "Błąd",
-            description: "Nie można znaleźć elementu do eksportu",
-            variant: "destructive",
-          });
-          return;
-        }
-
-        // Clone at full size
-        const clone = element.cloneNode(true) as HTMLElement;
-        clone.style.cssText = `width: ${width}px; height: ${height}px; transform: none; position: relative;`;
-        container.innerHTML = '';
-        container.appendChild(clone);
-        
-        await new Promise(resolve => setTimeout(resolve, 50));
-
-        const dataUrl = await toJpeg(clone, {
+        const dataUrl = await toJpeg(element, {
           cacheBust: true,
           pixelRatio: 1,
-          backgroundColor: "#000000",
-          quality: 0.92,
-          width,
-          height,
+          backgroundColor: bgColor,
+          quality: 0.85,
         });
 
         const pdf = new jsPDF({
@@ -197,8 +172,6 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         pdf.addImage(dataUrl, "JPEG", 0, 0, width, height, undefined, "FAST");
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
       }
-
-      doc.body.removeChild(container);
 
       toast({
         title: "Sukces",
