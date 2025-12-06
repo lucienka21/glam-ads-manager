@@ -654,7 +654,27 @@ export default function RoleManagement() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <Label>Uprawnienia</Label>
+                      <div className="flex items-center justify-between">
+                        <Label>Uprawnienia</Label>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setNewRolePermissions(ALL_PERMISSIONS)}
+                          >
+                            Zaznacz wszystkie
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setNewRolePermissions([])}
+                          >
+                            Odznacz
+                          </Button>
+                        </div>
+                      </div>
                       {Object.entries(permissionCategories).map(([category, permissions]) => (
                         <div key={category} className="space-y-2">
                           <p className="text-sm font-medium text-muted-foreground">{category}</p>
@@ -768,6 +788,24 @@ export default function RoleManagement() {
                     <CardContent>
                       {isEditing ? (
                         <div className="space-y-3">
+                          <div className="flex gap-2 mb-2">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingPermissions(ALL_PERMISSIONS)}
+                            >
+                              Wszystkie
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setEditingPermissions([])}
+                            >
+                              Odznacz
+                            </Button>
+                          </div>
                           {Object.entries(permissionCategories).map(([category, permissions]) => (
                             <div key={category} className="space-y-1">
                               <p className="text-xs font-medium text-muted-foreground">{category}</p>
