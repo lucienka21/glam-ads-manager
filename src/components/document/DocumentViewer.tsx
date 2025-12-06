@@ -8,7 +8,7 @@ import { ContractPreview } from "@/components/contract/ContractPreview";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import { DocumentHistoryItem } from "@/hooks/useDocumentHistory";
 import jsPDF from "jspdf";
-import { toJpeg } from "html-to-image";
+import domtoimage from "dom-to-image-more";
 import { useToast } from "@/hooks/use-toast";
 
 interface DocumentViewerProps {
@@ -128,7 +128,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         return;
       }
 
-      // For presentations, generate multi-page PDF
+      // For presentations, generate multi-page PDF using dom-to-image-more
       if (document.type === "presentation") {
         const pdf = new jsPDF({
           orientation: "landscape",
@@ -137,29 +137,35 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           compress: true,
         });
 
+        // Capture all slides quickly
+        const slides: string[] = [];
         for (let i = 1; i <= TOTAL_SLIDES; i++) {
           setCurrentSlide(i);
-          await new Promise(resolve => setTimeout(resolve, 80));
+          await new Promise(resolve => setTimeout(resolve, 30));
 
-          const dataUrl = await toJpeg(element, {
-            cacheBust: true,
-            pixelRatio: 2,
-            backgroundColor: "#000000",
+          const dataUrl = await domtoimage.toJpeg(element, {
+            width: 1600,
+            height: 900,
             quality: 0.92,
+            bgcolor: "#000000",
           });
-
-          if (i > 1) pdf.addPage([1600, 900], "landscape");
-          pdf.addImage(dataUrl, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
+          slides.push(dataUrl);
         }
+
+        // Add all to PDF
+        slides.forEach((dataUrl, index) => {
+          if (index > 0) pdf.addPage([1600, 900], "landscape");
+          pdf.addImage(dataUrl, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
+        });
 
         pdf.save(`${document.title.replace(/\s+/g, "-")}.pdf`);
         setCurrentSlide(1);
       } else {
-        const dataUrl = await toJpeg(element, {
-          cacheBust: true,
-          pixelRatio: 2,
-          backgroundColor: bgColor,
+        const dataUrl = await domtoimage.toJpeg(element, {
+          width,
+          height,
           quality: 0.92,
+          bgcolor: bgColor,
         });
 
         const pdf = new jsPDF({

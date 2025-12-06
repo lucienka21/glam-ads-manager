@@ -4,7 +4,7 @@ import { Download, ChevronLeft, ChevronRight, ArrowLeft, Users } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { toast } from "sonner";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -12,7 +12,7 @@ import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
-import { toJpeg } from "html-to-image";
+import domtoimage from "dom-to-image-more";
 
 const TOTAL_SLIDES = 6;
 const slideNames = ["Powitanie", "Wyzwania salonów", "Jak pomagamy", "Przebieg współpracy", "Specjalna oferta", "Kontakt"];
@@ -190,20 +190,26 @@ const PresentationGenerator = () => {
         compress: true,
       });
 
+      // Capture all slides quickly using dom-to-image-more
+      const slides: string[] = [];
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
         setCurrentSlide(i);
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise(resolve => setTimeout(resolve, 30));
 
-        const imgData = await toJpeg(element, {
-          cacheBust: true,
-          pixelRatio: 2,
-          backgroundColor: "#000000",
+        const imgData = await domtoimage.toJpeg(element, {
+          width: 1600,
+          height: 900,
           quality: 0.92,
+          bgcolor: "#000000",
         });
-
-        if (i > 1) pdf.addPage([1600, 900], "landscape");
-        pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
+        slides.push(imgData);
       }
+
+      // Add all slides to PDF
+      slides.forEach((imgData, index) => {
+        if (index > 0) pdf.addPage([1600, 900], "landscape");
+        pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
+      });
 
       const sanitizedName = formData.salonName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       pdf.save(`prezentacja-${sanitizedName}.pdf`);
@@ -271,17 +277,23 @@ const PresentationGenerator = () => {
                   <Users className="w-3 h-3 text-primary" />
                   Wybierz leada (auto-wypełni dane)
                 </Label>
-                <Select value={selectedLeadId || "none"} onValueChange={(v) => handleLeadSelect(v === "none" ? "" : v)}>
-                  <SelectTrigger className="h-9 mt-1">
-                    <SelectValue placeholder="Wybierz leada..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Wprowadź ręcznie</SelectItem>
-                    {leads.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>{l.salon_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="mt-1">
+                  <SearchableSelect
+                    options={[
+                      { value: "", label: "Wprowadź ręcznie" },
+                      ...leads.map((l) => ({
+                        value: l.id,
+                        label: l.salon_name,
+                        sublabel: [l.owner_name, l.city].filter(Boolean).join(" • "),
+                      })),
+                    ]}
+                    value={selectedLeadId}
+                    onValueChange={handleLeadSelect}
+                    placeholder="Szukaj leada..."
+                    searchPlaceholder="Wpisz nazwę salonu lub właściciela..."
+                    emptyMessage="Nie znaleziono leadów"
+                  />
+                </div>
               </div>
             </div>
 
