@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, ChevronLeft, ChevronRight, ArrowLeft, Link } from "lucide-react";
+import { Download, ChevronLeft, ChevronRight, ArrowLeft, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,9 +17,11 @@ import { toJpeg } from "html-to-image";
 const TOTAL_SLIDES = 6;
 const slideNames = ["Powitanie", "Wyzwania salonów", "Jak pomagamy", "Przebieg współpracy", "Specjalna oferta", "Kontakt"];
 
-interface ClientOption {
+interface LeadOption {
   id: string;
   salon_name: string;
+  owner_name: string | null;
+  city: string | null;
 }
 
 const PresentationGenerator = () => {
@@ -30,8 +32,8 @@ const PresentationGenerator = () => {
   const [currentSlide, setCurrentSlide] = useState(1);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [previewScale, setPreviewScale] = useState(0.5);
-  const [clients, setClients] = useState<ClientOption[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [leads, setLeads] = useState<LeadOption[]>([]);
+  const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
@@ -41,11 +43,11 @@ const PresentationGenerator = () => {
   });
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const { data } = await supabase.from('clients').select('id, salon_name').order('salon_name');
-      setClients(data || []);
+    const fetchLeads = async () => {
+      const { data } = await supabase.from('leads').select('id, salon_name, owner_name, city').order('salon_name');
+      setLeads(data || []);
     };
-    fetchClients();
+    fetchLeads();
   }, []);
 
   useEffect(() => {
@@ -96,6 +98,20 @@ const PresentationGenerator = () => {
   const nextSlide = () => setCurrentSlide((prev) => (prev % TOTAL_SLIDES) + 1);
   const prevSlide = () => setCurrentSlide((prev) => ((prev - 2 + TOTAL_SLIDES) % TOTAL_SLIDES) + 1);
 
+  const handleLeadSelect = (leadId: string) => {
+    setSelectedLeadId(leadId);
+    if (leadId && leadId !== "none") {
+      const lead = leads.find(l => l.id === leadId);
+      if (lead) {
+        setFormData({
+          ownerName: lead.owner_name || "",
+          salonName: lead.salon_name || "",
+          city: lead.city || "",
+        });
+      }
+    }
+  };
+
   const handleSave = async () => {
     if (!hasRequiredFields) {
       toast.error("Uzupełnij wszystkie pola");
@@ -106,9 +122,7 @@ const PresentationGenerator = () => {
       "presentation",
       formData.salonName,
       `Prezentacja dla ${formData.ownerName}`,
-      formData,
-      undefined,
-      selectedClientId || undefined
+      formData
     );
     setCurrentDocId(docId);
     toast.success("Prezentacja zapisana!");
@@ -121,8 +135,6 @@ const PresentationGenerator = () => {
           backgroundColor: "#000000",
           pixelRatio: 0.2,
           quality: 0.7,
-          maxRetries: 3,
-          retryDelay: 300,
           width: 1600,
           height: 900
         });
@@ -147,9 +159,7 @@ const PresentationGenerator = () => {
           "presentation",
           formData.salonName,
           `Prezentacja dla ${formData.ownerName}`,
-          formData,
-          undefined,
-          selectedClientId || undefined
+          formData
         );
         setCurrentDocId(docId);
         
@@ -159,7 +169,9 @@ const PresentationGenerator = () => {
             format: 'jpeg',
             backgroundColor: "#000000",
             pixelRatio: 0.2,
-            quality: 0.6,
+            quality: 0.7,
+            width: 1600,
+            height: 900
           });
           if (thumbnail) await updateThumbnail(docId, thumbnail);
         }
@@ -180,13 +192,13 @@ const PresentationGenerator = () => {
 
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
         setCurrentSlide(i);
-        await new Promise(resolve => setTimeout(resolve, 80));
+        await new Promise(resolve => setTimeout(resolve, 50));
 
         const imgData = await toJpeg(element, {
           cacheBust: true,
-          pixelRatio: 1,
+          pixelRatio: 2,
           backgroundColor: "#000000",
-          quality: 0.85,
+          quality: 0.92,
         });
 
         if (i > 1) pdf.addPage([1600, 900], "landscape");
@@ -256,17 +268,17 @@ const PresentationGenerator = () => {
 
               <div>
                 <Label className="text-xs flex items-center gap-1">
-                  <Link className="w-3 h-3 text-primary" />
-                  Połącz z klientem
+                  <Users className="w-3 h-3 text-primary" />
+                  Wybierz leada (auto-wypełni dane)
                 </Label>
-                <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
+                <Select value={selectedLeadId || "none"} onValueChange={(v) => handleLeadSelect(v === "none" ? "" : v)}>
                   <SelectTrigger className="h-9 mt-1">
-                    <SelectValue placeholder="Opcjonalne..." />
+                    <SelectValue placeholder="Wybierz leada..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Bez powiązania</SelectItem>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                    <SelectItem value="none">Wprowadź ręcznie</SelectItem>
+                    {leads.map((l) => (
+                      <SelectItem key={l.id} value={l.id}>{l.salon_name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
