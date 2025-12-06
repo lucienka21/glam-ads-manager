@@ -429,6 +429,87 @@ export function declineNameToVocative(name: string): string {
 }
 
 /**
+ * Decline a Polish noun to genitive case (dopełniacz)
+ * Used in sentences like "z salonu", "właściciel salonu"
+ */
+export function declineToGenitive(word: string): string {
+  if (!word) return '';
+  
+  const trimmed = word.trim();
+  const lower = trimmed.toLowerCase();
+  
+  // Common business name endings that need specific handling
+  // Feminine nouns ending in -a -> -y or -i
+  if (lower.endsWith('a')) {
+    // -ka, -ga -> -ki, -gi
+    if (lower.endsWith('ka')) {
+      return trimmed.slice(0, -1) + 'i';
+    }
+    if (lower.endsWith('ga')) {
+      return trimmed.slice(0, -1) + 'i';
+    }
+    // -ia, -ja -> -ii, -ji
+    if (lower.endsWith('ia') || lower.endsWith('ja')) {
+      return trimmed.slice(0, -1) + 'i';
+    }
+    // Generic -a -> -y (after hard consonants) or -i (after soft)
+    const softConsonants = ['c', 'l', 'n', 's', 'z', 'ć', 'ń', 'ś', 'ź'];
+    const beforeA = lower.slice(-2, -1);
+    if (softConsonants.includes(beforeA)) {
+      return trimmed.slice(0, -1) + 'i';
+    }
+    return trimmed.slice(0, -1) + 'y';
+  }
+  
+  // Neuter -o endings
+  if (lower.endsWith('o')) {
+    return trimmed.slice(0, -1) + 'a';
+  }
+  
+  // Neuter -e endings
+  if (lower.endsWith('e')) {
+    return trimmed.slice(0, -1) + 'a';
+  }
+  
+  // Neuter -um endings (studio, centrum)
+  if (lower.endsWith('um')) {
+    return trimmed.slice(0, -2) + 'um'; // stays same
+  }
+  
+  // Masculine nouns - most common pattern: add -u or -a
+  // Words ending in soft consonants typically take -a
+  // Words ending in hard consonants typically take -u
+  
+  // -on -> -onu (salon -> salonu)
+  if (lower.endsWith('on')) {
+    return trimmed + 'u';
+  }
+  
+  // -el -> -elu
+  if (lower.endsWith('el')) {
+    return trimmed + 'u';
+  }
+  
+  // -er -> -eru
+  if (lower.endsWith('er')) {
+    return trimmed + 'u';
+  }
+  
+  // -ek -> -ku (drop e)
+  if (lower.endsWith('ek')) {
+    return trimmed.slice(0, -2) + 'ku';
+  }
+  
+  // -ec -> -ca
+  if (lower.endsWith('ec')) {
+    return trimmed.slice(0, -2) + 'ca';
+  }
+  
+  // Default for masculine: add -u
+  return trimmed + 'u';
+}
+
+/**
  * Format phone number for display and copying
  * Ensures proper Polish format: +48 XXX XXX XXX
  */
