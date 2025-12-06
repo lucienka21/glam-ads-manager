@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Shield, Plus, Trash2, Crown, User, Settings, Check, X, Loader2, AlertTriangle } from "lucide-react";
+import { Shield, Plus, Trash2, Crown, User, Settings, Check, X, Loader2, AlertTriangle, Key, Database, Activity, Users, Mail, Eye, EyeOff, Save, BarChart3, FileText, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -9,7 +9,7 @@ import { useUserRole, AppRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -38,6 +38,8 @@ import {
 } from "@/components/ui/dialog";
 import { Navigate, useNavigate } from "react-router-dom";
 import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
+import { pl } from "date-fns/locale";
 
 interface TeamMember {
   id: string;
@@ -62,50 +64,58 @@ interface RolePermission {
   permission: string;
 }
 
+interface ZohoCredentials {
+  id?: string;
+  email_account: string;
+  client_id: string;
+  client_secret: string;
+  refresh_token: string;
+}
+
+interface SystemStats {
+  totalLeads: number;
+  totalClients: number;
+  totalCampaigns: number;
+  totalDocuments: number;
+  totalTasks: number;
+  totalUsers: number;
+}
+
 const PERMISSION_LABELS: Record<string, { label: string; category: string }> = {
-  // Leady
   leads_view: { label: "Przeglądanie leadów", category: "Leady" },
   leads_create: { label: "Tworzenie leadów", category: "Leady" },
   leads_edit: { label: "Edycja leadów", category: "Leady" },
   leads_delete: { label: "Usuwanie leadów", category: "Leady" },
-  // Klienci
   clients_view: { label: "Przeglądanie klientów", category: "Klienci" },
   clients_create: { label: "Tworzenie klientów", category: "Klienci" },
   clients_edit: { label: "Edycja klientów", category: "Klienci" },
   clients_delete: { label: "Usuwanie klientów", category: "Klienci" },
-  // Kampanie
   campaigns_view: { label: "Przeglądanie kampanii", category: "Kampanie" },
   campaigns_create: { label: "Tworzenie kampanii", category: "Kampanie" },
   campaigns_edit: { label: "Edycja kampanii", category: "Kampanie" },
   campaigns_delete: { label: "Usuwanie kampanii", category: "Kampanie" },
-  // Dokumenty
   documents_view: { label: "Przeglądanie dokumentów", category: "Dokumenty" },
   documents_create: { label: "Tworzenie dokumentów", category: "Dokumenty" },
   documents_edit: { label: "Edycja dokumentów", category: "Dokumenty" },
   documents_delete: { label: "Usuwanie dokumentów", category: "Dokumenty" },
-  // Zadania
   tasks_view: { label: "Przeglądanie zadań", category: "Zadania" },
   tasks_create: { label: "Tworzenie zadań", category: "Zadania" },
   tasks_edit: { label: "Edycja zadań", category: "Zadania" },
   tasks_delete: { label: "Usuwanie zadań", category: "Zadania" },
-  // Kalendarz
   calendar_view: { label: "Przeglądanie kalendarza", category: "Kalendarz" },
   calendar_manage: { label: "Zarządzanie wydarzeniami", category: "Kalendarz" },
-  // Szablony
   templates_manage: { label: "Zarządzanie szablonami", category: "Szablony" },
-  // Generatory
   reports_generate: { label: "Generowanie raportów", category: "Generatory" },
   invoices_generate: { label: "Generowanie faktur", category: "Generatory" },
   contracts_generate: { label: "Generowanie umów", category: "Generatory" },
   presentations_generate: { label: "Generowanie prezentacji", category: "Generatory" },
-  // Administracja
   team_manage: { label: "Zarządzanie zespołem", category: "Administracja" },
   roles_manage: { label: "Zarządzanie rolami", category: "Administracja" },
 };
 
 const ALL_PERMISSIONS = Object.keys(PERMISSION_LABELS);
 
-export default function RoleManagement() {
+export default function AdminPanel() {
   const { user } = useAuth();
   const { isSzef, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
@@ -113,8 +123,32 @@ export default function RoleManagement() {
   const [customRoles, setCustomRoles] = useState<CustomRole[]>([]);
   const [rolePermissions, setRolePermissions] = useState<RolePermission[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("members");
+  const [activeTab, setActiveTab] = useState("overview");
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [systemStats, setSystemStats] = useState<SystemStats>({
+    totalLeads: 0,
+    totalClients: 0,
+    totalCampaigns: 0,
+    totalDocuments: 0,
+    totalTasks: 0,
+    totalUsers: 0,
+  });
+  
+  // Zoho credentials
+  const [savingCredentials, setSavingCredentials] = useState(false);
+  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+  const [kontaktCreds, setKontaktCreds] = useState<ZohoCredentials>({
+    email_account: 'kontakt@aurine.pl',
+    client_id: '',
+    client_secret: '',
+    refresh_token: '',
+  });
+  const [biuroCreds, setBiuroCreds] = useState<ZohoCredentials>({
+    email_account: 'biuro@aurine.pl',
+    client_id: '',
+    client_secret: '',
+    refresh_token: '',
+  });
   
   // New role form
   const [isNewRoleDialogOpen, setIsNewRoleDialogOpen] = useState(false);
@@ -125,6 +159,107 @@ export default function RoleManagement() {
   // Edit permissions
   const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [editingPermissions, setEditingPermissions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!isSzef) return;
+    fetchAll();
+  }, [isSzef]);
+
+  const fetchAll = async () => {
+    await Promise.all([
+      fetchMembers(), 
+      fetchCustomRoles(), 
+      fetchRolePermissions(),
+      fetchZohoCredentials(),
+      fetchSystemStats()
+    ]);
+    setLoading(false);
+  };
+
+  const fetchSystemStats = async () => {
+    const [leads, clients, campaigns, documents, tasks, users] = await Promise.all([
+      supabase.from('leads').select('id', { count: 'exact', head: true }),
+      supabase.from('clients').select('id', { count: 'exact', head: true }),
+      supabase.from('campaigns').select('id', { count: 'exact', head: true }),
+      supabase.from('documents').select('id', { count: 'exact', head: true }),
+      supabase.from('tasks').select('id', { count: 'exact', head: true }),
+      supabase.from('profiles').select('id', { count: 'exact', head: true }),
+    ]);
+    
+    setSystemStats({
+      totalLeads: leads.count || 0,
+      totalClients: clients.count || 0,
+      totalCampaigns: campaigns.count || 0,
+      totalDocuments: documents.count || 0,
+      totalTasks: tasks.count || 0,
+      totalUsers: users.count || 0,
+    });
+  };
+
+  const fetchZohoCredentials = async () => {
+    const { data, error } = await supabase
+      .from('zoho_credentials')
+      .select('*');
+    
+    if (!error && data) {
+      const kontakt = data.find(c => c.email_account === 'kontakt@aurine.pl');
+      const biuro = data.find(c => c.email_account === 'biuro@aurine.pl');
+      
+      if (kontakt) {
+        setKontaktCreds({
+          id: kontakt.id,
+          email_account: kontakt.email_account,
+          client_id: kontakt.client_id,
+          client_secret: kontakt.client_secret,
+          refresh_token: kontakt.refresh_token,
+        });
+      }
+      if (biuro) {
+        setBiuroCreds({
+          id: biuro.id,
+          email_account: biuro.email_account,
+          client_id: biuro.client_id,
+          client_secret: biuro.client_secret,
+          refresh_token: biuro.refresh_token,
+        });
+      }
+    }
+  };
+
+  const saveZohoCredentials = async (creds: ZohoCredentials) => {
+    setSavingCredentials(true);
+    try {
+      if (creds.id) {
+        const { error } = await supabase
+          .from('zoho_credentials')
+          .update({
+            client_id: creds.client_id,
+            client_secret: creds.client_secret,
+            refresh_token: creds.refresh_token,
+          })
+          .eq('id', creds.id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('zoho_credentials')
+          .insert({
+            email_account: creds.email_account,
+            client_id: creds.client_id,
+            client_secret: creds.client_secret,
+            refresh_token: creds.refresh_token,
+          });
+        
+        if (error) throw error;
+      }
+      
+      toast.success(`Zapisano kredencjały dla ${creds.email_account}`);
+      fetchZohoCredentials();
+    } catch (error: any) {
+      toast.error(`Błąd: ${error.message}`);
+    }
+    setSavingCredentials(false);
+  };
 
   const handleDeleteUser = async (memberId: string) => {
     if (memberId === user?.id) {
@@ -167,16 +302,6 @@ export default function RoleManagement() {
     } finally {
       setDeletingUserId(null);
     }
-  };
-
-  useEffect(() => {
-    if (!isSzef) return;
-    fetchAll();
-  }, [isSzef]);
-
-  const fetchAll = async () => {
-    await Promise.all([fetchMembers(), fetchCustomRoles(), fetchRolePermissions()]);
-    setLoading(false);
   };
 
   const fetchMembers = async () => {
@@ -279,25 +404,6 @@ export default function RoleManagement() {
     }
   };
 
-  const handleRemoveRole = async (member: TeamMember) => {
-    if (!member.roleId) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('id', member.roleId);
-
-      if (error) throw error;
-
-      toast.success('Rola została usunięta');
-      fetchMembers();
-    } catch (err) {
-      console.error('Error removing role:', err);
-      toast.error('Błąd podczas usuwania roli');
-    }
-  };
-
   const handleCreateRole = async () => {
     if (!newRoleName.trim()) {
       toast.error('Podaj nazwę roli');
@@ -380,13 +486,11 @@ export default function RoleManagement() {
     if (!editingRoleId) return;
 
     try {
-      // Delete existing permissions
       await supabase
         .from('role_permissions')
         .delete()
         .eq('role_id', editingRoleId);
 
-      // Insert new permissions
       if (editingPermissions.length > 0) {
         const permissionInserts = editingPermissions.map(p => ({
           role_id: editingRoleId,
@@ -453,7 +557,7 @@ export default function RoleManagement() {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       </AppLayout>
     );
@@ -475,36 +579,144 @@ export default function RoleManagement() {
               <Shield className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Zarządzanie rolami</h1>
+              <h1 className="text-2xl font-bold text-foreground">Panel administracyjny</h1>
               <p className="text-muted-foreground">
-                Zarządzaj rolami i uprawnieniami zespołu
+                Zarządzaj użytkownikami, rolami i ustawieniami systemu
               </p>
             </div>
           </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList>
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview" className="gap-2">
+              <BarChart3 className="w-4 h-4" />
+              Przegląd
+            </TabsTrigger>
             <TabsTrigger value="members" className="gap-2">
-              <User className="w-4 h-4" />
-              Członkowie ({members.length})
+              <Users className="w-4 h-4" />
+              Użytkownicy
             </TabsTrigger>
             <TabsTrigger value="roles" className="gap-2">
-              <Settings className="w-4 h-4" />
-              Role ({customRoles.length})
+              <Shield className="w-4 h-4" />
+              Role
+            </TabsTrigger>
+            <TabsTrigger value="integrations" className="gap-2">
+              <Key className="w-4 h-4" />
+              Integracje
             </TabsTrigger>
           </TabsList>
+
+          {/* Overview Tab */}
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <Card className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Users className="w-4 h-4" />
+                    Użytkownicy
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{systemStats.totalUsers}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Leady
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{systemStats.totalLeads}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Database className="w-4 h-4" />
+                    Klienci
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{systemStats.totalClients}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Activity className="w-4 h-4" />
+                    Kampanie
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{systemStats.totalCampaigns}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <FileText className="w-4 h-4" />
+                    Dokumenty
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{systemStats.totalDocuments}</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Zadania
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold">{systemStats.totalTasks}</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card className="border-border/50">
+              <CardHeader>
+                <CardTitle>Informacje o systemie</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between py-2 border-b border-border/50">
+                  <span className="text-muted-foreground">CRON Follow-upy</span>
+                  <span className="text-green-400">Aktywny (9:00 codziennie)</span>
+                </div>
+                <div className="flex justify-between py-2 border-b border-border/50">
+                  <span className="text-muted-foreground">Integracja Zoho</span>
+                  <span className={kontaktCreds.client_id ? "text-green-400" : "text-amber-400"}>
+                    {kontaktCreds.client_id ? "Skonfigurowana" : "Wymaga konfiguracji"}
+                  </span>
+                </div>
+                <div className="flex justify-between py-2">
+                  <span className="text-muted-foreground">Liczba ról</span>
+                  <span>{customRoles.length}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* Members Tab */}
           <TabsContent value="members" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Członkowie zespołu</CardTitle>
+                <CardTitle>Członkowie zespołu ({members.length})</CardTitle>
+                <CardDescription>Zarządzaj użytkownikami i ich rolami</CardDescription>
               </CardHeader>
               <CardContent>
                 {loading ? (
                   <div className="p-8 text-center">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto" />
                   </div>
                 ) : members.length === 0 ? (
                   <div className="p-8 text-center text-muted-foreground">
@@ -596,7 +808,7 @@ export default function RoleManagement() {
                                       Usunąć konto użytkownika?
                                     </AlertDialogTitle>
                                     <AlertDialogDescription>
-                                      Ta akcja jest nieodwracalna. Wszystkie dane użytkownika {member.fullName || member.email} zostaną trwale usunięte, w tym dokumenty, wiadomości i historia aktywności.
+                                      Ta akcja jest nieodwracalna. Wszystkie dane użytkownika {member.fullName || member.email} zostaną trwale usunięte.
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
                                   <AlertDialogFooter>
@@ -765,7 +977,7 @@ export default function RoleManagement() {
                                     <AlertDialogHeader>
                                       <AlertDialogTitle>Usunąć rolę?</AlertDialogTitle>
                                       <AlertDialogDescription>
-                                        Czy na pewno chcesz usunąć rolę "{role.name}"? Użytkownicy z tą rolą stracą swoje uprawnienia.
+                                        Czy na pewno chcesz usunąć rolę "{role.name}"?
                                       </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -856,6 +1068,166 @@ export default function RoleManagement() {
                 );
               })}
             </div>
+          </TabsContent>
+
+          {/* Integrations Tab */}
+          <TabsContent value="integrations" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="w-5 h-5" />
+                  Zoho Mail API
+                </CardTitle>
+                <CardDescription>
+                  Konfiguracja integracji z Zoho Mail do automatycznych follow-upów
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* kontakt@aurine.pl */}
+                <div className="space-y-4 p-4 rounded-lg border border-border/50 bg-secondary/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium">kontakt@aurine.pl</p>
+                      <p className="text-xs text-muted-foreground">Główne konto kontaktowe</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-3">
+                    <div>
+                      <Label className="text-xs">Client ID</Label>
+                      <Input
+                        value={kontaktCreds.client_id}
+                        onChange={(e) => setKontaktCreds(p => ({ ...p, client_id: e.target.value }))}
+                        placeholder="Zoho Client ID"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Client Secret</Label>
+                      <div className="relative">
+                        <Input
+                          type={showSecrets['kontakt_secret'] ? 'text' : 'password'}
+                          value={kontaktCreds.client_secret}
+                          onChange={(e) => setKontaktCreds(p => ({ ...p, client_secret: e.target.value }))}
+                          placeholder="Zoho Client Secret"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowSecrets(p => ({ ...p, kontakt_secret: !p.kontakt_secret }))}
+                        >
+                          {showSecrets['kontakt_secret'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Refresh Token</Label>
+                      <div className="relative">
+                        <Input
+                          type={showSecrets['kontakt_token'] ? 'text' : 'password'}
+                          value={kontaktCreds.refresh_token}
+                          onChange={(e) => setKontaktCreds(p => ({ ...p, refresh_token: e.target.value }))}
+                          placeholder="Zoho Refresh Token"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowSecrets(p => ({ ...p, kontakt_token: !p.kontakt_token }))}
+                        >
+                          {showSecrets['kontakt_token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => saveZohoCredentials(kontaktCreds)}
+                      disabled={savingCredentials}
+                      className="w-full"
+                    >
+                      {savingCredentials ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                      Zapisz
+                    </Button>
+                  </div>
+                </div>
+
+                {/* biuro@aurine.pl */}
+                <div className="space-y-4 p-4 rounded-lg border border-border/50 bg-secondary/20">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium">biuro@aurine.pl</p>
+                      <p className="text-xs text-muted-foreground">Konto biurowe</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-3">
+                    <div>
+                      <Label className="text-xs">Client ID</Label>
+                      <Input
+                        value={biuroCreds.client_id}
+                        onChange={(e) => setBiuroCreds(p => ({ ...p, client_id: e.target.value }))}
+                        placeholder="Zoho Client ID"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Client Secret</Label>
+                      <div className="relative">
+                        <Input
+                          type={showSecrets['biuro_secret'] ? 'text' : 'password'}
+                          value={biuroCreds.client_secret}
+                          onChange={(e) => setBiuroCreds(p => ({ ...p, client_secret: e.target.value }))}
+                          placeholder="Zoho Client Secret"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowSecrets(p => ({ ...p, biuro_secret: !p.biuro_secret }))}
+                        >
+                          {showSecrets['biuro_secret'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Refresh Token</Label>
+                      <div className="relative">
+                        <Input
+                          type={showSecrets['biuro_token'] ? 'text' : 'password'}
+                          value={biuroCreds.refresh_token}
+                          onChange={(e) => setBiuroCreds(p => ({ ...p, refresh_token: e.target.value }))}
+                          placeholder="Zoho Refresh Token"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-0 top-0"
+                          onClick={() => setShowSecrets(p => ({ ...p, biuro_token: !p.biuro_token }))}
+                        >
+                          {showSecrets['biuro_token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => saveZohoCredentials(biuroCreds)}
+                      disabled={savingCredentials}
+                      className="w-full"
+                    >
+                      {savingCredentials ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Save className="w-4 h-4 mr-2" />}
+                      Zapisz
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

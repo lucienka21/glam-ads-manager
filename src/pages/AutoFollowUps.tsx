@@ -5,14 +5,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { format, addDays, isPast, isToday, isFuture } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import {
   Loader2, Mail, Send, Clock, CheckCircle2, AlertCircle,
-  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, Settings2, FileText, MessageSquare, Key, Save, Eye, EyeOff, History, XCircle
+  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, FileText, History, XCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -39,14 +37,6 @@ interface LeadFollowUp {
   status: string;
 }
 
-interface ZohoCredentials {
-  id?: string;
-  email_account: string;
-  client_id: string;
-  client_secret: string;
-  refresh_token: string;
-}
-
 interface FollowUpLog {
   id: string;
   lead_id: string;
@@ -65,31 +55,12 @@ export default function AutoFollowUps() {
   const [leads, setLeads] = useState<LeadFollowUp[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
-  const [showCredentialsDialog, setShowCredentialsDialog] = useState(false);
   const [showLogsDialog, setShowLogsDialog] = useState(false);
-  const [credentials, setCredentials] = useState<ZohoCredentials[]>([]);
   const [logs, setLogs] = useState<FollowUpLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
-  const [savingCredentials, setSavingCredentials] = useState(false);
-  const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
-  
-  // Form states for both accounts
-  const [kontaktCreds, setKontaktCreds] = useState<ZohoCredentials>({
-    email_account: 'kontakt@aurine.pl',
-    client_id: '',
-    client_secret: '',
-    refresh_token: '',
-  });
-  const [biuroCreds, setBiuroCreds] = useState<ZohoCredentials>({
-    email_account: 'biuro@aurine.pl',
-    client_id: '',
-    client_secret: '',
-    refresh_token: '',
-  });
 
   useEffect(() => {
     fetchLeads();
-    fetchCredentials();
     fetchLogs();
   }, []);
 
@@ -105,76 +76,6 @@ export default function AutoFollowUps() {
       setLogs(data);
     }
     setLogsLoading(false);
-  };
-
-  const fetchCredentials = async () => {
-    const { data, error } = await supabase
-      .from('zoho_credentials')
-      .select('*');
-    
-    if (!error && data) {
-      setCredentials(data);
-      
-      // Populate form fields
-      const kontakt = data.find(c => c.email_account === 'kontakt@aurine.pl');
-      const biuro = data.find(c => c.email_account === 'biuro@aurine.pl');
-      
-      if (kontakt) {
-        setKontaktCreds({
-          id: kontakt.id,
-          email_account: kontakt.email_account,
-          client_id: kontakt.client_id,
-          client_secret: kontakt.client_secret,
-          refresh_token: kontakt.refresh_token,
-        });
-      }
-      if (biuro) {
-        setBiuroCreds({
-          id: biuro.id,
-          email_account: biuro.email_account,
-          client_id: biuro.client_id,
-          client_secret: biuro.client_secret,
-          refresh_token: biuro.refresh_token,
-        });
-      }
-    }
-  };
-
-  const saveCredentials = async (creds: ZohoCredentials) => {
-    setSavingCredentials(true);
-    try {
-      if (creds.id) {
-        // Update existing
-        const { error } = await supabase
-          .from('zoho_credentials')
-          .update({
-            client_id: creds.client_id,
-            client_secret: creds.client_secret,
-            refresh_token: creds.refresh_token,
-          })
-          .eq('id', creds.id);
-        
-        if (error) throw error;
-      } else {
-        // Insert new
-        const { error } = await supabase
-          .from('zoho_credentials')
-          .insert({
-            email_account: creds.email_account,
-            client_id: creds.client_id,
-            client_secret: creds.client_secret,
-            refresh_token: creds.refresh_token,
-          });
-        
-        if (error) throw error;
-      }
-      
-      toast.success(`Zapisano kredencjały dla ${creds.email_account}`);
-      fetchCredentials();
-    } catch (error: any) {
-      toast.error(`Błąd: ${error.message}`);
-    }
-    setSavingCredentials(false);
   };
 
   const fetchLeads = async () => {
@@ -269,166 +170,6 @@ export default function AutoFollowUps() {
             <p className="text-muted-foreground mt-1">Zarządzaj sekwencją email follow-upów</p>
           </div>
           <div className="flex items-center gap-2">
-            <Dialog open={showCredentialsDialog} onOpenChange={setShowCredentialsDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Key className="w-4 h-4" />
-                  Zoho API
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Key className="w-5 h-5" />
-                    Konfiguracja Zoho Mail API
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="space-y-6 py-4">
-                  {/* kontakt@aurine.pl */}
-                  <div className="space-y-4 p-4 rounded-lg bg-secondary/30 border border-border/50">
-                    <h3 className="font-medium text-foreground flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-primary" />
-                      kontakt@aurine.pl
-                      {kontaktCreds.id && <Badge className="bg-green-500/20 text-green-400 text-xs">Skonfigurowano</Badge>}
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <Label>Client ID</Label>
-                        <Input 
-                          value={kontaktCreds.client_id}
-                          onChange={(e) => setKontaktCreds({...kontaktCreds, client_id: e.target.value})}
-                          placeholder="1000.XXXXXX..."
-                        />
-                      </div>
-                      <div>
-                        <Label>Client Secret</Label>
-                        <div className="relative">
-                          <Input 
-                            type={showSecrets['kontakt_secret'] ? 'text' : 'password'}
-                            value={kontaktCreds.client_secret}
-                            onChange={(e) => setKontaktCreds({...kontaktCreds, client_secret: e.target.value})}
-                            placeholder="***"
-                          />
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute right-1 top-1/2 -translate-y-1/2"
-                            onClick={() => setShowSecrets({...showSecrets, kontakt_secret: !showSecrets['kontakt_secret']})}
-                          >
-                            {showSecrets['kontakt_secret'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <div>
-                        <Label>Refresh Token</Label>
-                        <div className="relative">
-                          <Input 
-                            type={showSecrets['kontakt_token'] ? 'text' : 'password'}
-                            value={kontaktCreds.refresh_token}
-                            onChange={(e) => setKontaktCreds({...kontaktCreds, refresh_token: e.target.value})}
-                            placeholder="1000.XXXXXX..."
-                          />
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute right-1 top-1/2 -translate-y-1/2"
-                            onClick={() => setShowSecrets({...showSecrets, kontakt_token: !showSecrets['kontakt_token']})}
-                          >
-                            {showSecrets['kontakt_token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={() => saveCredentials(kontaktCreds)} 
-                        disabled={savingCredentials || !kontaktCreds.client_id || !kontaktCreds.client_secret || !kontaktCreds.refresh_token}
-                        className="w-full"
-                      >
-                        {savingCredentials ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                        Zapisz kontakt@aurine.pl
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* biuro@aurine.pl */}
-                  <div className="space-y-4 p-4 rounded-lg bg-secondary/30 border border-border/50">
-                    <h3 className="font-medium text-foreground flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-blue-400" />
-                      biuro@aurine.pl
-                      {biuroCreds.id && <Badge className="bg-green-500/20 text-green-400 text-xs">Skonfigurowano</Badge>}
-                    </h3>
-                    <div className="space-y-3">
-                      <div>
-                        <Label>Client ID</Label>
-                        <Input 
-                          value={biuroCreds.client_id}
-                          onChange={(e) => setBiuroCreds({...biuroCreds, client_id: e.target.value})}
-                          placeholder="1000.XXXXXX..."
-                        />
-                      </div>
-                      <div>
-                        <Label>Client Secret</Label>
-                        <div className="relative">
-                          <Input 
-                            type={showSecrets['biuro_secret'] ? 'text' : 'password'}
-                            value={biuroCreds.client_secret}
-                            onChange={(e) => setBiuroCreds({...biuroCreds, client_secret: e.target.value})}
-                            placeholder="***"
-                          />
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute right-1 top-1/2 -translate-y-1/2"
-                            onClick={() => setShowSecrets({...showSecrets, biuro_secret: !showSecrets['biuro_secret']})}
-                          >
-                            {showSecrets['biuro_secret'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <div>
-                        <Label>Refresh Token</Label>
-                        <div className="relative">
-                          <Input 
-                            type={showSecrets['biuro_token'] ? 'text' : 'password'}
-                            value={biuroCreds.refresh_token}
-                            onChange={(e) => setBiuroCreds({...biuroCreds, refresh_token: e.target.value})}
-                            placeholder="1000.XXXXXX..."
-                          />
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="sm" 
-                            className="absolute right-1 top-1/2 -translate-y-1/2"
-                            onClick={() => setShowSecrets({...showSecrets, biuro_token: !showSecrets['biuro_token']})}
-                          >
-                            {showSecrets['biuro_token'] ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                          </Button>
-                        </div>
-                      </div>
-                      <Button 
-                        onClick={() => saveCredentials(biuroCreds)} 
-                        disabled={savingCredentials || !biuroCreds.client_id || !biuroCreds.client_secret || !biuroCreds.refresh_token}
-                        className="w-full"
-                      >
-                        {savingCredentials ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
-                        Zapisz biuro@aurine.pl
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/30 text-sm text-amber-200">
-                    <p className="font-medium mb-1">Jak uzyskać tokeny Zoho?</p>
-                    <ol className="list-decimal list-inside space-y-1 text-amber-300/80">
-                      <li>Przejdź do <a href="https://api-console.zoho.eu/" target="_blank" rel="noopener noreferrer" className="underline">Zoho API Console</a></li>
-                      <li>Utwórz Self Client i skopiuj Client ID oraz Client Secret</li>
-                      <li>Wygeneruj refresh token z odpowiednimi uprawnieniami (ZohoMail.messages.ALL, ZohoMail.accounts.READ)</li>
-                    </ol>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
             <Link to="/templates">
               <Button variant="outline" className="gap-2">
                 <FileText className="w-4 h-4" />
@@ -532,7 +273,7 @@ export default function AutoFollowUps() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Settings2 className="w-5 h-5 text-primary" />
+                <Clock className="w-5 h-5 text-primary" />
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">Automatyczne wysyłanie</p>
