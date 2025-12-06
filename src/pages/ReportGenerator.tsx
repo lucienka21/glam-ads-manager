@@ -232,26 +232,57 @@ const ReportGenerator = () => {
     }
   };
 
+  const autoSaveIfNeeded = async () => {
+    if (!reportData) return;
+    
+    const docId = await saveDocument(
+      "report",
+      reportData.clientName,
+      `Raport ${reportData.period}`,
+      reportData as Record<string, string>,
+      undefined,
+      selectedClientId || undefined
+    );
+    
+    if (docId) {
+      setTimeout(async () => {
+        try {
+          const element = document.getElementById("report-thumbnail-source");
+          if (!element) return;
+          
+          const thumbnail = await toPng(element, {
+            cacheBust: true,
+            pixelRatio: 0.2,
+            backgroundColor: "#000000",
+          });
+          
+          if (thumbnail) await updateThumbnail(docId, thumbnail);
+        } catch (error) {
+          console.error("Thumbnail generation failed:", error);
+        }
+      }, 200);
+    }
+  };
+
   const generatePDF = async () => {
     const element = document.getElementById("report-preview-pdf") || document.getElementById("report-preview");
     if (!element || !reportData) return;
 
     setIsGenerating(true);
     try {
+      // Auto-save before download
+      await autoSaveIfNeeded();
+
       const actualHeight = element.scrollHeight || element.offsetHeight;
       const actualWidth = 794;
       
       const canvas = await toPng(element, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 1,
         backgroundColor: "#000000",
         width: actualWidth,
         height: actualHeight,
       });
-
-      const img = new Image();
-      img.src = canvas;
-      await new Promise((resolve) => { img.onload = resolve; });
 
       const pdf = new jsPDF({
         orientation: "portrait",
@@ -281,9 +312,12 @@ const ReportGenerator = () => {
 
     setIsGenerating(true);
     try {
+      // Auto-save before download
+      await autoSaveIfNeeded();
+
       const imgData = await toPng(element, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 1,
         backgroundColor: "#050509",
       });
 
@@ -314,9 +348,12 @@ const ReportGenerator = () => {
 
     setIsGenerating(true);
     try {
+      // Auto-save before download
+      await autoSaveIfNeeded();
+
       const imgData = await toPng(element, {
         cacheBust: true,
-        pixelRatio: 2,
+        pixelRatio: 1,
         backgroundColor: "#050509",
       });
 

@@ -132,14 +132,45 @@ const PresentationGenerator = () => {
   };
 
   const generatePDF = async () => {
+    if (!hasRequiredFields) {
+      toast.error("Uzupełnij wszystkie pola");
+      return;
+    }
+
     setIsGenerating(true);
     
     try {
-      // Create a hidden container for full-size rendering
-      const container = document.createElement('div');
-      container.style.cssText = 'position: fixed; top: -10000px; left: -10000px; width: 1600px; height: 900px; overflow: hidden;';
-      document.body.appendChild(container);
-      
+      // Auto-save before download
+      let docId = currentDocId;
+      if (!docId) {
+        docId = await saveDocument(
+          "presentation",
+          formData.salonName,
+          `Prezentacja dla ${formData.ownerName}`,
+          formData,
+          undefined,
+          selectedClientId || undefined
+        );
+        setCurrentDocId(docId);
+        
+        if (docId) {
+          const thumbnail = await genThumb({
+            elementId: "presentation-preview",
+            format: 'jpeg',
+            backgroundColor: "#000000",
+            pixelRatio: 0.2,
+            quality: 0.6,
+          });
+          if (thumbnail) await updateThumbnail(docId, thumbnail);
+        }
+      }
+
+      const element = document.getElementById("presentation-preview");
+      if (!element) {
+        toast.error("Nie można znaleźć elementu prezentacji");
+        return;
+      }
+
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "px",
@@ -149,33 +180,18 @@ const PresentationGenerator = () => {
 
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
         setCurrentSlide(i);
-        await new Promise(resolve => setTimeout(resolve, 400));
-        
-        const element = document.getElementById("presentation-preview");
-        if (!element) continue;
-        
-        // Clone the element at full size
-        const clone = element.cloneNode(true) as HTMLElement;
-        clone.style.cssText = 'width: 1600px; height: 900px; transform: none; position: relative;';
-        container.innerHTML = '';
-        container.appendChild(clone);
-        
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 80));
 
-        const imgData = await toJpeg(clone, {
+        const imgData = await toJpeg(element, {
           cacheBust: true,
           pixelRatio: 1,
           backgroundColor: "#000000",
-          quality: 0.95,
-          width: 1600,
-          height: 900,
+          quality: 0.85,
         });
 
         if (i > 1) pdf.addPage([1600, 900], "landscape");
         pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
       }
-      
-      document.body.removeChild(container);
 
       const sanitizedName = formData.salonName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       pdf.save(`prezentacja-${sanitizedName}.pdf`);

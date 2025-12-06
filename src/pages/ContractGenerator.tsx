@@ -120,12 +120,42 @@ const ContractGenerator = () => {
   };
 
   const generatePDF = async () => {
+    if (!hasRequiredFields) {
+      toast.error("Uzupełnij wszystkie wymagane pola");
+      return;
+    }
+
     const element = document.getElementById("contract-preview");
     if (!element) return;
 
     setIsGenerating(true);
     try {
-      const canvas = await toJpeg(element, { cacheBust: true, pixelRatio: 1, backgroundColor: "#ffffff", quality: 0.92 });
+      // Auto-save before download
+      let docId = currentDocId;
+      if (!docId) {
+        docId = await saveDocument(
+          "contract",
+          formData.clientName,
+          `Umowa ${formData.contractNumber}`,
+          formData,
+          undefined,
+          selectedClientId || undefined
+        );
+        setCurrentDocId(docId);
+        
+        if (docId) {
+          const thumbnail = await genThumb({
+            elementId: "contract-preview",
+            format: 'jpeg',
+            backgroundColor: "#ffffff",
+            pixelRatio: 0.2,
+            quality: 0.6,
+          });
+          if (thumbnail) await updateThumbnail(docId, thumbnail);
+        }
+      }
+
+      const canvas = await toJpeg(element, { cacheBust: true, pixelRatio: 1, backgroundColor: "#ffffff", quality: 0.85 });
       const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
       pdf.addImage(canvas, "JPEG", 0, 0, 794, 1123, undefined, "FAST");
       pdf.save(`${formData.contractNumber.replace(/\//g, "-")}.pdf`);
