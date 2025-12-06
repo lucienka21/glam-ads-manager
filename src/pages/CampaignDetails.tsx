@@ -13,7 +13,7 @@ import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import {
   ArrowLeft, Loader2, Target, TrendingUp, DollarSign, Users, MousePointer,
-  Eye, Calendar, Copy, Pencil, Plus, BarChart3, MessageSquare, ShoppingBag
+  Eye, Calendar, Copy, Pencil, Plus, BarChart3, MessageSquare, ShoppingBag, Save
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area } from 'recharts';
 
@@ -65,6 +65,16 @@ export default function CampaignDetails() {
   const [metrics, setMetrics] = useState<CampaignMetric[]>([]);
   const [loading, setLoading] = useState(true);
   const [metricsDialogOpen, setMetricsDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    status: '',
+    budget: '',
+    objective: '',
+    notes: '',
+    start_date: '',
+    end_date: '',
+  });
   const [newMetric, setNewMetric] = useState({
     period_start: '',
     period_end: '',
@@ -96,6 +106,15 @@ export default function CampaignDetails() {
       return;
     }
     setCampaign(campaignData);
+    setEditForm({
+      name: campaignData.name || '',
+      status: campaignData.status || 'draft',
+      budget: campaignData.budget?.toString() || '',
+      objective: campaignData.objective || '',
+      notes: campaignData.notes || '',
+      start_date: campaignData.start_date || '',
+      end_date: campaignData.end_date || '',
+    });
 
     const { data: clientData } = await supabase
       .from('clients')
@@ -172,6 +191,29 @@ export default function CampaignDetails() {
     }
   };
 
+  const handleEditCampaign = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id) return;
+
+    const { error } = await supabase.from('campaigns').update({
+      name: editForm.name,
+      status: editForm.status,
+      budget: parseFloat(editForm.budget) || null,
+      objective: editForm.objective || null,
+      notes: editForm.notes || null,
+      start_date: editForm.start_date,
+      end_date: editForm.end_date || null,
+    }).eq('id', id);
+
+    if (error) {
+      toast.error('Błąd podczas zapisywania');
+    } else {
+      toast.success('Kampania zaktualizowana');
+      setEditDialogOpen(false);
+      fetchData();
+    }
+  };
+
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(value);
 
@@ -210,7 +252,7 @@ export default function CampaignDetails() {
               <Copy className="w-4 h-4 mr-2" />
               Kopiuj ID
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
               <Pencil className="w-4 h-4 mr-2" />
               Edytuj
             </Button>
@@ -566,6 +608,93 @@ export default function CampaignDetails() {
               <div className="flex justify-end gap-3 pt-4">
                 <Button type="button" variant="outline" onClick={() => setMetricsDialogOpen(false)}>Anuluj</Button>
                 <Button type="submit">Dodaj</Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Campaign Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edytuj kampanię</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleEditCampaign} className="space-y-4">
+              <div>
+                <Label>Nazwa kampanii</Label>
+                <Input 
+                  value={editForm.name} 
+                  onChange={(e) => setEditForm(p => ({ ...p, name: e.target.value }))}
+                  required 
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Status</Label>
+                  <select
+                    className="w-full h-10 px-3 rounded-md border border-border bg-background text-foreground"
+                    value={editForm.status}
+                    onChange={(e) => setEditForm(p => ({ ...p, status: e.target.value }))}
+                  >
+                    <option value="draft">Szkic</option>
+                    <option value="active">Aktywna</option>
+                    <option value="paused">Wstrzymana</option>
+                    <option value="completed">Zakończona</option>
+                  </select>
+                </div>
+                <div>
+                  <Label>Budżet (PLN)</Label>
+                  <Input 
+                    type="number"
+                    step="0.01"
+                    value={editForm.budget} 
+                    onChange={(e) => setEditForm(p => ({ ...p, budget: e.target.value }))}
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Data początkowa</Label>
+                  <Input 
+                    type="date" 
+                    value={editForm.start_date} 
+                    onChange={(e) => setEditForm(p => ({ ...p, start_date: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label>Data końcowa</Label>
+                  <Input 
+                    type="date" 
+                    value={editForm.end_date} 
+                    onChange={(e) => setEditForm(p => ({ ...p, end_date: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Cel kampanii</Label>
+                <Input 
+                  value={editForm.objective} 
+                  onChange={(e) => setEditForm(p => ({ ...p, objective: e.target.value }))}
+                  placeholder="np. Więcej rezerwacji"
+                />
+              </div>
+              <div>
+                <Label>Notatki</Label>
+                <textarea
+                  className="w-full min-h-[80px] px-3 py-2 rounded-md border border-border bg-background text-foreground resize-none"
+                  value={editForm.notes}
+                  onChange={(e) => setEditForm(p => ({ ...p, notes: e.target.value }))}
+                  placeholder="Dodatkowe informacje..."
+                />
+              </div>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>Anuluj</Button>
+                <Button type="submit">
+                  <Save className="w-4 h-4 mr-2" />
+                  Zapisz
+                </Button>
               </div>
             </form>
           </DialogContent>
