@@ -12,7 +12,7 @@ import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
-import domtoimage from "dom-to-image-more";
+import { toJpeg } from "html-to-image";
 
 const TOTAL_SLIDES = 6;
 const slideNames = ["Powitanie", "Wyzwania salonów", "Jak pomagamy", "Przebieg współpracy", "Specjalna oferta", "Kontakt"];
@@ -35,6 +35,7 @@ const PresentationGenerator = () => {
   const [leads, setLeads] = useState<LeadOption[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const captureRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     ownerName: "",
@@ -130,7 +131,7 @@ const PresentationGenerator = () => {
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
-          elementId: "presentation-preview",
+          elementId: "capture-element",
           format: 'jpeg',
           backgroundColor: "#000000",
           pixelRatio: 0.2,
@@ -165,7 +166,7 @@ const PresentationGenerator = () => {
         
         if (docId) {
           const thumbnail = await genThumb({
-            elementId: "presentation-preview",
+            elementId: "capture-element",
             format: 'jpeg',
             backgroundColor: "#000000",
             pixelRatio: 0.2,
@@ -177,7 +178,7 @@ const PresentationGenerator = () => {
         }
       }
 
-      const element = document.getElementById("presentation-preview");
+      const element = captureRef.current;
       if (!element) {
         toast.error("Nie można znaleźć elementu prezentacji");
         return;
@@ -190,26 +191,24 @@ const PresentationGenerator = () => {
         compress: true,
       });
 
-      // Capture all slides quickly using dom-to-image-more
-      const slides: string[] = [];
+      // Capture all slides
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
         setCurrentSlide(i);
-        await new Promise(resolve => setTimeout(resolve, 30));
+        // Wait for render
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
 
-        const imgData = await domtoimage.toJpeg(element, {
+        const imgData = await toJpeg(element, {
           width: 1600,
           height: 900,
+          pixelRatio: 1,
+          backgroundColor: "#000000",
           quality: 0.92,
-          bgcolor: "#000000",
+          skipFonts: true,
         });
-        slides.push(imgData);
-      }
 
-      // Add all slides to PDF
-      slides.forEach((imgData, index) => {
-        if (index > 0) pdf.addPage([1600, 900], "landscape");
+        if (i > 1) pdf.addPage([1600, 900], "landscape");
         pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
-      });
+      }
 
       const sanitizedName = formData.salonName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       pdf.save(`prezentacja-${sanitizedName}.pdf`);
@@ -382,6 +381,23 @@ const PresentationGenerator = () => {
           <p className="text-center text-xs text-muted-foreground mt-3 flex-shrink-0">
             Użyj strzałek ← → do nawigacji
           </p>
+        </div>
+
+        {/* Hidden capture element - full size without transform */}
+        <div 
+          ref={captureRef}
+          id="capture-element"
+          style={{
+            position: 'fixed',
+            left: '-9999px',
+            top: 0,
+            width: '1600px',
+            height: '900px',
+            backgroundColor: '#000000',
+            overflow: 'hidden',
+          }}
+        >
+          <PresentationPreview data={formData} currentSlide={currentSlide} />
         </div>
       </div>
     </AppLayout>
