@@ -1,7 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -17,12 +16,11 @@ import {
   Clock, 
   AlertCircle,
   Users,
-  Building2,
-  GripVertical
+  Building2
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { renderMentions } from '@/components/ui/Mention';
+import { TaskQuickActions } from './TaskQuickActions';
 
 interface Task {
   id: string;
@@ -121,22 +119,13 @@ export function TaskKanbanBoard({
         className="bg-zinc-900/80 border-zinc-700/50 hover:border-pink-500/30 transition-all group cursor-pointer"
       >
         <CardContent className="p-3 space-y-2">
-          {/* Header */}
+          {/* Header with title */}
           <div className="flex items-start justify-between gap-2">
-            <div className="flex items-start gap-2 flex-1 min-w-0">
-              {task.status !== 'completed' && (
-                <Checkbox
-                  checked={task.status === 'completed'}
-                  onCheckedChange={(checked) => onToggleComplete(task, Boolean(checked))}
-                  className="mt-0.5 flex-shrink-0"
-                />
-              )}
-              <h4 className={`text-sm font-medium leading-tight ${
-                task.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'
-              }`}>
-                {task.title}
-              </h4>
-            </div>
+            <h4 className={`text-sm font-medium leading-tight flex-1 ${
+              task.status === 'completed' ? 'line-through text-muted-foreground' : 'text-foreground'
+            }`}>
+              {task.title}
+            </h4>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -159,6 +148,12 @@ export function TaskKanbanBoard({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+
+          {/* Quick Status Actions */}
+          <TaskQuickActions
+            currentStatus={task.status}
+            onStatusChange={(newStatus) => onStatusChange(task, newStatus)}
+          />
 
           {/* Description */}
           {task.description && (

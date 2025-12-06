@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, Check, ExternalLink, AtSign, UserPlus, CheckCircle } from "lucide-react";
+import { Bell, Check, AtSign, UserPlus, CheckCircle, ClipboardList, Users, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Popover,
@@ -26,6 +26,15 @@ interface Notification {
   reference_id: string | null;
 }
 
+const notificationTypeConfig: Record<string, { icon: typeof Bell; color: string; bg: string }> = {
+  mention: { icon: AtSign, color: 'text-pink-400', bg: 'bg-pink-500/10' },
+  task_assigned: { icon: ClipboardList, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  task_completed: { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  client_assigned: { icon: Users, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+  chat: { icon: MessageSquare, color: 'text-purple-400', bg: 'bg-purple-500/10' },
+  default: { icon: Bell, color: 'text-muted-foreground', bg: 'bg-muted/10' },
+};
+
 export function NotificationBell() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -35,19 +44,8 @@ export function NotificationBell() {
   const { playSound } = useNotificationSound();
   const prevUnreadCountRef = useRef(0);
 
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case "mention":
-        return <AtSign className="w-3 h-3 text-pink-400" />;
-      case "task_assigned":
-        return <UserPlus className="w-3 h-3 text-blue-400" />;
-      case "task_completed":
-        return <CheckCircle className="w-3 h-3 text-emerald-400" />;
-      case "client_assigned":
-        return <UserPlus className="w-3 h-3 text-amber-400" />;
-      default:
-        return <Bell className="w-3 h-3 text-muted-foreground" />;
-    }
+  const getNotificationConfig = (type: string) => {
+    return notificationTypeConfig[type] || notificationTypeConfig.default;
   };
 
   const handleNotificationClick = (notification: Notification) => {
@@ -93,7 +91,6 @@ export function NotificationBell() {
     if (!error && data) {
       const newUnreadCount = data.filter(n => !n.is_read).length;
       
-      // Play sound if there are new unread notifications
       if (newUnreadCount > prevUnreadCountRef.current && prevUnreadCountRef.current !== 0) {
         playSound();
       }
@@ -149,23 +146,32 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
+        <Button variant="ghost" size="icon" className="relative hover:bg-pink-500/10">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-pink-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
-              {unreadCount > 9 ? "9+" : unreadCount}
+            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] bg-pink-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1">
+              {unreadCount > 99 ? "99+" : unreadCount}
             </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0 bg-zinc-900 border-zinc-700" align="end">
-        <div className="flex items-center justify-between p-3 border-b border-zinc-700">
-          <h4 className="font-semibold text-foreground">Powiadomienia</h4>
+      <PopoverContent className="w-96 p-0 bg-zinc-900/95 backdrop-blur-xl border-zinc-700/50 shadow-2xl" align="end">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+          <div className="flex items-center gap-2">
+            <Bell className="w-4 h-4 text-pink-400" />
+            <h4 className="font-semibold text-foreground">Powiadomienia</h4>
+            {unreadCount > 0 && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold bg-pink-500/20 text-pink-400 rounded">
+                {unreadCount} nowe
+              </span>
+            )}
+          </div>
           {unreadCount > 0 && (
             <Button 
               variant="ghost" 
               size="sm" 
-              className="text-xs text-muted-foreground hover:text-foreground"
+              className="text-xs text-muted-foreground hover:text-foreground h-7"
               onClick={markAllAsRead}
             >
               <Check className="w-3 h-3 mr-1" />
@@ -174,64 +180,80 @@ export function NotificationBell() {
           )}
         </div>
         
-        <ScrollArea className="h-[300px]">
+        {/* Notifications list */}
+        <ScrollArea className="max-h-[400px]">
           {notifications.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground">
-              <Bell className="w-8 h-8 mx-auto mb-2 opacity-50" />
-              <p className="text-sm">Brak powiadomień</p>
+            <div className="p-8 text-center">
+              <div className="w-12 h-12 rounded-full bg-zinc-800 flex items-center justify-center mx-auto mb-3">
+                <Bell className="w-6 h-6 text-zinc-600" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">Brak powiadomień</p>
+              <p className="text-xs text-muted-foreground/70 mt-1">Tutaj pojawią się Twoje powiadomienia</p>
             </div>
           ) : (
-            <div className="divide-y divide-zinc-800">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "p-3 hover:bg-zinc-800/50 transition-colors cursor-pointer",
-                    !notification.is_read && "bg-pink-500/5 border-l-2 border-pink-500"
-                  )}
-                  onClick={() => handleNotificationClick(notification)}
-                >
-                  <div className="flex items-start gap-2">
-                    <div className="mt-0.5">
-                      {getNotificationIcon(notification.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-1">
-                        <p className={cn(
-                          "text-sm",
-                          !notification.is_read ? "font-semibold text-foreground" : "text-muted-foreground"
-                        )}>
-                          {notification.title}
-                        </p>
-                        {notification.reference_type && (
-                          <ExternalLink className="w-2.5 h-2.5 text-muted-foreground/50" />
-                        )}
-                      </div>
-                      {notification.content && (
-                        <p className="text-xs text-muted-foreground truncate mt-0.5">
-                          {notification.content}
-                        </p>
-                      )}
-                      <p className="text-xs text-muted-foreground/70 mt-1">
-                        {formatDistanceToNow(new Date(notification.created_at), { 
-                          locale: pl, 
-                          addSuffix: true 
-                        })}
-                      </p>
-                    </div>
-                    {!notification.is_read && (
-                      <div className="w-2 h-2 bg-pink-500 rounded-full flex-shrink-0 mt-1.5" />
+            <div>
+              {notifications.map((notification, index) => {
+                const config = getNotificationConfig(notification.type);
+                const Icon = config.icon;
+                
+                return (
+                  <div
+                    key={notification.id}
+                    className={cn(
+                      "p-4 transition-all cursor-pointer border-l-2",
+                      !notification.is_read 
+                        ? "bg-pink-500/5 border-pink-500 hover:bg-pink-500/10" 
+                        : "border-transparent hover:bg-zinc-800/50",
+                      index !== notifications.length - 1 && "border-b border-zinc-800/50"
                     )}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
+                    <div className="flex gap-3">
+                      {/* Icon */}
+                      <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center shrink-0", config.bg)}>
+                        <Icon className={cn("w-4 h-4", config.color)} />
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={cn(
+                            "text-sm leading-tight",
+                            !notification.is_read ? "font-semibold text-foreground" : "text-muted-foreground"
+                          )}>
+                            {notification.title}
+                          </p>
+                          {!notification.is_read && (
+                            <span className="w-2 h-2 bg-pink-500 rounded-full shrink-0 mt-1" />
+                          )}
+                        </div>
+                        
+                        {notification.content && (
+                          <p className="text-xs text-muted-foreground line-clamp-2">
+                            {notification.content}
+                          </p>
+                        )}
+                        
+                        <p className="text-[10px] text-muted-foreground/60">
+                          {formatDistanceToNow(new Date(notification.created_at), { 
+                            locale: pl, 
+                            addSuffix: true 
+                          })}
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </ScrollArea>
-        <div className="p-2 border-t border-zinc-700">
+
+        {/* Footer */}
+        <div className="p-2 border-t border-zinc-800">
           <Button 
             variant="ghost" 
-            className="w-full text-xs text-muted-foreground hover:text-foreground"
+            className="w-full text-xs text-muted-foreground hover:text-foreground hover:bg-zinc-800"
             onClick={() => {
               setOpen(false);
               navigate("/notifications");

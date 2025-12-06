@@ -189,10 +189,15 @@ export default function LeadProfile() {
                   </div>
                 )}
                 {lead.facebook_page && (
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <a 
+                    href={lead.facebook_page.startsWith('http') ? lead.facebook_page : `https://facebook.com/${lead.facebook_page}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-blue-400 hover:text-blue-300 transition-colors"
+                  >
                     <Facebook className="w-4 h-4" />
                     <span className="truncate">{lead.facebook_page}</span>
-                  </div>
+                  </a>
                 )}
                 {lead.source && (
                   <div className="flex items-center gap-2 text-muted-foreground">

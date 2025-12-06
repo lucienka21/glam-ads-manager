@@ -40,7 +40,8 @@ import {
   FileText,
   LayoutGrid,
   List,
-  Building2
+  Building2,
+  Columns3
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -50,6 +51,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { LeadsKanban } from '@/components/leads/LeadsKanban';
+import { LeadsListView } from '@/components/leads/LeadsListView';
 
 interface Lead {
   id: string;
@@ -176,7 +178,7 @@ export default function Leads() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [industryFilter, setIndustryFilter] = useState<string>('all');
-  const [viewMode, setViewMode] = useState<'list' | 'kanban'>(settings.defaultLeadView);
+  const [viewMode, setViewMode] = useState<'cards' | 'kanban' | 'list'>(settings.defaultLeadView === 'kanban' ? 'kanban' : 'cards');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingLead, setEditingLead] = useState<Lead | null>(null);
   const [activeTab, setActiveTab] = useState('all');
@@ -212,7 +214,7 @@ export default function Leads() {
 
   // Update viewMode when settings change
   useEffect(() => {
-    setViewMode(settings.defaultLeadView);
+    setViewMode(settings.defaultLeadView === 'kanban' ? 'kanban' : 'cards');
   }, [settings.defaultLeadView]);
 
   useEffect(() => {
@@ -744,19 +746,30 @@ export default function Leads() {
             <div className="flex items-center border border-zinc-700 rounded-lg overflow-hidden z-10">
               <Button
                 size="sm"
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('list'); }}
-                className={`rounded-none border-0 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                variant={viewMode === 'cards' ? 'default' : 'outline'}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('cards'); }}
+                className={`rounded-none border-0 ${viewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                title="Kafelki"
               >
-                <List className="w-4 h-4" />
+                <LayoutGrid className="w-4 h-4" />
               </Button>
               <Button
                 size="sm"
                 variant={viewMode === 'kanban' ? 'default' : 'outline'}
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('kanban'); }}
                 className={`rounded-none border-0 ${viewMode === 'kanban' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                title="Kanban"
               >
-                <LayoutGrid className="w-4 h-4" />
+                <Columns3 className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant={viewMode === 'list' ? 'default' : 'outline'}
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('list'); }}
+                className={`rounded-none border-0 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                title="Lista"
+              >
+                <List className="w-4 h-4" />
               </Button>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -1322,6 +1335,16 @@ export default function Leads() {
             leads={filteredLeads}
             onLeadClick={(id) => navigate(`/leads/${id}`)}
             onRefresh={fetchLeads}
+          />
+        ) : viewMode === 'list' ? (
+          <LeadsListView
+            leads={filteredLeads}
+            selectedLeads={selectedLeads}
+            onSelectLead={handleSelectLead}
+            onLeadClick={(id) => navigate(`/leads/${id}`)}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            onConvert={handleConvertToClient}
           />
         ) : (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
