@@ -48,6 +48,8 @@ async function getZohoAccessToken(emailFrom: string): Promise<string | null> {
   if (!credentials) return null;
 
   try {
+    console.log(`Getting Zoho token for ${emailFrom}, client_id: ${credentials.clientId?.substring(0, 20)}...`);
+    
     const response = await fetch("https://accounts.zoho.eu/oauth/v2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -59,12 +61,20 @@ async function getZohoAccessToken(emailFrom: string): Promise<string | null> {
       }),
     });
 
+    const responseText = await response.text();
+    console.log(`Zoho token response for ${emailFrom}: status=${response.status}, body=${responseText}`);
+
     if (!response.ok) {
-      console.error(`Failed to get Zoho token for ${emailFrom}:`, await response.text());
+      console.error(`Failed to get Zoho token for ${emailFrom}:`, responseText);
       return null;
     }
 
-    const data = await response.json();
+    const data = JSON.parse(responseText);
+    
+    if (!data.access_token) {
+      console.error(`No access_token in response for ${emailFrom}:`, data);
+      return null;
+    }
     
     // Cache token for 50 minutes (Zoho tokens typically last 1 hour)
     accessTokenCache[emailFrom] = {
@@ -72,6 +82,7 @@ async function getZohoAccessToken(emailFrom: string): Promise<string | null> {
       expiry: Date.now() + 50 * 60 * 1000,
     };
     
+    console.log(`Successfully got access token for ${emailFrom}`);
     return data.access_token;
   } catch (e) {
     console.error(`Error getting Zoho token for ${emailFrom}:`, e);
