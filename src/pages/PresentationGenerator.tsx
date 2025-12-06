@@ -29,6 +29,7 @@ const PresentationGenerator = () => {
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const { generateThumbnail: genThumb } = useThumbnailGenerator();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [generatingSlide, setGeneratingSlide] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(1);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [previewScale, setPreviewScale] = useState(0.5);
@@ -186,6 +187,8 @@ const PresentationGenerator = () => {
 
       // Capture all slides from hidden pre-rendered elements - NO slide switching!
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
+        setGeneratingSlide(i);
+        
         const slideElement = document.getElementById(`capture-slide-${i}`);
         if (!slideElement) {
           console.error(`Slide ${i} element not found`);
@@ -203,6 +206,8 @@ const PresentationGenerator = () => {
         if (i > 1) pdf.addPage([1600, 900], "landscape");
         pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
       }
+      
+      setGeneratingSlide(0);
 
       const sanitizedName = formData.salonName.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
       pdf.save(`prezentacja-${sanitizedName}.pdf`);
@@ -312,7 +317,11 @@ const PresentationGenerator = () => {
               </Button>
               <Button onClick={generatePDF} disabled={isGenerating || !hasRequiredFields} variant="secondary" className="w-full">
                 <Download className="w-4 h-4 mr-2" />
-                {isGenerating ? "Generuję PDF..." : "Pobierz PDF"}
+                {isGenerating 
+                  ? generatingSlide > 0 
+                    ? `Generuję slajd ${generatingSlide}/${TOTAL_SLIDES}...` 
+                    : "Przygotowuję..."
+                  : "Pobierz PDF"}
               </Button>
             </div>
           </div>
