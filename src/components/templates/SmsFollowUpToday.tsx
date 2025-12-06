@@ -49,7 +49,7 @@ export function SmsFollowUpToday() {
           .from('leads')
           .select('id, salon_name, owner_name, city, phone, sms_follow_up_date')
           .eq('sms_follow_up_date', today)
-          .not('phone', 'is', null)
+          .eq('sms_follow_up_sent', false)
           .order('salon_name'),
         supabase
           .from('sms_templates')
@@ -193,19 +193,26 @@ export function SmsFollowUpToday() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-2 border-green-500/30 hover:bg-green-500/10"
-                    onClick={() => copyPhone(lead)}
-                  >
-                    {copiedPhoneId === lead.id ? (
-                      <Check className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <Phone className="w-4 h-4" />
-                    )}
-                    {formatPhoneNumber(lead.phone || '')}
-                  </Button>
+                  {lead.phone ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-2 border-green-500/30 hover:bg-green-500/10"
+                      onClick={() => copyPhone(lead)}
+                    >
+                      {copiedPhoneId === lead.id ? (
+                        <Check className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <Phone className="w-4 h-4" />
+                      )}
+                      {formatPhoneNumber(lead.phone)}
+                    </Button>
+                  ) : (
+                    <Badge variant="destructive" className="gap-1">
+                      <Phone className="w-3 h-3" />
+                      Brak numeru
+                    </Badge>
+                  )}
                 </div>
               </div>
             </CardHeader>
