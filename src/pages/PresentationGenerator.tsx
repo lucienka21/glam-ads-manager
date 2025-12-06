@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { Download, ChevronLeft, ChevronRight, Play, Sparkles, Link } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Download, ChevronLeft, ChevronRight, ArrowLeft, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormCard } from "@/components/ui/FormCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
@@ -15,6 +15,7 @@ import jsPDF from "jspdf";
 import { toJpeg } from "html-to-image";
 
 const TOTAL_SLIDES = 6;
+const slideNames = ["Powitanie", "Wyzwania salonów", "Jak pomagamy", "Przebieg współpracy", "Specjalna oferta", "Kontakt"];
 
 interface ClientOption {
   id: string;
@@ -22,13 +23,13 @@ interface ClientOption {
 }
 
 const PresentationGenerator = () => {
+  const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const { generateThumbnail: genThumb } = useThumbnailGenerator();
-  const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(1);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
-  const [previewScale, setPreviewScale] = useState(0.4);
+  const [previewScale, setPreviewScale] = useState(0.5);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
@@ -39,19 +40,14 @@ const PresentationGenerator = () => {
     city: "",
   });
 
-  // Fetch clients
   useEffect(() => {
     const fetchClients = async () => {
-      const { data } = await supabase
-        .from('clients')
-        .select('id, salon_name')
-        .order('salon_name');
+      const { data } = await supabase.from('clients').select('id, salon_name').order('salon_name');
       setClients(data || []);
     };
     fetchClients();
   }, []);
 
-  // Load document from session storage if coming from history
   useEffect(() => {
     const stored = sessionStorage.getItem("loadDocument");
     if (stored) {
@@ -59,7 +55,6 @@ const PresentationGenerator = () => {
         const doc = JSON.parse(stored);
         if (doc.type === "presentation") {
           setFormData(doc.data as typeof formData);
-          setShowPreview(true);
         }
       } catch (e) {
         console.error("Error loading document:", e);
@@ -68,35 +63,45 @@ const PresentationGenerator = () => {
     }
   }, []);
 
-  // Calculate preview scale based on container width
   useEffect(() => {
-    const calculateScale = () => {
+    const updateScale = () => {
       if (previewContainerRef.current) {
-        const containerWidth = previewContainerRef.current.offsetWidth;
-        const scale = containerWidth / 1600;
-        setPreviewScale(Math.min(scale * 0.95, 1));
+        const width = previewContainerRef.current.clientWidth - 48;
+        const height = previewContainerRef.current.clientHeight - 100;
+        const scaleByWidth = width / 1600;
+        const scaleByHeight = height / 900;
+        setPreviewScale(Math.min(scaleByWidth, scaleByHeight, 0.8));
       }
     };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
-    calculateScale();
-    window.addEventListener('resize', calculateScale);
-    return () => window.removeEventListener('resize', calculateScale);
-  }, [showPreview]);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowRight") nextSlide();
+      if (e.key === "ArrowLeft") prevSlide();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleGenerate = async () => {
-    if (!formData.ownerName || !formData.salonName || !formData.city) {
+  const hasRequiredFields = formData.ownerName && formData.salonName && formData.city;
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev % TOTAL_SLIDES) + 1);
+  const prevSlide = () => setCurrentSlide((prev) => ((prev - 2 + TOTAL_SLIDES) % TOTAL_SLIDES) + 1);
+
+  const handleSave = async () => {
+    if (!hasRequiredFields) {
       toast.error("Uzupełnij wszystkie pola");
       return;
     }
 
-    setShowPreview(true);
-    setCurrentSlide(1);
-
-    // Save to history with client linking
     const docId = await saveDocument(
       "presentation",
       formData.salonName,
@@ -106,10 +111,8 @@ const PresentationGenerator = () => {
       selectedClientId || undefined
     );
     setCurrentDocId(docId);
+    toast.success("Prezentacja zapisana!");
 
-    toast.success("Prezentacja gotowa!");
-
-    // Generate thumbnail
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
@@ -120,31 +123,10 @@ const PresentationGenerator = () => {
           maxRetries: 5,
           retryDelay: 800
         });
-        if (thumbnail) {
-          await updateThumbnail(docId, thumbnail);
-        }
+        if (thumbnail) await updateThumbnail(docId, thumbnail);
       }, 500);
     }
   };
-
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev % TOTAL_SLIDES) + 1);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => ((prev - 2 + TOTAL_SLIDES) % TOTAL_SLIDES) + 1);
-  };
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!showPreview) return;
-      if (e.key === "ArrowRight") nextSlide();
-      if (e.key === "ArrowLeft") prevSlide();
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showPreview]);
 
   const generatePDF = async () => {
     setIsGenerating(true);
@@ -171,10 +153,7 @@ const PresentationGenerator = () => {
           quality: 0.92,
         });
 
-        if (i > 1) {
-          pdf.addPage([1600, 900], "landscape");
-        }
-
+        if (i > 1) pdf.addPage([1600, 900], "landscape");
         pdf.addImage(imgData, "JPEG", 0, 0, 1600, 900, undefined, "FAST");
       }
 
@@ -182,183 +161,167 @@ const PresentationGenerator = () => {
       pdf.save(`prezentacja-${sanitizedName}.pdf`);
       toast.success("Prezentacja PDF pobrana!");
     } catch (error) {
-      console.error("Error generating PDF:", error);
       toast.error("Nie udało się wygenerować PDF");
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const slideNames = ["Powitanie", "Wyzwania salonów", "Jak pomagamy", "Przebieg współpracy", "Specjalna oferta", "Kontakt"];
-
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Generator Prezentacji</h1>
-            <p className="text-muted-foreground">Profesjonalne prezentacje cold mail</p>
+      <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Panel - Form */}
+        <div className="w-full lg:w-[320px] xl:w-[360px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card/30">
+          <div className="p-4 border-b border-border/50 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Generator Prezentacji</h1>
+                <p className="text-xs text-muted-foreground">Cold mail slides</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-          {showPreview && (
-            <Button onClick={generatePDF} disabled={isGenerating}>
-              <Download className="w-4 h-4 mr-2" />
-              {isGenerating ? "Generuję..." : "Pobierz PDF"}
-            </Button>
-          )}
+
+          <div className="p-4 space-y-4">
+            {/* Form Fields */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs">Imię właścicielki *</Label>
+                <Input
+                  value={formData.ownerName}
+                  onChange={(e) => handleInputChange("ownerName", e.target.value)}
+                  placeholder="np. Anna"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Nazwa salonu *</Label>
+                <Input
+                  value={formData.salonName}
+                  onChange={(e) => handleInputChange("salonName", e.target.value)}
+                  placeholder="np. Beauty Studio Anna"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs">Miasto *</Label>
+                <Input
+                  value={formData.city}
+                  onChange={(e) => handleInputChange("city", e.target.value)}
+                  placeholder="np. Nowy Sącz"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-xs flex items-center gap-1">
+                  <Link className="w-3 h-3 text-primary" />
+                  Połącz z klientem
+                </Label>
+                <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
+                  <SelectTrigger className="h-9 mt-1">
+                    <SelectValue placeholder="Opcjonalne..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Bez powiązania</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Slide Info */}
+            <div className="p-3 bg-secondary/50 rounded-xl border border-border/50">
+              <p className="text-xs font-medium text-foreground mb-2">Prezentacja zawiera:</p>
+              <ul className="space-y-1.5 text-xs text-muted-foreground">
+                {slideNames.map((name, idx) => (
+                  <li key={idx} className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-primary/20 text-primary text-[10px] flex items-center justify-center font-medium">
+                      {idx + 1}
+                    </span>
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Actions */}
+            <div className="pt-4 border-t border-border/50 space-y-2">
+              <Button onClick={handleSave} className="w-full" disabled={!hasRequiredFields}>
+                Zapisz prezentację
+              </Button>
+              <Button onClick={generatePDF} disabled={isGenerating || !hasRequiredFields} variant="secondary" className="w-full">
+                <Download className="w-4 h-4 mr-2" />
+                {isGenerating ? "Generuję PDF..." : "Pobierz PDF"}
+              </Button>
+            </div>
+          </div>
         </div>
 
-        {!showPreview ? (
-          <div className="max-w-lg mx-auto">
-            <FormCard>
-              <div className="text-center mb-8">
-                <div className="w-16 h-16 mx-auto rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
-                  <Sparkles className="w-8 h-8 text-primary" />
-                </div>
-                <h2 className="text-2xl font-semibold text-foreground font-sans mb-2">Stwórz spersonalizowaną prezentację</h2>
-                <p className="text-muted-foreground">Prezentacja będzie zawierać 6 profesjonalnych slajdów</p>
+        {/* Right Panel - Live Preview */}
+        <div ref={previewContainerRef} className="flex-1 overflow-hidden bg-black/95 p-4 lg:p-6 flex flex-col">
+          {/* Slide Navigation */}
+          <div className="flex items-center justify-between mb-4 flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <Button onClick={prevSlide} size="icon" variant="outline" className="h-8 w-8">
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <div className="text-center min-w-[140px]">
+                <p className="text-xs text-muted-foreground">Slajd {currentSlide} z {TOTAL_SLIDES}</p>
+                <p className="text-sm text-foreground font-medium">{slideNames[currentSlide - 1]}</p>
               </div>
-
-              <div className="space-y-5">
-                <div>
-                  <Label htmlFor="ownerName">Imię właścicielki salonu *</Label>
-                  <Input
-                    id="ownerName"
-                    value={formData.ownerName}
-                    onChange={(e) => handleInputChange("ownerName", e.target.value)}
-                    placeholder="np. Anna"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="salonName">Nazwa salonu *</Label>
-                  <Input
-                    id="salonName"
-                    value={formData.salonName}
-                    onChange={(e) => handleInputChange("salonName", e.target.value)}
-                    placeholder="np. Beauty Studio Anna"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="city">Miasto *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange("city", e.target.value)}
-                    placeholder="np. Nowy Sącz"
-                  />
-                </div>
-
-                <div>
-                  <Label className="flex items-center gap-2">
-                    <Link className="w-4 h-4 text-pink-400" />
-                    Połącz z klientem (opcjonalne)
-                  </Label>
-                  <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz klienta..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Bez powiązania</SelectItem>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="mt-8 p-5 bg-secondary/50 border border-border/50 rounded-xl">
-                <p className="text-sm text-foreground font-medium mb-3">Prezentacja zawiera:</p>
-                <ul className="space-y-2.5 text-sm text-muted-foreground">
-                  <li className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    Wyzwania salonów beauty w reklamie
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    Jak możemy pomóc Twojemu salonowi
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    Przebieg współpracy krok po kroku
-                  </li>
-                  <li className="flex items-center gap-3">
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary"></span>
-                    Specjalna oferta: darmowy audyt + tydzień próbny
-                  </li>
-                </ul>
-              </div>
-
-              <div className="mt-8">
-                <Button onClick={handleGenerate} className="w-full" size="lg">
-                  <Play className="w-5 h-5 mr-2" />
-                  Generuj prezentację
-                </Button>
-              </div>
-            </FormCard>
-          </div>
-        ) : (
-          <div className="space-y-4 animate-fade-in">
-            <div className="flex items-center justify-between bg-card border border-border/50 rounded-xl p-4">
-              <div className="flex items-center gap-4">
-                <Button onClick={prevSlide} size="icon" variant="outline">
-                  <ChevronLeft className="w-5 h-5" />
-                </Button>
-                <div className="text-center min-w-[200px]">
-                  <p className="text-sm text-muted-foreground">Slajd {currentSlide} z {TOTAL_SLIDES}</p>
-                  <p className="text-foreground font-medium">{slideNames[currentSlide - 1]}</p>
-                </div>
-                <Button onClick={nextSlide} size="icon" variant="outline">
-                  <ChevronRight className="w-5 h-5" />
-                </Button>
-              </div>
-
-              <div className="flex gap-2">
-                {slideNames.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setCurrentSlide(idx + 1)}
-                    className={`w-3 h-3 rounded-full transition-all duration-200 ${
-                      currentSlide === idx + 1 ? "bg-primary scale-125" : "bg-muted hover:bg-muted-foreground/30"
-                    }`}
-                  />
-                ))}
-              </div>
-
-              <Button onClick={() => setShowPreview(false)} variant="outline">
-                Edytuj dane
+              <Button onClick={nextSlide} size="icon" variant="outline" className="h-8 w-8">
+                <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
 
-            <div 
-              ref={previewContainerRef}
-              className="border border-border/50 rounded-xl overflow-hidden shadow-lg bg-black"
-            >
-              <div 
-                className="relative w-full bg-black"
-                style={{ paddingBottom: '56.25%' }}
-              >
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div 
-                    className="origin-center"
-                    style={{
-                      width: '1600px',
-                      height: '900px',
-                      transform: `scale(${previewScale})`,
-                    }}
-                  >
-                    <PresentationPreview data={formData} currentSlide={currentSlide} />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="text-center text-sm text-muted-foreground">
-              Użyj strzałek ← → do nawigacji między slajdami
+            <div className="flex gap-1.5">
+              {slideNames.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentSlide(idx + 1)}
+                  className={`w-2.5 h-2.5 rounded-full transition-all ${
+                    currentSlide === idx + 1 ? "bg-primary scale-125" : "bg-muted hover:bg-muted-foreground/30"
+                  }`}
+                />
+              ))}
             </div>
           </div>
-        )}
+          
+          {/* Preview */}
+          <div className="flex-1 flex items-center justify-center">
+            <div 
+              className="rounded-xl overflow-hidden shadow-2xl ring-1 ring-white/10"
+              style={{ 
+                width: `${1600 * previewScale}px`,
+                height: `${900 * previewScale}px`,
+                backgroundColor: '#000',
+              }}
+            >
+              <div 
+                id="presentation-preview"
+                style={{ 
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top left',
+                  width: '1600px',
+                  height: '900px',
+                }}
+              >
+                <PresentationPreview data={formData} currentSlide={currentSlide} />
+              </div>
+            </div>
+          </div>
+
+          <p className="text-center text-xs text-muted-foreground mt-3 flex-shrink-0">
+            Użyj strzałek ← → do nawigacji
+          </p>
+        </div>
       </div>
     </AppLayout>
   );

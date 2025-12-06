@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
-import { Download, FileImage, Eye, Link } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Download, FileImage, ArrowLeft, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FormCard, FormRow } from "@/components/ui/FormCard";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
@@ -22,14 +22,17 @@ interface ClientOption {
 }
 
 const InvoiceGenerator = () => {
+  const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
   const { generateThumbnail: genThumb } = useThumbnailGenerator();
   const [invoiceType, setInvoiceType] = useState<InvoiceType>("full");
-  const [showPreview, setShowPreview] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [previewScale, setPreviewScale] = useState(0.5);
+  const previewContainerRef = useRef<HTMLDivElement>(null);
+  
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
@@ -42,19 +45,14 @@ const InvoiceGenerator = () => {
     paymentDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
   });
 
-  // Fetch clients
   useEffect(() => {
     const fetchClients = async () => {
-      const { data } = await supabase
-        .from('clients')
-        .select('id, salon_name')
-        .order('salon_name');
+      const { data } = await supabase.from('clients').select('id, salon_name').order('salon_name');
       setClients(data || []);
     };
     fetchClients();
   }, []);
 
-  // Load document from session storage if coming from history
   useEffect(() => {
     const stored = sessionStorage.getItem("loadDocument");
     if (stored) {
@@ -62,10 +60,7 @@ const InvoiceGenerator = () => {
         const doc = JSON.parse(stored);
         if (doc.type === "invoice") {
           setFormData(doc.data as typeof formData);
-          if (doc.data.invoiceType) {
-            setInvoiceType(doc.data.invoiceType as InvoiceType);
-          }
-          setShowPreview(true);
+          if (doc.data.invoiceType) setInvoiceType(doc.data.invoiceType as InvoiceType);
         }
       } catch (e) {
         console.error("Error loading document:", e);
@@ -74,18 +69,26 @@ const InvoiceGenerator = () => {
     }
   }, []);
 
-  const invoiceTypes = [
-    { id: "advance" as InvoiceType, label: "Zaliczkowa", description: "Płatność zaliczki" },
-    { id: "final" as InvoiceType, label: "Końcowa", description: "Rozliczenie po zaliczce" },
-    { id: "full" as InvoiceType, label: "Pełna", description: "Pełna kwota usługi" },
-  ];
+  useEffect(() => {
+    const updateScale = () => {
+      if (previewContainerRef.current) {
+        const width = previewContainerRef.current.clientWidth;
+        setPreviewScale(Math.min(width / 794, 0.7));
+      }
+    };
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleGenerate = async () => {
-    if (!formData.clientName || !formData.invoiceNumber || !formData.amount) {
+  const hasRequiredFields = formData.clientName && formData.invoiceNumber && formData.amount;
+
+  const handleSave = async () => {
+    if (!hasRequiredFields) {
       toast.error("Uzupełnij wszystkie wymagane pola");
       return;
     }
@@ -95,9 +98,6 @@ const InvoiceGenerator = () => {
       return;
     }
 
-    setShowPreview(true);
-
-    // Save to history with client linking
     const docId = await saveDocument(
       "invoice",
       formData.clientName,
@@ -107,10 +107,8 @@ const InvoiceGenerator = () => {
       selectedClientId || undefined
     );
     setCurrentDocId(docId);
+    toast.success("Faktura zapisana!");
 
-    toast.success("Podgląd faktury gotowy!");
-
-    // Generate thumbnail
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
@@ -120,9 +118,7 @@ const InvoiceGenerator = () => {
           maxRetries: 5,
           retryDelay: 800
         });
-        if (thumbnail) {
-          await updateThumbnail(docId, thumbnail);
-        }
+        if (thumbnail) await updateThumbnail(docId, thumbnail);
       }, 500);
     }
   };
@@ -132,21 +128,13 @@ const InvoiceGenerator = () => {
     if (!element) return;
 
     setIsGenerating(true);
-
     try {
       const canvas = await toPng(element, { cacheBust: true, pixelRatio: 3, backgroundColor: "#ffffff" });
-
-      const img = new Image();
-      img.src = canvas;
-      await new Promise((resolve) => { img.onload = resolve; });
-
       const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
       pdf.addImage(canvas, "PNG", 0, 0, 794, 1123, undefined, "FAST");
       pdf.save(`${formData.invoiceNumber.replace(/\//g, "-")}.pdf`);
-
       toast.success("Faktura PDF pobrana!");
     } catch (error) {
-      console.error("Error generating PDF:", error);
       toast.error("Nie udało się wygenerować PDF");
     } finally {
       setIsGenerating(false);
@@ -158,209 +146,228 @@ const InvoiceGenerator = () => {
     if (!element) return;
 
     setIsGenerating(true);
-
     try {
       const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#ffffff" });
-
       const link = document.createElement("a");
       link.download = `${formData.invoiceNumber.replace(/\//g, "-")}.png`;
       link.href = imgData;
       link.click();
-
       toast.success("Faktura PNG pobrana!");
     } catch (error) {
-      console.error("Error downloading image:", error);
       toast.error("Nie udało się pobrać obrazu");
     } finally {
       setIsGenerating(false);
     }
   };
 
+  const invoiceTypes = [
+    { id: "advance" as InvoiceType, label: "Zaliczkowa" },
+    { id: "final" as InvoiceType, label: "Końcowa" },
+    { id: "full" as InvoiceType, label: "Pełna" },
+  ];
+
   return (
     <AppLayout>
-      <div className="p-6 lg:p-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Generator Faktur</h1>
-          <p className="text-muted-foreground">Profesjonalne faktury dla Aurine Agency</p>
-        </div>
+      <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden">
+        {/* Left Panel - Form */}
+        <div className="w-full lg:w-[360px] xl:w-[400px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card/30">
+          <div className="p-4 border-b border-border/50 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-lg font-bold text-foreground">Generator Faktur</h1>
+                <p className="text-xs text-muted-foreground">Profesjonalne faktury VAT</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Form */}
-          <div className="space-y-6">
-            <FormCard title="Typ faktury">
-              <div className="grid grid-cols-3 gap-3">
+          <div className="p-4 space-y-4">
+            {/* Invoice Type */}
+            <div>
+              <Label className="text-xs mb-2 block">Typ faktury</Label>
+              <div className="grid grid-cols-3 gap-2">
                 {invoiceTypes.map((type) => (
                   <button
                     key={type.id}
                     type="button"
                     onClick={() => setInvoiceType(type.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                    className={`p-2 rounded-lg border text-xs font-medium transition-all ${
                       invoiceType === type.id
-                        ? "border-primary bg-primary/10"
-                        : "border-border/50 hover:border-primary/30 bg-secondary/30"
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border/50 hover:border-primary/30 text-muted-foreground"
                     }`}
                   >
-                    <h3 className="font-semibold text-sm mb-1 text-foreground">{type.label}</h3>
-                    <p className="text-xs text-muted-foreground">{type.description}</p>
+                    {type.label}
                   </button>
                 ))}
               </div>
-            </FormCard>
+            </div>
 
-            <FormCard title="Dane faktury">
-              <div className="space-y-5">
-                <FormRow>
-                  <div>
-                    <Label htmlFor="clientName">Nazwa klienta *</Label>
-                    <Input
-                      id="clientName"
-                      value={formData.clientName}
-                      onChange={(e) => handleInputChange("clientName", e.target.value)}
-                      placeholder="Salon Beauty XYZ"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="invoiceNumber">Numer faktury *</Label>
-                    <Input
-                      id="invoiceNumber"
-                      value={formData.invoiceNumber}
-                      onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
-                      placeholder="FV/2025/001"
-                    />
-                  </div>
-                </FormRow>
+            {/* Form Fields */}
+            <div className="space-y-3">
+              <div>
+                <Label className="text-xs">Nazwa klienta *</Label>
+                <Input
+                  value={formData.clientName}
+                  onChange={(e) => handleInputChange("clientName", e.target.value)}
+                  placeholder="Salon Beauty XYZ"
+                  className="h-9 mt-1"
+                />
+              </div>
 
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="flex items-center gap-2">
-                    <Link className="w-4 h-4 text-pink-400" />
-                    Połącz z klientem (opcjonalne)
-                  </Label>
-                  <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Wybierz klienta..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Bez powiązania</SelectItem>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="clientAddress">Adres klienta</Label>
+                  <Label className="text-xs">Numer faktury *</Label>
                   <Input
-                    id="clientAddress"
-                    value={formData.clientAddress}
-                    onChange={(e) => handleInputChange("clientAddress", e.target.value)}
-                    placeholder="ul. Przykładowa 123, 00-000 Warszawa"
+                    value={formData.invoiceNumber}
+                    onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
+                    placeholder="FV/2025/001"
+                    className="h-9 mt-1"
                   />
                 </div>
-
-                <FormRow>
-                  <div>
-                    <Label htmlFor="clientNIP">NIP klienta</Label>
-                    <Input
-                      id="clientNIP"
-                      value={formData.clientNIP}
-                      onChange={(e) => handleInputChange("clientNIP", e.target.value)}
-                      placeholder="1234567890"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="issueDate">Data wystawienia</Label>
-                    <Input
-                      id="issueDate"
-                      type="date"
-                      value={formData.issueDate}
-                      onChange={(e) => handleInputChange("issueDate", e.target.value)}
-                    />
-                  </div>
-                </FormRow>
-
-                <FormRow>
-                  <div>
-                    <Label htmlFor="paymentDue">Termin płatności</Label>
-                    <Input
-                      id="paymentDue"
-                      type="date"
-                      value={formData.paymentDue}
-                      onChange={(e) => handleInputChange("paymentDue", e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="amount">{invoiceType === "final" ? "Kwota całkowita" : "Kwota"} (PLN) *</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      value={formData.amount}
-                      onChange={(e) => handleInputChange("amount", e.target.value)}
-                      placeholder="5000"
-                    />
-                  </div>
-                </FormRow>
-
-                {invoiceType === "final" && (
-                  <div>
-                    <Label htmlFor="advanceAmount">Zaliczka (PLN) *</Label>
-                    <Input
-                      id="advanceAmount"
-                      type="number"
-                      value={formData.advanceAmount}
-                      onChange={(e) => handleInputChange("advanceAmount", e.target.value)}
-                      placeholder="2000"
-                    />
-                  </div>
-                )}
-
                 <div>
-                  <Label htmlFor="serviceDescription">Opis usługi</Label>
+                  <Label className="text-xs">Kwota (PLN) *</Label>
                   <Input
-                    id="serviceDescription"
+                    type="number"
+                    value={formData.amount}
+                    onChange={(e) => handleInputChange("amount", e.target.value)}
+                    placeholder="5000"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              {invoiceType === "final" && (
+                <div>
+                  <Label className="text-xs">Zaliczka (PLN) *</Label>
+                  <Input
+                    type="number"
+                    value={formData.advanceAmount}
+                    onChange={(e) => handleInputChange("advanceAmount", e.target.value)}
+                    placeholder="2000"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              )}
+
+              <div>
+                <Label className="text-xs flex items-center gap-1">
+                  <Link className="w-3 h-3 text-primary" />
+                  Połącz z klientem
+                </Label>
+                <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
+                  <SelectTrigger className="h-9 mt-1">
+                    <SelectValue placeholder="Opcjonalne..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Bez powiązania</SelectItem>
+                    {clients.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="text-xs">Adres klienta</Label>
+                <Input
+                  value={formData.clientAddress}
+                  onChange={(e) => handleInputChange("clientAddress", e.target.value)}
+                  placeholder="ul. Przykładowa 123, 00-000 Warszawa"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">NIP klienta</Label>
+                  <Input
+                    value={formData.clientNIP}
+                    onChange={(e) => handleInputChange("clientNIP", e.target.value)}
+                    placeholder="1234567890"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Data wystawienia</Label>
+                  <Input
+                    type="date"
+                    value={formData.issueDate}
+                    onChange={(e) => handleInputChange("issueDate", e.target.value)}
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Termin płatności</Label>
+                  <Input
+                    type="date"
+                    value={formData.paymentDue}
+                    onChange={(e) => handleInputChange("paymentDue", e.target.value)}
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Opis usługi</Label>
+                  <Input
                     value={formData.serviceDescription}
                     onChange={(e) => handleInputChange("serviceDescription", e.target.value)}
-                    placeholder="Usługi marketingowe Facebook Ads"
+                    placeholder="Usługi marketingowe"
+                    className="h-9 mt-1"
                   />
-                </div>
-
-                <div className="p-4 bg-primary/5 border border-primary/20 rounded-xl">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="text-primary font-medium">Info:</span> Wszystkie faktury są zwolnione z VAT
-                  </p>
-                </div>
-
-                <Button onClick={handleGenerate} className="w-full">
-                  <Eye className="w-5 h-5 mr-2" />
-                  Generuj podgląd faktury
-                </Button>
-              </div>
-            </FormCard>
-          </div>
-
-          {/* Preview */}
-          {showPreview && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-foreground font-sans">Podgląd faktury</h2>
-                <div className="flex gap-2">
-                  <Button onClick={downloadAsImage} disabled={isGenerating} size="sm" variant="success">
-                    <FileImage className="w-4 h-4 mr-2" />
-                    {isGenerating ? "..." : "PNG"}
-                  </Button>
-                  <Button onClick={generatePDF} disabled={isGenerating} size="sm">
-                    <Download className="w-4 h-4 mr-2" />
-                    {isGenerating ? "..." : "PDF"}
-                  </Button>
-                </div>
-              </div>
-              <div className="border border-border/50 rounded-xl overflow-hidden bg-white shadow-lg">
-                <div className="transform scale-[0.6] origin-top-left w-[166%]">
-                  <InvoicePreview data={{ ...formData, invoiceType }} />
                 </div>
               </div>
             </div>
-          )}
+
+            {/* Actions */}
+            <div className="pt-4 border-t border-border/50 space-y-2">
+              <Button onClick={handleSave} className="w-full" disabled={!hasRequiredFields}>
+                Zapisz fakturę
+              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button onClick={downloadAsImage} disabled={isGenerating || !hasRequiredFields} variant="outline" size="sm">
+                  <FileImage className="w-4 h-4 mr-1" />
+                  PNG
+                </Button>
+                <Button onClick={generatePDF} disabled={isGenerating || !hasRequiredFields} variant="secondary" size="sm">
+                  <Download className="w-4 h-4 mr-1" />
+                  PDF
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Panel - Live Preview */}
+        <div ref={previewContainerRef} className="flex-1 overflow-auto bg-muted/30 p-4 lg:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo</h2>
+          </div>
+          
+          <div className="flex justify-center">
+            <div 
+              className="bg-white rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
+              style={{ 
+                width: `${794 * previewScale}px`,
+                height: `${1123 * previewScale}px`,
+              }}
+            >
+              <div 
+                style={{ 
+                  transform: `scale(${previewScale})`,
+                  transformOrigin: 'top left',
+                  width: '794px',
+                  height: '1123px',
+                }}
+              >
+                <InvoicePreview data={{ ...formData, invoiceType }} />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>
