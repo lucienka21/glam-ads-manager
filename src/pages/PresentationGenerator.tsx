@@ -35,7 +35,6 @@ const PresentationGenerator = () => {
   const [leads, setLeads] = useState<LeadOption[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
-  const captureRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
     ownerName: "",
@@ -131,7 +130,7 @@ const PresentationGenerator = () => {
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
-          elementId: "capture-element",
+          elementId: "capture-slide-1",
           format: 'jpeg',
           backgroundColor: "#000000",
           pixelRatio: 0.2,
@@ -166,7 +165,7 @@ const PresentationGenerator = () => {
         
         if (docId) {
           const thumbnail = await genThumb({
-            elementId: "capture-element",
+            elementId: "capture-slide-1",
             format: 'jpeg',
             backgroundColor: "#000000",
             pixelRatio: 0.2,
@@ -178,12 +177,6 @@ const PresentationGenerator = () => {
         }
       }
 
-      const element = captureRef.current;
-      if (!element) {
-        toast.error("Nie można znaleźć elementu prezentacji");
-        return;
-      }
-
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "px",
@@ -191,19 +184,20 @@ const PresentationGenerator = () => {
         compress: true,
       });
 
-      // Capture all slides
+      // Capture all slides from hidden pre-rendered elements - NO slide switching!
       for (let i = 1; i <= TOTAL_SLIDES; i++) {
-        setCurrentSlide(i);
-        // Wait for render
-        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const slideElement = document.getElementById(`capture-slide-${i}`);
+        if (!slideElement) {
+          console.error(`Slide ${i} element not found`);
+          continue;
+        }
 
-        const imgData = await toJpeg(element, {
+        const imgData = await toJpeg(slideElement, {
           width: 1600,
           height: 900,
-          pixelRatio: 1,
+          pixelRatio: 2,
           backgroundColor: "#000000",
           quality: 0.92,
-          skipFonts: true,
         });
 
         if (i > 1) pdf.addPage([1600, 900], "landscape");
@@ -383,21 +377,30 @@ const PresentationGenerator = () => {
           </p>
         </div>
 
-        {/* Hidden capture element - full size without transform */}
+        {/* Hidden capture elements - ALL slides pre-rendered for instant PDF generation */}
         <div 
-          ref={captureRef}
-          id="capture-element"
           style={{
             position: 'fixed',
-            left: '-9999px',
+            left: '-99999px',
             top: 0,
-            width: '1600px',
-            height: '900px',
-            backgroundColor: '#000000',
-            overflow: 'hidden',
+            pointerEvents: 'none',
           }}
+          aria-hidden="true"
         >
-          <PresentationPreview data={formData} currentSlide={currentSlide} />
+          {[1, 2, 3, 4, 5, 6].map((slideNum) => (
+            <div
+              key={slideNum}
+              id={`capture-slide-${slideNum}`}
+              style={{
+                width: '1600px',
+                height: '900px',
+                backgroundColor: '#000000',
+                overflow: 'hidden',
+              }}
+            >
+              <PresentationPreview data={formData} currentSlide={slideNum} />
+            </div>
+          ))}
         </div>
       </div>
     </AppLayout>
