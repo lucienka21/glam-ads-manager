@@ -29,7 +29,6 @@ import {
   Settings,
   Wand2,
   Palette,
-  ChevronRight,
   Zap,
 } from "lucide-react";
 import {
@@ -46,7 +45,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import agencyLogo from "@/assets/agency-logo.png";
 
@@ -69,7 +67,6 @@ export function AppSidebar() {
   const { isSzef, role } = useUserRole();
   const currentPath = location.pathname;
   const [incompleteTasks, setIncompleteTasks] = useState(0);
-  const [expandedSections, setExpandedSections] = useState<string[]>(['main', 'crm', 'generators']);
 
   const isActive = (path: string) => currentPath === path;
 
@@ -129,6 +126,10 @@ export function AppSidebar() {
     navigate("/auth");
   };
 
+  const handleNavigate = (url: string) => {
+    navigate(url);
+  };
+
   const mainNavItems: NavItem[] = [
     { title: "Dashboard", url: "/", icon: LayoutDashboard },
     { title: "Zadania", url: "/tasks", icon: CheckSquare, badge: incompleteTasks || undefined },
@@ -172,21 +173,13 @@ export function AppSidebar() {
     });
   }
 
-  const toggleSection = (label: string) => {
-    setExpandedSections(prev => 
-      prev.includes(label) 
-        ? prev.filter(s => s !== label) 
-        : [...prev, label]
-    );
-  };
-
   return (
-    <Sidebar className="border-r border-border/30 bg-sidebar">
+    <Sidebar className="border-r border-border/30 bg-sidebar" collapsible="none">
       {/* Header with logo */}
       <SidebarHeader className="p-5 border-b border-border/20">
         <div 
           className="flex items-center gap-3 cursor-pointer group"
-          onClick={() => navigate("/")}
+          onClick={() => handleNavigate("/")}
         >
           <div className="relative">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center overflow-hidden group-hover:border-primary/50 transition-colors">
@@ -201,58 +194,45 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      {/* Navigation */}
-      <SidebarContent className="p-0">
-        <ScrollArea className="h-full custom-scrollbar">
-          <div className="p-3 space-y-2">
-            {sections.map((section) => (
-              <div key={section.label} className="space-y-1">
-                {/* Section header */}
-                <button
-                  onClick={() => toggleSection(section.label)}
-                  className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <span>{section.label}</span>
-                  <ChevronRight 
-                    className={cn(
-                      "w-3.5 h-3.5 transition-transform duration-200",
-                      expandedSections.includes(section.label) && "rotate-90"
-                    )}
-                  />
-                </button>
-
-                {/* Section items */}
-                {expandedSections.includes(section.label) && (
-                  <div className="space-y-0.5">
-                    {section.items.map((item) => (
-                      <button
-                        key={item.url}
-                        onClick={() => navigate(item.url)}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group",
-                          isActive(item.url)
-                            ? "bg-primary/15 text-primary border-l-2 border-primary ml-0.5"
-                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
-                        )}
-                      >
-                        <item.icon className={cn(
-                          "w-4 h-4 flex-shrink-0 transition-colors",
-                          isActive(item.url) ? "text-primary" : "text-muted-foreground group-hover:text-primary"
-                        )} />
-                        <span className="flex-1 text-left truncate font-medium">{item.title}</span>
-                        {item.badge && item.badge > 0 && (
-                          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-primary text-primary-foreground rounded-full">
-                            {item.badge}
-                          </span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                )}
+      {/* Navigation - always visible, no collapsing */}
+      <SidebarContent className="p-0 overflow-y-auto custom-scrollbar">
+        <div className="p-3 space-y-4">
+          {sections.map((section) => (
+            <div key={section.label} className="space-y-1">
+              {/* Section header - static label, not clickable */}
+              <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                {section.label}
               </div>
-            ))}
-          </div>
-        </ScrollArea>
+
+              {/* Section items - always visible */}
+              <div className="space-y-0.5">
+                {section.items.map((item) => (
+                  <button
+                    key={item.url}
+                    onClick={() => handleNavigate(item.url)}
+                    className={cn(
+                      "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-200 group",
+                      isActive(item.url)
+                        ? "bg-primary/15 text-primary border-l-2 border-primary ml-0.5"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                    )}
+                  >
+                    <item.icon className={cn(
+                      "w-4 h-4 flex-shrink-0 transition-colors",
+                      isActive(item.url) ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                    )} />
+                    <span className="flex-1 text-left truncate font-medium">{item.title}</span>
+                    {item.badge && item.badge > 0 && (
+                      <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-primary text-primary-foreground rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </SidebarContent>
 
       {/* Footer with user */}
@@ -262,7 +242,7 @@ export function AppSidebar() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate("/settings")}
+            onClick={() => handleNavigate("/settings")}
             className="flex-1 h-9 text-muted-foreground hover:text-foreground hover:bg-secondary/50"
           >
             <Settings className="w-4 h-4 mr-2" />
@@ -299,11 +279,11 @@ export function AppSidebar() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56 bg-popover border-border/50">
-            <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleNavigate(`/profile/${user?.id}`)} className="cursor-pointer">
               <User className="w-4 h-4 mr-2" />
               Mój profil
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => navigate("/settings")} className="cursor-pointer">
+            <DropdownMenuItem onClick={() => handleNavigate("/settings")} className="cursor-pointer">
               <Settings className="w-4 h-4 mr-2" />
               Ustawienia
             </DropdownMenuItem>
