@@ -10,8 +10,9 @@ import { format, addDays, isPast, isToday, isFuture } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import {
   Loader2, Mail, Send, Clock, CheckCircle2, AlertCircle,
-  Calendar, User, Building2, Play, Pause, RefreshCw, Zap
+  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, Settings2, FileText, MessageSquare
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 interface LeadFollowUp {
   id: string;
@@ -124,15 +125,47 @@ export default function AutoFollowUps() {
             </h1>
             <p className="text-muted-foreground mt-1">Zarządzaj sekwencją email follow-upów</p>
           </div>
-          <Button 
-            onClick={runAutoFollowUps} 
-            disabled={processing}
-            className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
-          >
-            {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
-            Wyślij zaległe
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/email-templates">
+              <Button variant="outline" className="gap-2">
+                <FileText className="w-4 h-4" />
+                Szablony Email
+              </Button>
+            </Link>
+            <Link to="/sms-templates">
+              <Button variant="outline" className="gap-2">
+                <MessageSquare className="w-4 h-4" />
+                Szablony SMS
+              </Button>
+            </Link>
+            <Button 
+              onClick={runAutoFollowUps} 
+              disabled={processing}
+              className="bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700"
+            >
+              {processing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Play className="w-4 h-4 mr-2" />}
+              Wyślij zaległe
+            </Button>
+          </div>
         </div>
+
+        {/* Info banner */}
+        <Card className="border-primary/30 bg-gradient-to-r from-primary/5 to-transparent">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Settings2 className="w-5 h-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">Automatyczne wysyłanie</p>
+                <p className="text-xs text-muted-foreground">
+                  System automatycznie sprawdza codziennie o 9:00 czy są zaległe follow-upy i je wysyła.
+                  Przycisk "Wyślij zaległe" pozwala ręcznie uruchomić wysyłkę.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

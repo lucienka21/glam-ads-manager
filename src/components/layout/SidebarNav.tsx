@@ -121,6 +121,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
     { title: "Kalendarz", url: "/calendar", icon: Calendar },
     { title: "Kampanie", url: "/campaigns", icon: Target },
     { title: "Auto Follow-up", url: "/auto-followups", icon: MailCheck, badge: pendingFollowUps || undefined },
+    { title: "Szablony Email", url: "/email-templates", icon: Mail },
   ];
 
   const toolItems: NavItem[] = [
