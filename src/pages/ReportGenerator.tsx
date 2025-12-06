@@ -31,6 +31,11 @@ interface ClientOption {
   salon_name: string;
 }
 
+interface LeadOption {
+  id: string;
+  salon_name: string;
+}
+
 const reportSchema = z.object({
   clientName: z.string().min(1, "Nazwa klienta wymagana").max(100),
   city: z.string().min(1, "Miasto salonu wymagane").max(100),
@@ -64,7 +69,9 @@ const ReportGenerator = () => {
   const [scale, setScale] = useState(1);
   const [previewScale, setPreviewScale] = useState(1);
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [leads, setLeads] = useState<LeadOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [livePreview, setLivePreview] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,14 +79,15 @@ const ReportGenerator = () => {
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
 
   useEffect(() => {
-    const fetchClients = async () => {
-      const { data } = await supabase
-        .from('clients')
-        .select('id, salon_name')
-        .order('salon_name');
-      setClients(data || []);
+    const fetchData = async () => {
+      const [clientsRes, leadsRes] = await Promise.all([
+        supabase.from('clients').select('id, salon_name').order('salon_name'),
+        supabase.from('leads').select('id, salon_name').not('status', 'in', '("converted","lost")').order('salon_name')
+      ]);
+      setClients(clientsRes.data || []);
+      setLeads(leadsRes.data || []);
     };
-    fetchClients();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -467,22 +475,41 @@ const ReportGenerator = () => {
                 </div>
               </div>
 
-              <div>
-                <Label className="text-xs flex items-center gap-1">
-                  <Link className="w-3 h-3 text-primary" />
-                  Połącz z klientem
-                </Label>
-                <Select value={selectedClientId || "none"} onValueChange={(v) => setSelectedClientId(v === "none" ? "" : v)}>
-                  <SelectTrigger className="h-9 mt-1">
-                    <SelectValue placeholder="Opcjonalne..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Bez powiązania</SelectItem>
-                    {clients.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs flex items-center gap-1">
+                    <Link className="w-3 h-3 text-primary" />
+                    Klient
+                  </Label>
+                  <Select value={selectedClientId || "none"} onValueChange={(v) => { setSelectedClientId(v === "none" ? "" : v); setSelectedLeadId(""); }}>
+                    <SelectTrigger className="h-9 mt-1">
+                      <SelectValue placeholder="Opcjonalne..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Bez powiązania</SelectItem>
+                      {clients.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs flex items-center gap-1">
+                    <Link className="w-3 h-3 text-primary" />
+                    Lead
+                  </Label>
+                  <Select value={selectedLeadId || "none"} onValueChange={(v) => { setSelectedLeadId(v === "none" ? "" : v); setSelectedClientId(""); }}>
+                    <SelectTrigger className="h-9 mt-1">
+                      <SelectValue placeholder="Opcjonalne..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Bez powiązania</SelectItem>
+                      {leads.map((l) => (
+                        <SelectItem key={l.id} value={l.id}>{l.salon_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 

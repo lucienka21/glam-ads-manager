@@ -3,26 +3,29 @@ import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  TrendingDown, 
+  TrendingUp, 
   Users, 
-  Mail, 
-  MessageSquare, 
-  Phone, 
+  Target,
   CheckCircle, 
   XCircle,
-  AlertCircle,
   ArrowRight,
   Loader2,
-  Target,
   Clock,
-  TrendingUp,
-  Calendar,
   DollarSign,
-  BarChart3,
-  Activity
+  Flame,
+  Zap,
+  Phone,
+  Mail,
+  MessageSquare,
+  AlertCircle,
+  Calendar,
+  ChevronRight,
+  Sparkles,
+  TrendingDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { format, differenceInDays, subDays } from 'date-fns';
 import { pl } from 'date-fns/locale';
 
@@ -45,112 +48,83 @@ interface LeadSummary {
   created_at: string;
   updated_at: string;
   priority: string | null;
+  next_follow_up_date: string | null;
+  phone: string | null;
+  email: string | null;
 }
 
-interface FunnelMetrics {
-  avgDaysInFunnel: number;
-  thisWeekConverted: number;
-  thisWeekNew: number;
-  conversionTrend: number;
-  potentialValue: number;
-}
+const AVG_CLIENT_VALUE = 2000;
 
 const stages = [
-  { key: 'new', label: 'Nowe leady', icon: Users, color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-500/10', textColor: 'text-blue-400', borderColor: 'border-blue-500/30' },
-  { key: 'contacted', label: 'Skontaktowano', icon: Mail, color: 'from-yellow-500 to-yellow-600', bgColor: 'bg-yellow-500/10', textColor: 'text-yellow-400', borderColor: 'border-yellow-500/30' },
-  { key: 'follow_up', label: 'Follow-up', icon: MessageSquare, color: 'from-orange-500 to-orange-600', bgColor: 'bg-orange-500/10', textColor: 'text-orange-400', borderColor: 'border-orange-500/30' },
-  { key: 'rozmowa', label: 'Rozmowa', icon: Phone, color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-500/10', textColor: 'text-purple-400', borderColor: 'border-purple-500/30' },
-  { key: 'no_response', label: 'Brak odpowiedzi', icon: AlertCircle, color: 'from-zinc-500 to-zinc-600', bgColor: 'bg-zinc-500/10', textColor: 'text-zinc-400', borderColor: 'border-zinc-500/30' },
-  { key: 'converted', label: 'Skonwertowane', icon: CheckCircle, color: 'from-green-500 to-green-600', bgColor: 'bg-green-500/10', textColor: 'text-green-400', borderColor: 'border-green-500/30' },
-  { key: 'lost', label: 'Utracone', icon: XCircle, color: 'from-red-500 to-red-600', bgColor: 'bg-red-500/10', textColor: 'text-red-400', borderColor: 'border-red-500/30' },
+  { key: 'new', label: 'Nowe leady', shortLabel: 'Nowe', icon: Sparkles, gradient: 'from-blue-500 to-cyan-500' },
+  { key: 'contacted', label: 'Skontaktowano', shortLabel: 'Kontakt', icon: Mail, gradient: 'from-amber-500 to-orange-500' },
+  { key: 'follow_up', label: 'Follow-up', shortLabel: 'Follow-up', icon: MessageSquare, gradient: 'from-orange-500 to-red-500' },
+  { key: 'rozmowa', label: 'Rozmowa', shortLabel: 'Rozmowa', icon: Phone, gradient: 'from-purple-500 to-pink-500' },
+  { key: 'no_response', label: 'Brak odpowiedzi', shortLabel: 'Brak odp.', icon: AlertCircle, gradient: 'from-zinc-500 to-zinc-600' },
 ];
-
-const AVG_CLIENT_VALUE = 2000; // średnia wartość klienta miesięcznie
 
 export default function SalesFunnelPage() {
   const navigate = useNavigate();
   const [data, setData] = useState<FunnelData>({
-    new: 0,
-    contacted: 0,
-    follow_up: 0,
-    rozmowa: 0,
-    no_response: 0,
-    converted: 0,
-    lost: 0,
+    new: 0, contacted: 0, follow_up: 0, rozmowa: 0, no_response: 0, converted: 0, lost: 0,
   });
-  const [leadsByStatus, setLeadsByStatus] = useState<Record<string, LeadSummary[]>>({});
+  const [hotLeads, setHotLeads] = useState<LeadSummary[]>([]);
+  const [urgentFollowUps, setUrgentFollowUps] = useState<LeadSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedStage, setSelectedStage] = useState<string | null>(null);
-  const [metrics, setMetrics] = useState<FunnelMetrics>({
-    avgDaysInFunnel: 0,
-    thisWeekConverted: 0,
-    thisWeekNew: 0,
-    conversionTrend: 0,
-    potentialValue: 0,
-  });
+  const [avgDaysToConvert, setAvgDaysToConvert] = useState(0);
+  const [weeklyConverted, setWeeklyConverted] = useState(0);
+  const [weeklyNew, setWeeklyNew] = useState(0);
 
   useEffect(() => {
     const fetchData = async () => {
       const { data: leads, error } = await supabase
         .from('leads')
-        .select('id, salon_name, owner_name, city, status, created_at, updated_at, priority');
+        .select('id, salon_name, owner_name, city, status, created_at, updated_at, priority, next_follow_up_date, phone, email');
 
       if (!error && leads) {
-        const counts: FunnelData = {
-          new: 0,
-          contacted: 0,
-          follow_up: 0,
-          rozmowa: 0,
-          no_response: 0,
-          converted: 0,
-          lost: 0,
-        };
-
-        const byStatus: Record<string, LeadSummary[]> = {};
+        const counts: FunnelData = { new: 0, contacted: 0, follow_up: 0, rozmowa: 0, no_response: 0, converted: 0, lost: 0 };
         const weekAgo = subDays(new Date(), 7);
         let thisWeekNew = 0;
         let thisWeekConverted = 0;
-        let totalDaysInFunnel = 0;
+        let totalDays = 0;
         let convertedCount = 0;
+
+        const hot: LeadSummary[] = [];
+        const urgent: LeadSummary[] = [];
+        const today = new Date();
 
         leads.forEach((lead) => {
           let status = lead.status;
           if (status === 'meeting_scheduled') status = 'rozmowa';
-          
-          if (status in counts) {
-            counts[status as keyof FunnelData]++;
-          }
-          
-          if (!byStatus[status]) byStatus[status] = [];
-          byStatus[status].push({ ...lead, status });
+          if (status in counts) counts[status as keyof FunnelData]++;
 
-          // Track weekly metrics
-          if (new Date(lead.created_at) >= weekAgo) {
-            thisWeekNew++;
-          }
-          if (status === 'converted' && new Date(lead.updated_at) >= weekAgo) {
-            thisWeekConverted++;
-          }
+          if (new Date(lead.created_at) >= weekAgo) thisWeekNew++;
+          if (status === 'converted' && new Date(lead.updated_at) >= weekAgo) thisWeekConverted++;
           if (status === 'converted') {
-            const daysInFunnel = differenceInDays(new Date(lead.updated_at), new Date(lead.created_at));
-            totalDaysInFunnel += daysInFunnel;
+            totalDays += differenceInDays(new Date(lead.updated_at), new Date(lead.created_at));
             convertedCount++;
           }
-        });
 
-        // Calculate potential pipeline value (leads in rozmowa stage * conversion rate * avg value)
-        const conversionRate = counts.new > 0 ? counts.converted / counts.new : 0;
-        const potentialValue = (counts.rozmowa + counts.follow_up) * conversionRate * AVG_CLIENT_VALUE;
+          // Hot leads: in rozmowa stage or high priority
+          if (status === 'rozmowa' || lead.priority === 'high') {
+            hot.push({ ...lead, status });
+          }
+
+          // Urgent follow-ups: overdue or today
+          if (lead.next_follow_up_date) {
+            const followUpDate = new Date(lead.next_follow_up_date);
+            if (followUpDate <= today && status !== 'converted' && status !== 'lost') {
+              urgent.push({ ...lead, status });
+            }
+          }
+        });
 
         setData(counts);
-        setLeadsByStatus(byStatus);
-        setMetrics({
-          avgDaysInFunnel: convertedCount > 0 ? Math.round(totalDaysInFunnel / convertedCount) : 0,
-          thisWeekConverted,
-          thisWeekNew,
-          conversionTrend: thisWeekConverted - thisWeekNew,
-          potentialValue: Math.round(potentialValue),
-        });
+        setHotLeads(hot.slice(0, 5));
+        setUrgentFollowUps(urgent.slice(0, 5));
+        setWeeklyNew(thisWeekNew);
+        setWeeklyConverted(thisWeekConverted);
+        setAvgDaysToConvert(convertedCount > 0 ? Math.round(totalDays / convertedCount) : 0);
       }
       setLoading(false);
     };
@@ -159,17 +133,9 @@ export default function SalesFunnelPage() {
   }, []);
 
   const activeTotal = data.new + data.contacted + data.follow_up + data.rozmowa + data.no_response;
-  const maxCount = Math.max(...Object.values(data), 1);
-  const conversionRate = data.new > 0 ? Math.round((data.converted / data.new) * 100) : 0;
-  const lossRate = data.new > 0 ? Math.round((data.lost / data.new) * 100) : 0;
-
-  // Calculate stage-to-stage conversion rates
-  const getStageConversion = (fromKey: string, toKey: string): number => {
-    const fromValue = data[fromKey as keyof FunnelData];
-    const toValue = data[toKey as keyof FunnelData];
-    if (fromValue === 0) return 0;
-    return Math.round((toValue / fromValue) * 100);
-  };
+  const totalLeads = activeTotal + data.converted + data.lost;
+  const conversionRate = totalLeads > 0 ? Math.round((data.converted / totalLeads) * 100) : 0;
+  const pipelineValue = (data.rozmowa + data.follow_up) * AVG_CLIENT_VALUE * (conversionRate / 100);
 
   if (loading) {
     return (
@@ -185,361 +151,343 @@ export default function SalesFunnelPage() {
     <AppLayout>
       <div className="p-6 space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-              <TrendingDown className="w-6 h-6 text-pink-400" />
-              Lejek sprzedażowy
+            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                <Target className="w-5 h-5 text-white" />
+              </div>
+              Lejek Sprzedażowy
             </h1>
-            <p className="text-muted-foreground text-sm">Szczegółowa analiza procesu sprzedaży</p>
+            <p className="text-muted-foreground mt-1">Śledź postępy i zamykaj więcej klientów</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Button variant="outline" onClick={() => navigate('/leads')} className="border-border/50">
               <Users className="w-4 h-4 mr-2" />
               Zarządzaj leadami
             </Button>
-            <Button onClick={() => navigate('/leads')} className="bg-primary hover:bg-primary/90">
+            <Button onClick={() => navigate('/leads')} className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0">
+              <Zap className="w-4 h-4 mr-2" />
               Dodaj lead
-              <ArrowRight className="w-4 h-4 ml-2" />
             </Button>
           </div>
         </div>
 
-        {/* Key Metrics Row */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-muted-foreground mb-1">
-                <Users className="w-4 h-4" />
-                <span className="text-xs uppercase tracking-wider">Aktywne</span>
+        {/* KPI Cards Row */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="border-0 bg-gradient-to-br from-blue-500/10 to-cyan-500/5 backdrop-blur-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Aktywne leady</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{activeTotal}</p>
+                  <p className="text-xs text-blue-400 mt-1 flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3" />
+                    +{weeklyNew} ten tydzień
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-blue-400" />
+                </div>
               </div>
-              <p className="text-2xl font-bold text-foreground">{activeTotal}</p>
-              <p className="text-xs text-muted-foreground">leadów w pipeline</p>
             </CardContent>
           </Card>
-          
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-green-400 mb-1">
-                <CheckCircle className="w-4 h-4" />
-                <span className="text-xs uppercase tracking-wider">Klienci</span>
+
+          <Card className="border-0 bg-gradient-to-br from-green-500/10 to-emerald-500/5 backdrop-blur-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Konwersja</p>
+                  <p className="text-3xl font-bold text-green-400 mt-1">{conversionRate}%</p>
+                  <p className="text-xs text-green-400 mt-1 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
+                    {data.converted} klientów
+                  </p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Target className="w-6 h-6 text-green-400" />
+                </div>
               </div>
-              <p className="text-2xl font-bold text-green-400">{data.converted}</p>
-              <p className="text-xs text-muted-foreground">skonwertowanych</p>
             </CardContent>
           </Card>
-          
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-pink-400 mb-1">
-                <Target className="w-4 h-4" />
-                <span className="text-xs uppercase tracking-wider">Konwersja</span>
+
+          <Card className="border-0 bg-gradient-to-br from-amber-500/10 to-orange-500/5 backdrop-blur-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Śr. czas konwersji</p>
+                  <p className="text-3xl font-bold text-foreground mt-1">{avgDaysToConvert}</p>
+                  <p className="text-xs text-muted-foreground mt-1">dni do zamknięcia</p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-amber-400" />
+                </div>
               </div>
-              <p className="text-2xl font-bold text-pink-400">{conversionRate}%</p>
-              <p className="text-xs text-muted-foreground">lead → klient</p>
             </CardContent>
           </Card>
-          
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-red-400 mb-1">
-                <XCircle className="w-4 h-4" />
-                <span className="text-xs uppercase tracking-wider">Utrata</span>
+
+          <Card className="border-0 bg-gradient-to-br from-pink-500/10 to-rose-500/5 backdrop-blur-sm">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-muted-foreground">Wartość pipeline</p>
+                  <p className="text-3xl font-bold text-pink-400 mt-1">{(pipelineValue / 1000).toFixed(1)}k</p>
+                  <p className="text-xs text-muted-foreground mt-1">PLN potencjalnie</p>
+                </div>
+                <div className="w-12 h-12 rounded-xl bg-pink-500/20 flex items-center justify-center">
+                  <DollarSign className="w-6 h-6 text-pink-400" />
+                </div>
               </div>
-              <p className="text-2xl font-bold text-red-400">{lossRate}%</p>
-              <p className="text-xs text-muted-foreground">{data.lost} utraconych</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-blue-400 mb-1">
-                <Clock className="w-4 h-4" />
-                <span className="text-xs uppercase tracking-wider">Śr. czas</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-400">{metrics.avgDaysInFunnel}</p>
-              <p className="text-xs text-muted-foreground">dni do konwersji</p>
-            </CardContent>
-          </Card>
-          
-          <Card className="border-border/50 bg-card/80">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-emerald-400 mb-1">
-                <DollarSign className="w-4 h-4" />
-                <span className="text-xs uppercase tracking-wider">Potencjał</span>
-              </div>
-              <p className="text-2xl font-bold text-emerald-400">{(metrics.potentialValue / 1000).toFixed(1)}k</p>
-              <p className="text-xs text-muted-foreground">PLN/mies. w pipeline</p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Weekly Activity */}
-        <Card className="border-border/50 bg-card/80">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Activity className="w-4 h-4 text-pink-400" />
-              Aktywność tego tygodnia
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-blue-500/10 rounded-xl border border-blue-500/20">
-                <p className="text-3xl font-bold text-blue-400">{metrics.thisWeekNew}</p>
-                <p className="text-sm text-muted-foreground">nowych leadów</p>
-              </div>
-              <div className="text-center p-4 bg-green-500/10 rounded-xl border border-green-500/20">
-                <p className="text-3xl font-bold text-green-400">{metrics.thisWeekConverted}</p>
-                <p className="text-sm text-muted-foreground">konwersji</p>
-              </div>
-              <div className="text-center p-4 bg-pink-500/10 rounded-xl border border-pink-500/20">
-                <div className="flex items-center justify-center gap-1">
-                  {metrics.conversionTrend >= 0 ? (
-                    <TrendingUp className="w-5 h-5 text-green-400" />
-                  ) : (
-                    <TrendingDown className="w-5 h-5 text-red-400" />
-                  )}
-                  <p className={`text-3xl font-bold ${metrics.conversionTrend >= 0 ? 'text-green-400' : 'text-red-400'}`}>
-                    {metrics.conversionTrend >= 0 ? '+' : ''}{metrics.conversionTrend}
-                  </p>
-                </div>
-                <p className="text-sm text-muted-foreground">bilans tyg.</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Visual Funnel - Main */}
-          <Card className="border-border/50 bg-card/80 lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-pink-400" />
-                Etapy lejka
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {stages.map((stage, index) => {
-                const count = data[stage.key as keyof FunnelData];
-                const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;
-                const fromNewRate = index === 0 
-                  ? 100 
-                  : data.new > 0 
-                    ? Math.round((count / data.new) * 100) 
-                    : 0;
-                const isSelected = selectedStage === stage.key;
-                const leads = leadsByStatus[stage.key] || [];
+          {/* Main Funnel Visualization */}
+          <div className="lg:col-span-2 space-y-4">
+            {/* Visual Funnel */}
+            <Card className="border-border/50 bg-card/80 overflow-hidden">
+              <CardHeader className="pb-2 border-b border-border/50">
+                <CardTitle className="text-lg font-semibold">Etapy sprzedaży</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="relative py-6 px-4">
+                  {/* Funnel stages */}
+                  {stages.map((stage, index) => {
+                    const count = data[stage.key as keyof FunnelData];
+                    const maxWidth = 100 - (index * 12);
+                    const Icon = stage.icon;
 
-                return (
-                  <div 
-                    key={stage.key} 
-                    className={`group cursor-pointer transition-all rounded-xl p-4 border ${
-                      isSelected 
-                        ? `${stage.bgColor} ${stage.borderColor}` 
-                        : 'border-transparent hover:bg-secondary/30'
-                    }`}
-                    onClick={() => setSelectedStage(isSelected ? null : stage.key)}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-lg ${stage.bgColor} flex items-center justify-center border ${stage.borderColor}`}>
-                          <stage.icon className={`w-5 h-5 ${stage.textColor}`} />
+                    return (
+                      <div 
+                        key={stage.key} 
+                        className="relative mb-3 last:mb-0 cursor-pointer group"
+                        onClick={() => navigate('/leads')}
+                      >
+                        <div 
+                          className={`relative mx-auto transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-lg rounded-xl overflow-hidden`}
+                          style={{ width: `${maxWidth}%` }}
+                        >
+                          <div className={`bg-gradient-to-r ${stage.gradient} p-4 flex items-center justify-between`}>
+                            <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                                <Icon className="w-5 h-5 text-white" />
+                              </div>
+                              <div>
+                                <p className="text-white font-semibold text-sm">{stage.label}</p>
+                                <p className="text-white/70 text-xs">
+                                  {totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0}% wszystkich
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-3xl font-bold text-white">{count}</span>
+                              <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-white group-hover:translate-x-1 transition-all" />
+                            </div>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-sm font-medium text-foreground">{stage.label}</span>
-                          {stage.key !== 'new' && stage.key !== 'converted' && stage.key !== 'lost' && (
-                            <p className="text-xs text-muted-foreground">{fromNewRate}% z nowych</p>
+                      </div>
+                    );
+                  })}
+
+                  {/* Results row */}
+                  <div className="grid grid-cols-2 gap-4 mt-6 px-4">
+                    <div 
+                      className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 cursor-pointer hover:bg-green-500/15 transition-all"
+                      onClick={() => navigate('/clients')}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle className="w-6 h-6 text-green-400" />
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Skonwertowane</p>
+                            <p className="text-xs text-muted-foreground">Nowi klienci</p>
+                          </div>
+                        </div>
+                        <span className="text-2xl font-bold text-green-400">{data.converted}</span>
+                      </div>
+                    </div>
+                    <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <XCircle className="w-6 h-6 text-red-400" />
+                          <div>
+                            <p className="text-sm font-medium text-foreground">Utracone</p>
+                            <p className="text-xs text-muted-foreground">Nie zamknięte</p>
+                          </div>
+                        </div>
+                        <span className="text-2xl font-bold text-red-400">{data.lost}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Weekly Performance */}
+            <Card className="border-border/50 bg-card/80">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-pink-400" />
+                  Wyniki tego tygodnia
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 rounded-xl bg-blue-500/10 border border-blue-500/20">
+                    <p className="text-3xl font-bold text-blue-400">{weeklyNew}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Nowe leady</p>
+                  </div>
+                  <div className="text-center p-4 rounded-xl bg-green-500/10 border border-green-500/20">
+                    <p className="text-3xl font-bold text-green-400">{weeklyConverted}</p>
+                    <p className="text-sm text-muted-foreground mt-1">Konwersje</p>
+                  </div>
+                  <div className="text-center p-4 rounded-xl bg-pink-500/10 border border-pink-500/20">
+                    <div className="flex items-center justify-center gap-1">
+                      {weeklyConverted >= weeklyNew ? (
+                        <TrendingUp className="w-5 h-5 text-green-400" />
+                      ) : (
+                        <TrendingDown className="w-5 h-5 text-red-400" />
+                      )}
+                      <p className={`text-3xl font-bold ${weeklyConverted >= weeklyNew ? 'text-green-400' : 'text-red-400'}`}>
+                        {weeklyConverted - weeklyNew >= 0 ? '+' : ''}{weeklyConverted - weeklyNew}
+                      </p>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">Bilans netto</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Action Items */}
+          <div className="space-y-4">
+            {/* Hot Leads */}
+            <Card className="border-border/50 bg-card/80 overflow-hidden">
+              <CardHeader className="pb-2 bg-gradient-to-r from-orange-500/10 to-red-500/5 border-b border-border/50">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Flame className="w-5 h-5 text-orange-400" />
+                  Hot Leads
+                  {hotLeads.length > 0 && (
+                    <span className="ml-auto text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">
+                      {hotLeads.length}
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {hotLeads.length === 0 ? (
+                  <div className="p-6 text-center text-muted-foreground text-sm">
+                    Brak gorących leadów
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/50">
+                    {hotLeads.map((lead) => (
+                      <div 
+                        key={lead.id}
+                        className="p-4 hover:bg-secondary/30 cursor-pointer transition-colors flex items-center justify-between"
+                        onClick={() => navigate(`/leads/${lead.id}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white text-xs font-bold">
+                            {lead.salon_name.charAt(0)}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">{lead.salon_name}</p>
+                            <p className="text-xs text-muted-foreground">{lead.city || 'Brak miasta'}</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Urgent Follow-ups */}
+            <Card className="border-border/50 bg-card/80 overflow-hidden">
+              <CardHeader className="pb-2 bg-gradient-to-r from-red-500/10 to-pink-500/5 border-b border-border/50">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-red-400" />
+                  Pilne follow-upy
+                  {urgentFollowUps.length > 0 && (
+                    <span className="ml-auto text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
+                      {urgentFollowUps.length}
+                    </span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                {urgentFollowUps.length === 0 ? (
+                  <div className="p-6 text-center text-muted-foreground text-sm">
+                    Brak zaległych follow-upów
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/50">
+                    {urgentFollowUps.map((lead) => (
+                      <div 
+                        key={lead.id}
+                        className="p-4 hover:bg-secondary/30 cursor-pointer transition-colors"
+                        onClick={() => navigate(`/leads/${lead.id}`)}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-sm font-medium text-foreground">{lead.salon_name}</p>
+                          <span className="text-xs text-red-400">
+                            {lead.next_follow_up_date && format(new Date(lead.next_follow_up_date), 'd MMM', { locale: pl })}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          {lead.phone && (
+                            <a 
+                              href={`tel:${lead.phone}`} 
+                              className="text-xs px-2 py-1 bg-blue-500/10 text-blue-400 rounded hover:bg-blue-500/20 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Phone className="w-3 h-3 inline mr-1" />
+                              Zadzwoń
+                            </a>
+                          )}
+                          {lead.email && (
+                            <a 
+                              href={`mailto:${lead.email}`} 
+                              className="text-xs px-2 py-1 bg-green-500/10 text-green-400 rounded hover:bg-green-500/20 transition-colors"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Mail className="w-3 h-3 inline mr-1" />
+                              Email
+                            </a>
                           )}
                         </div>
                       </div>
-                      <div className="text-right">
-                        <span className="text-2xl font-bold text-foreground">{count}</span>
-                        <p className="text-xs text-muted-foreground">
-                          {stage.key === 'converted' && count > 0 && `≈ ${count * AVG_CLIENT_VALUE} PLN/mies.`}
-                          {stage.key !== 'converted' && 'leadów'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    {/* Progress Bar */}
-                    <div className="h-3 bg-secondary/50 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full bg-gradient-to-r ${stage.color} transition-all duration-700 rounded-full`}
-                        style={{ width: `${Math.max(percentage, count > 0 ? 5 : 0)}%` }}
-                      />
-                    </div>
-
-                    {/* Expanded leads list */}
-                    {isSelected && leads.length > 0 && (
-                      <div className="mt-4 space-y-2 animate-fade-in">
-                        {leads.slice(0, 5).map((lead) => (
-                          <div 
-                            key={lead.id}
-                            className="flex items-center justify-between p-3 bg-background/50 rounded-lg hover:bg-background/70 transition-colors border border-border/30"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/leads/${lead.id}`);
-                            }}
-                          >
-                            <div className="flex items-center gap-3">
-                              <div className={`w-2 h-2 rounded-full ${
-                                lead.priority === 'high' ? 'bg-red-400' : 
-                                lead.priority === 'medium' ? 'bg-yellow-400' : 'bg-green-400'
-                              }`} />
-                              <div>
-                                <p className="text-sm font-medium text-foreground">{lead.salon_name}</p>
-                                {lead.owner_name && (
-                                  <p className="text-xs text-muted-foreground">{lead.owner_name}</p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              {lead.city && (
-                                <span className="text-xs text-muted-foreground">{lead.city}</span>
-                              )}
-                              <p className="text-xs text-muted-foreground/60">
-                                {format(new Date(lead.created_at), 'd MMM', { locale: pl })}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                        {leads.length > 5 && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="w-full text-muted-foreground"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate('/leads');
-                            }}
-                          >
-                            Zobacz wszystkie ({leads.length})
-                            <ArrowRight className="w-4 h-4 ml-2" />
-                          </Button>
-                        )}
-                      </div>
-                    )}
+                    ))}
                   </div>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          {/* Side Panel - Conversion Rates & Actions */}
-          <div className="space-y-6">
-            {/* Stage-to-Stage Conversion */}
-            <Card className="border-border/50 bg-card/80">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Konwersja między etapami</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/30">
-                  <span className="text-sm text-muted-foreground">Nowe → Kontakt</span>
-                  <span className="font-medium text-yellow-400">{getStageConversion('new', 'contacted')}%</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/30">
-                  <span className="text-sm text-muted-foreground">Kontakt → Follow-up</span>
-                  <span className="font-medium text-orange-400">{getStageConversion('contacted', 'follow_up')}%</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/30">
-                  <span className="text-sm text-muted-foreground">Follow-up → Rozmowa</span>
-                  <span className="font-medium text-purple-400">{getStageConversion('follow_up', 'rozmowa')}%</span>
-                </div>
-                <div className="flex items-center justify-between p-2 rounded-lg bg-secondary/30">
-                  <span className="text-sm text-muted-foreground">Rozmowa → Klient</span>
-                  <span className="font-medium text-green-400">{getStageConversion('rozmowa', 'converted')}%</span>
-                </div>
+                )}
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
-            <Card className="border-border/50 bg-card/80">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Szybkie akcje</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-border/50 hover:bg-blue-500/10 hover:text-blue-400 hover:border-blue-500/30"
-                  onClick={() => navigate('/leads')}
-                >
-                  <Users className="w-4 h-4 mr-2" />
-                  Nowe leady ({data.new})
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-border/50 hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/30"
-                  onClick={() => navigate('/leads')}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Do follow-up ({data.follow_up})
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-border/50 hover:bg-purple-500/10 hover:text-purple-400 hover:border-purple-500/30"
-                  onClick={() => navigate('/leads')}
-                >
-                  <Phone className="w-4 h-4 mr-2" />
-                  Rozmowy ({data.rozmowa})
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-border/50 hover:bg-zinc-500/10 hover:text-zinc-400 hover:border-zinc-500/30"
-                  onClick={() => navigate('/leads')}
-                >
-                  <AlertCircle className="w-4 h-4 mr-2" />
-                  Brak odpowiedzi ({data.no_response})
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Pipeline Value */}
-            <Card className="border-pink-500/30 bg-gradient-to-br from-pink-500/10 to-purple-500/10">
-              <CardContent className="p-4 text-center">
-                <DollarSign className="w-8 h-8 text-pink-400 mx-auto mb-2" />
-                <p className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Potencjalna wartość pipeline</p>
-                <p className="text-3xl font-bold text-pink-400">{metrics.potentialValue.toLocaleString()} PLN</p>
-                <p className="text-xs text-muted-foreground mt-1">miesięcznie (przy konwersji {conversionRate}%)</p>
+            {/* Quick Tips */}
+            <Card className="border-border/50 bg-gradient-to-br from-pink-500/5 to-rose-500/5 overflow-hidden">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="w-4 h-4 text-pink-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground mb-1">Wskazówka dnia</p>
+                    <p className="text-xs text-muted-foreground">
+                      {data.follow_up > data.rozmowa 
+                        ? "Masz więcej follow-upów niż rozmów. Skup się na umawianiu spotkań!"
+                        : data.no_response > 3
+                        ? "Wiele leadów bez odpowiedzi. Spróbuj innego kanału kontaktu."
+                        : "Świetna praca! Kontynuuj budowanie relacji z leadami."}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         </div>
-
-        {/* Conversion Flow Visual */}
-        <Card className="border-border/50 bg-card/80">
-          <CardHeader>
-            <CardTitle className="text-lg">Przepływ konwersji</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between gap-2 overflow-x-auto pb-2">
-              {stages.slice(0, 4).map((stage, i) => (
-                <div key={stage.key} className="flex items-center gap-2 flex-shrink-0">
-                  <div className={`px-6 py-3 rounded-xl ${stage.bgColor} border ${stage.borderColor} text-center min-w-[120px]`}>
-                    <p className={`text-2xl font-bold ${stage.textColor}`}>
-                      {data[stage.key as keyof FunnelData]}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{stage.label}</p>
-                  </div>
-                  {i < 3 && (
-                    <div className="flex flex-col items-center">
-                      <ArrowRight className="w-5 h-5 text-muted-foreground" />
-                      <span className="text-xs text-muted-foreground">
-                        {getStageConversion(stages[i].key, stages[i + 1].key)}%
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <ArrowRight className="w-5 h-5 text-muted-foreground" />
-              </div>
-              <div className="px-6 py-3 rounded-xl bg-green-500/10 border border-green-500/30 text-center min-w-[120px]">
-                <p className="text-2xl font-bold text-green-400">{data.converted}</p>
-                <p className="text-xs text-muted-foreground">Klienci</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </AppLayout>
   );
