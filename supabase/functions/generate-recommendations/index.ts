@@ -1,9 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const campaignDataSchema = z.object({
+  clientName: z.string().max(200).optional(),
+  city: z.string().max(100).optional(),
+  budget: z.string().max(50).optional(),
+  impressions: z.string().max(50).optional(),
+  reach: z.string().max(50).optional(),
+  clicks: z.string().max(50).optional(),
+  ctr: z.string().max(20).optional(),
+  conversions: z.string().max(50).optional(),
+  costPerConversion: z.string().max(50).optional(),
+  bookings: z.string().max(50).optional(),
+});
+
+const inputSchema = z.object({
+  campaignData: campaignDataSchema,
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -16,7 +35,22 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { campaignData } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = inputSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Nieprawidłowe dane wejściowe',
+        details: validationResult.error.errors.map(e => e.message)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { campaignData } = validationResult.data;
     console.log('Generating recommendations for:', campaignData);
 
     // Parse numeric values for analysis
@@ -132,7 +166,7 @@ Odpowiedz TYLKO 7 rekomendacjami (100-140 znaków każda), każda w nowej linii.
     const data = await response.json();
     let recommendations = data.choices?.[0]?.message?.content || '';
     
-    // Clean up the response - remove any asterisks, bullet points, numbers
+    // Clean up the response
     recommendations = recommendations
       .split('\n')
       .map((line: string) => line.replace(/^[\d\.\-\*\•]+\s*/, '').trim())

@@ -1,9 +1,24 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Input validation schema
+const campaignInputSchema = z.object({
+  clientName: z.string().min(1, "Client name is required").max(200, "Client name too long"),
+  industry: z.string().max(100).optional().default("Beauty"),
+  city: z.string().max(100).optional().default("Polska"),
+  budget: z.union([z.string(), z.number()]).transform((val) => {
+    const num = typeof val === 'string' ? parseFloat(val.replace(/[^0-9.]/g, '')) : val;
+    return isNaN(num) ? 0 : Math.min(num, 1000000);
+  }),
+  objective: z.string().max(500).optional(),
+  targetAudience: z.string().max(500).optional(),
+  services: z.string().max(1000).optional(),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,7 +26,22 @@ serve(async (req) => {
   }
 
   try {
-    const { clientName, industry, city, budget, objective, targetAudience, services } = await req.json();
+    const body = await req.json();
+    
+    // Validate input
+    const validationResult = campaignInputSchema.safeParse(body);
+    if (!validationResult.success) {
+      console.error('Validation error:', validationResult.error.errors);
+      return new Response(JSON.stringify({ 
+        error: 'Nieprawidłowe dane wejściowe',
+        details: validationResult.error.errors.map(e => e.message)
+      }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const { clientName, industry, city, budget, objective, targetAudience, services } = validationResult.data;
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -118,16 +148,13 @@ Wygeneruj:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || '';
     
-    // Try to parse JSON from the response
     let campaign;
     try {
-      // Extract JSON from markdown code blocks if present
       const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
       const jsonStr = jsonMatch ? jsonMatch[1] : content;
       campaign = JSON.parse(jsonStr.trim());
     } catch (parseError) {
       console.error('JSON parse error:', parseError);
-      // Return raw content if JSON parsing fails
       campaign = { rawContent: content };
     }
 
