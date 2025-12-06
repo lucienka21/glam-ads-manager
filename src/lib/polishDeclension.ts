@@ -346,167 +346,57 @@ export function declineCityToLocative(city: string): string {
 }
 
 /**
- * Decline a Polish first name to vocative case (wołacz)
- * Used for addressing someone directly
+ * Get owner's first name - keep in nominative case for SMS
+ * In modern Polish SMS communication, using the nominative form of names is acceptable and common
  */
-export function declineNameToVocative(name: string): string {
+export function getOwnerFirstName(name: string): string {
   if (!name) return '';
-  
-  const trimmed = name.trim();
-  const lower = trimmed.toLowerCase();
-  
-  // Common Polish names with irregular vocative
-  const irregularNames: Record<string, string> = {
-    'Ania': 'Aniu',
-    'Anna': 'Anno',
-    'Asia': 'Asiu',
-    'Basia': 'Basiu',
-    'Kasia': 'Kasiu',
-    'Katarzyna': 'Katarzyno',
-    'Gosia': 'Gosiu',
-    'Małgorzata': 'Małgorzato',
-    'Magda': 'Magdo',
-    'Magdalena': 'Magdaleno',
-    'Ola': 'Olu',
-    'Aleksandra': 'Aleksandrę',
-    'Ewa': 'Ewo',
-    'Monika': 'Moniko',
-    'Agnieszka': 'Agnieszko',
-    'Joanna': 'Joanno',
-    'Justyna': 'Justyno',
-    'Karolina': 'Karolino',
-    'Patrycja': 'Patrycjo',
-    'Natalia': 'Natalio',
-    'Marta': 'Marto',
-    'Dorota': 'Doroto',
-    'Beata': 'Beato',
-    'Renata': 'Renato',
-    'Iwona': 'Iwono',
-    'Agata': 'Agato',
-    'Sylwia': 'Sylwio',
-    'Izabela': 'Izabelo',
-    'Paulina': 'Paulino',
-    'Weronika': 'Weroniko',
-    'Dominika': 'Dominiko',
-    'Kamila': 'Kamilo',
-    'Edyta': 'Edyto',
-    'Grażyna': 'Grażyno',
-    'Halina': 'Halino',
-    'Elżbieta': 'Elżbieto',
-    'Teresa': 'Tereso',
-    'Danuta': 'Danuto',
-    'Barbara': 'Barbaro',
-    'Zofia': 'Zofio',
-    'Maria': 'Mario',
-    'Krystyna': 'Krystyno',
-    'Helena': 'Heleno',
-    'Janina': 'Janino',
-    'Jolanta': 'Jolanto',
-    'Jadwiga': 'Jadwigo',
-  };
-
-  if (irregularNames[trimmed]) {
-    return irregularNames[trimmed];
-  }
-
-  // Rules for vocative
-  // Feminine names ending in -a
-  if (lower.endsWith('a')) {
-    // -ka -> -ko
-    if (lower.endsWith('ka')) {
-      return trimmed.slice(0, -1) + 'o';
-    }
-    // -ia -> -iu
-    if (lower.endsWith('ia') || lower.endsWith('ja')) {
-      return trimmed.slice(0, -1) + 'u';
-    }
-    // -a -> -o
-    return trimmed.slice(0, -1) + 'o';
-  }
-
-  // Masculine names - typically use nominative as vocative in modern Polish
-  return trimmed;
+  return name.trim().split(' ')[0];
 }
 
 /**
- * Decline a Polish noun to genitive case (dopełniacz)
- * Used in sentences like "z salonu", "właściciel salonu"
+ * Decline salon name for genitive case
+ * Only declines common nouns like "salon", "studio" - leaves business names unchanged
+ * "Salon Beauty Kaja" -> "salonu Beauty Kaja" (not "salonu beauty kaji")
  */
-export function declineToGenitive(word: string): string {
-  if (!word) return '';
+export function declineSalonNameToGenitive(salonName: string): string {
+  if (!salonName) return '';
   
-  const trimmed = word.trim();
-  const lower = trimmed.toLowerCase();
+  const trimmed = salonName.trim();
+  const words = trimmed.split(' ');
   
-  // Common business name endings that need specific handling
-  // Feminine nouns ending in -a -> -y or -i
-  if (lower.endsWith('a')) {
-    // -ka, -ga -> -ki, -gi
-    if (lower.endsWith('ka')) {
-      return trimmed.slice(0, -1) + 'i';
-    }
-    if (lower.endsWith('ga')) {
-      return trimmed.slice(0, -1) + 'i';
-    }
-    // -ia, -ja -> -ii, -ji
-    if (lower.endsWith('ia') || lower.endsWith('ja')) {
-      return trimmed.slice(0, -1) + 'i';
-    }
-    // Generic -a -> -y (after hard consonants) or -i (after soft)
-    const softConsonants = ['c', 'l', 'n', 's', 'z', 'ć', 'ń', 'ś', 'ź'];
-    const beforeA = lower.slice(-2, -1);
-    if (softConsonants.includes(beforeA)) {
-      return trimmed.slice(0, -1) + 'i';
-    }
-    return trimmed.slice(0, -1) + 'y';
+  if (words.length === 0) return trimmed;
+  
+  // Only decline the first word if it's a common noun
+  const firstWord = words[0];
+  const firstWordLower = firstWord.toLowerCase();
+  
+  // Common nouns that should be declined
+  const commonNouns: Record<string, string> = {
+    'salon': 'salonu',
+    'studio': 'studia',
+    'centrum': 'centrum',
+    'gabinet': 'gabinetu',
+    'pracownia': 'pracowni',
+    'klinika': 'kliniki',
+    'akademia': 'akademii',
+    'instytut': 'instytutu',
+    'atelier': 'atelier',
+    'spa': 'spa',
+  };
+  
+  if (commonNouns[firstWordLower]) {
+    // Replace first word with declined version, keep the rest unchanged
+    const declinedFirst = commonNouns[firstWordLower];
+    // Preserve original casing pattern if capitalized
+    const finalFirst = firstWord[0] === firstWord[0].toUpperCase() 
+      ? declinedFirst.charAt(0).toUpperCase() + declinedFirst.slice(1)
+      : declinedFirst;
+    return [finalFirst, ...words.slice(1)].join(' ');
   }
   
-  // Neuter -o endings
-  if (lower.endsWith('o')) {
-    return trimmed.slice(0, -1) + 'a';
-  }
-  
-  // Neuter -e endings
-  if (lower.endsWith('e')) {
-    return trimmed.slice(0, -1) + 'a';
-  }
-  
-  // Neuter -um endings (studio, centrum)
-  if (lower.endsWith('um')) {
-    return trimmed.slice(0, -2) + 'um'; // stays same
-  }
-  
-  // Masculine nouns - most common pattern: add -u or -a
-  // Words ending in soft consonants typically take -a
-  // Words ending in hard consonants typically take -u
-  
-  // -on -> -onu (salon -> salonu)
-  if (lower.endsWith('on')) {
-    return trimmed + 'u';
-  }
-  
-  // -el -> -elu
-  if (lower.endsWith('el')) {
-    return trimmed + 'u';
-  }
-  
-  // -er -> -eru
-  if (lower.endsWith('er')) {
-    return trimmed + 'u';
-  }
-  
-  // -ek -> -ku (drop e)
-  if (lower.endsWith('ek')) {
-    return trimmed.slice(0, -2) + 'ku';
-  }
-  
-  // -ec -> -ca
-  if (lower.endsWith('ec')) {
-    return trimmed.slice(0, -2) + 'ca';
-  }
-  
-  // Default for masculine: add -u
-  return trimmed + 'u';
+  // If first word isn't a common noun, return unchanged
+  return trimmed;
 }
 
 /**
