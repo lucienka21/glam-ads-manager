@@ -250,63 +250,69 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       </div>
 
       {/* Navigation - scrollable */}
-      <nav className="flex-1 overflow-y-auto custom-scrollbar p-2">
-        <div className="space-y-1">
-          {sections.map((section) => {
+      <nav className="flex-1 overflow-y-auto custom-scrollbar p-3">
+        <div className="space-y-4">
+          {sections.map((section, index) => {
             const isOpen = openSections[section.label] ?? section.defaultOpen;
             const hasActiveItem = section.items.some(item => isActive(item.url));
             
             return (
-              <Collapsible 
-                key={section.label} 
-                open={isOpen} 
-                onOpenChange={() => toggleSection(section.label)}
-              >
-                <CollapsibleTrigger className="w-full">
-                  <div className={cn(
-                    "flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-colors",
-                    hasActiveItem 
-                      ? "text-primary bg-primary/10" 
-                      : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
-                  )}>
-                    <div className="flex items-center gap-2.5">
-                      <section.icon className="w-4 h-4" />
-                      <span>{section.label}</span>
+              <div key={section.label}>
+                {/* Separator between sections */}
+                {index > 0 && (
+                  <div className="h-px bg-sidebar-border/50 mx-2 mb-3" />
+                )}
+                
+                <Collapsible 
+                  open={isOpen} 
+                  onOpenChange={() => toggleSection(section.label)}
+                >
+                  <CollapsibleTrigger className="w-full">
+                    <div className={cn(
+                      "flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors",
+                      hasActiveItem 
+                        ? "text-primary bg-primary/10" 
+                        : "text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+                    )}>
+                      <div className="flex items-center gap-2.5">
+                        <section.icon className="w-4 h-4" />
+                        <span>{section.label}</span>
+                      </div>
+                      {isOpen ? (
+                        <ChevronDown className="w-4 h-4 transition-transform" />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 transition-transform" />
+                      )}
                     </div>
-                    {isOpen ? (
-                      <ChevronDown className="w-4 h-4 transition-transform" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 transition-transform" />
-                    )}
-                  </div>
-                </CollapsibleTrigger>
+                  </CollapsibleTrigger>
 
-                <CollapsibleContent className="mt-1 space-y-0.5 pl-2">
-                  {section.items.map((item) => (
-                    <button
-                      key={item.url}
-                      onClick={() => handleNavigate(item.url)}
-                      className={cn(
-                        "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm transition-all duration-150 group",
-                        isActive(item.url)
-                          ? "bg-primary/15 text-primary font-medium border-l-2 border-primary"
-                          : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
-                      )}
-                    >
-                      <item.icon className={cn(
-                        "w-4 h-4 flex-shrink-0 transition-colors",
-                        isActive(item.url) ? "text-primary" : "text-muted-foreground group-hover:text-primary/70"
-                      )} />
-                      <span className="flex-1 text-left truncate">{item.title}</span>
-                      {item.badge && item.badge > 0 && (
-                        <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-primary text-primary-foreground rounded-full animate-pulse">
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
+                  <CollapsibleContent className="mt-2 space-y-1 ml-2 border-l border-sidebar-border/30 pl-2">
+                    {section.items.map((item) => (
+                      <button
+                        key={item.url}
+                        onClick={() => handleNavigate(item.url)}
+                        className={cn(
+                          "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-150 group",
+                          isActive(item.url)
+                            ? "bg-primary/15 text-primary font-medium"
+                            : "text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
+                        )}
+                      >
+                        <item.icon className={cn(
+                          "w-4 h-4 flex-shrink-0 transition-colors",
+                          isActive(item.url) ? "text-primary" : "text-muted-foreground group-hover:text-primary/70"
+                        )} />
+                        <span className="flex-1 text-left truncate">{item.title}</span>
+                        {item.badge && item.badge > 0 && (
+                          <span className="flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold bg-primary text-primary-foreground rounded-full animate-pulse">
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
             );
           })}
         </div>
