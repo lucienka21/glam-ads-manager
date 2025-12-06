@@ -79,6 +79,53 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_followup_logs: {
+        Row: {
+          created_at: string
+          email_from: string
+          email_to: string
+          error_message: string | null
+          followup_type: string
+          id: string
+          lead_id: string | null
+          lead_name: string | null
+          status: string
+          template_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          email_from: string
+          email_to: string
+          error_message?: string | null
+          followup_type: string
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          status: string
+          template_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          email_from?: string
+          email_to?: string
+          error_message?: string | null
+          followup_type?: string
+          id?: string
+          lead_id?: string | null
+          lead_name?: string | null
+          status?: string
+          template_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_followup_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       calendar_events: {
         Row: {
           all_day: boolean | null
