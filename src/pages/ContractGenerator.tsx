@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, FileImage, ArrowLeft, Building2, User, Plus, X, Trash2 } from "lucide-react";
+import { Download, FileImage, ArrowLeft, Building2, User, Plus, X, Trash2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import jsPDF from "jspdf";
-import { toPng, toJpeg } from "html-to-image";
+import { toJpeg, toPng } from "html-to-image";
 
 interface ClientOption {
   id: string;
@@ -38,11 +38,51 @@ interface ServiceItem {
   name: string;
 }
 
+interface AgencyData {
+  agencyName: string;
+  agencyOwnerName: string;
+  agencyEmail: string;
+  agencyPhone: string;
+  agencyAddress: string;
+  agencyNip: string;
+}
+
 const defaultServices: ServiceItem[] = [
   { id: "1", name: "Kampanie Facebook Ads" },
   { id: "2", name: "Materiały reklamowe" },
   { id: "3", name: "Optymalizacja i raportowanie" },
 ];
+
+const AGENCY_STORAGE_KEY = "aurine_agency_data";
+
+const defaultAgencyData: AgencyData = {
+  agencyName: "Aurine Agency",
+  agencyOwnerName: "",
+  agencyEmail: "kontakt@aurine.pl",
+  agencyPhone: "+48 731 856 524",
+  agencyAddress: "",
+  agencyNip: "",
+};
+
+const loadAgencyData = (): AgencyData => {
+  try {
+    const stored = localStorage.getItem(AGENCY_STORAGE_KEY);
+    if (stored) {
+      return { ...defaultAgencyData, ...JSON.parse(stored) };
+    }
+  } catch (e) {
+    console.error("Error loading agency data:", e);
+  }
+  return defaultAgencyData;
+};
+
+const saveAgencyData = (data: AgencyData) => {
+  try {
+    localStorage.setItem(AGENCY_STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error("Error saving agency data:", e);
+  }
+};
 
 const ContractGenerator = () => {
   const navigate = useNavigate();
@@ -58,21 +98,23 @@ const ContractGenerator = () => {
   const [newService, setNewService] = useState("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
-  const [formData, setFormData] = useState({
-    clientName: "",
-    clientAddress: "",
-    clientNip: "",
-    clientOwnerName: "",
-    clientEmail: "",
-    clientPhone: "",
-    signDate: new Date().toISOString().split("T")[0],
-    signCity: "",
-    contractValue: "",
-    paymentType: "split" as "full" | "split",
-    advanceAmount: "",
-    agencyEmail: "kontakt@aurine.pl",
-    agencyAddress: "",
-    services: defaultServices,
+  const [formData, setFormData] = useState(() => {
+    const agencyData = loadAgencyData();
+    return {
+      clientName: "",
+      clientAddress: "",
+      clientNip: "",
+      clientOwnerName: "",
+      clientEmail: "",
+      clientPhone: "",
+      signDate: new Date().toISOString().split("T")[0],
+      signCity: "",
+      contractValue: "",
+      paymentType: "split" as "full" | "split",
+      advanceAmount: "",
+      ...agencyData,
+      services: defaultServices,
+    };
   });
 
   useEffect(() => {
@@ -93,7 +135,7 @@ const ContractGenerator = () => {
       try {
         const doc = JSON.parse(stored);
         if (doc.type === "contract") {
-          setFormData(doc.data as typeof formData);
+          setFormData(prev => ({ ...prev, ...doc.data }));
         }
       } catch (e) {
         console.error("Error loading document:", e);
@@ -113,6 +155,19 @@ const ContractGenerator = () => {
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
   }, []);
+
+  // Save agency data when it changes
+  useEffect(() => {
+    const agencyData: AgencyData = {
+      agencyName: formData.agencyName,
+      agencyOwnerName: formData.agencyOwnerName,
+      agencyEmail: formData.agencyEmail,
+      agencyPhone: formData.agencyPhone,
+      agencyAddress: formData.agencyAddress,
+      agencyNip: formData.agencyNip,
+    };
+    saveAgencyData(agencyData);
+  }, [formData.agencyName, formData.agencyOwnerName, formData.agencyEmail, formData.agencyPhone, formData.agencyAddress, formData.agencyNip]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -198,7 +253,7 @@ const ContractGenerator = () => {
         const thumbnail = await genThumb({
           elementId: "contract-preview",
           format: 'jpeg',
-          backgroundColor: "#000000",
+          backgroundColor: "#0a0a0a",
           pixelRatio: 0.2,
           quality: 0.7,
           maxRetries: 3,
@@ -240,7 +295,7 @@ const ContractGenerator = () => {
           const thumbnail = await genThumb({
             elementId: "contract-preview",
             format: 'jpeg',
-            backgroundColor: "#0f0f0f",
+            backgroundColor: "#0a0a0a",
             pixelRatio: 0.2,
             quality: 0.6,
           });
@@ -248,14 +303,12 @@ const ContractGenerator = () => {
         }
       }
 
-      // Generate image at exact A4 ratio (794x1123 pixels)
+      // Generate image - use exact element size
       const imgData = await toJpeg(element, { 
         cacheBust: true, 
-        pixelRatio: 2.5,
-        backgroundColor: "#0f0f0f", 
-        quality: 0.95,
-        width: 794,
-        height: 1123,
+        pixelRatio: 2,
+        backgroundColor: "#0a0a0a", 
+        quality: 0.92,
         skipFonts: true,
       });
       
@@ -287,7 +340,7 @@ const ContractGenerator = () => {
 
     setIsGenerating(true);
     try {
-      const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#000000" });
+      const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#0a0a0a" });
       const link = document.createElement("a");
       const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}.png`;
       link.download = fileName;
@@ -305,7 +358,7 @@ const ContractGenerator = () => {
     <AppLayout>
       <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden">
         {/* Left Panel - Form */}
-        <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card/30">
+        <div className="w-full lg:w-[400px] xl:w-[440px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card/30">
           <div className="p-4 border-b border-border/50 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
             <div className="flex items-center justify-between">
               <div>
@@ -349,9 +402,87 @@ const ContractGenerator = () => {
               </div>
             </div>
 
+            {/* Agency Details Section */}
+            <div className="space-y-3 p-3 rounded-lg bg-pink-950/20 border border-pink-800/30">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-pink-300 flex items-center gap-1">
+                  <Building2 className="w-3 h-3" />
+                  Dane Wykonawcy (Aurine)
+                </p>
+                <span className="text-[10px] text-pink-400/60">zapamiętywane</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">Nazwa firmy</Label>
+                  <Input
+                    value={formData.agencyName}
+                    onChange={(e) => handleInputChange("agencyName", e.target.value)}
+                    placeholder="Aurine Agency"
+                    className="h-8 mt-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Imię i nazwisko</Label>
+                  <Input
+                    value={formData.agencyOwnerName}
+                    onChange={(e) => handleInputChange("agencyOwnerName", e.target.value)}
+                    placeholder="Jan Kowalski"
+                    className="h-8 mt-1 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">E-mail</Label>
+                  <Input
+                    type="email"
+                    value={formData.agencyEmail}
+                    onChange={(e) => handleInputChange("agencyEmail", e.target.value)}
+                    placeholder="kontakt@aurine.pl"
+                    className="h-8 mt-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Telefon</Label>
+                  <Input
+                    value={formData.agencyPhone}
+                    onChange={(e) => handleInputChange("agencyPhone", e.target.value)}
+                    placeholder="+48 731 856 524"
+                    className="h-8 mt-1 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Label className="text-xs">NIP</Label>
+                  <Input
+                    value={formData.agencyNip}
+                    onChange={(e) => handleInputChange("agencyNip", e.target.value)}
+                    placeholder="123-456-78-90"
+                    className="h-8 mt-1 text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Adres</Label>
+                  <Input
+                    value={formData.agencyAddress}
+                    onChange={(e) => handleInputChange("agencyAddress", e.target.value)}
+                    placeholder="ul. Przykładowa 1"
+                    className="h-8 mt-1 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Client Details Section */}
-            <div className="space-y-3 p-3 rounded-lg bg-muted/30 border border-border/30">
-              <p className="text-xs font-medium text-foreground">Dane Zleceniodawcy</p>
+            <div className="space-y-3 p-3 rounded-lg bg-blue-950/20 border border-blue-800/30">
+              <p className="text-xs font-medium text-blue-300 flex items-center gap-1">
+                <User className="w-3 h-3" />
+                Dane Zleceniodawcy
+              </p>
               
               <div>
                 <Label className="text-xs">Nazwa firmy / salonu *</Label>
@@ -485,7 +616,7 @@ const ContractGenerator = () => {
                     />
                     {formData.contractValue && formData.advanceAmount && (
                       <p className="text-[10px] text-muted-foreground mt-1">
-                        Pozostała część: {(parseFloat(formData.contractValue) - parseFloat(formData.advanceAmount)).toLocaleString("pl-PL")} PLN
+                        Pozostała część: {Math.max(0, parseFloat(formData.contractValue) - parseFloat(formData.advanceAmount)).toLocaleString("pl-PL")} PLN
                       </p>
                     )}
                   </div>
@@ -493,20 +624,20 @@ const ContractGenerator = () => {
               </div>
 
               {/* Services Section */}
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30 space-y-2">
+              <div className="p-3 rounded-lg bg-muted/30 border border-border/30 space-y-3">
                 <p className="text-xs font-medium text-foreground">Usługi objęte umową</p>
                 
                 <div className="space-y-1.5">
                   {formData.services.map((service) => (
-                    <div key={service.id} className="flex items-center gap-2 text-xs bg-background/50 rounded px-2 py-1.5">
-                      <span className="flex-1">{service.name}</span>
+                    <div key={service.id} className="flex items-center justify-between text-xs bg-background/50 rounded px-2 py-1.5">
+                      <span>{service.name}</span>
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-5 w-5 p-0"
                         onClick={() => handleRemoveService(service.id)}
                       >
-                        <X className="w-3 h-3" />
+                        <Trash2 className="w-3 h-3 text-destructive" />
                       </Button>
                     </div>
                   ))}
@@ -516,84 +647,63 @@ const ContractGenerator = () => {
                   <Input
                     value={newService}
                     onChange={(e) => setNewService(e.target.value)}
-                    placeholder="Dodaj usługę..."
-                    className="h-7 text-xs"
+                    placeholder="Nowa usługa..."
+                    className="h-8 text-sm"
                     onKeyDown={(e) => e.key === "Enter" && handleAddService()}
                   />
-                  <Button size="sm" variant="secondary" className="h-7 px-2" onClick={handleAddService}>
+                  <Button variant="outline" size="sm" className="h-8" onClick={handleAddService}>
                     <Plus className="w-3 h-3" />
                   </Button>
                 </div>
               </div>
-
-              {/* Agency Details */}
-              <div className="p-3 rounded-lg bg-muted/30 border border-border/30 space-y-2">
-                <p className="text-xs font-medium text-foreground">Dane Wykonawcy (Aurine)</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">E-mail</Label>
-                    <Input
-                      value={formData.agencyEmail}
-                      onChange={(e) => handleInputChange("agencyEmail", e.target.value)}
-                      className="h-8 mt-1 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Adres</Label>
-                    <Input
-                      value={formData.agencyAddress}
-                      onChange={(e) => handleInputChange("agencyAddress", e.target.value)}
-                      placeholder="Adres agencji"
-                      className="h-8 mt-1 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Actions */}
-            <div className="pt-4 border-t border-border/50 space-y-2">
-              <Button onClick={handleSave} className="w-full" disabled={!hasRequiredFields}>
+            {/* Action Buttons */}
+            <div className="space-y-2 pt-2 border-t border-border/30">
+              <Button
+                onClick={handleSave}
+                className="w-full h-9"
+                variant="outline"
+                disabled={!hasRequiredFields}
+              >
+                <Save className="w-4 h-4 mr-2" />
                 Zapisz umowę
               </Button>
+              
               <div className="grid grid-cols-2 gap-2">
-                <Button onClick={downloadAsImage} disabled={isGenerating || !hasRequiredFields} variant="outline" size="sm">
-                  <FileImage className="w-4 h-4 mr-1" />
-                  PNG
+                <Button
+                  onClick={generatePDF}
+                  className="h-9 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700"
+                  disabled={isGenerating || !hasRequiredFields}
+                >
+                  <Download className="w-4 h-4 mr-1.5" />
+                  {isGenerating ? "..." : "PDF"}
                 </Button>
-                <Button onClick={generatePDF} disabled={isGenerating || !hasRequiredFields} variant="secondary" size="sm">
-                  <Download className="w-4 h-4 mr-1" />
-                  PDF
+                <Button
+                  onClick={downloadAsImage}
+                  variant="secondary"
+                  className="h-9"
+                  disabled={isGenerating || !hasRequiredFields}
+                >
+                  <FileImage className="w-4 h-4 mr-1.5" />
+                  PNG
                 </Button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Right Panel - Live Preview */}
-        <div ref={previewContainerRef} className="flex-1 overflow-auto bg-muted/30 p-4 lg:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo</h2>
-          </div>
-          
-          <div className="flex justify-center">
+        {/* Right Panel - Preview */}
+        <div className="flex-1 bg-zinc-950 overflow-auto">
+          <div 
+            ref={previewContainerRef}
+            className="min-h-full flex items-start justify-center p-6"
+          >
             <div 
-              className="rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
-              style={{ 
-                width: `${794 * previewScale}px`,
-                height: `${1123 * previewScale}px`,
-              }}
+              className="origin-top shadow-2xl"
+              style={{ transform: `scale(${previewScale})` }}
             >
-              <div 
-                style={{ 
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: 'top left',
-                  width: '794px',
-                  height: '1123px',
-                }}
-              >
-                <ContractPreview data={formData} />
-              </div>
+              <ContractPreview data={formData} />
             </div>
           </div>
         </div>
