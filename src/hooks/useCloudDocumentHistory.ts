@@ -9,7 +9,7 @@ export interface CloudDocumentItem {
   type: "report" | "invoice" | "contract" | "presentation";
   title: string;
   subtitle: string | null;
-  data: Record<string, string>;
+  data: Record<string, unknown>;
   thumbnail: string | null;
   createdAt: string;
   createdBy: string | null;
@@ -81,7 +81,7 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
         type: doc.type as CloudDocumentItem['type'],
         title: doc.title,
         subtitle: doc.subtitle,
-        data: doc.data as Record<string, string>,
+        data: doc.data as Record<string, unknown>,
         thumbnail: doc.thumbnail,
         createdAt: doc.created_at,
         createdBy: doc.created_by,
@@ -147,7 +147,7 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
     type: CloudDocumentItem["type"],
     title: string,
     subtitle: string,
-    data: Record<string, string>,
+    data: Record<string, unknown>,
     thumbnail?: string,
     clientId?: string,
     leadId?: string
