@@ -307,25 +307,31 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
       </div>
 
       {/* Signatures */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-        <div style={{ textAlign: 'center' }}>
+      <div style={{ 
+        position: 'absolute',
+        bottom: '30px',
+        left: '28px',
+        right: '28px',
+        display: 'grid', 
+        gridTemplateColumns: '1fr 1fr', 
+        gap: '60px',
+      }}>
+        <div>
           <div style={{
-            borderTop: '1px solid rgba(236, 72, 153, 0.4)',
-            paddingTop: '8px',
-            marginTop: '40px',
+            borderTop: '2px solid rgba(236, 72, 153, 0.5)',
+            paddingTop: '10px',
           }}>
-            <p style={{ fontSize: '10px', color: '#a1a1aa' }}>Wykonawca</p>
-            <p style={{ fontSize: '11px', color: '#f9a8d4', fontWeight: '500' }}>{data.agencyOwnerName || data.agencyName}</p>
+            <p style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '2px' }}>Wykonawca</p>
+            <p style={{ fontSize: '12px', color: '#f9a8d4', fontWeight: '600' }}>{data.agencyOwnerName || data.agencyName}</p>
           </div>
         </div>
-        <div style={{ textAlign: 'center' }}>
+        <div style={{ textAlign: 'right' }}>
           <div style={{
-            borderTop: '1px solid rgba(59, 130, 246, 0.4)',
-            paddingTop: '8px',
-            marginTop: '40px',
+            borderTop: '2px solid rgba(59, 130, 246, 0.5)',
+            paddingTop: '10px',
           }}>
-            <p style={{ fontSize: '10px', color: '#a1a1aa' }}>Zleceniodawca</p>
-            <p style={{ fontSize: '11px', color: '#93c5fd', fontWeight: '500' }}>{data.clientOwnerName || data.clientName}</p>
+            <p style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '2px' }}>Zleceniodawca</p>
+            <p style={{ fontSize: '12px', color: '#93c5fd', fontWeight: '600' }}>{data.clientOwnerName || data.clientName}</p>
           </div>
         </div>
       </div>
