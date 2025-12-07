@@ -36,6 +36,7 @@ import ProposalGenerator from "./pages/ProposalGenerator";
 import CampaignGenerator from "./pages/CampaignGenerator";
 import GraphicsCreator from "./pages/GraphicsCreator";
 import AutoFollowUps from "./pages/AutoFollowUps";
+import ClientService from "./pages/ClientService";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,6 +76,7 @@ function AppContent() {
           <Route path="/campaign-generator" element={<ProtectedRoute><CampaignGenerator /></ProtectedRoute>} />
           <Route path="/graphics-creator" element={<ProtectedRoute><GraphicsCreator /></ProtectedRoute>} />
           <Route path="/auto-followups" element={<ProtectedRoute><AutoFollowUps /></ProtectedRoute>} />
+          <Route path="/client-service" element={<ProtectedRoute><ClientService /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppErrorBoundary>
