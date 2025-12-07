@@ -148,7 +148,11 @@ const ContractGenerator = () => {
     const updateScale = () => {
       if (previewContainerRef.current) {
         const width = previewContainerRef.current.clientWidth;
-        setPreviewScale(Math.min(width / 794, 0.65));
+        const height = previewContainerRef.current.clientHeight;
+        // Scale to fit container with padding, preferring larger scale
+        const scaleByWidth = (width - 48) / 794;
+        const scaleByHeight = (height - 48) / 1123;
+        setPreviewScale(Math.min(scaleByWidth, scaleByHeight, 1));
       }
     };
     updateScale();
@@ -694,14 +698,14 @@ const ContractGenerator = () => {
         </div>
 
         {/* Right Panel - Preview */}
-        <div className="flex-1 bg-zinc-950 overflow-auto">
-          <div 
-            ref={previewContainerRef}
-            className="min-h-full flex items-start justify-center p-6"
-          >
+        <div className="flex-1 bg-zinc-950 overflow-auto" ref={previewContainerRef}>
+          <div className="min-h-full flex items-start justify-center p-6">
             <div 
-              className="origin-top shadow-2xl"
-              style={{ transform: `scale(${previewScale})` }}
+              className="origin-top shadow-2xl rounded-lg overflow-hidden"
+              style={{ 
+                transform: `scale(${previewScale})`,
+                marginBottom: previewScale < 1 ? `${-1123 * (1 - previewScale)}px` : 0
+              }}
             >
               <ContractPreview data={formData} />
             </div>
