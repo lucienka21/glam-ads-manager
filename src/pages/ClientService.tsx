@@ -22,7 +22,7 @@ const processSteps = [
       "Załącz prezentację PDF - pokazuje profesjonalizm",
       "Prezentacja mówi za Ciebie - edukuje o Facebook Ads",
       "Jeden jasny CTA - zachęta do rozmowy",
-      "Podpis z danymi kontaktowymi i zdjęciem"
+      "Podpis z danymi kontaktowymi"
     ],
     tips: [
       "Wysyłaj wt-czw w godzinach 9-11 lub 14-16",
@@ -38,9 +38,33 @@ const processSteps = [
   },
   {
     id: 2,
+    title: "SMS Follow-up",
+    icon: MessageSquare,
+    description: "Celowy trigger 2 dni po cold mailu",
+    color: "from-pink-500 to-pink-600",
+    details: [
+      "SMS wychodzi 2 dni po cold mailu jako celowy trigger",
+      "Bardzo krótki - max 160 znaków",
+      "Nawiąż do wysłanego maila z prezentacją",
+      "Bezpośrednie pytanie o zainteresowanie",
+      "Zaproponuj krótką rozmowę telefoniczną"
+    ],
+    tips: [
+      "SMS wysyłaj w godzinach pracy salonu (10-17)",
+      "Unikaj weekendów i poniedziałków",
+      "Jeden SMS wystarczy - nie spamuj"
+    ],
+    donts: [
+      "Nie wysyłaj SMS-ów wieczorem",
+      "Nie pisz długich wiadomości",
+      "Nie dzwoń bez uprzedzenia SMS-em"
+    ]
+  },
+  {
+    id: 3,
     title: "Follow-up Email #1",
     icon: Clock,
-    description: "Przypomnienie po 3-4 dniach roboczych",
+    description: "Przypomnienie po 3-4 dniach od SMS",
     color: "from-purple-500 to-purple-600",
     details: [
       "Nawiąż do poprzedniej wiadomości i prezentacji",
@@ -61,7 +85,7 @@ const processSteps = [
     ]
   },
   {
-    id: 3,
+    id: 4,
     title: "Follow-up Email #2",
     icon: Mail,
     description: "Drugi follow-up po kolejnych 3-4 dniach",
@@ -82,30 +106,6 @@ const processSteps = [
       "Nie bądź zdesperowany",
       "Nie obwiniaj ich za brak odpowiedzi",
       "Nie wysyłaj więcej niż 2 follow-upy mailowe"
-    ]
-  },
-  {
-    id: 4,
-    title: "SMS Follow-up",
-    icon: MessageSquare,
-    description: "Alternatywny kanał kontaktu",
-    color: "from-pink-500 to-pink-600",
-    details: [
-      "SMS tylko jeśli brak odpowiedzi na maile",
-      "Bardzo krótki - max 160 znaków",
-      "Napisz że wysłałeś maila z prezentacją",
-      "Bezpośrednie pytanie o zainteresowanie",
-      "Zaproponuj krótką rozmowę telefoniczną"
-    ],
-    tips: [
-      "SMS wysyłaj w godzinach pracy salonu (10-17)",
-      "Unikaj weekendów i poniedziałków",
-      "Jeden SMS wystarczy - nie spamuj"
-    ],
-    donts: [
-      "Nie wysyłaj SMS-ów wieczorem",
-      "Nie pisz długich wiadomości",
-      "Nie dzwoń bez uprzedzenia SMS-em"
     ]
   },
   {
@@ -169,7 +169,7 @@ const processSteps = [
       "Wyślij umowę natychmiast po akceptacji oferty",
       "Omów wszystkie punkty umowy telefonicznie",
       "Ustal konkretną datę startu kampanii",
-      "Zbierz dostępy do kont (FB, IG, Business Manager)",
+      "Dodaj się do Business Managera klienta lub pomóż założyć nowe konto",
       "Przygotuj welcome pack z harmonogramem",
       "Umów pierwsze spotkanie onboardingowe"
     ],
