@@ -6,120 +6,183 @@ import { Badge } from "@/components/ui/badge";
 import { 
   Mail, Phone, MessageSquare, FileSignature, CheckCircle2, 
   AlertCircle, Lightbulb, Target, Heart, Clock, ArrowRight,
-  Sparkles, Users, TrendingUp, Shield, Star
+  Sparkles, Users, TrendingUp, Shield, Star, XCircle, X
 } from "lucide-react";
 
 const processSteps = [
   {
     id: 1,
-    title: "Cold Mail",
+    title: "Cold Mail + Prezentacja",
     icon: Mail,
     description: "Pierwszy kontakt z potencjalnym klientem",
     color: "from-blue-500 to-blue-600",
     details: [
-      "Personalizacja - użyj nazwy salonu i miasta",
+      "Personalizacja - użyj nazwy salonu i miasta w mailu",
       "Krótka, zwięzła wiadomość (max 150 słów)",
-      "Konkretna wartość - co zyskają?",
+      "Załącz prezentację PDF - pokazuje profesjonalizm",
+      "Prezentacja mówi za Ciebie - edukuje o Facebook Ads",
       "Jeden jasny CTA - zachęta do rozmowy",
-      "Podpis z danymi kontaktowymi"
+      "Podpis z danymi kontaktowymi i zdjęciem"
     ],
     tips: [
-      "Wysyłaj w godzinach 9-11 lub 14-16",
-      "Unikaj poniedziałków i piątków",
-      "Sprawdź profil salonu przed wysłaniem"
+      "Wysyłaj wt-czw w godzinach 9-11 lub 14-16",
+      "Unikaj poniedziałków (za dużo maili) i piątków (weekend)",
+      "Sprawdź profil salonu i social media przed wysłaniem",
+      "Prezentacja powinna być spersonalizowana pod miasto"
+    ],
+    donts: [
+      "Nie wysyłaj bez prezentacji - mail sam w sobie jest za słaby",
+      "Nie pisz długich elaboratów - nikt tego nie przeczyta",
+      "Nie używaj 'Szanowna Pani' - brzmi jak spam"
     ]
   },
   {
     id: 2,
-    title: "Follow-up #1",
+    title: "Follow-up Email #1",
     icon: Clock,
-    description: "Przypomnienie po 3-4 dniach",
+    description: "Przypomnienie po 3-4 dniach roboczych",
     color: "from-purple-500 to-purple-600",
     details: [
-      "Nawiąż do poprzedniej wiadomości",
-      "Dodaj nową wartość (case study, statystyka)",
-      "Zadaj otwarte pytanie",
-      "Krótsze niż cold mail"
+      "Nawiąż do poprzedniej wiadomości i prezentacji",
+      "Dodaj nową wartość - case study, konkretna statystyka",
+      "Zadaj otwarte pytanie o ich salon",
+      "Krótsze niż cold mail - max 80 słów",
+      "Nie załączaj ponownie prezentacji"
     ],
     tips: [
-      "Nie przepraszaj za 'nachodzenie'",
       "Bądź pomocny, nie nachalny",
-      "Może być bardziej osobisty ton"
+      "Może być bardziej osobisty ton",
+      "Możesz nawiązać do czegoś z ich social media"
+    ],
+    donts: [
+      "Nie przepraszaj za 'nachodzenie'",
+      "Nie pisz 'pewnie nie miała Pani czasu'",
+      "Nie powtarzaj treści pierwszego maila"
     ]
   },
   {
     id: 3,
-    title: "Follow-up #2 / SMS",
-    icon: MessageSquare,
-    description: "Ostatnia próba kontaktu",
-    color: "from-pink-500 to-pink-600",
+    title: "Follow-up Email #2",
+    icon: Mail,
+    description: "Drugi follow-up po kolejnych 3-4 dniach",
+    color: "from-indigo-500 to-indigo-600",
     details: [
-      "SMS jeśli brak odpowiedzi na maile",
-      "Bardzo krótki - max 160 znaków",
-      "Bezpośrednie pytanie o zainteresowanie",
-      "Opcja 'break-up' - ostatnia szansa"
+      "Ostatni email w sekwencji",
+      "Bardziej bezpośrednie pytanie o zainteresowanie",
+      "Możesz użyć techniki 'break-up email'",
+      "Zaproponuj konkretny termin rozmowy",
+      "Daj jasną opcję rezygnacji"
     ],
     tips: [
-      "SMS wysyłaj w godzinach pracy salonu",
-      "Unikaj weekendów",
-      "Jeden SMS wystarczy"
+      "Break-up email często działa lepiej niż nachalne przypominanie",
+      "Możesz napisać 'jeśli teraz nie jest dobry moment, wróćmy za 3 miesiące'",
+      "Bądź szczery i bezpośredni"
+    ],
+    donts: [
+      "Nie bądź zdesperowany",
+      "Nie obwiniaj ich za brak odpowiedzi",
+      "Nie wysyłaj więcej niż 2 follow-upy mailowe"
     ]
   },
   {
     id: 4,
+    title: "SMS Follow-up",
+    icon: MessageSquare,
+    description: "Alternatywny kanał kontaktu",
+    color: "from-pink-500 to-pink-600",
+    details: [
+      "SMS tylko jeśli brak odpowiedzi na maile",
+      "Bardzo krótki - max 160 znaków",
+      "Napisz że wysłałeś maila z prezentacją",
+      "Bezpośrednie pytanie o zainteresowanie",
+      "Zaproponuj krótką rozmowę telefoniczną"
+    ],
+    tips: [
+      "SMS wysyłaj w godzinach pracy salonu (10-17)",
+      "Unikaj weekendów i poniedziałków",
+      "Jeden SMS wystarczy - nie spamuj"
+    ],
+    donts: [
+      "Nie wysyłaj SMS-ów wieczorem",
+      "Nie pisz długich wiadomości",
+      "Nie dzwoń bez uprzedzenia SMS-em"
+    ]
+  },
+  {
+    id: 5,
     title: "Rozmowa telefoniczna",
     icon: Phone,
     description: "Kluczowy moment sprzedaży",
     color: "from-green-500 to-green-600",
     details: [
-      "Przygotuj się - sprawdź profil salonu",
-      "Zacznij od pytań, nie sprzedaży",
-      "Słuchaj więcej niż mówisz (70/30)",
-      "Zaproponuj konkretne rozwiązanie",
-      "Ustal następny krok"
+      "Przygotuj się - sprawdź ponownie profil salonu",
+      "Zacznij od pytań, nie od sprzedaży",
+      "Słuchaj więcej niż mówisz (zasada 70/30)",
+      "Diagnozuj problemy - dopiero potem proponuj rozwiązanie",
+      "Zawsze kończ z ustalonym następnym krokiem",
+      "Potwierdź ustalenia SMS-em lub mailem"
     ],
     tips: [
-      "Dzwoń stojąc - lepszy głos",
-      "Uśmiechaj się - słychać to",
-      "Miej notes przy sobie"
-    ]
-  },
-  {
-    id: 5,
-    title: "Prezentacja / Spotkanie",
-    icon: Target,
-    description: "Pokazanie wartości współpracy",
-    color: "from-orange-500 to-orange-600",
-    details: [
-      "Dostosuj prezentację do salonu",
-      "Pokaż case studies z branży",
-      "Mów o wynikach, nie o procesie",
-      "Odpowiedz na wszystkie pytania",
-      "Przygotuj ofertę na spotkanie"
+      "Dzwoń stojąc - lepszy głos i energia",
+      "Uśmiechaj się - naprawdę to słychać",
+      "Miej notes przy sobie na notatki",
+      "Najlepsze godziny: 10-12, 14-16"
     ],
-    tips: [
-      "Weź ze sobą materiały do zostawienia",
-      "Przygotuj odpowiedzi na obiekcje",
-      "Zaproponuj okres próbny"
+    donts: [
+      "Nie recytuj skryptu - bądź naturalny",
+      "Nie mów tylko o sobie i ofercie",
+      "Nie przerywaj klientowi",
+      "Nie kończ rozmowy bez ustalenia następnego kroku"
     ]
   },
   {
     id: 6,
-    title: "Umowa",
-    icon: FileSignature,
-    description: "Finalizacja współpracy",
-    color: "from-emerald-500 to-emerald-600",
+    title: "Negocjacje i Oferta",
+    icon: Target,
+    description: "Dopasowanie oferty do potrzeb",
+    color: "from-orange-500 to-orange-600",
     details: [
-      "Wyślij umowę tego samego dnia",
-      "Omów wszystkie punkty",
-      "Ustal datę startu",
-      "Zbierz dostępy do kont",
-      "Wyślij welcome pack"
+      "Przygotuj spersonalizowaną ofertę",
+      "Odnieś się do konkretnych problemów z rozmowy",
+      "Przedstaw 2-3 opcje cenowe",
+      "Pokaż case studies z podobnych salonów",
+      "Zaproponuj okres próbny jeśli wahają się"
     ],
     tips: [
-      "Nie zostawiaj umowy 'do przemyślenia'",
-      "Ustal deadline na podpisanie",
-      "Potwierdź mailowo wszystkie ustalenia"
+      "Wyślij ofertę tego samego dnia po rozmowie",
+      "Umów się na rozmowę o ofercie - nie zostawiaj 'do przemyślenia'",
+      "Przygotuj odpowiedzi na typowe obiekcje"
+    ],
+    donts: [
+      "Nie dawaj zbyt dużo czasu 'do namysłu'",
+      "Nie wysyłaj oferty bez wcześniejszej rozmowy",
+      "Nie obniżaj ceny bez uzasadnienia"
+    ]
+  },
+  {
+    id: 7,
+    title: "Umowa i Onboarding",
+    icon: FileSignature,
+    description: "Finalizacja i start współpracy",
+    color: "from-emerald-500 to-emerald-600",
+    details: [
+      "Wyślij umowę natychmiast po akceptacji oferty",
+      "Omów wszystkie punkty umowy telefonicznie",
+      "Ustal konkretną datę startu kampanii",
+      "Zbierz dostępy do kont (FB, IG, Business Manager)",
+      "Przygotuj welcome pack z harmonogramem",
+      "Umów pierwsze spotkanie onboardingowe"
+    ],
+    tips: [
+      "Deadline na podpisanie - max 3 dni",
+      "Potwierdź wszystko mailowo",
+      "Wyślij checklistę rzeczy do przygotowania",
+      "Zaplanuj pierwszy raport i spotkanie"
+    ],
+    donts: [
+      "Nie zostawiaj umowy 'do przemyślenia' na tydzień",
+      "Nie zaczynaj bez podpisanej umowy",
+      "Nie zapominaj o onboardingu - to buduje relację"
     ]
   }
 ];
@@ -308,7 +371,7 @@ export default function ClientService() {
                     </div>
 
                     {/* Step Content */}
-                    <div className="flex-1 p-4 md:p-6 grid md:grid-cols-2 gap-4">
+                    <div className="flex-1 p-4 md:p-6 grid md:grid-cols-3 gap-4">
                       <div>
                         <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                           <CheckCircle2 className="w-4 h-4 text-green-500" />
@@ -337,6 +400,22 @@ export default function ClientService() {
                           ))}
                         </ul>
                       </div>
+                      {step.donts && (
+                        <div>
+                          <h4 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+                            <XCircle className="w-4 h-4 text-red-500" />
+                            Czego nie robić
+                          </h4>
+                          <ul className="space-y-2">
+                            {step.donts.map((dont, i) => (
+                              <li key={i} className="flex items-start gap-2 text-sm text-red-400/80">
+                                <X className="w-3 h-3 text-red-500 mt-1 flex-shrink-0" />
+                                {dont}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </Card>
