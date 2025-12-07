@@ -1,4 +1,3 @@
-import { FileText, Building2, User, Shield, Scale, AlertTriangle, Clock, CreditCard, Lock, Scroll } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
 
 interface ServiceItem {
@@ -54,287 +53,189 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
       style={{
         width: '794px',
         height: '1123px',
-        backgroundColor: '#0a0a0a',
+        background: 'linear-gradient(180deg, #0c0c0c 0%, #111111 100%)',
         color: 'white',
         fontFamily: 'Inter, system-ui, sans-serif',
         position: 'relative',
-        padding: '28px 32px',
+        padding: '40px 50px',
         boxSizing: 'border-box',
-        overflow: 'hidden',
       }}
     >
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-        marginBottom: '20px',
-        paddingBottom: '16px',
-        borderBottom: '2px solid rgba(236, 72, 153, 0.5)',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-          <img 
-            src={agencyLogo} 
-            alt="Aurine" 
-            style={{ width: '54px', height: '54px', objectFit: 'contain' }}
-          />
+      {/* Header with logo and title */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '30px', borderBottom: '3px solid #ec4899', paddingBottom: '20px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <img src={agencyLogo} alt="Aurine" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
           <div>
-            <p style={{ fontSize: '10px', letterSpacing: '0.2em', color: '#71717a', textTransform: 'uppercase', marginBottom: '3px' }}>
-              {data.agencyName || 'Aurine Agency'}
-            </p>
-            <p style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '2px' }}>
-              Umowa Współpracy
-            </p>
-            <p style={{ fontSize: '13px', color: '#a1a1aa' }}>
-              {data.clientName || "Nazwa Klienta"} • {data.signCity || "Miejscowość"} • {formatDate(data.signDate)}
-            </p>
-          </div>
-        </div>
-        <div style={{
-          background: 'linear-gradient(135deg, #db2777, #be123c)',
-          padding: '12px 24px',
-          borderRadius: '12px',
-          textAlign: 'right',
-          flexShrink: 0,
-        }}>
-          <span style={{ fontSize: '9px', letterSpacing: '0.15em', color: '#fce7f3', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
-            Wynagrodzenie
-          </span>
-          <p style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>
-            {formatAmount(data.contractValue)} PLN
-          </p>
-        </div>
-      </div>
-
-      {/* Parties */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(157, 23, 77, 0.25), rgba(24, 24, 27, 0.6))',
-          borderRadius: '12px',
-          border: '1px solid rgba(236, 72, 153, 0.3)',
-          padding: '14px 16px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <Building2 style={{ width: '16px', height: '16px', color: '#f472b6' }} />
-            <span style={{ fontSize: '11px', letterSpacing: '0.1em', color: '#f9a8d4', fontWeight: '700', textTransform: 'uppercase' }}>
-              Wykonawca
-            </span>
-          </div>
-          <p style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{data.agencyName || 'Aurine Agency'}</p>
-          <p style={{ fontSize: '13px', color: '#e4e4e7', marginBottom: '4px' }}>{data.agencyOwnerName}</p>
-          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>NIP: {data.agencyNip}</p>
-          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>{data.agencyAddress}</p>
-          <p style={{ fontSize: '11px', color: '#a1a1aa' }}>{data.agencyEmail} • {data.agencyPhone}</p>
-        </div>
-
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(24, 24, 27, 0.6))',
-          borderRadius: '12px',
-          border: '1px solid rgba(59, 130, 246, 0.3)',
-          padding: '14px 16px',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <User style={{ width: '16px', height: '16px', color: '#60a5fa' }} />
-            <span style={{ fontSize: '11px', letterSpacing: '0.1em', color: '#93c5fd', fontWeight: '700', textTransform: 'uppercase' }}>
-              Zleceniodawca
-            </span>
-          </div>
-          <p style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{data.clientName || "—"}</p>
-          <p style={{ fontSize: '13px', color: '#e4e4e7', marginBottom: '4px' }}>{data.clientOwnerName}</p>
-          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>NIP: {data.clientNip}</p>
-          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>{data.clientAddress}</p>
-          <p style={{ fontSize: '11px', color: '#a1a1aa' }}>{data.clientEmail} • {data.clientPhone}</p>
-        </div>
-      </div>
-
-      {/* §1 Przedmiot umowy */}
-      <div style={{
-        background: '#0f0f0f',
-        borderRadius: '10px',
-        border: '1px solid rgba(63, 63, 70, 0.5)',
-        padding: '10px 12px',
-        marginBottom: '10px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-          <FileText style={{ width: '12px', height: '12px', color: '#f472b6' }} />
-          <h2 style={{ fontSize: '12px', fontWeight: '700', color: '#f472b6' }}>§1. Przedmiot umowy</h2>
-        </div>
-        <p style={{ fontSize: '10px', color: '#e4e4e7', lineHeight: '1.5', marginBottom: '8px' }}>
-          Przedmiotem umowy jest świadczenie usług marketingowych online, obejmujących tworzenie i prowadzenie kampanii reklamowych Facebook/Instagram Ads, przygotowanie materiałów reklamowych, optymalizację kampanii oraz comiesięczne raportowanie wyników.
-        </p>
-        {data.services && data.services.length > 0 && (
-          <div style={{ background: 'rgba(24, 24, 27, 0.6)', borderRadius: '8px', padding: '8px 10px', border: '1px solid rgba(63, 63, 70, 0.3)' }}>
-            <p style={{ fontSize: '8px', color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Usługi objęte umową</p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px' }}>
-              {data.services.map((service) => (
-                <div key={service.id} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#f472b6' }}></div>
-                  <span style={{ fontSize: '10px', color: '#e4e4e7' }}>{service.name}</span>
-                </div>
-              ))}
+            <div style={{ fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '4px' }}>
+              {data.agencyName || 'AURINE AGENCY'}
             </div>
+            <div style={{ fontSize: '28px', fontWeight: '800', color: 'white', letterSpacing: '-0.5px' }}>
+              Umowa Współpracy
+            </div>
+            <div style={{ fontSize: '14px', color: '#aaa', marginTop: '4px' }}>
+              {data.signCity || "Miejscowość"} • {formatDate(data.signDate)}
+            </div>
+          </div>
+        </div>
+        <div style={{ background: 'linear-gradient(135deg, #ec4899, #be185d)', padding: '16px 28px', borderRadius: '16px', textAlign: 'center' }}>
+          <div style={{ fontSize: '10px', letterSpacing: '2px', color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', marginBottom: '4px' }}>Wynagrodzenie</div>
+          <div style={{ fontSize: '28px', fontWeight: '800', color: 'white' }}>{formatAmount(data.contractValue)} PLN</div>
+        </div>
+      </div>
+
+      {/* Parties - Two columns */}
+      <div style={{ display: 'flex', gap: '20px', marginBottom: '24px' }}>
+        {/* Wykonawca */}
+        <div style={{ flex: 1, background: 'rgba(236, 72, 153, 0.1)', border: '2px solid rgba(236, 72, 153, 0.3)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', letterSpacing: '2px', color: '#f472b6', textTransform: 'uppercase', fontWeight: '700', marginBottom: '12px' }}>
+            WYKONAWCA
+          </div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>{data.agencyName || 'Aurine Agency'}</div>
+          <div style={{ fontSize: '14px', color: '#ddd', marginBottom: '8px' }}>{data.agencyOwnerName}</div>
+          <div style={{ fontSize: '12px', color: '#999', lineHeight: '1.6' }}>
+            <div>NIP: {data.agencyNip || '—'}</div>
+            <div>{data.agencyAddress || '—'}</div>
+            <div>{data.agencyEmail} • {data.agencyPhone}</div>
+          </div>
+        </div>
+
+        {/* Zleceniodawca */}
+        <div style={{ flex: 1, background: 'rgba(59, 130, 246, 0.1)', border: '2px solid rgba(59, 130, 246, 0.3)', borderRadius: '16px', padding: '20px' }}>
+          <div style={{ fontSize: '12px', letterSpacing: '2px', color: '#60a5fa', textTransform: 'uppercase', fontWeight: '700', marginBottom: '12px' }}>
+            ZLECENIODAWCA
+          </div>
+          <div style={{ fontSize: '18px', fontWeight: '700', color: 'white', marginBottom: '6px' }}>{data.clientName || '—'}</div>
+          <div style={{ fontSize: '14px', color: '#ddd', marginBottom: '8px' }}>{data.clientOwnerName}</div>
+          <div style={{ fontSize: '12px', color: '#999', lineHeight: '1.6' }}>
+            <div>NIP: {data.clientNip || '—'}</div>
+            <div>{data.clientAddress || '—'}</div>
+            <div>{data.clientEmail} • {data.clientPhone}</div>
+          </div>
+        </div>
+      </div>
+
+      {/* §1 - Przedmiot umowy */}
+      <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '13px', fontWeight: '700', color: '#f472b6', marginBottom: '8px' }}>§1. Przedmiot umowy</div>
+        <div style={{ fontSize: '12px', color: '#ccc', lineHeight: '1.6', marginBottom: '10px' }}>
+          Przedmiotem umowy jest świadczenie usług marketingowych online, obejmujących tworzenie i prowadzenie kampanii reklamowych Facebook/Instagram Ads, przygotowanie materiałów reklamowych, optymalizację kampanii oraz comiesięczne raportowanie wyników.
+        </div>
+        {data.services && data.services.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {data.services.map((service) => (
+              <span key={service.id} style={{ fontSize: '11px', background: 'rgba(236, 72, 153, 0.2)', color: '#f9a8d4', padding: '4px 12px', borderRadius: '20px' }}>
+                {service.name}
+              </span>
+            ))}
           </div>
         )}
       </div>
 
-      {/* §2-3 Obowiązki */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '10px' }}>
-        <div style={{ background: '#0f0f0f', borderRadius: '10px', border: '1px solid rgba(63, 63, 70, 0.5)', padding: '10px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-            <Shield style={{ width: '12px', height: '12px', color: '#34d399' }} />
-            <h2 style={{ fontSize: '11px', fontWeight: '700', color: '#34d399' }}>§2. Obowiązki Wykonawcy</h2>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-            {["Prowadzenie kampanii reklamowych", "Przygotowywanie kreacji reklamowych", "Comiesięczne raportowanie wyników", "Konsultacje marketingowe"].map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-                <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#34d399', marginTop: '5px', flexShrink: 0 }}></div>
-                <span style={{ fontSize: '10px', color: '#d4d4d8' }}>{item}</span>
-              </div>
-            ))}
+      {/* §2 & §3 - Obowiązki */}
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
+        <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px 18px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#34d399', marginBottom: '8px' }}>§2. Obowiązki Wykonawcy</div>
+          <div style={{ fontSize: '11px', color: '#bbb', lineHeight: '1.7' }}>
+            • Prowadzenie kampanii reklamowych<br/>
+            • Przygotowywanie kreacji reklamowych<br/>
+            • Comiesięczne raportowanie wyników<br/>
+            • Konsultacje marketingowe
           </div>
         </div>
-
-        <div style={{ background: '#0f0f0f', borderRadius: '10px', border: '1px solid rgba(63, 63, 70, 0.5)', padding: '10px 12px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-            <User style={{ width: '12px', height: '12px', color: '#60a5fa' }} />
-            <h2 style={{ fontSize: '11px', fontWeight: '700', color: '#60a5fa' }}>§3. Obowiązki Zleceniodawcy</h2>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-            {["Dostęp do fanpage i konta reklamowego", "Dostarczenie materiałów (zdjęcia, logo)", "Akceptacja kreacji w 3 dni robocze", "Terminowe regulowanie płatności"].map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
-                <div style={{ width: '3px', height: '3px', borderRadius: '50%', background: '#60a5fa', marginTop: '5px', flexShrink: 0 }}></div>
-                <span style={{ fontSize: '10px', color: '#d4d4d8' }}>{item}</span>
-              </div>
-            ))}
+        <div style={{ flex: 1, background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '14px 18px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#60a5fa', marginBottom: '8px' }}>§3. Obowiązki Zleceniodawcy</div>
+          <div style={{ fontSize: '11px', color: '#bbb', lineHeight: '1.7' }}>
+            • Dostęp do fanpage i konta reklamowego<br/>
+            • Dostarczenie materiałów (zdjęcia, logo)<br/>
+            • Akceptacja kreacji w 3 dni robocze<br/>
+            • Terminowe regulowanie płatności
           </div>
         </div>
       </div>
 
-      {/* §4 Wynagrodzenie */}
-      <div style={{
-        background: 'linear-gradient(135deg, rgba(157, 23, 77, 0.25), rgba(15, 15, 15, 0.6))',
-        borderRadius: '10px',
-        border: '1px solid rgba(236, 72, 153, 0.2)',
-        padding: '10px 12px',
-        marginBottom: '10px',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-          <CreditCard style={{ width: '12px', height: '12px', color: '#f472b6' }} />
-          <h2 style={{ fontSize: '11px', fontWeight: '700', color: '#f472b6' }}>§4. Wynagrodzenie i budżet reklamowy</h2>
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '6px' }}>
-          <div style={{ background: 'rgba(24, 24, 27, 0.6)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(63, 63, 70, 0.3)' }}>
-            <p style={{ fontSize: '8px', color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>Miesięcznie</p>
-            <p style={{ fontSize: '16px', fontWeight: '700', color: 'white' }}>{formatAmount(data.contractValue)} PLN</p>
+      {/* §4 - Wynagrodzenie */}
+      <div style={{ background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(0,0,0,0.3))', border: '1px solid rgba(236, 72, 153, 0.3)', borderRadius: '12px', padding: '16px 20px', marginBottom: '16px' }}>
+        <div style={{ fontSize: '13px', fontWeight: '700', color: '#f472b6', marginBottom: '12px' }}>§4. Wynagrodzenie i budżet reklamowy</div>
+        <div style={{ display: 'flex', gap: '16px', marginBottom: '10px' }}>
+          <div style={{ flex: 1, background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '12px 16px', textAlign: 'center' }}>
+            <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Miesięcznie</div>
+            <div style={{ fontSize: '22px', fontWeight: '800', color: 'white' }}>{formatAmount(data.contractValue)} PLN</div>
           </div>
           {data.paymentType === "split" ? (
             <>
-              <div style={{ background: 'rgba(24, 24, 27, 0.6)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(63, 63, 70, 0.3)' }}>
-                <p style={{ fontSize: '8px', color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>Zaliczka</p>
-                <p style={{ fontSize: '16px', fontWeight: '700', color: '#f472b6' }}>{formatAmount(data.advanceAmount)} PLN</p>
+              <div style={{ flex: 1, background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '12px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Zaliczka</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: '#f472b6' }}>{formatAmount(advanceValue)} PLN</div>
               </div>
-              <div style={{ background: 'rgba(24, 24, 27, 0.6)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(63, 63, 70, 0.3)' }}>
-                <p style={{ fontSize: '8px', color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>Pozostała część</p>
-                <p style={{ fontSize: '16px', fontWeight: '700', color: '#d4d4d8' }}>{formatAmount(remainingValue)} PLN</p>
+              <div style={{ flex: 1, background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '12px 16px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Pozostała część</div>
+                <div style={{ fontSize: '22px', fontWeight: '800', color: '#aaa' }}>{formatAmount(remainingValue)} PLN</div>
               </div>
             </>
           ) : (
-            <div style={{ gridColumn: 'span 2', background: 'rgba(24, 24, 27, 0.6)', borderRadius: '8px', padding: '8px', border: '1px solid rgba(63, 63, 70, 0.3)' }}>
-              <p style={{ fontSize: '8px', color: '#71717a', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '2px' }}>Płatność</p>
-              <p style={{ fontSize: '12px', fontWeight: '600', color: '#d4d4d8' }}>Całość z góry w terminie 3 dni roboczych</p>
+            <div style={{ flex: 2, background: 'rgba(0,0,0,0.3)', borderRadius: '10px', padding: '12px 16px', textAlign: 'center' }}>
+              <div style={{ fontSize: '10px', color: '#888', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Płatność</div>
+              <div style={{ fontSize: '14px', fontWeight: '600', color: '#ddd' }}>Całość z góry w terminie 3 dni roboczych</div>
             </div>
           )}
         </div>
-        <p style={{ fontSize: '9px', color: '#a1a1aa', fontStyle: 'italic' }}>
+        <div style={{ fontSize: '11px', color: '#888', fontStyle: 'italic' }}>
           Budżet reklamowy opłaca Zleceniodawca bezpośrednio do platformy reklamowej (Meta). Nie stanowi wynagrodzenia Wykonawcy.
-        </p>
-      </div>
-
-      {/* §5-6-7 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '8px' }}>
-        <div style={{ background: '#0f0f0f', borderRadius: '8px', border: '1px solid rgba(63, 63, 70, 0.4)', padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-            <Scale style={{ width: '10px', height: '10px', color: '#a78bfa' }} />
-            <h2 style={{ fontSize: '10px', fontWeight: '700', color: '#a78bfa' }}>§5. Prawa autorskie</h2>
-          </div>
-          <p style={{ fontSize: '9px', color: '#a1a1aa', marginBottom: '2px' }}>• Materiały podlegają ochronie prawnej</p>
-          <p style={{ fontSize: '9px', color: 'white', fontWeight: '500' }}>• Konto i wyniki należą do Zleceniodawcy</p>
-        </div>
-
-        <div style={{ background: '#0f0f0f', borderRadius: '8px', border: '1px solid rgba(63, 63, 70, 0.4)', padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-            <Clock style={{ width: '10px', height: '10px', color: '#fbbf24' }} />
-            <h2 style={{ fontSize: '10px', fontWeight: '700', color: '#fbbf24' }}>§6. Okres i wypowiedzenie</h2>
-          </div>
-          <p style={{ fontSize: '9px', color: '#a1a1aa', marginBottom: '2px' }}>• Umowa obowiązuje od wpłaty zaliczki</p>
-          <p style={{ fontSize: '9px', color: 'white', fontWeight: '500' }}>• 30-dniowy okres wypowiedzenia</p>
-        </div>
-
-        <div style={{ background: '#0f0f0f', borderRadius: '8px', border: '1px solid rgba(63, 63, 70, 0.4)', padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-            <AlertTriangle style={{ width: '10px', height: '10px', color: '#f87171' }} />
-            <h2 style={{ fontSize: '10px', fontWeight: '700', color: '#f87171' }}>§7. Kary umowne</h2>
-          </div>
-          <p style={{ fontSize: '9px', color: '#a1a1aa', marginBottom: '2px' }}>• Opóźnienie płatności: 0,5%/dzień</p>
-          <p style={{ fontSize: '9px', color: 'white', fontWeight: '500' }}>• Rozwiązanie po 14 dniach zwłoki</p>
         </div>
       </div>
 
-      {/* §8-9-10 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
-        <div style={{ background: '#0f0f0f', borderRadius: '8px', border: '1px solid rgba(63, 63, 70, 0.4)', padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-            <Shield style={{ width: '10px', height: '10px', color: '#fb923c' }} />
-            <h2 style={{ fontSize: '10px', fontWeight: '700', color: '#fb923c' }}>§8. Odpowiedzialność</h2>
+      {/* §5-10 - Remaining paragraphs in compact grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#a78bfa', marginBottom: '6px' }}>§5. Prawa autorskie</div>
+          <div style={{ fontSize: '10px', color: '#999', lineHeight: '1.5' }}>
+            Materiały podlegają ochronie prawnej. Konto i wyniki należą do Zleceniodawcy.
           </div>
-          <p style={{ fontSize: '9px', color: '#a1a1aa', marginBottom: '2px' }}>• Brak gwarancji określonych wyników</p>
-          <p style={{ fontSize: '9px', color: 'white', fontWeight: '500' }}>• Odpowiedzialność ograniczona</p>
         </div>
-
-        <div style={{ background: '#0f0f0f', borderRadius: '8px', border: '1px solid rgba(63, 63, 70, 0.4)', padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-            <Lock style={{ width: '10px', height: '10px', color: '#2dd4bf' }} />
-            <h2 style={{ fontSize: '10px', fontWeight: '700', color: '#2dd4bf' }}>§9. RODO</h2>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#fbbf24', marginBottom: '6px' }}>§6. Okres i wypowiedzenie</div>
+          <div style={{ fontSize: '10px', color: '#999', lineHeight: '1.5' }}>
+            Umowa obowiązuje od wpłaty zaliczki. 30-dniowy okres wypowiedzenia.
           </div>
-          <p style={{ fontSize: '9px', color: '#a1a1aa', marginBottom: '2px' }}>• Przetwarzanie zgodne z RODO</p>
-          <p style={{ fontSize: '9px', color: 'white', fontWeight: '500' }}>• Ochrona danych osobowych</p>
         </div>
-
-        <div style={{ background: '#0f0f0f', borderRadius: '8px', border: '1px solid rgba(63, 63, 70, 0.4)', padding: '8px 10px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-            <Scroll style={{ width: '10px', height: '10px', color: '#94a3b8' }} />
-            <h2 style={{ fontSize: '10px', fontWeight: '700', color: '#94a3b8' }}>§10. Postanowienia końcowe</h2>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#f87171', marginBottom: '6px' }}>§7. Kary umowne</div>
+          <div style={{ fontSize: '10px', color: '#999', lineHeight: '1.5' }}>
+            Opóźnienie płatności: 0,5%/dzień. Rozwiązanie po 14 dniach zwłoki.
           </div>
-          <p style={{ fontSize: '9px', color: '#a1a1aa', marginBottom: '2px' }}>• Stosuje się przepisy Kodeksu Cywilnego</p>
-          <p style={{ fontSize: '9px', color: 'white', fontWeight: '500' }}>• Umowa w 2 jednobrzmiących egz.</p>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#fb923c', marginBottom: '6px' }}>§8. Odpowiedzialność</div>
+          <div style={{ fontSize: '10px', color: '#999', lineHeight: '1.5' }}>
+            Brak gwarancji określonych wyników. Odpowiedzialność ograniczona.
+          </div>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#2dd4bf', marginBottom: '6px' }}>§9. RODO</div>
+          <div style={{ fontSize: '10px', color: '#999', lineHeight: '1.5' }}>
+            Przetwarzanie danych zgodne z RODO. Ochrona danych osobowych.
+          </div>
+        </div>
+        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '10px', padding: '12px 14px' }}>
+          <div style={{ fontSize: '11px', fontWeight: '700', color: '#94a3b8', marginBottom: '6px' }}>§10. Postanowienia końcowe</div>
+          <div style={{ fontSize: '10px', color: '#999', lineHeight: '1.5' }}>
+            Stosuje się przepisy KC. Umowa w 2 jednobrzmiących egz.
+          </div>
         </div>
       </div>
 
-      {/* Signatures - positioned at bottom */}
-      <div style={{ 
-        position: 'absolute',
-        bottom: '32px',
-        left: '32px',
-        right: '32px',
-        display: 'flex', 
-        justifyContent: 'space-between',
-      }}>
-        <div style={{ width: '280px' }}>
-          <div style={{
-            borderTop: '2px solid rgba(236, 72, 153, 0.6)',
-            paddingTop: '12px',
-          }}>
-            <p style={{ fontSize: '11px', color: '#71717a', marginBottom: '4px' }}>Wykonawca</p>
-            <p style={{ fontSize: '14px', color: '#f9a8d4', fontWeight: '600' }}>{data.agencyOwnerName || data.agencyName}</p>
+      {/* Signatures at bottom */}
+      <div style={{ position: 'absolute', bottom: '40px', left: '50px', right: '50px', display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ width: '250px' }}>
+          <div style={{ borderTop: '3px solid #ec4899', paddingTop: '14px' }}>
+            <div style={{ fontSize: '11px', color: '#666', marginBottom: '6px' }}>Wykonawca</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#f9a8d4' }}>{data.agencyOwnerName || data.agencyName}</div>
           </div>
         </div>
-        <div style={{ width: '280px', textAlign: 'right' }}>
-          <div style={{
-            borderTop: '2px solid rgba(59, 130, 246, 0.6)',
-            paddingTop: '12px',
-          }}>
-            <p style={{ fontSize: '11px', color: '#71717a', marginBottom: '4px' }}>Zleceniodawca</p>
-            <p style={{ fontSize: '14px', color: '#93c5fd', fontWeight: '600' }}>{data.clientOwnerName || data.clientName}</p>
+        <div style={{ width: '250px', textAlign: 'right' }}>
+          <div style={{ borderTop: '3px solid #3b82f6', paddingTop: '14px' }}>
+            <div style={{ fontSize: '11px', color: '#666', marginBottom: '6px' }}>Zleceniodawca</div>
+            <div style={{ fontSize: '15px', fontWeight: '700', color: '#93c5fd' }}>{data.clientOwnerName || data.clientName}</div>
           </div>
         </div>
       </div>
