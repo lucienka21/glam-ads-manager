@@ -5,7 +5,7 @@ export interface DocumentHistoryItem {
   type: "report" | "invoice" | "contract" | "presentation";
   title: string;
   subtitle: string;
-  data: Record<string, unknown>;
+  data: Record<string, string>;
   thumbnail?: string;
   createdAt: string;
 }
@@ -59,7 +59,7 @@ export const useDocumentHistory = () => {
     type: DocumentHistoryItem["type"],
     title: string,
     subtitle: string,
-    data: Record<string, unknown>,
+    data: Record<string, string>,
     thumbnail?: string
   ): string => {
     const newItem: DocumentHistoryItem = {

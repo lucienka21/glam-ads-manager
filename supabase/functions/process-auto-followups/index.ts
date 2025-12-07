@@ -11,6 +11,7 @@ const credentialsCache: Record<string, { clientId: string; clientSecret: string;
 const accessTokenCache: Record<string, { token: string; expiry: number }> = {};
 
 async function getZohoCredentialsFromDB(supabase: any, emailFrom: string): Promise<{ clientId: string; clientSecret: string; refreshToken: string } | null> {
+  // Check cache first
   if (credentialsCache[emailFrom]) {
     return credentialsCache[emailFrom];
   }
@@ -32,11 +33,13 @@ async function getZohoCredentialsFromDB(supabase: any, emailFrom: string): Promi
     refreshToken: data.refresh_token,
   };
 
+  // Cache it
   credentialsCache[emailFrom] = credentials;
   return credentials;
 }
 
 async function getZohoAccessToken(supabase: any, emailFrom: string): Promise<string | null> {
+  // Check cache first
   const cached = accessTokenCache[emailFrom];
   if (cached && cached.expiry > Date.now()) {
     return cached.token;
@@ -63,7 +66,7 @@ async function getZohoAccessToken(supabase: any, emailFrom: string): Promise<str
     });
 
     const responseText = await response.text();
-    console.log(`Zoho token response for ${emailFrom}: status=${response.status}`);
+    console.log(`Zoho token response for ${emailFrom}: status=${response.status}, body=${responseText}`);
 
     if (!response.ok) {
       console.error(`Failed to get Zoho token for ${emailFrom}:`, responseText);
@@ -77,6 +80,7 @@ async function getZohoAccessToken(supabase: any, emailFrom: string): Promise<str
       return null;
     }
     
+    // Cache token for 50 minutes (Zoho tokens typically last 1 hour)
     accessTokenCache[emailFrom] = {
       token: data.access_token,
       expiry: Date.now() + 50 * 60 * 1000,
@@ -108,6 +112,7 @@ async function sendEmailViaZoho(
     }
 
     const accountsData = await accountsResponse.json();
+    console.log("Available accounts:", accountsData.data?.map((a: any) => a.primaryEmailAddress));
     
     const account = accountsData.data?.find((acc: any) => 
       acc.primaryEmailAddress === fromEmail
@@ -118,6 +123,7 @@ async function sendEmailViaZoho(
       return false;
     }
 
+    // Send with sender name "Aurine" for both accounts
     const sendResponse = await fetch(
       `https://mail.zoho.eu/api/accounts/${account.accountId}/messages`,
       {
@@ -149,6 +155,7 @@ async function sendEmailViaZoho(
   }
 }
 
+// Replace placeholders in email template
 function replacePlaceholders(template: string, lead: any): string {
   return template
     .replace(/\{salon_name\}/g, lead.salon_name || '')
@@ -159,6 +166,7 @@ function replacePlaceholders(template: string, lead: any): string {
     .replace(/\{industry\}/g, lead.industry || '');
 }
 
+// Log follow-up send to database
 async function logFollowUpSend(
   supabase: any,
   leadId: string,
@@ -186,31 +194,6 @@ async function logFollowUpSend(
   }
 }
 
-// Check if follow-up was already sent today to prevent duplicates
-async function wasFollowUpAlreadySentToday(
-  supabase: any,
-  leadId: string,
-  followupType: string
-): Promise<boolean> {
-  const today = new Date().toISOString().split("T")[0];
-  
-  const { data, error } = await supabase
-    .from("auto_followup_logs")
-    .select("id")
-    .eq("lead_id", leadId)
-    .eq("followup_type", followupType)
-    .eq("status", "sent")
-    .gte("created_at", `${today}T00:00:00.000Z`)
-    .limit(1);
-
-  if (error) {
-    console.error("Error checking duplicate:", error);
-    return false; // Allow sending on error to not block
-  }
-
-  return (data?.length || 0) > 0;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -234,6 +217,7 @@ serve(async (req) => {
       templateMap[t.template_name] = { subject: t.subject, body: t.body, name: t.template_name };
     }
 
+    // Default templates if none in database
     const defaultFollowUp1 = {
       subject: "Re: Współpraca z {salon_name}",
       body: `<p>Cześć {owner_name},</p>
@@ -252,6 +236,7 @@ serve(async (req) => {
       name: "Follow-up 2 (domyślny)",
     };
 
+    // Get Follow-up 1 template
     const followUp1Template = templateMap["follow_up_1"] || templateMap["Follow-up 1"] || defaultFollowUp1;
     const followUp2Template = templateMap["follow_up_2"] || templateMap["Follow-up 2"] || defaultFollowUp2;
 
@@ -276,7 +261,7 @@ serve(async (req) => {
       .lte("email_follow_up_2_date", today)
       .not("status", "in", '("converted","lost")');
 
-    const results = { sent: 0, failed: 0, skipped: 0, processed: [] as string[] };
+    const results = { sent: 0, failed: 0, processed: [] as string[] };
 
     console.log(`Found ${leadsForFollowUp1?.length || 0} leads for Follow-up 1`);
     console.log(`Found ${leadsForFollowUp2?.length || 0} leads for Follow-up 2`);
@@ -284,14 +269,6 @@ serve(async (req) => {
     // Process Follow-up 1
     for (const lead of leadsForFollowUp1 || []) {
       try {
-        // CHECK FOR DUPLICATE - prevent sending twice
-        const alreadySent = await wasFollowUpAlreadySentToday(supabase, lead.id, "followup_1");
-        if (alreadySent) {
-          console.log(`Skipping ${lead.salon_name} - followup_1 already sent today`);
-          results.skipped++;
-          continue;
-        }
-
         const emailFrom = lead.email_from;
         const accessToken = await getZohoAccessToken(supabase, emailFrom);
         
@@ -341,14 +318,6 @@ serve(async (req) => {
     // Process Follow-up 2
     for (const lead of leadsForFollowUp2 || []) {
       try {
-        // CHECK FOR DUPLICATE - prevent sending twice
-        const alreadySent = await wasFollowUpAlreadySentToday(supabase, lead.id, "followup_2");
-        if (alreadySent) {
-          console.log(`Skipping ${lead.salon_name} - followup_2 already sent today`);
-          results.skipped++;
-          continue;
-        }
-
         const emailFrom = lead.email_from;
         const accessToken = await getZohoAccessToken(supabase, emailFrom);
         

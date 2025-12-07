@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
@@ -14,29 +14,7 @@ export function useUserRole(): UserRole {
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<AppRole | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const fetchRole = useCallback(async (userId: string) => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        setRole(null);
-      } else {
-        setRole(data?.role as AppRole || null);
-      }
-    } catch (err) {
-      console.error('Error fetching role:', err);
-      setRole(null);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const fetchedRef = useRef(false);
 
   useEffect(() => {
     // Wait for auth to finish loading first
@@ -47,11 +25,39 @@ export function useUserRole(): UserRole {
     if (!user) {
       setRole(null);
       setLoading(false);
+      fetchedRef.current = false;
       return;
     }
 
-    // Fetch role immediately
-    fetchRole(user.id);
+    // Prevent duplicate fetches
+    if (fetchedRef.current) {
+      return;
+    }
+
+    const fetchRole = async () => {
+      try {
+        fetchedRef.current = true;
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching user role:', error);
+          setRole(null);
+        } else {
+          setRole(data?.role as AppRole || null);
+        }
+      } catch (err) {
+        console.error('Error fetching role:', err);
+        setRole(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRole();
 
     // Subscribe to role changes
     const channel = supabase
@@ -65,7 +71,8 @@ export function useUserRole(): UserRole {
           filter: `user_id=eq.${user.id}`
         },
         () => {
-          fetchRole(user.id);
+          fetchedRef.current = false;
+          fetchRole();
         }
       )
       .subscribe();
@@ -73,7 +80,7 @@ export function useUserRole(): UserRole {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user, authLoading, fetchRole]);
+  }, [user, authLoading]);
 
   return {
     role,
