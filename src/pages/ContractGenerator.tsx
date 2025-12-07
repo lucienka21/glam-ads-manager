@@ -1,16 +1,16 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, FileImage, ArrowLeft, Link, Users } from "lucide-react";
+import { Download, FileImage, ArrowLeft, Building2, User, FileText, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { ContractPreview } from "@/components/contract/ContractPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
 import { supabase } from "@/integrations/supabase/client";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import jsPDF from "jspdf";
 import { toPng, toJpeg } from "html-to-image";
 
@@ -95,10 +95,10 @@ const ContractGenerator = () => {
   };
 
   const handleClientSelect = (clientId: string) => {
-    setSelectedClientId(clientId === "none" ? "" : clientId);
+    setSelectedClientId(clientId);
     setSelectedLeadId("");
     
-    if (clientId !== "none") {
+    if (clientId) {
       const client = clients.find(c => c.id === clientId);
       if (client) {
         setFormData(prev => ({
@@ -111,10 +111,10 @@ const ContractGenerator = () => {
   };
 
   const handleLeadSelect = (leadId: string) => {
-    setSelectedLeadId(leadId === "none" ? "" : leadId);
+    setSelectedLeadId(leadId);
     setSelectedClientId("");
     
-    if (leadId !== "none") {
+    if (leadId) {
       const lead = leads.find(l => l.id === leadId);
       if (lead) {
         setFormData(prev => ({
@@ -260,40 +260,30 @@ const ContractGenerator = () => {
           <div className="p-4 space-y-4">
             {/* Form Fields */}
             <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-3">
                 <div>
                   <Label className="text-xs flex items-center gap-1">
-                    <Link className="w-3 h-3 text-primary" />
+                    <Building2 className="w-3 h-3 text-primary" />
                     Klient
                   </Label>
-                  <Select value={selectedClientId || "none"} onValueChange={handleClientSelect}>
-                    <SelectTrigger className="h-9 mt-1">
-                      <SelectValue placeholder="Opcjonalne..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Bez powiązania</SelectItem>
-                      {clients.map((c) => (
-                        <SelectItem key={c.id} value={c.id}>{c.salon_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={clients.map(c => ({ value: c.id, label: c.salon_name, description: c.city || "" }))}
+                    value={selectedClientId}
+                    onValueChange={handleClientSelect}
+                    placeholder="Wybierz klienta..."
+                  />
                 </div>
                 <div>
                   <Label className="text-xs flex items-center gap-1">
-                    <Users className="w-3 h-3 text-primary" />
+                    <User className="w-3 h-3 text-primary" />
                     Lead
                   </Label>
-                  <Select value={selectedLeadId || "none"} onValueChange={handleLeadSelect}>
-                    <SelectTrigger className="h-9 mt-1">
-                      <SelectValue placeholder="Opcjonalne..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Bez powiązania</SelectItem>
-                      {leads.map((l) => (
-                        <SelectItem key={l.id} value={l.id}>{l.salon_name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    options={leads.map(l => ({ value: l.id, label: l.salon_name, description: l.city || "" }))}
+                    value={selectedLeadId}
+                    onValueChange={handleLeadSelect}
+                    placeholder="Wybierz leada..."
+                  />
                 </div>
               </div>
 
