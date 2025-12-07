@@ -6,6 +6,7 @@ import { ReportPreviewLandscape } from "@/components/report/ReportPreviewLandsca
 import { InvoicePreview } from "@/components/invoice/InvoicePreview";
 import { ContractPreview } from "@/components/contract/ContractPreview";
 import { PresentationPreview } from "@/components/presentation/PresentationPreview";
+import { WelcomePackPreview } from "@/components/welcomepack/WelcomePackPreview";
 import { DocumentHistoryItem } from "@/hooks/useDocumentHistory";
 import jsPDF from "jspdf";
 import { toJpeg } from "html-to-image";
@@ -18,7 +19,9 @@ interface DocumentViewerProps {
 }
 
 const TOTAL_SLIDES = 6;
+const WELCOMEPACK_SLIDES = 5;
 const SLIDES_ARRAY = [1, 2, 3, 4, 5, 6];
+const WELCOMEPACK_SLIDES_ARRAY = [1, 2, 3, 4, 5];
 
 export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,10 +34,10 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
 
   // Reset slide when document changes
   useEffect(() => {
-    if (document?.type === "presentation") {
+    if (document?.type === "presentation" || document?.type === "welcomepack") {
       setCurrentSlide(1);
     }
-  }, [document?.id]);
+  }, [document?.id, document?.type]);
 
   useEffect(() => {
     if (!open || !document) return;
@@ -65,14 +68,16 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
     };
   }, [open, document]);
 
-  // Keyboard navigation for presentations
+  // Keyboard navigation for presentations and welcomepacks
   useEffect(() => {
-    if (!open || document?.type !== "presentation") return;
+    if (!open || (document?.type !== "presentation" && document?.type !== "welcomepack")) return;
+
+    const maxSlides = document?.type === "welcomepack" ? WELCOMEPACK_SLIDES : TOTAL_SLIDES;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
-        setCurrentSlide(prev => Math.min(prev + 1, TOTAL_SLIDES));
+        setCurrentSlide(prev => Math.min(prev + 1, maxSlides));
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
         setCurrentSlide(prev => Math.max(prev - 1, 1));
@@ -101,8 +106,8 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         bgColor = "#ffffff";
       }
 
-      // For presentations, capture from pre-rendered hidden slides
-      if (document.type === "presentation") {
+      // For presentations and welcomepacks, capture from pre-rendered hidden slides
+      if (document.type === "presentation" || document.type === "welcomepack") {
         const hiddenContainer = hiddenSlidesRef.current;
         if (!hiddenContainer) {
           toast({ title: "Błąd", description: "Brak elementu do eksportu", variant: "destructive" });
@@ -188,6 +193,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
     switch (document.type) {
       case "report":
       case "presentation":
+      case "welcomepack":
         return { width: 1600, height: 900 };
       case "invoice":
       case "contract":
@@ -196,6 +202,9 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
         return { width: 1600, height: 900 };
     }
   };
+
+  const slidesCount = document.type === "welcomepack" ? WELCOMEPACK_SLIDES : TOTAL_SLIDES;
+  const slidesArray = document.type === "welcomepack" ? WELCOMEPACK_SLIDES_ARRAY : SLIDES_ARRAY;
 
   const dims = getDocumentDimensions();
 
@@ -219,7 +228,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
             >
               <Download className="w-4 h-4 mr-1.5" />
               {isGenerating 
-                ? (generatingSlide > 0 ? `Slajd ${generatingSlide}/${TOTAL_SLIDES}` : "Generuję...")
+                ? (generatingSlide > 0 ? `Slajd ${generatingSlide}/${slidesCount}` : "Generuję...")
                 : "Pobierz PDF"}
             </Button>
             <Button
@@ -233,8 +242,8 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
           </div>
         </div>
 
-        {/* Presentation Navigation */}
-        {document.type === "presentation" && (
+        {/* Presentation/WelcomePack Navigation */}
+        {(document.type === "presentation" || document.type === "welcomepack") && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-4 bg-zinc-900/90 backdrop-blur-sm rounded-full px-4 py-2 border border-zinc-800">
             <Button
               variant="ghost"
@@ -247,7 +256,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
             </Button>
             
             <div className="flex items-center gap-2">
-              {Array.from({ length: TOTAL_SLIDES }, (_, i) => (
+              {slidesArray.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setCurrentSlide(i + 1)}
@@ -261,14 +270,14 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
             </div>
             
             <span className="text-sm text-zinc-400 min-w-[60px] text-center">
-              {currentSlide} / {TOTAL_SLIDES}
+              {currentSlide} / {slidesCount}
             </span>
             
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCurrentSlide(prev => Math.min(prev + 1, TOTAL_SLIDES))}
-              disabled={currentSlide === TOTAL_SLIDES}
+              onClick={() => setCurrentSlide(prev => Math.min(prev + 1, slidesCount))}
+              disabled={currentSlide === slidesCount}
               className="h-8 w-8 text-zinc-400 hover:text-white disabled:opacity-30"
             >
               <ChevronRight className="w-5 h-5" />
@@ -302,6 +311,9 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
             {document.type === "presentation" && (
               <PresentationPreview data={document.data as any} currentSlide={currentSlide} />
             )}
+            {document.type === "welcomepack" && (
+              <WelcomePackPreview data={document.data as any} currentSlide={currentSlide} />
+            )}
           </div>
         </div>
 
@@ -329,6 +341,34 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
                 }}
               >
                 <PresentationPreview data={document.data as any} currentSlide={slideNum} />
+              </div>
+            ))}
+          </div>
+        )}
+
+        {document.type === "welcomepack" && (
+          <div 
+            ref={hiddenSlidesRef}
+            style={{
+              position: 'fixed',
+              left: '-99999px',
+              top: 0,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {WELCOMEPACK_SLIDES_ARRAY.map((slideNum) => (
+              <div
+                key={slideNum}
+                style={{
+                  width: '1600px',
+                  height: '900px',
+                  backgroundColor: '#000000',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                }}
+              >
+                <WelcomePackPreview data={document.data as any} currentSlide={slideNum} />
               </div>
             ))}
           </div>
