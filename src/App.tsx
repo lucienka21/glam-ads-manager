@@ -37,6 +37,7 @@ import CampaignGenerator from "./pages/CampaignGenerator";
 import GraphicsCreator from "./pages/GraphicsCreator";
 import AutoFollowUps from "./pages/AutoFollowUps";
 import ClientService from "./pages/ClientService";
+import WelcomePackGenerator from "./pages/WelcomePackGenerator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +78,7 @@ function AppContent() {
           <Route path="/graphics-creator" element={<ProtectedRoute><GraphicsCreator /></ProtectedRoute>} />
           <Route path="/auto-followups" element={<ProtectedRoute><AutoFollowUps /></ProtectedRoute>} />
           <Route path="/client-service" element={<ProtectedRoute><ClientService /></ProtectedRoute>} />
+          <Route path="/welcome-pack-generator" element={<ProtectedRoute><WelcomePackGenerator /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppErrorBoundary>
