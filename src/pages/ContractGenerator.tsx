@@ -240,7 +240,7 @@ const ContractGenerator = () => {
           const thumbnail = await genThumb({
             elementId: "contract-preview",
             format: 'jpeg',
-            backgroundColor: "#000000",
+            backgroundColor: "#0f0f0f",
             pixelRatio: 0.2,
             quality: 0.6,
           });
@@ -248,15 +248,18 @@ const ContractGenerator = () => {
         }
       }
 
-      // A4 dimensions in pixels at 96 DPI: 794 x 1123
-      const canvas = await toJpeg(element, { 
+      // Generate image at exact A4 ratio (794x1123 pixels)
+      const imgData = await toJpeg(element, { 
         cacheBust: true, 
-        pixelRatio: 2, 
-        backgroundColor: "#000000", 
-        quality: 0.92 
+        pixelRatio: 2.5,
+        backgroundColor: "#0f0f0f", 
+        quality: 0.95,
+        width: 794,
+        height: 1123,
+        skipFonts: true,
       });
       
-      // Create A4 PDF (210mm x 297mm)
+      // Create A4 PDF
       const pdf = new jsPDF({ 
         orientation: "portrait", 
         unit: "mm", 
@@ -264,13 +267,14 @@ const ContractGenerator = () => {
         compress: true 
       });
       
-      // A4 in mm: 210 x 297
-      pdf.addImage(canvas, "JPEG", 0, 0, 210, 297, undefined, "FAST");
+      // A4 dimensions: 210mm x 297mm - fill entire page
+      pdf.addImage(imgData, "JPEG", 0, 0, 210, 297, undefined, "FAST");
       
       const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}.pdf`;
       pdf.save(fileName);
       toast.success("Umowa PDF pobrana!");
     } catch (error) {
+      console.error("PDF generation error:", error);
       toast.error("Nie udało się wygenerować PDF");
     } finally {
       setIsGenerating(false);
