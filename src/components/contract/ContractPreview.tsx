@@ -179,12 +179,12 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
           <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-xl border border-emerald-800/30 p-3">
             <h3 className="text-emerald-400 font-bold text-[11px] mb-2 flex items-center gap-2">
               <span className="w-5 h-5 rounded-lg bg-emerald-500/20 flex items-center justify-center text-[9px]">§4</span>
-              Wynagrodzenie i budżet reklamowy
+              Wynagrodzenie
             </h3>
             <div className="text-[9px] text-zinc-400 leading-relaxed space-y-1">
               <p><strong className="text-emerald-300">Zaliczka:</strong> 50% wynagrodzenia w terminie 3 dni od otrzymania umowy</p>
               <p><strong className="text-emerald-300">Pozostała część:</strong> 50% płatna w 7 dni od zakończenia miesiąca</p>
-              <p><strong className="text-emerald-300">Budżet reklamowy:</strong> Opłacany przez Zleceniodawcę bezpośrednio do platformy reklamowej (Meta). Nie jest częścią wynagrodzenia Wykonawcy.</p>
+              <p className="text-zinc-500 mt-1">Budżet reklamowy finansowany przez Zleceniodawcę, nie jest częścią wynagrodzenia.</p>
             </div>
           </div>
 
@@ -193,12 +193,11 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="bg-zinc-950/80 rounded-xl border border-zinc-800/50 p-3">
               <h3 className="text-pink-400 font-bold text-[11px] mb-2 flex items-center gap-2">
                 <span className="w-5 h-5 rounded-lg bg-pink-500/20 flex items-center justify-center text-[9px]">§5</span>
-                Prawa autorskie i własność
+                Prawa autorskie
               </h3>
               <ul className="text-[9px] text-zinc-400 leading-relaxed list-disc list-inside space-y-0.5">
                 <li>Materiały podlegają ochronie prawnoautorskiej</li>
                 <li>Licencja niewyłączna po uregulowaniu płatności</li>
-                <li><strong className="text-pink-300">Konto reklamowe oraz wyniki kampanii są własnością Zleceniodawcy</strong></li>
                 <li>Wykonawca może używać w portfolio</li>
               </ul>
             </div>
@@ -211,8 +210,7 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
               <ul className="text-[9px] text-zinc-400 leading-relaxed list-disc list-inside space-y-0.5">
                 <li>Od dnia wpłaty zaliczki</li>
                 <li>Przedłużenie za zgodą obu stron</li>
-                <li><strong className="text-pink-300">Wypowiedzenie z 30-dniowym okresem</strong></li>
-                <li>Możliwość natychmiastowego rozwiązania przy naruszeniu</li>
+                <li>Możliwość natychmiastowego rozwiązania</li>
               </ul>
             </div>
           </div>
@@ -234,39 +232,12 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="bg-zinc-950/80 rounded-xl border border-zinc-800/50 p-3">
               <h3 className="text-pink-400 font-bold text-[11px] mb-2 flex items-center gap-2">
                 <span className="w-5 h-5 rounded-lg bg-pink-500/20 flex items-center justify-center text-[9px]">§8</span>
-                Odpowiedzialność
-              </h3>
-              <ul className="text-[9px] text-zinc-400 leading-relaxed list-disc list-inside space-y-0.5">
-                <li><strong className="text-pink-300">Wykonawca nie gwarantuje określonego poziomu wyników kampanii</strong></li>
-                <li>Wyniki zależą od wielu czynników zewnętrznych</li>
-                <li>Wykonawca dokłada staranności zawodowej</li>
-              </ul>
-            </div>
-          </div>
-
-          {/* §9 & §10 */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-gradient-to-br from-blue-950/30 via-zinc-950/60 to-zinc-950/50 rounded-xl border border-blue-800/30 p-3">
-              <h3 className="text-blue-400 font-bold text-[11px] mb-2 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-lg bg-blue-500/20 flex items-center justify-center text-[9px]">§9</span>
-                Ochrona danych (RODO)
-              </h3>
-              <ul className="text-[9px] text-zinc-400 leading-relaxed list-disc list-inside space-y-0.5">
-                <li><strong className="text-blue-300">Strony zobowiązują się do przetwarzania danych osobowych zgodnie z RODO</strong></li>
-                <li>Dane wykorzystywane wyłącznie w celu realizacji umowy</li>
-                <li>Zachowanie poufności danych klientów salonu</li>
-              </ul>
-            </div>
-
-            <div className="bg-zinc-950/80 rounded-xl border border-zinc-800/50 p-3">
-              <h3 className="text-pink-400 font-bold text-[11px] mb-2 flex items-center gap-2">
-                <span className="w-5 h-5 rounded-lg bg-pink-500/20 flex items-center justify-center text-[9px]">§10</span>
                 Postanowienia końcowe
               </h3>
               <ul className="text-[9px] text-zinc-400 leading-relaxed list-disc list-inside space-y-0.5">
                 <li>Zastosowanie Kodeksu cywilnego</li>
                 <li>Forma elektroniczna wystarczająca</li>
-                <li>Przystąpienie = akceptacja warunków</li>
+                <li>Przystąpienie = akceptacja</li>
               </ul>
             </div>
           </div>
