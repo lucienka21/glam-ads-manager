@@ -1,3 +1,4 @@
+import { FileText, Building2, User, Shield, Scale, AlertTriangle, Clock, CreditCard, Lock, Scroll } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
 
 interface ServiceItem {
@@ -46,201 +47,288 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
   return (
     <div
       id="contract-preview"
-      style={{
-        width: '794px',
-        height: '1123px',
-        backgroundColor: '#0f0f0f',
-        color: '#ffffff',
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        fontSize: '11px',
-        lineHeight: '1.4',
-        overflow: 'hidden',
-        position: 'relative',
-      }}
+      className="w-[794px] min-h-[1123px] bg-black text-white overflow-hidden"
+      style={{ backgroundColor: '#000000' }}
     >
       {/* Header */}
-      <div style={{
-        background: 'linear-gradient(to right, rgba(131, 24, 67, 0.3), #0f0f0f)',
-        padding: '24px 40px',
-        borderBottom: '1px solid rgba(236, 72, 153, 0.2)',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <img 
-            src={agencyLogo} 
-            alt="Aurine" 
-            style={{ width: '40px', height: '40px', objectFit: 'contain' }}
-          />
-          <div>
-            <p style={{ fontSize: '9px', letterSpacing: '2px', color: 'rgba(244, 114, 182, 0.8)', marginBottom: '2px', textTransform: 'uppercase' }}>
-              Aurine Agency
-            </p>
-            <h1 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0 }}>
-              Umowa Współpracy
-            </h1>
+      <div className="bg-gradient-to-r from-zinc-900 via-zinc-950 to-black p-6 border-b border-pink-900/30">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-4">
+            <img 
+              src={agencyLogo} 
+              alt="Aurine" 
+              className="w-14 h-14 object-contain"
+            />
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-light">
+                Aurine Agency
+              </p>
+              <p className="text-lg font-semibold text-white">
+                Umowa Współpracy
+              </p>
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="inline-flex flex-col items-end gap-1 px-5 py-3 rounded-2xl bg-gradient-to-br from-pink-600 to-rose-700 shadow-xl shadow-pink-500/25">
+              <span className="text-[9px] uppercase tracking-[0.25em] text-pink-100 font-light">
+                Wynagrodzenie
+              </span>
+              <p className="text-2xl font-bold text-white">
+                {formatAmount(data.contractValue)} PLN
+              </p>
+            </div>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
-          <p style={{ fontSize: '9px', color: '#666', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '1px' }}>Data zawarcia</p>
-          <p style={{ fontSize: '13px', fontWeight: '600', margin: 0 }}>{formatDate(data.signDate)}</p>
-          <p style={{ fontSize: '10px', color: '#888', marginTop: '2px' }}>{data.signCity || "—"}</p>
+        
+        <div className="mt-4">
+          <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+            {data.clientName || "Nazwa Klienta"}
+          </h1>
+          <p className="text-sm text-zinc-500 mt-1">
+            {data.signCity || "Miejscowość"} • {formatDate(data.signDate)}
+          </p>
         </div>
       </div>
 
       {/* Main Content */}
-      <div style={{ padding: '20px 40px' }}>
-        {/* Parties */}
-        <div style={{ display: 'flex', gap: '40px', marginBottom: '16px' }}>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '9px', color: '#ec4899', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Wykonawca</p>
-            <p style={{ fontWeight: '600', marginBottom: '4px' }}>Aurine Agency</p>
-            <p style={{ color: '#999', fontSize: '10px' }}>{data.agencyEmail || "kontakt@aurine.pl"}</p>
-            {data.agencyAddress && <p style={{ color: '#999', fontSize: '10px' }}>{data.agencyAddress}</p>}
+      <div className="p-6 space-y-4">
+        {/* Parties Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-gradient-to-br from-pink-950/30 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-pink-800/20 p-4 backdrop-blur shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/30">
+                <Building2 className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-pink-300 font-semibold">Wykonawca</span>
+            </div>
+            <p className="text-sm font-semibold text-white">Aurine Agency</p>
+            <p className="text-xs text-zinc-400 mt-1">{data.agencyEmail || "kontakt@aurine.pl"}</p>
+            {data.agencyAddress && <p className="text-xs text-zinc-400">{data.agencyAddress}</p>}
           </div>
-          <div style={{ flex: 1 }}>
-            <p style={{ fontSize: '9px', color: '#ec4899', fontWeight: '600', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '1px' }}>Zleceniodawca</p>
-            <p style={{ fontWeight: '600', marginBottom: '4px' }}>{data.clientName || "—"}</p>
-            {data.clientOwnerName && <p style={{ color: '#999', fontSize: '10px' }}>Właściciel: {data.clientOwnerName}</p>}
-            {data.clientNip && <p style={{ color: '#999', fontSize: '10px' }}>NIP: {data.clientNip}</p>}
-            {data.clientAddress && <p style={{ color: '#999', fontSize: '10px' }}>{data.clientAddress}</p>}
-            {data.clientEmail && <p style={{ color: '#999', fontSize: '10px' }}>{data.clientEmail}</p>}
-            {data.clientPhone && <p style={{ color: '#999', fontSize: '10px' }}>Tel: {data.clientPhone}</p>}
+
+          <div className="bg-gradient-to-br from-blue-950/30 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-blue-800/20 p-4 backdrop-blur shadow-lg">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <span className="text-[10px] uppercase tracking-wider text-blue-300 font-semibold">Zleceniodawca</span>
+            </div>
+            <p className="text-sm font-semibold text-white">{data.clientName || "—"}</p>
+            {data.clientOwnerName && <p className="text-xs text-zinc-400 mt-1">Właściciel: {data.clientOwnerName}</p>}
+            {data.clientNip && <p className="text-xs text-zinc-400">NIP: {data.clientNip}</p>}
+            {data.clientAddress && <p className="text-xs text-zinc-400">{data.clientAddress}</p>}
+            {data.clientEmail && <p className="text-xs text-zinc-400">{data.clientEmail}</p>}
+            {data.clientPhone && <p className="text-xs text-zinc-400">Tel: {data.clientPhone}</p>}
           </div>
         </div>
 
-        <div style={{ borderTop: '1px solid #333', marginBottom: '12px' }} />
-
-        {/* §1 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§1. Przedmiot umowy</h2>
-          <p style={{ color: '#ccc', fontSize: '10px' }}>
+        {/* §1 Przedmiot umowy */}
+        <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-6 h-6 rounded-lg bg-pink-500/20 border border-pink-500/30 flex items-center justify-center">
+              <FileText className="w-3 h-3 text-pink-400" />
+            </div>
+            <h2 className="text-xs font-bold text-pink-400">§1. Przedmiot umowy</h2>
+          </div>
+          <p className="text-[11px] text-zinc-300 leading-relaxed mb-3">
             Przedmiotem umowy jest świadczenie usług marketingowych online, obejmujących tworzenie i prowadzenie kampanii reklamowych Facebook/Instagram Ads, przygotowanie materiałów reklamowych, optymalizację kampanii oraz comiesięczne raportowanie wyników.
           </p>
           {data.services && data.services.length > 0 && (
-            <div style={{ marginTop: '6px' }}>
-              <p style={{ fontSize: '9px', color: '#888', marginBottom: '3px' }}>Usługi objęte umową:</p>
-              {data.services.map((service) => (
-                <p key={service.id} style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• {service.name}</p>
-              ))}
+            <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800/30">
+              <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-2">Usługi objęte umową</p>
+              <div className="grid grid-cols-2 gap-1">
+                {data.services.map((service) => (
+                  <div key={service.id} className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-pink-400"></div>
+                    <span className="text-[10px] text-zinc-300">{service.name}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>
 
-        {/* §2 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§2. Obowiązki Wykonawcy</h2>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Prowadzenie kampanii reklamowych zgodnie z ustalonymi celami biznesowymi</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Przygotowywanie kreacji reklamowych (grafiki, teksty)</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Comiesięczne raportowanie wyników do 7. dnia następnego miesiąca</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Konsultacje i doradztwo w zakresie strategii marketingowej</p>
+        {/* §2-3 Obowiązki stron - 2 columns */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
+                <Shield className="w-3 h-3 text-emerald-400" />
+              </div>
+              <h2 className="text-xs font-bold text-emerald-400">§2. Obowiązki Wykonawcy</h2>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                "Prowadzenie kampanii reklamowych",
+                "Przygotowywanie kreacji reklamowych",
+                "Comiesięczne raportowanie wyników",
+                "Konsultacje marketingowe"
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <div className="w-1 h-1 rounded-full bg-emerald-400 mt-1.5 flex-shrink-0"></div>
+                  <span className="text-[10px] text-zinc-400">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-lg bg-blue-500/20 border border-blue-500/30 flex items-center justify-center">
+                <User className="w-3 h-3 text-blue-400" />
+              </div>
+              <h2 className="text-xs font-bold text-blue-400">§3. Obowiązki Zleceniodawcy</h2>
+            </div>
+            <div className="space-y-1.5">
+              {[
+                "Dostęp do fanpage i konta reklamowego",
+                "Dostarczenie materiałów (zdjęcia, logo)",
+                "Akceptacja kreacji w 3 dni robocze",
+                "Terminowe regulowanie płatności"
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <div className="w-1 h-1 rounded-full bg-blue-400 mt-1.5 flex-shrink-0"></div>
+                  <span className="text-[10px] text-zinc-400">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* §3 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§3. Obowiązki Zleceniodawcy</h2>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Udostępnienie dostępu do fanpage i konta reklamowego</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Dostarczenie materiałów (zdjęcia, opisy, logo)</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Akceptacja kreacji reklamowych w terminie 3 dni roboczych</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Terminowe regulowanie płatności zgodnie z umową</p>
-        </div>
-
-        {/* §4 */}
-        <div style={{ marginBottom: '10px', background: 'rgba(255,255,255,0.03)', padding: '10px', borderRadius: '6px', border: '1px solid #333' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '6px' }}>§4. Wynagrodzenie i budżet reklamowy</h2>
-          <p style={{ color: '#fff', fontSize: '10px', marginBottom: '4px' }}>
-            <strong>Wynagrodzenie miesięczne:</strong> {formatAmount(data.contractValue)} PLN brutto
+        {/* §4 Wynagrodzenie - highlighted */}
+        <div className="bg-gradient-to-br from-pink-950/40 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-pink-800/30 p-4 backdrop-blur shadow-xl">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/30">
+              <CreditCard className="w-4 h-4 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xs font-bold text-pink-400">§4. Wynagrodzenie i budżet reklamowy</h2>
+              <p className="text-[9px] text-pink-300">Warunki finansowe współpracy</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 mb-3">
+            <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800/30">
+              <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-1">Miesięcznie</p>
+              <p className="text-lg font-bold text-white">{formatAmount(data.contractValue)} PLN</p>
+            </div>
+            {data.paymentType === "split" ? (
+              <>
+                <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800/30">
+                  <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-1">Zaliczka</p>
+                  <p className="text-lg font-bold text-pink-400">{formatAmount(data.advanceAmount)} PLN</p>
+                </div>
+                <div className="bg-zinc-900/50 rounded-xl p-3 border border-zinc-800/30">
+                  <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-1">Pozostała część</p>
+                  <p className="text-lg font-bold text-zinc-300">{formatAmount(remainingValue)} PLN</p>
+                </div>
+              </>
+            ) : (
+              <div className="col-span-2 bg-zinc-900/50 rounded-xl p-3 border border-zinc-800/30">
+                <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-1">Płatność</p>
+                <p className="text-sm font-semibold text-zinc-300">Całość z góry w terminie 3 dni</p>
+              </div>
+            )}
+          </div>
+          <p className="text-[10px] text-zinc-500 italic">
+            Budżet reklamowy opłaca Zleceniodawca bezpośrednio do platformy reklamowej (Meta). Nie stanowi wynagrodzenia Wykonawcy.
           </p>
-          {data.paymentType === "split" ? (
-            <>
-              <p style={{ color: '#ccc', fontSize: '10px', marginBottom: '2px' }}>Zaliczka: {formatAmount(data.advanceAmount)} PLN płatna w terminie 3 dni od zawarcia umowy</p>
-              <p style={{ color: '#ccc', fontSize: '10px', marginBottom: '4px' }}>Pozostała część: {formatAmount(remainingValue)} PLN płatna do 7. dnia następnego miesiąca</p>
-            </>
-          ) : (
-            <p style={{ color: '#ccc', fontSize: '10px', marginBottom: '4px' }}>Płatność: Całość wynagrodzenia płatna z góry w terminie 3 dni od zawarcia umowy</p>
-          )}
-          <p style={{ color: '#888', fontSize: '9px', paddingTop: '6px', borderTop: '1px solid #333' }}>
-            Budżet reklamowy: Opłacany bezpośrednio przez Zleceniodawcę do platformy reklamowej (Meta). Nie stanowi części wynagrodzenia Wykonawcy.
-          </p>
         </div>
 
-        {/* §5 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§5. Prawa autorskie i własność</h2>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Materiały reklamowe stworzone przez Wykonawcę podlegają ochronie prawnoautorskiej</p>
-          <p style={{ color: '#fff', fontSize: '10px', paddingLeft: '10px' }}>• <strong>Konto reklamowe oraz wyniki kampanii są własnością Zleceniodawcy</strong></p>
+        {/* §5-6-7 Grid */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Scale className="w-3.5 h-3.5 text-purple-400" />
+              <h2 className="text-[10px] font-bold text-purple-400">§5. Prawa autorskie</h2>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] text-zinc-400">• Materiały podlegają ochronie prawnoautorskiej</p>
+              <p className="text-[9px] text-white font-medium">• Konto i wyniki są własnością Zleceniodawcy</p>
+            </div>
+          </div>
+
+          <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Clock className="w-3.5 h-3.5 text-amber-400" />
+              <h2 className="text-[10px] font-bold text-amber-400">§6. Okres i wypowiedzenie</h2>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] text-zinc-400">• Obowiązuje od wpłaty zaliczki</p>
+              <p className="text-[9px] text-white font-medium">• 30-dniowy okres wypowiedzenia</p>
+            </div>
+          </div>
+
+          <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-red-400" />
+              <h2 className="text-[10px] font-bold text-red-400">§7. Kary umowne</h2>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] text-zinc-400">• Opóźnienie: 0,5%/dzień</p>
+              <p className="text-[9px] text-zinc-400">• Niedotrzymanie terminów: 2%</p>
+              <p className="text-[9px] text-zinc-400">• Rozwiązanie po 14 dni zwłoki</p>
+            </div>
+          </div>
         </div>
 
-        {/* §6 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§6. Okres obowiązywania i wypowiedzenie</h2>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Umowa obowiązuje od dnia wpłaty zaliczki/wynagrodzenia</p>
-          <p style={{ color: '#fff', fontSize: '10px', paddingLeft: '10px' }}>• <strong>Umowa może zostać rozwiązana z zachowaniem 30-dniowego okresu wypowiedzenia</strong></p>
-        </div>
+        {/* §8-9-10 Grid */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Shield className="w-3.5 h-3.5 text-orange-400" />
+              <h2 className="text-[10px] font-bold text-orange-400">§8. Odpowiedzialność</h2>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] text-white font-medium">• Brak gwarancji wyników kampanii</p>
+              <p className="text-[9px] text-zinc-400">• Wyniki zależą od czynników zewnętrznych</p>
+            </div>
+          </div>
 
-        {/* §7 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§7. Kary umowne</h2>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Opóźnienie płatności: odsetki 0,5% wartości zaległej kwoty za każdy dzień zwłoki</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Niedotrzymanie terminów: kara umowna 2% miesięcznej wartości umowy</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Prawo do rozwiązania umowy natychmiast przy opóźnieniu płatności powyżej 14 dni</p>
-        </div>
+          <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-3.5 h-3.5 text-cyan-400" />
+              <h2 className="text-[10px] font-bold text-cyan-400">§9. RODO</h2>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] text-white font-medium">• Przetwarzanie zgodne z RODO</p>
+              <p className="text-[9px] text-zinc-400">• Dane tylko do realizacji umowy</p>
+            </div>
+          </div>
 
-        {/* §8 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§8. Odpowiedzialność</h2>
-          <p style={{ color: '#fff', fontSize: '10px', paddingLeft: '10px' }}>• <strong>Wykonawca nie gwarantuje określonego poziomu wyników kampanii reklamowych</strong></p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Wyniki kampanii zależą od wielu czynników zewnętrznych niezależnych od Wykonawcy</p>
-        </div>
-
-        {/* §9 */}
-        <div style={{ marginBottom: '10px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§9. Ochrona danych osobowych (RODO)</h2>
-          <p style={{ color: '#fff', fontSize: '10px', paddingLeft: '10px' }}>• <strong>Strony zobowiązują się do przetwarzania danych osobowych zgodnie z RODO</strong></p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Dane osobowe będą wykorzystywane wyłącznie w celu realizacji niniejszej umowy</p>
-        </div>
-
-        {/* §10 */}
-        <div style={{ marginBottom: '16px' }}>
-          <h2 style={{ fontSize: '10px', fontWeight: 'bold', color: '#ec4899', marginBottom: '4px' }}>§10. Postanowienia końcowe</h2>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• W sprawach nieuregulowanych zastosowanie mają przepisy Kodeksu cywilnego</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Umowa sporządzona w formie elektronicznej jest wystarczająca dla jej ważności</p>
-          <p style={{ color: '#ccc', fontSize: '10px', paddingLeft: '10px' }}>• Wszelkie zmiany umowy wymagają formy pisemnej pod rygorem nieważności</p>
+          <div className="bg-zinc-950/50 rounded-xl border border-zinc-800/30 p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Scroll className="w-3.5 h-3.5 text-zinc-400" />
+              <h2 className="text-[10px] font-bold text-zinc-400">§10. Postanowienia końcowe</h2>
+            </div>
+            <div className="space-y-1">
+              <p className="text-[9px] text-zinc-400">• Stosuje się przepisy KC</p>
+              <p className="text-[9px] text-zinc-400">• Zmiany wymagają formy pisemnej</p>
+            </div>
+          </div>
         </div>
 
         {/* Signatures */}
-        <div style={{ display: 'flex', gap: '60px', paddingTop: '20px', borderTop: '1px solid #333' }}>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ height: '50px', borderBottom: '1px solid #555', marginBottom: '6px' }} />
-            <p style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Zleceniodawca</p>
-            <p style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>{data.clientOwnerName || data.clientName || "—"}</p>
+        <div className="grid grid-cols-2 gap-12 pt-4">
+          <div className="text-center">
+            <div className="h-12 border-b border-zinc-700 mb-2"></div>
+            <p className="text-[10px] uppercase tracking-wider text-zinc-500">Zleceniodawca</p>
+            <p className="text-xs text-zinc-400 mt-0.5">{data.clientOwnerName || data.clientName || "—"}</p>
           </div>
-          <div style={{ flex: 1, textAlign: 'center' }}>
-            <div style={{ height: '50px', borderBottom: '1px solid #555', marginBottom: '6px' }} />
-            <p style={{ fontSize: '9px', color: '#666', textTransform: 'uppercase', letterSpacing: '1px' }}>Wykonawca</p>
-            <p style={{ fontSize: '10px', color: '#999', marginTop: '2px' }}>Aurine Agency</p>
+          <div className="text-center">
+            <div className="h-12 border-b border-zinc-700 mb-2"></div>
+            <p className="text-[10px] uppercase tracking-wider text-zinc-500">Wykonawca</p>
+            <p className="text-xs text-zinc-400 mt-0.5">Aurine Agency</p>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: '12px 40px',
-        borderTop: '1px solid #222',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <img src={agencyLogo} alt="Aurine" style={{ width: '16px', height: '16px', objectFit: 'contain', opacity: 0.5 }} />
-          <span style={{ fontSize: '9px', color: '#555' }}>aurine.pl</span>
+      <div className="px-6 py-4 border-t border-zinc-900 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain opacity-60" />
+          <span className="text-xs text-zinc-600">aurine.pl</span>
         </div>
-        <p style={{ fontSize: '9px', color: '#555' }}>
+        <p className="text-[10px] text-zinc-600">
           Profesjonalny marketing dla salonów beauty
         </p>
       </div>
