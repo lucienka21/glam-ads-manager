@@ -32,124 +32,135 @@ const formatDate = (dateStr: string): string => {
 export const WelcomePackPreview = ({ data, currentSlide }: WelcomePackPreviewProps) => {
   const totalSlides = 5;
 
-  // Slide 1: Welcome - Hero
+  // Slide 1: Welcome - Hero with split layout
   const WelcomeSlide = () => (
     <div className="w-full h-full relative overflow-hidden">
-      {/* Animated gradient background */}
+      {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
       
-      {/* Large decorative circles */}
-      <div className="absolute -top-40 -right-40 w-[700px] h-[700px] rounded-full bg-gradient-to-br from-pink-500/30 via-fuchsia-500/20 to-transparent blur-3xl" />
-      <div className="absolute -bottom-60 -left-40 w-[600px] h-[600px] rounded-full bg-gradient-to-tr from-rose-500/25 via-pink-500/15 to-transparent blur-3xl" />
-      
-      {/* Decorative pattern overlay */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0)`,
-          backgroundSize: '40px 40px'
-        }} />
-      </div>
+      {/* Large glowing orb */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-pink-500/20 via-fuchsia-500/10 to-transparent blur-3xl" />
 
-      {/* Floating icons grid - right side */}
-      <div className="absolute right-12 top-1/2 -translate-y-1/2 grid grid-cols-3 gap-4">
-        {[
-          { Icon: Sparkles, color: "from-pink-500 to-rose-600", delay: "0s" },
-          { Icon: Heart, color: "from-fuchsia-500 to-purple-600", delay: "0.1s" },
-          { Icon: Star, color: "from-amber-500 to-orange-600", delay: "0.2s" },
-          { Icon: Rocket, color: "from-blue-500 to-cyan-600", delay: "0.3s" },
-          { Icon: Target, color: "from-emerald-500 to-teal-600", delay: "0.4s" },
-          { Icon: Zap, color: "from-yellow-500 to-amber-600", delay: "0.5s" },
-          { Icon: Award, color: "from-rose-500 to-pink-600", delay: "0.6s" },
-          { Icon: TrendingUp, color: "from-green-500 to-emerald-600", delay: "0.7s" },
-          { Icon: Gift, color: "from-violet-500 to-purple-600", delay: "0.8s" },
-        ].map(({ Icon, color, delay }, i) => (
-          <div 
-            key={i} 
-            className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-2xl transform hover:scale-110 transition-transform`}
-            style={{ 
-              animation: `pulse 2s ease-in-out infinite`,
-              animationDelay: delay
-            }}
-          >
-            <Icon className="w-10 h-10 text-white drop-shadow-lg" />
-          </div>
-        ))}
-      </div>
-
-      {/* Content */}
-      <div className="relative h-full flex flex-col p-16">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-auto">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-pink-500/30">
-              <img src={agencyLogo} alt="Aurine" className="w-10 h-10 object-contain" />
+      {/* Content - Split layout */}
+      <div className="relative h-full flex">
+        {/* Left side - Text content */}
+        <div className="w-1/2 h-full flex flex-col p-14">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-auto">
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-pink-500/40">
+              <img src={agencyLogo} alt="Aurine" className="w-9 h-9 object-contain" />
             </div>
             <div>
-              <p className="text-pink-400 font-black text-2xl tracking-wide">AURINE</p>
-              <p className="text-zinc-500 text-sm tracking-widest uppercase">Beauty Marketing</p>
+              <p className="text-white font-black text-xl">AURINE</p>
+              <p className="text-pink-400 text-xs font-medium tracking-widest">BEAUTY MARKETING</p>
             </div>
           </div>
-          
-          <div className="px-6 py-3 bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-full shadow-xl shadow-pink-500/30">
-            <span className="text-white font-bold">Welcome Pack 2025</span>
-          </div>
-        </div>
 
-        {/* Main content */}
-        <div className="flex-1 flex items-center max-w-[55%]">
-          <div>
-            <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/40 rounded-full mb-8 backdrop-blur-sm">
-              <Sparkles className="w-6 h-6 text-pink-400" />
-              <span className="text-pink-300 font-bold text-lg">Witamy w rodzinie Aurine!</span>
-              <Heart className="w-5 h-5 text-fuchsia-400" />
+          {/* Main text */}
+          <div className="flex-1 flex flex-col justify-center">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500/10 border border-pink-500/30 rounded-full mb-6 w-fit">
+              <span className="text-pink-400 font-bold text-sm uppercase tracking-wider">Welcome Pack 2025</span>
             </div>
             
-            <h1 className="text-7xl font-black text-white mb-6 leading-[1.1]">
-              Cześć, <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">{data.ownerName || "Droga Klientko"}</span>!
+            <h1 className="text-6xl font-black text-white mb-4 leading-[1.1]">
+              Witaj w<br />
+              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">rodzinie Aurine</span>
             </h1>
             
-            <p className="text-3xl text-zinc-300 mb-3 font-light">
-              Cieszymy się, że <span className="text-pink-400 font-bold">{data.salonName || "Twój salon"}</span>
-            </p>
-            <p className="text-3xl text-zinc-300 mb-10 font-light">
-              dołącza do grona naszych klientów! 🎉
-            </p>
-            
-            <p className="text-xl text-zinc-400 max-w-xl leading-relaxed mb-10">
-              Ten dokument to Twój przewodnik po współpracy z nami. 
-              Znajdziesz tu harmonogram, kontakty i wszystko, co potrzebujesz.
+            <p className="text-2xl text-zinc-400 mb-8 font-light">
+              {data.salonName || "Twój salon"}{data.city ? `, ${data.city}` : ""}
             </p>
 
-            {data.startDate && (
-              <div className="inline-flex items-center gap-5 px-8 py-5 bg-gradient-to-r from-zinc-900/95 to-zinc-800/80 border border-pink-500/30 rounded-2xl backdrop-blur-sm shadow-2xl">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-pink-500/40">
-                  <Calendar className="w-8 h-8 text-white" />
+            <div className="flex items-center gap-4">
+              {data.startDate && (
+                <div className="flex items-center gap-3 px-5 py-3 bg-zinc-800/80 border border-zinc-700/50 rounded-xl">
+                  <Calendar className="w-5 h-5 text-pink-400" />
+                  <div>
+                    <p className="text-zinc-500 text-xs font-medium">Start</p>
+                    <p className="text-white font-bold">{formatDate(data.startDate)}</p>
+                  </div>
                 </div>
+              )}
+              <div className="flex items-center gap-3 px-5 py-3 bg-zinc-800/80 border border-zinc-700/50 rounded-xl">
+                <Users className="w-5 h-5 text-fuchsia-400" />
                 <div>
-                  <p className="text-pink-400 text-sm font-bold uppercase tracking-wider">Start współpracy</p>
-                  <p className="text-white font-black text-2xl">{formatDate(data.startDate)}</p>
+                  <p className="text-zinc-500 text-xs font-medium">Opiekun</p>
+                  <p className="text-white font-bold">{data.managerName || "Twój opiekun"}</p>
                 </div>
               </div>
-            )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between mt-auto">
+            <span className="text-zinc-600 text-sm">aurine.pl</span>
+            <div className="flex items-center gap-2">
+              {[...Array(totalSlides)].map((_, i) => (
+                <div key={i} className={`h-2 rounded-full transition-all ${i === 0 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2 bg-zinc-700/50'}`} />
+              ))}
+            </div>
+            <span className="text-zinc-600 text-sm">1 / {totalSlides}</span>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-auto">
-          <div className="flex items-center gap-3">
-            <img src={agencyLogo} alt="Aurine" className="w-6 h-6 object-contain opacity-60" />
-            <span className="text-zinc-600 text-sm font-medium">aurine.pl</span>
+        {/* Right side - Visual element */}
+        <div className="w-1/2 h-full relative flex items-center justify-center p-10">
+          {/* Main card */}
+          <div className="relative">
+            {/* Glow behind */}
+            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/40 to-fuchsia-500/40 rounded-3xl blur-2xl scale-110" />
+            
+            {/* Card */}
+            <div className="relative w-[380px] h-[480px] bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700/50 rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-2xl">
+              {/* Decorative top */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-full">
+                <span className="text-white font-bold text-sm">Dla {data.ownerName || "Ciebie"}</span>
+              </div>
+              
+              {/* Icons grid */}
+              <div className="grid grid-cols-3 gap-3 mb-8 mt-4">
+                {[
+                  { Icon: Rocket, color: "from-blue-500 to-cyan-500" },
+                  { Icon: Target, color: "from-pink-500 to-rose-500" },
+                  { Icon: TrendingUp, color: "from-emerald-500 to-teal-500" },
+                  { Icon: Heart, color: "from-fuchsia-500 to-purple-500" },
+                  { Icon: Star, color: "from-amber-500 to-orange-500" },
+                  { Icon: Zap, color: "from-yellow-500 to-amber-500" },
+                ].map(({ Icon, color }, i) => (
+                  <div key={i} className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}>
+                    <Icon className="w-8 h-8 text-white" />
+                  </div>
+                ))}
+              </div>
+
+              {/* Text */}
+              <h3 className="text-2xl font-bold text-white mb-2">Twój przewodnik</h3>
+              <p className="text-zinc-400 text-sm mb-6">Wszystko co musisz wiedzieć o naszej współpracy</p>
+              
+              {/* Features list */}
+              <div className="space-y-2 text-left w-full">
+                {["Zespół i kontakty", "Harmonogram współpracy", "Wymagania na start", "Jak się komunikować"].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3 px-4 py-2 bg-zinc-800/50 rounded-lg">
+                    <CheckCircle2 className="w-4 h-4 text-pink-400 flex-shrink-0" />
+                    <span className="text-zinc-300 text-sm">{item}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Floating elements */}
+            <div className="absolute -top-8 -right-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-xl shadow-pink-500/30 rotate-12">
+              <Gift className="w-10 h-10 text-white" />
+            </div>
+            <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center shadow-xl shadow-fuchsia-500/30 -rotate-12">
+              <Sparkles className="w-8 h-8 text-white" />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {[...Array(totalSlides)].map((_, i) => (
-              <div key={i} className={`h-2.5 rounded-full transition-all ${i === 0 ? 'w-12 bg-gradient-to-r from-pink-500 to-fuchsia-500 shadow-lg shadow-pink-500/50' : 'w-2.5 bg-zinc-700/50'}`} />
-            ))}
-          </div>
-          <span className="text-zinc-600 text-sm font-medium">1 / {totalSlides}</span>
         </div>
       </div>
     </div>
   );
+
 
   // Slide 2: Team
   const TeamSlide = () => (
