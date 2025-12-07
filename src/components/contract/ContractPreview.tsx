@@ -53,13 +53,14 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
       id="contract-preview"
       style={{
         width: '794px',
-        minHeight: '1123px',
+        height: '1123px',
         backgroundColor: '#0a0a0a',
         color: 'white',
         fontFamily: 'Inter, system-ui, sans-serif',
         position: 'relative',
-        padding: '24px 28px',
+        padding: '28px 32px',
         boxSizing: 'border-box',
+        overflow: 'hidden',
       }}
     >
       {/* Header */}
@@ -67,79 +68,82 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'flex-start',
-        marginBottom: '16px',
-        paddingBottom: '14px',
-        borderBottom: '2px solid rgba(236, 72, 153, 0.4)',
+        marginBottom: '20px',
+        paddingBottom: '16px',
+        borderBottom: '2px solid rgba(236, 72, 153, 0.5)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
           <img 
             src={agencyLogo} 
             alt="Aurine" 
-            style={{ width: '48px', height: '48px', objectFit: 'contain' }}
+            style={{ width: '54px', height: '54px', objectFit: 'contain' }}
           />
           <div>
-            <p style={{ fontSize: '9px', letterSpacing: '0.2em', color: '#71717a', textTransform: 'uppercase', marginBottom: '2px' }}>
+            <p style={{ fontSize: '10px', letterSpacing: '0.2em', color: '#71717a', textTransform: 'uppercase', marginBottom: '3px' }}>
               {data.agencyName || 'Aurine Agency'}
             </p>
-            <p style={{ fontSize: '20px', fontWeight: '700', color: 'white' }}>
+            <p style={{ fontSize: '24px', fontWeight: '700', color: 'white', marginBottom: '2px' }}>
               Umowa Współpracy
             </p>
-            <p style={{ fontSize: '12px', color: '#a1a1aa' }}>
+            <p style={{ fontSize: '13px', color: '#a1a1aa' }}>
               {data.clientName || "Nazwa Klienta"} • {data.signCity || "Miejscowość"} • {formatDate(data.signDate)}
             </p>
           </div>
         </div>
         <div style={{
           background: 'linear-gradient(135deg, #db2777, #be123c)',
-          padding: '10px 20px',
+          padding: '12px 24px',
           borderRadius: '12px',
           textAlign: 'right',
+          flexShrink: 0,
         }}>
-          <span style={{ fontSize: '8px', letterSpacing: '0.15em', color: '#fce7f3', textTransform: 'uppercase' }}>
+          <span style={{ fontSize: '9px', letterSpacing: '0.15em', color: '#fce7f3', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
             Wynagrodzenie
           </span>
-          <p style={{ fontSize: '22px', fontWeight: '800', color: 'white' }}>
+          <p style={{ fontSize: '24px', fontWeight: '800', color: 'white', margin: 0 }}>
             {formatAmount(data.contractValue)} PLN
           </p>
         </div>
       </div>
 
       {/* Parties */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '12px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
         <div style={{
-          background: 'linear-gradient(135deg, rgba(157, 23, 77, 0.2), rgba(24, 24, 27, 0.5))',
-          borderRadius: '10px',
-          border: '1px solid rgba(236, 72, 153, 0.2)',
-          padding: '10px 12px',
+          background: 'linear-gradient(135deg, rgba(157, 23, 77, 0.25), rgba(24, 24, 27, 0.6))',
+          borderRadius: '12px',
+          border: '1px solid rgba(236, 72, 153, 0.3)',
+          padding: '14px 16px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <Building2 style={{ width: '14px', height: '14px', color: '#f472b6' }} />
-            <span style={{ fontSize: '10px', letterSpacing: '0.1em', color: '#f9a8d4', fontWeight: '600', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <Building2 style={{ width: '16px', height: '16px', color: '#f472b6' }} />
+            <span style={{ fontSize: '11px', letterSpacing: '0.1em', color: '#f9a8d4', fontWeight: '700', textTransform: 'uppercase' }}>
               Wykonawca
             </span>
           </div>
-          <p style={{ fontSize: '13px', fontWeight: '600', color: 'white' }}>{data.agencyName || 'Aurine Agency'}</p>
-          <p style={{ fontSize: '11px', color: '#d4d4d8' }}>{data.agencyOwnerName}</p>
-          <p style={{ fontSize: '10px', color: '#a1a1aa' }}>NIP: {data.agencyNip} • {data.agencyAddress}</p>
-          <p style={{ fontSize: '10px', color: '#a1a1aa' }}>{data.agencyEmail} • Tel: {data.agencyPhone}</p>
+          <p style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{data.agencyName || 'Aurine Agency'}</p>
+          <p style={{ fontSize: '13px', color: '#e4e4e7', marginBottom: '4px' }}>{data.agencyOwnerName}</p>
+          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>NIP: {data.agencyNip}</p>
+          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>{data.agencyAddress}</p>
+          <p style={{ fontSize: '11px', color: '#a1a1aa' }}>{data.agencyEmail} • {data.agencyPhone}</p>
         </div>
 
         <div style={{
-          background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(24, 24, 27, 0.5))',
-          borderRadius: '10px',
-          border: '1px solid rgba(59, 130, 246, 0.2)',
-          padding: '10px 12px',
+          background: 'linear-gradient(135deg, rgba(30, 58, 138, 0.25), rgba(24, 24, 27, 0.6))',
+          borderRadius: '12px',
+          border: '1px solid rgba(59, 130, 246, 0.3)',
+          padding: '14px 16px',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-            <User style={{ width: '14px', height: '14px', color: '#60a5fa' }} />
-            <span style={{ fontSize: '10px', letterSpacing: '0.1em', color: '#93c5fd', fontWeight: '600', textTransform: 'uppercase' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <User style={{ width: '16px', height: '16px', color: '#60a5fa' }} />
+            <span style={{ fontSize: '11px', letterSpacing: '0.1em', color: '#93c5fd', fontWeight: '700', textTransform: 'uppercase' }}>
               Zleceniodawca
             </span>
           </div>
-          <p style={{ fontSize: '13px', fontWeight: '600', color: 'white' }}>{data.clientName || "—"}</p>
-          <p style={{ fontSize: '11px', color: '#d4d4d8' }}>{data.clientOwnerName}</p>
-          <p style={{ fontSize: '10px', color: '#a1a1aa' }}>NIP: {data.clientNip} • {data.clientAddress}</p>
-          <p style={{ fontSize: '10px', color: '#a1a1aa' }}>{data.clientEmail} • Tel: {data.clientPhone}</p>
+          <p style={{ fontSize: '15px', fontWeight: '700', color: 'white', marginBottom: '4px' }}>{data.clientName || "—"}</p>
+          <p style={{ fontSize: '13px', color: '#e4e4e7', marginBottom: '4px' }}>{data.clientOwnerName}</p>
+          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>NIP: {data.clientNip}</p>
+          <p style={{ fontSize: '11px', color: '#a1a1aa', marginBottom: '2px' }}>{data.clientAddress}</p>
+          <p style={{ fontSize: '11px', color: '#a1a1aa' }}>{data.clientEmail} • {data.clientPhone}</p>
         </div>
       </div>
 
@@ -306,32 +310,31 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
         </div>
       </div>
 
-      {/* Signatures */}
+      {/* Signatures - positioned at bottom */}
       <div style={{ 
         position: 'absolute',
-        bottom: '30px',
-        left: '28px',
-        right: '28px',
-        display: 'grid', 
-        gridTemplateColumns: '1fr 1fr', 
-        gap: '60px',
+        bottom: '32px',
+        left: '32px',
+        right: '32px',
+        display: 'flex', 
+        justifyContent: 'space-between',
       }}>
-        <div>
+        <div style={{ width: '280px' }}>
           <div style={{
-            borderTop: '2px solid rgba(236, 72, 153, 0.5)',
-            paddingTop: '10px',
+            borderTop: '2px solid rgba(236, 72, 153, 0.6)',
+            paddingTop: '12px',
           }}>
-            <p style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '2px' }}>Wykonawca</p>
-            <p style={{ fontSize: '12px', color: '#f9a8d4', fontWeight: '600' }}>{data.agencyOwnerName || data.agencyName}</p>
+            <p style={{ fontSize: '11px', color: '#71717a', marginBottom: '4px' }}>Wykonawca</p>
+            <p style={{ fontSize: '14px', color: '#f9a8d4', fontWeight: '600' }}>{data.agencyOwnerName || data.agencyName}</p>
           </div>
         </div>
-        <div style={{ textAlign: 'right' }}>
+        <div style={{ width: '280px', textAlign: 'right' }}>
           <div style={{
-            borderTop: '2px solid rgba(59, 130, 246, 0.5)',
-            paddingTop: '10px',
+            borderTop: '2px solid rgba(59, 130, 246, 0.6)',
+            paddingTop: '12px',
           }}>
-            <p style={{ fontSize: '10px', color: '#a1a1aa', marginBottom: '2px' }}>Zleceniodawca</p>
-            <p style={{ fontSize: '12px', color: '#93c5fd', fontWeight: '600' }}>{data.clientOwnerName || data.clientName}</p>
+            <p style={{ fontSize: '11px', color: '#71717a', marginBottom: '4px' }}>Zleceniodawca</p>
+            <p style={{ fontSize: '14px', color: '#93c5fd', fontWeight: '600' }}>{data.clientOwnerName || data.clientName}</p>
           </div>
         </div>
       </div>
