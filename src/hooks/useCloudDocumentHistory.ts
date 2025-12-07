@@ -4,9 +4,11 @@ import { useAuth } from "./useAuth";
 import { useUserRole } from "./useUserRole";
 import { Json } from "@/integrations/supabase/types";
 
+export type DocumentType = "report" | "invoice" | "contract" | "presentation" | "welcomepack";
+
 export interface CloudDocumentItem {
   id: string;
-  type: "report" | "invoice" | "contract" | "presentation";
+  type: DocumentType;
   title: string;
   subtitle: string | null;
   data: Record<string, string>;
@@ -144,7 +146,7 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
   }, [user, fetchDocuments]);
 
   const saveDocument = useCallback(async (
-    type: CloudDocumentItem["type"],
+    type: DocumentType,
     title: string,
     subtitle: string,
     data: Record<string, string>,
@@ -208,7 +210,7 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
     ));
   }, []);
 
-  const clearHistory = useCallback(async (type?: CloudDocumentItem["type"]) => {
+  const clearHistory = useCallback(async (type?: DocumentType) => {
     if (!user) return;
 
     // Supabase requires at least one filter condition for delete
@@ -253,6 +255,7 @@ export const useCloudDocumentHistory = (filterUserId?: string | null) => {
       invoices: filtered.filter(i => i.type === "invoice").length,
       contracts: filtered.filter(i => i.type === "contract").length,
       presentations: filtered.filter(i => i.type === "presentation").length,
+      welcomepacks: filtered.filter(i => i.type === "welcomepack").length,
     };
   }, [history]);
 

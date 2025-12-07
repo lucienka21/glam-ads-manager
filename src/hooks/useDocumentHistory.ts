@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 
+export type DocumentType = "report" | "invoice" | "contract" | "presentation" | "welcomepack";
+
 export interface DocumentHistoryItem {
   id: string;
-  type: "report" | "invoice" | "contract" | "presentation";
+  type: DocumentType;
   title: string;
   subtitle: string;
   data: Record<string, string>;

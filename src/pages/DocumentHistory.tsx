@@ -39,6 +39,7 @@ const typeLabels: Record<string, string> = {
   invoice: "Faktura",
   contract: "Umowa",
   presentation: "Prezentacja",
+  welcomepack: "Welcome Pack",
 };
 
 const typeColors: Record<string, string> = {
@@ -46,6 +47,7 @@ const typeColors: Record<string, string> = {
   invoice: "bg-emerald-500/10 text-emerald-400 border-emerald-500/30",
   contract: "bg-blue-500/10 text-blue-400 border-blue-500/30",
   presentation: "bg-purple-500/10 text-purple-400 border-purple-500/30",
+  welcomepack: "bg-amber-500/10 text-amber-400 border-amber-500/30",
 };
 
 const filterOptions = [
@@ -54,6 +56,7 @@ const filterOptions = [
   { value: "invoice", label: "Faktury" },
   { value: "contract", label: "Umowy" },
   { value: "presentation", label: "Prezentacje" },
+  { value: "welcomepack", label: "Welcome Pack" },
 ];
 
 type SortOption = "date-desc" | "date-asc" | "name-asc" | "name-desc" | "type-asc" | "type-desc";
