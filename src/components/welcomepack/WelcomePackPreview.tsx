@@ -32,130 +32,88 @@ const formatDate = (dateStr: string): string => {
 export const WelcomePackPreview = ({ data, currentSlide }: WelcomePackPreviewProps) => {
   const totalSlides = 5;
 
-  // Slide 1: Welcome - Hero with split layout
+  // Slide 1: Welcome - Minimalist elegant hero
   const WelcomeSlide = () => (
     <div className="w-full h-full relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-black" />
+      {/* Dark gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
       
-      {/* Large glowing orb */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] rounded-full bg-gradient-to-br from-pink-500/20 via-fuchsia-500/10 to-transparent blur-3xl" />
-
-      {/* Content - Split layout */}
-      <div className="relative h-full flex">
-        {/* Left side - Text content */}
-        <div className="w-1/2 h-full flex flex-col p-14">
-          {/* Logo */}
-          <div className="flex items-center gap-3 mb-auto">
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center shadow-xl shadow-pink-500/40">
-              <img src={agencyLogo} alt="Aurine" className="w-9 h-9 object-contain" />
-            </div>
-            <div>
-              <p className="text-white font-black text-xl">AURINE</p>
-              <p className="text-pink-400 text-xs font-medium tracking-widest">BEAUTY MARKETING</p>
-            </div>
+      {/* Subtle pink glow - centered */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-pink-500/10 blur-[120px]" />
+      
+      {/* Content */}
+      <div className="relative h-full flex flex-col items-center justify-center text-center p-12">
+        {/* Logo at top */}
+        <div className="absolute top-10 left-10 flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center">
+            <img src={agencyLogo} alt="Aurine" className="w-8 h-8 object-contain" />
           </div>
+          <span className="text-white font-bold text-lg">AURINE</span>
+        </div>
 
-          {/* Main text */}
-          <div className="flex-1 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500/10 border border-pink-500/30 rounded-full mb-6 w-fit">
-              <span className="text-pink-400 font-bold text-sm uppercase tracking-wider">Welcome Pack 2025</span>
-            </div>
-            
-            <h1 className="text-6xl font-black text-white mb-4 leading-[1.1]">
-              Witaj w<br />
-              <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">rodzinie Aurine</span>
-            </h1>
-            
-            <p className="text-2xl text-zinc-400 mb-8 font-light">
-              {data.salonName || "Twój salon"}{data.city ? `, ${data.city}` : ""}
-            </p>
+        {/* Badge */}
+        <div className="absolute top-10 right-10 px-4 py-2 bg-pink-500/10 border border-pink-500/30 rounded-full">
+          <span className="text-pink-400 text-sm font-medium">Welcome Pack</span>
+        </div>
 
-            <div className="flex items-center gap-4">
-              {data.startDate && (
-                <div className="flex items-center gap-3 px-5 py-3 bg-zinc-800/80 border border-zinc-700/50 rounded-xl">
-                  <Calendar className="w-5 h-5 text-pink-400" />
-                  <div>
-                    <p className="text-zinc-500 text-xs font-medium">Start</p>
-                    <p className="text-white font-bold">{formatDate(data.startDate)}</p>
-                  </div>
+        {/* Main content - centered */}
+        <div className="max-w-3xl">
+          {/* Big welcome text */}
+          <h1 className="text-8xl font-black text-white mb-6 leading-none">
+            Witaj, <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">{data.ownerName || "Klientko"}</span>!
+          </h1>
+          
+          <p className="text-3xl text-zinc-400 mb-12 font-light">
+            Cieszymy się, że <span className="text-white font-medium">{data.salonName || "Twój salon"}</span> dołącza do rodziny Aurine
+          </p>
+
+          {/* Info cards row */}
+          <div className="flex items-center justify-center gap-6">
+            {data.startDate && (
+              <div className="flex items-center gap-4 px-6 py-4 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-fuchsia-600 flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-white" />
                 </div>
-              )}
-              <div className="flex items-center gap-3 px-5 py-3 bg-zinc-800/80 border border-zinc-700/50 rounded-xl">
-                <Users className="w-5 h-5 text-fuchsia-400" />
-                <div>
-                  <p className="text-zinc-500 text-xs font-medium">Opiekun</p>
-                  <p className="text-white font-bold">{data.managerName || "Twój opiekun"}</p>
+                <div className="text-left">
+                  <p className="text-zinc-500 text-sm">Start współpracy</p>
+                  <p className="text-white font-bold text-lg">{formatDate(data.startDate)}</p>
                 </div>
               </div>
+            )}
+            
+            <div className="flex items-center gap-4 px-6 py-4 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl">
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div className="text-left">
+                <p className="text-zinc-500 text-sm">Twój opiekun</p>
+                <p className="text-white font-bold text-lg">{data.managerName || "Do ustalenia"}</p>
+              </div>
             </div>
-          </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between mt-auto">
-            <span className="text-zinc-600 text-sm">aurine.pl</span>
-            <div className="flex items-center gap-2">
-              {[...Array(totalSlides)].map((_, i) => (
-                <div key={i} className={`h-2 rounded-full transition-all ${i === 0 ? 'w-10 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2 bg-zinc-700/50'}`} />
-              ))}
-            </div>
-            <span className="text-zinc-600 text-sm">1 / {totalSlides}</span>
+            {data.city && (
+              <div className="flex items-center gap-4 px-6 py-4 bg-zinc-800/50 border border-zinc-700/50 rounded-2xl">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                  <Target className="w-6 h-6 text-white" />
+                </div>
+                <div className="text-left">
+                  <p className="text-zinc-500 text-sm">Lokalizacja</p>
+                  <p className="text-white font-bold text-lg">{data.city}</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Right side - Visual element */}
-        <div className="w-1/2 h-full relative flex items-center justify-center p-10">
-          {/* Main card */}
-          <div className="relative">
-            {/* Glow behind */}
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/40 to-fuchsia-500/40 rounded-3xl blur-2xl scale-110" />
-            
-            {/* Card */}
-            <div className="relative w-[380px] h-[480px] bg-gradient-to-br from-zinc-900 to-zinc-800 border border-zinc-700/50 rounded-3xl p-8 flex flex-col items-center justify-center text-center shadow-2xl">
-              {/* Decorative top */}
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-full">
-                <span className="text-white font-bold text-sm">Dla {data.ownerName || "Ciebie"}</span>
-              </div>
-              
-              {/* Icons grid */}
-              <div className="grid grid-cols-3 gap-3 mb-8 mt-4">
-                {[
-                  { Icon: Rocket, color: "from-blue-500 to-cyan-500" },
-                  { Icon: Target, color: "from-pink-500 to-rose-500" },
-                  { Icon: TrendingUp, color: "from-emerald-500 to-teal-500" },
-                  { Icon: Heart, color: "from-fuchsia-500 to-purple-500" },
-                  { Icon: Star, color: "from-amber-500 to-orange-500" },
-                  { Icon: Zap, color: "from-yellow-500 to-amber-500" },
-                ].map(({ Icon, color }, i) => (
-                  <div key={i} className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center shadow-lg`}>
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
-                ))}
-              </div>
-
-              {/* Text */}
-              <h3 className="text-2xl font-bold text-white mb-2">Twój przewodnik</h3>
-              <p className="text-zinc-400 text-sm mb-6">Wszystko co musisz wiedzieć o naszej współpracy</p>
-              
-              {/* Features list */}
-              <div className="space-y-2 text-left w-full">
-                {["Zespół i kontakty", "Harmonogram współpracy", "Wymagania na start", "Jak się komunikować"].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 px-4 py-2 bg-zinc-800/50 rounded-lg">
-                    <CheckCircle2 className="w-4 h-4 text-pink-400 flex-shrink-0" />
-                    <span className="text-zinc-300 text-sm">{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Floating elements */}
-            <div className="absolute -top-8 -right-8 w-20 h-20 rounded-2xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow-xl shadow-pink-500/30 rotate-12">
-              <Gift className="w-10 h-10 text-white" />
-            </div>
-            <div className="absolute -bottom-6 -left-6 w-16 h-16 rounded-xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center shadow-xl shadow-fuchsia-500/30 -rotate-12">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
+        {/* Footer */}
+        <div className="absolute bottom-10 left-10 right-10 flex items-center justify-between">
+          <span className="text-zinc-600 text-sm">aurine.pl</span>
+          <div className="flex items-center gap-2">
+            {[...Array(totalSlides)].map((_, i) => (
+              <div key={i} className={`h-2 rounded-full transition-all ${i === 0 ? 'w-8 bg-gradient-to-r from-pink-500 to-fuchsia-500' : 'w-2 bg-zinc-700'}`} />
+            ))}
           </div>
+          <span className="text-zinc-600 text-sm">1 / {totalSlides}</span>
         </div>
       </div>
     </div>
