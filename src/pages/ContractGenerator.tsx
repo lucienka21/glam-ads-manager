@@ -147,12 +147,14 @@ const ContractGenerator = () => {
   useEffect(() => {
     const updateScale = () => {
       if (previewContainerRef.current) {
-        const width = previewContainerRef.current.clientWidth;
-        const height = previewContainerRef.current.clientHeight;
-        // Scale to fit container with padding, preferring larger scale
-        const scaleByWidth = (width - 48) / 794;
-        const scaleByHeight = (height - 48) / 1123;
-        setPreviewScale(Math.min(scaleByWidth, scaleByHeight, 1));
+        const containerWidth = previewContainerRef.current.clientWidth;
+        const containerHeight = previewContainerRef.current.clientHeight;
+        // Fixed A4 dimensions: 794px x 1123px
+        const scaleX = (containerWidth - 40) / 794;
+        const scaleY = (containerHeight - 40) / 1123;
+        // Use the smaller scale to fit, but ensure minimum readability
+        const scale = Math.min(scaleX, scaleY, 0.85);
+        setPreviewScale(Math.max(scale, 0.4));
       }
     };
     updateScale();
