@@ -3,7 +3,6 @@ import agencyLogo from "@/assets/agency-logo.png";
 interface ContractData {
   clientName: string;
   clientAddress: string;
-  clientNip?: string;
   signDate: string;
   signCity: string;
   contractValue: string;
@@ -27,7 +26,7 @@ const formatAmount = (amount: string) => {
   return num.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 };
 
-// Decorative components - same style as Invoice
+// Decorative components matching invoice style
 const GradientOrbs = () => (
   <>
     <div className="absolute top-0 right-0 w-[350px] h-[350px] rounded-full bg-gradient-to-br from-pink-500/20 via-fuchsia-500/10 to-transparent blur-[80px]" />
@@ -60,28 +59,6 @@ const DotsPattern = ({ className = "" }: { className?: string }) => (
       ))}
     </div>
   </div>
-);
-
-// Icons
-const DocumentIcon = () => (
-  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" strokeWidth="2"/>
-    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" strokeWidth="2" strokeLinecap="round"/>
-  </svg>
-);
-
-const LocationIcon = () => (
-  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeWidth="2"/>
-    <circle cx="12" cy="10" r="3" strokeWidth="2"/>
-  </svg>
-);
-
-const CalendarIcon = () => (
-  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
-    <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
-  </svg>
 );
 
 export const ContractPreview = ({ data }: ContractPreviewProps) => {
@@ -117,7 +94,6 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
           </div>
           <div className="text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
-              <DocumentIcon />
               <span className="text-white text-sm font-semibold">Umowa współpracy</span>
             </div>
           </div>
@@ -127,20 +103,26 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
         <div className="flex gap-4 mb-4">
           <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <LocationIcon />
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Miejsce</p>
-              <p className="text-white font-medium text-xs">{data.signCity || "—"}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <CalendarIcon />
+              <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+                <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
+              </svg>
             </div>
             <div>
               <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Data zawarcia</p>
               <p className="text-white font-medium text-xs">{formatDate(data.signDate)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
+              <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeWidth="2"/>
+                <circle cx="12" cy="10" r="3" strokeWidth="2"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Miejscowość</p>
+              <p className="text-white font-medium text-xs">{data.signCity || "—"}</p>
             </div>
           </div>
         </div>
@@ -152,111 +134,124 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="relative bg-zinc-900 border border-pink-500/30 rounded-lg p-3">
               <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Wykonawca</p>
               <p className="text-sm font-bold text-white">Agencja Marketingowa Aurine</p>
-              <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress || "—"}</p>
+              {data.agencyAddress && <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress}</p>}
               <p className="text-xs text-zinc-500 mt-0.5">{data.agencyEmail || "kontakt@aurine.pl"}</p>
             </div>
           </div>
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3">
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Zleceniodawca</p>
             <p className="text-sm font-bold text-white">{data.clientName || "—"}</p>
-            <p className="text-xs text-zinc-500 mt-1">{data.clientAddress || "—"}</p>
-            {data.clientNip && <p className="text-xs text-zinc-500 mt-0.5">NIP: {data.clientNip}</p>}
+            {data.clientAddress && <p className="text-xs text-zinc-500 mt-1">{data.clientAddress}</p>}
           </div>
         </div>
 
         {/* Contract Value */}
-        <div className="relative mb-4">
+        <div className="relative mb-4 group">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg blur-sm opacity-40" />
-          <div className="relative flex items-center justify-between py-3 px-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white rounded-lg">
-            <span className="text-xs font-medium uppercase tracking-wider">Wynagrodzenie miesięczne netto</span>
-            <span className="text-xl font-bold">{formatAmount(data.contractValue)} zł</span>
+          <div className="relative flex justify-between items-center py-3 px-4 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
+            <div>
+              <span className="text-[10px] text-pink-300 uppercase tracking-wider font-semibold">Wynagrodzenie miesięczne</span>
+              <p className="text-[9px] text-zinc-500">Płatność zgodnie z warunkami umowy</p>
+            </div>
+            <div className="text-right">
+              <span className="text-xl font-bold text-white">{formatAmount(data.contractValue)} zł</span>
+              <p className="text-[9px] text-pink-300">brutto/miesiąc</p>
+            </div>
           </div>
         </div>
 
         {/* Contract Sections */}
-        <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-4 flex-1 overflow-hidden">
-          <div className="space-y-2.5 text-[9px] text-zinc-400 leading-relaxed">
-            {/* §1 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§1 Przedmiot umowy</p>
-              <p>Wykonawca zobowiązuje się do świadczenia usług marketingu online: prowadzenie kampanii reklamowych Facebook/Instagram Ads, tworzenie materiałów reklamowych, optymalizacja kampanii, raportowanie wyników i doradztwo marketingowe.</p>
-            </div>
+        <div className="space-y-2 flex-1">
+          {/* §1 Przedmiot umowy */}
+          <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+            <p className="text-[10px] text-pink-400 font-semibold mb-1">§1 Przedmiot umowy</p>
+            <p className="text-[9px] text-zinc-400 leading-relaxed">
+              Świadczenie usług marketingowych online: kampanie Facebook Ads, materiały reklamowe, optymalizacja, raportowanie i doradztwo marketingowe.
+            </p>
+          </div>
 
-            {/* §2 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§2 Obowiązki Wykonawcy</p>
-              <p>Prowadzenie kampanii zgodnie z celami Zleceniodawcy, przygotowanie kreacji reklamowych, optymalizacja i zarządzanie budżetem, comiesięczne raporty do 7. dnia miesiąca, zachowanie poufności informacji.</p>
+          {/* §2 & §3 */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+              <p className="text-[10px] text-pink-400 font-semibold mb-1">§2 Obowiązki Wykonawcy</p>
+              <ul className="text-[8px] text-zinc-400 leading-relaxed space-y-0.5">
+                <li>• Prowadzenie kampanii zgodnie z celami</li>
+                <li>• Kreacje reklamowe i optymalizacja</li>
+                <li>• Raporty do 7. dnia miesiąca</li>
+                <li>• Zachowanie poufności</li>
+              </ul>
             </div>
-
-            {/* §3 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§3 Obowiązki Zleceniodawcy</p>
-              <p>Zapewnienie dostępu do fanpage i konta Meta Ads, dostarczenie materiałów (zdjęcia, logo, opisy), akceptacja kreacji w ciągu 3 dni roboczych, terminowe regulowanie płatności.</p>
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+              <p className="text-[10px] text-pink-400 font-semibold mb-1">§3 Obowiązki Zleceniodawcy</p>
+              <ul className="text-[8px] text-zinc-400 leading-relaxed space-y-0.5">
+                <li>• Dostęp do fanpage i konta Meta Ads</li>
+                <li>• Materiały (zdjęcia, opisy, logo)</li>
+                <li>• Akceptacja kreacji w 3 dni robocze</li>
+                <li>• Terminowe płatności</li>
+              </ul>
             </div>
+          </div>
 
-            {/* §4 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§4 Wynagrodzenie i płatności</p>
-              <p>Zaliczka 50% w ciągu 3 dni od otrzymania umowy. Pozostałe 50% do 7 dni od zakończenia miesiąca. <span className="text-pink-300">Budżet reklamowy opłaca Zleceniodawca bezpośrednio do platformy reklamowej</span> – nie wchodzi w zakres wynagrodzenia Wykonawcy.</p>
+          {/* §4 Wynagrodzenie */}
+          <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+            <p className="text-[10px] text-pink-400 font-semibold mb-1">§4 Wynagrodzenie</p>
+            <p className="text-[8px] text-zinc-400 leading-relaxed">
+              <span className="text-pink-300">Zaliczka 50%</span> w ciągu 3 dni od otrzymania umowy. <span className="text-pink-300">Pozostałe 50%</span> w 7 dni od zakończenia miesiąca. Budżet reklamowy finansowany przez Zleceniodawcę.
+            </p>
+          </div>
+
+          {/* §5 & §6 */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+              <p className="text-[10px] text-pink-400 font-semibold mb-1">§5 Prawa autorskie</p>
+              <p className="text-[8px] text-zinc-400 leading-relaxed">
+                Materiały chronione prawem autorskim. Licencja niewyłączna po uregulowaniu płatności. Wykonawca może używać w portfolio.
+              </p>
             </div>
-
-            {/* §5 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§5 Prawa autorskie</p>
-              <p>Materiały stworzone przez Wykonawcę podlegają ochronie prawnoautorskiej. Po uregulowaniu płatności Zleceniodawca otrzymuje licencję niewyłączną. Wykonawca może wykorzystać materiały w portfolio.</p>
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+              <p className="text-[10px] text-pink-400 font-semibold mb-1">§6 Okres obowiązywania</p>
+              <p className="text-[8px] text-zinc-400 leading-relaxed">
+                Umowa obowiązuje od dnia wpłaty zaliczki. Przedłużenie za zgodą obu stron. Możliwość natychmiastowego rozwiązania przy naruszeniach.
+              </p>
             </div>
+          </div>
 
-            {/* §6 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§6 Własność konta reklamowego</p>
-              <p><span className="text-pink-300">Konto reklamowe oraz wyniki kampanii są własnością Zleceniodawcy.</span> Wykonawca działa jako administrator na podstawie udzielonych dostępów.</p>
+          {/* §7 & §8 */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+              <p className="text-[10px] text-pink-400 font-semibold mb-1">§7 Rozwiązanie umowy</p>
+              <p className="text-[8px] text-zinc-400 leading-relaxed">
+                Natychmiastowe rozwiązanie przy: opóźnieniu płatności &gt;14 dni, braku materiałów, naruszeniu obowiązków. Forma pisemna lub elektroniczna.
+              </p>
             </div>
-
-            {/* §7 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§7 Okres obowiązywania i rozwiązanie</p>
-              <p>Umowa obowiązuje od dnia wpłaty zaliczki. <span className="text-pink-300">Umowa może zostać rozwiązana z zachowaniem 30-dniowego okresu wypowiedzenia.</span> Natychmiastowe rozwiązanie przy: opóźnieniu płatności powyżej 14 dni, braku materiałów, istotnym naruszeniu obowiązków.</p>
-            </div>
-
-            {/* §8 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§8 Odpowiedzialność</p>
-              <p><span className="text-pink-300">Wykonawca nie gwarantuje określonego poziomu wyników kampanii</span> – rezultaty zależą od wielu czynników zewnętrznych. Wykonawca zobowiązuje się do starannego działania zgodnie z najlepszymi praktykami branżowymi.</p>
-            </div>
-
-            {/* §9 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§9 Ochrona danych osobowych (RODO)</p>
-              <p><span className="text-pink-300">Strony zobowiązują się do przetwarzania danych osobowych zgodnie z RODO.</span> Dane będą przetwarzane wyłącznie w celu realizacji umowy. Każda ze stron odpowiada za bezpieczeństwo danych w swoim zakresie.</p>
-            </div>
-
-            {/* §10 */}
-            <div>
-              <p className="text-[10px] text-pink-400 font-semibold mb-0.5">§10 Postanowienia końcowe</p>
-              <p>W sprawach nieuregulowanych zastosowanie mają przepisy Kodeksu cywilnego. Wszelkie zmiany umowy wymagają formy pisemnej lub elektronicznej. Przystąpienie do realizacji jest równoznaczne z akceptacją warunków.</p>
+            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
+              <p className="text-[10px] text-pink-400 font-semibold mb-1">§8 Postanowienia końcowe</p>
+              <p className="text-[8px] text-zinc-400 leading-relaxed">
+                Zastosowanie Kodeksu cywilnego. Forma elektroniczna wystarczająca. Przystąpienie do realizacji = akceptacja umowy.
+              </p>
             </div>
           </div>
         </div>
 
         {/* Signatures */}
-        <div className="grid grid-cols-2 gap-8 mt-4 pt-3">
+        <div className="grid grid-cols-2 gap-10 mt-4">
           <div className="text-center">
-            <div className="h-10 border-b border-zinc-600/50 mb-1.5"></div>
+            <div className="h-10 border-b-2 border-zinc-700 mb-1"></div>
             <p className="text-[10px] text-zinc-500">Zleceniodawca</p>
           </div>
           <div className="text-center">
-            <div className="h-10 border-b border-zinc-600/50 mb-1.5"></div>
+            <div className="h-10 border-b-2 border-zinc-700 mb-1"></div>
             <p className="text-[10px] text-zinc-500">Wykonawca</p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-3 pt-2 border-t border-zinc-800/80">
-          <div className="flex items-center gap-2">
-            <img src={agencyLogo} alt="Aurine" className="w-4 h-4 object-contain opacity-40" />
-            <span className="text-zinc-600 text-[9px]">aurine.pl</span>
+        <div className="flex items-center justify-between mt-auto pt-4">
+          <div className="flex items-center gap-1.5">
+            <img src={agencyLogo} alt="Aurine" className="w-4 h-4 object-contain opacity-50" />
+            <span className="text-zinc-600 text-[10px]">aurine.pl</span>
           </div>
-          <p className="text-[9px] text-zinc-600">Marketing dla salonów beauty</p>
+          <p className="text-[10px] text-zinc-600">Marketing dla salonów beauty</p>
         </div>
       </div>
     </div>
