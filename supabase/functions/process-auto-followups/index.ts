@@ -194,7 +194,33 @@ async function logFollowUpSend(
   }
 }
 
-// Helper to check if follow-up was already sent today
+// Try to atomically claim a lead for processing (prevents race conditions)
+// Returns true if we successfully claimed it, false if another process already has it
+async function tryClaimLeadForFollowUp(
+  supabase: any,
+  leadId: string,
+  followupNumber: 1 | 2
+): Promise<boolean> {
+  const column = followupNumber === 1 ? "email_follow_up_1_sent" : "email_follow_up_2_sent";
+  
+  // Atomically update only if still false - this prevents race conditions
+  const { data, error } = await supabase
+    .from("leads")
+    .update({ [column]: true })
+    .eq("id", leadId)
+    .eq(column, false)
+    .select("id");
+
+  if (error) {
+    console.error(`Error claiming lead ${leadId}:`, error);
+    return false;
+  }
+  
+  // If data is empty, another process already claimed it
+  return (data?.length || 0) > 0;
+}
+
+// Check if follow-up was already logged today (additional safety check)
 async function wasFollowUpAlreadySentToday(
   supabase: any,
   leadId: string,
@@ -292,10 +318,18 @@ serve(async (req) => {
     // Process Follow-up 1
     for (const lead of leadsForFollowUp1 || []) {
       try {
-        // Check if already sent today to prevent duplicates
+        // First, try to atomically claim this lead (prevents race conditions)
+        const claimed = await tryClaimLeadForFollowUp(supabase, lead.id, 1);
+        if (!claimed) {
+          console.log(`Skipping lead ${lead.id} - already claimed by another process`);
+          results.skipped++;
+          continue;
+        }
+
+        // Additional check: was it already logged today?
         const alreadySent = await wasFollowUpAlreadySentToday(supabase, lead.id, "followup_1");
         if (alreadySent) {
-          console.log(`Skipping lead ${lead.id} - follow-up 1 already sent today`);
+          console.log(`Skipping lead ${lead.id} - follow-up 1 already sent today (log exists)`);
           results.skipped++;
           continue;
         }
@@ -305,6 +339,8 @@ serve(async (req) => {
         
         if (!accessToken) {
           console.error(`Failed to get access token for ${emailFrom}`);
+          // Revert the claim since we failed
+          await supabase.from("leads").update({ email_follow_up_1_sent: false }).eq("id", lead.id);
           await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp1Template.name || "Follow-up 1", "followup_1", "failed", "Brak tokena dostępu");
           results.failed++;
           continue;
@@ -316,8 +352,8 @@ serve(async (req) => {
         const sent = await sendEmailViaZoho(accessToken, emailFrom, lead.email, subject, body);
         
         if (sent) {
+          // Update additional fields (flag already set by claim)
           await supabase.from("leads").update({
-            email_follow_up_1_sent: true,
             email_follow_up_1_date: today,
             last_contact_date: today,
             follow_up_count: (lead.follow_up_count || 0) + 1,
@@ -336,11 +372,15 @@ serve(async (req) => {
           results.sent++;
           results.processed.push(lead.salon_name);
         } else {
+          // Revert the claim since sending failed
+          await supabase.from("leads").update({ email_follow_up_1_sent: false }).eq("id", lead.id);
           await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp1Template.name || "Follow-up 1", "followup_1", "failed", "Błąd wysyłki Zoho");
           results.failed++;
         }
       } catch (e: any) {
         console.error(`Error processing lead ${lead.id}:`, e);
+        // Revert claim on error
+        await supabase.from("leads").update({ email_follow_up_1_sent: false }).eq("id", lead.id);
         await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, lead.email_from, followUp1Template.name || "Follow-up 1", "followup_1", "failed", e.message);
         results.failed++;
       }
@@ -349,10 +389,18 @@ serve(async (req) => {
     // Process Follow-up 2
     for (const lead of leadsForFollowUp2 || []) {
       try {
-        // Check if already sent today to prevent duplicates
+        // First, try to atomically claim this lead (prevents race conditions)
+        const claimed = await tryClaimLeadForFollowUp(supabase, lead.id, 2);
+        if (!claimed) {
+          console.log(`Skipping lead ${lead.id} - already claimed by another process`);
+          results.skipped++;
+          continue;
+        }
+
+        // Additional check: was it already logged today?
         const alreadySent = await wasFollowUpAlreadySentToday(supabase, lead.id, "followup_2");
         if (alreadySent) {
-          console.log(`Skipping lead ${lead.id} - follow-up 2 already sent today`);
+          console.log(`Skipping lead ${lead.id} - follow-up 2 already sent today (log exists)`);
           results.skipped++;
           continue;
         }
@@ -362,6 +410,8 @@ serve(async (req) => {
         
         if (!accessToken) {
           console.error(`Failed to get access token for ${emailFrom}`);
+          // Revert the claim since we failed
+          await supabase.from("leads").update({ email_follow_up_2_sent: false }).eq("id", lead.id);
           await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp2Template.name || "Follow-up 2", "followup_2", "failed", "Brak tokena dostępu");
           results.failed++;
           continue;
@@ -373,8 +423,8 @@ serve(async (req) => {
         const sent = await sendEmailViaZoho(accessToken, emailFrom, lead.email, subject, body);
         
         if (sent) {
+          // Update additional fields (flag already set by claim)
           await supabase.from("leads").update({
-            email_follow_up_2_sent: true,
             email_follow_up_2_date: today,
             last_contact_date: today,
             follow_up_count: (lead.follow_up_count || 0) + 1,
@@ -393,11 +443,15 @@ serve(async (req) => {
           results.sent++;
           results.processed.push(lead.salon_name);
         } else {
+          // Revert the claim since sending failed
+          await supabase.from("leads").update({ email_follow_up_2_sent: false }).eq("id", lead.id);
           await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, emailFrom, followUp2Template.name || "Follow-up 2", "followup_2", "failed", "Błąd wysyłki Zoho");
           results.failed++;
         }
       } catch (e: any) {
         console.error(`Error processing lead ${lead.id}:`, e);
+        // Revert claim on error
+        await supabase.from("leads").update({ email_follow_up_2_sent: false }).eq("id", lead.id);
         await logFollowUpSend(supabase, lead.id, lead.salon_name, lead.email, lead.email_from, followUp2Template.name || "Follow-up 2", "followup_2", "failed", e.message);
         results.failed++;
       }
