@@ -5,12 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Mail, Phone, MessageSquare, FileSignature, CheckCircle2, 
   AlertCircle, Lightbulb, Target, Heart, Clock, ArrowRight,
   Sparkles, Users, TrendingUp, Shield, Star, XCircle, X,
-  Package, Play, Zap
+  Package, Play, Zap, Copy, ChevronDown, ChevronUp, 
+  ThumbsUp, ThumbsDown, BookOpen, Rocket, Calendar, FileText,
+  Brain, Award, CircleDot, LayoutGrid, List, Search
 } from "lucide-react";
+import { toast } from "sonner";
 
 const processSteps = [
   {
@@ -19,6 +23,7 @@ const processSteps = [
     icon: Mail,
     description: "Pierwszy kontakt z potencjalnym klientem",
     color: "from-blue-500 to-blue-600",
+    timing: "Dzień 1",
     details: [
       "Personalizacja - użyj nazwy salonu i miasta w mailu",
       "Krótka, zwięzła wiadomość (max 150 słów)",
@@ -37,6 +42,21 @@ const processSteps = [
       "Nie wysyłaj bez prezentacji - mail sam w sobie jest za słaby",
       "Nie pisz długich elaboratów - nikt tego nie przeczyta",
       "Nie używaj 'Szanowna Pani' - brzmi jak spam"
+    ],
+    scripts: [
+      {
+        title: "Szablon cold maila",
+        content: `Cześć [Imię]!
+
+Prowadzisz salon [Nazwa salonu] w [Miasto] - widziałam wasze profile i mam pomysł jak pozyskać więcej klientek z okolicy.
+
+Specjalizujemy się w reklamach na Facebooku dla salonów beauty. W załączniku przesyłam krótką prezentację pokazującą jak to działa.
+
+Czy mogłybyśmy porozmawiać przez 15 minut w tym tygodniu?
+
+Pozdrawiam,
+[Twoje imię]`
+      }
     ]
   },
   {
@@ -45,6 +65,7 @@ const processSteps = [
     icon: MessageSquare,
     description: "Celowy trigger 2 dni po cold mailu",
     color: "from-pink-500 to-pink-600",
+    timing: "Dzień 3",
     details: [
       "SMS wychodzi 2 dni po cold mailu jako celowy trigger",
       "Bardzo krótki - max 160 znaków",
@@ -61,6 +82,12 @@ const processSteps = [
       "Nie wysyłaj SMS-ów wieczorem",
       "Nie pisz długich wiadomości",
       "Nie dzwoń bez uprzedzenia SMS-em"
+    ],
+    scripts: [
+      {
+        title: "Szablon SMS",
+        content: `Cześć [Imię]! Wysłałam maila z prezentacją o reklamach dla [Salon]. Widziałaś? Chętnie porozmawiam 5 min 📱 [Twoje imię] z Aurine`
+      }
     ]
   },
   {
@@ -69,6 +96,7 @@ const processSteps = [
     icon: Clock,
     description: "Przypomnienie po 3-4 dniach od SMS",
     color: "from-purple-500 to-purple-600",
+    timing: "Dzień 6-7",
     details: [
       "Nawiąż do poprzedniej wiadomości i prezentacji",
       "Dodaj nową wartość - case study, konkretna statystyka",
@@ -85,14 +113,29 @@ const processSteps = [
       "Nie przepraszaj za 'nachodzenie'",
       "Nie pisz 'pewnie nie miała Pani czasu'",
       "Nie powtarzaj treści pierwszego maila"
+    ],
+    scripts: [
+      {
+        title: "Szablon follow-up #1",
+        content: `Cześć [Imię]!
+
+Wracam do tematu z poprzedniego tygodnia. Widziałam, że [salon] ma świetne opinie na Google - to świetna baza!
+
+Ciekawość - jak obecnie pozyskujecie nowe klientki? Może mogę pomóc zwiększyć tę liczbę przez reklamy.
+
+Daj znać czy warto porozmawiać 10 minut.
+
+[Twoje imię]`
+      }
     ]
   },
   {
     id: 4,
     title: "Follow-up Email #2",
     icon: Mail,
-    description: "Drugi follow-up po kolejnych 3-4 dniach",
+    description: "Ostatni follow-up po kolejnych 4-5 dniach",
     color: "from-indigo-500 to-indigo-600",
+    timing: "Dzień 10-12",
     details: [
       "Ostatni email w sekwencji",
       "Bardziej bezpośrednie pytanie o zainteresowanie",
@@ -109,6 +152,20 @@ const processSteps = [
       "Nie bądź zdesperowany",
       "Nie obwiniaj ich za brak odpowiedzi",
       "Nie wysyłaj więcej niż 2 follow-upy mailowe"
+    ],
+    scripts: [
+      {
+        title: "Szablon break-up email",
+        content: `Cześć [Imię]!
+
+Pisałam kilka razy o reklamach dla [salon] - nie chcę być nachalna, więc to ostatni mail w tym temacie.
+
+Jeśli kiedykolwiek będziesz szukać sposobu na więcej klientek z okolicy - odezwij się. Zawsze chętnie porozmawiam.
+
+Powodzenia z salonem! 🌸
+
+[Twoje imię]`
+      }
     ]
   },
   {
@@ -117,6 +174,7 @@ const processSteps = [
     icon: Phone,
     description: "Kluczowy moment sprzedaży",
     color: "from-green-500 to-green-600",
+    timing: "Gdy odpowie",
     details: [
       "Przygotuj się - sprawdź ponownie profil salonu",
       "Zacznij od pytań, nie od sprzedaży",
@@ -136,6 +194,26 @@ const processSteps = [
       "Nie mów tylko o sobie i ofercie",
       "Nie przerywaj klientowi",
       "Nie kończ rozmowy bez ustalenia następnego kroku"
+    ],
+    scripts: [
+      {
+        title: "Struktura rozmowy",
+        content: `1. OTWARCIE (2 min)
+"Cześć [Imię]! Dzięki że znalazłaś chwilę. Jak tam dzisiaj w salonie?"
+
+2. DIAGNOZA (5-7 min)
+"Opowiedz mi - jak teraz pozyskujecie nowe klientki?"
+"Co działa, a co nie?"
+"Ile wizyt miesięcznie chciałabyś mieć więcej?"
+
+3. PREZENTACJA ROZWIĄZANIA (3-4 min)
+"Z tego co mówisz, mogłybyśmy..."
+"U podobnych salonów widzimy..."
+
+4. ZAMKNIĘCIE (2 min)
+"Co powiesz na to, żebyśmy przygotowali ofertę?"
+"Kiedy mogłybyśmy porozmawiać o szczegółach?"`
+      }
     ]
   },
   {
@@ -144,6 +222,7 @@ const processSteps = [
     icon: Target,
     description: "Dopasowanie oferty do potrzeb",
     color: "from-orange-500 to-orange-600",
+    timing: "Po rozmowie",
     details: [
       "Przygotuj spersonalizowaną ofertę",
       "Odnieś się do konkretnych problemów z rozmowy",
@@ -160,7 +239,8 @@ const processSteps = [
       "Nie dawaj zbyt dużo czasu 'do namysłu'",
       "Nie wysyłaj oferty bez wcześniejszej rozmowy",
       "Nie obniżaj ceny bez uzasadnienia"
-    ]
+    ],
+    scripts: []
   },
   {
     id: 7,
@@ -168,6 +248,7 @@ const processSteps = [
     icon: FileSignature,
     description: "Finalizacja i start współpracy",
     color: "from-emerald-500 to-emerald-600",
+    timing: "Finał",
     details: [
       "Wyślij umowę natychmiast po akceptacji oferty",
       "Omów wszystkie punkty umowy telefonicznie",
@@ -186,7 +267,8 @@ const processSteps = [
       "Nie zostawiaj umowy 'do przemyślenia' na tydzień",
       "Nie zaczynaj bez podpisanej umowy",
       "Nie zapominaj o onboardingu - to buduje relację"
-    ]
+    ],
+    scripts: []
   }
 ];
 
@@ -195,48 +277,52 @@ const conversationTopics = [
     category: "Pytania otwierające",
     icon: MessageSquare,
     color: "from-blue-500 to-blue-600",
+    description: "Zacznij rozmowę i zbuduj relację",
     questions: [
-      "Jak obecnie pozyskujecie nowych klientów?",
-      "Co sprawia największy problem w promocji salonu?",
-      "Jakie działania marketingowe próbowaliście do tej pory?",
-      "Ile średnio wizyt miesięcznie potrzebujecie, żeby salon się rozwijał?",
-      "Kto jest Waszą idealną klientką?"
+      { q: "Jak obecnie pozyskujecie nowych klientów?", why: "Pozwala zrozumieć ich obecną strategię" },
+      { q: "Co sprawia największy problem w promocji salonu?", why: "Identyfikuje główny pain point" },
+      { q: "Jakie działania marketingowe próbowaliście do tej pory?", why: "Pokazuje ich doświadczenie z marketingiem" },
+      { q: "Ile średnio wizyt miesięcznie potrzebujecie, żeby salon się rozwijał?", why: "Konkretyzuje ich cele" },
+      { q: "Kto jest Waszą idealną klientką?", why: "Pomaga w targetowaniu reklam" }
     ]
   },
   {
     category: "Pytania o problemy",
     icon: AlertCircle,
     color: "from-red-500 to-red-600",
+    description: "Odkryj prawdziwe bolączki klienta",
     questions: [
-      "Co Was najbardziej frustruje w obecnym marketingu?",
-      "Czy mieliście złe doświadczenia z agencjami?",
-      "Co powstrzymuje Was przed reklamowaniem w internecie?",
-      "Ile czasu poświęcacie na marketing tygodniowo?",
-      "Co by się zmieniło, gdybyście mieli stały napływ nowych klientek?"
+      { q: "Co Was najbardziej frustruje w obecnym marketingu?", why: "Emocjonalny pain point" },
+      { q: "Czy mieliście złe doświadczenia z agencjami?", why: "Pozwala odnieść się do obaw" },
+      { q: "Co powstrzymuje Was przed reklamowaniem w internecie?", why: "Identyfikuje bariery wejścia" },
+      { q: "Ile czasu poświęcacie na marketing tygodniowo?", why: "Pokazuje obciążenie czasowe" },
+      { q: "Co by się zmieniło, gdybyście mieli stały napływ nowych klientek?", why: "Wizualizuje korzyść" }
     ]
   },
   {
     category: "Pytania o cele",
     icon: Target,
     color: "from-green-500 to-green-600",
+    description: "Zdefiniuj oczekiwane rezultaty",
     questions: [
-      "Ile nowych klientek miesięcznie chcielibyście pozyskiwać?",
-      "Jaki budżet możecie przeznaczyć na reklamę?",
-      "Jakie usługi chcecie najbardziej promować?",
-      "Kiedy chcielibyście zobaczyć pierwsze efekty?",
-      "Jakie są Wasze plany rozwoju salonu?"
+      { q: "Ile nowych klientek miesięcznie chcielibyście pozyskiwać?", why: "Konkretny cel do realizacji" },
+      { q: "Jaki budżet możecie przeznaczyć na reklamę?", why: "Określa możliwości finansowe" },
+      { q: "Jakie usługi chcecie najbardziej promować?", why: "Focus kampanii" },
+      { q: "Kiedy chcielibyście zobaczyć pierwsze efekty?", why: "Zarządza oczekiwaniami" },
+      { q: "Jakie są Wasze plany rozwoju salonu?", why: "Długoterminowa perspektywa" }
     ]
   },
   {
     category: "Pytania zamykające",
     icon: CheckCircle2,
     color: "from-purple-500 to-purple-600",
+    description: "Kieruj rozmowę ku decyzji",
     questions: [
-      "Co musiałoby się stać, żebyście zdecydowali się na współpracę?",
-      "Czy jest coś, co Was powstrzymuje przed decyzją?",
-      "Kiedy moglibyśmy zacząć?",
-      "Czy potrzebujecie jeszcze jakichś informacji?",
-      "Mam dla Was specjalną ofertę - czy chcielibyście ją poznać?"
+      { q: "Co musiałoby się stać, żebyście zdecydowali się na współpracę?", why: "Identyfikuje ostatnie bariery" },
+      { q: "Czy jest coś, co Was powstrzymuje przed decyzją?", why: "Daje szansę na obiekcje" },
+      { q: "Kiedy moglibyśmy zacząć?", why: "Zakłada pozytywną odpowiedź" },
+      { q: "Czy potrzebujecie jeszcze jakichś informacji?", why: "Ostatnie wątpliwości" },
+      { q: "Mam dla Was specjalną ofertę - czy chcielibyście ją poznać?", why: "Wprowadza element pilności" }
     ]
   }
 ];
@@ -245,46 +331,115 @@ const objectionHandling = [
   {
     objection: "To za drogo",
     icon: "💰",
+    category: "Cena",
     responses: [
-      "Rozumiem. Ale policzmy - ile kosztuje Was teraz pozyskanie jednego klienta? Nasi klienci płacą średnio 15-25 zł za rezerwację.",
-      "Drogo w porównaniu do czego? Posty na Facebooku nic nie kosztują, ale też nic nie dają.",
-      "Ile kosztuje Was puste miejsce w grafiku? Bo właśnie to możemy wypełnić."
+      {
+        response: "Rozumiem. Ale policzmy - ile kosztuje Was teraz pozyskanie jednego klienta? Nasi klienci płacą średnio 15-25 zł za rezerwację.",
+        technique: "Porównanie kosztów"
+      },
+      {
+        response: "Drogo w porównaniu do czego? Posty na Facebooku nic nie kosztują, ale też nic nie dają.",
+        technique: "Pytanie zwrotne"
+      },
+      {
+        response: "Ile kosztuje Was puste miejsce w grafiku? Bo właśnie to możemy wypełnić.",
+        technique: "Koszt alternatywny"
+      }
     ]
   },
   {
     objection: "Muszę się zastanowić",
     icon: "🤔",
+    category: "Odkładanie",
     responses: [
-      "Jasne, ale nad czym konkretnie? Może mogę pomóc odpowiedzieć na wątpliwości teraz.",
-      "Oczywiście. Kiedy mogę oddzwonić? Mam wolne miejsce w kalendarzu w tym tygodniu.",
-      "Rozumiem. Co musiałoby się wydarzyć, żebyście byli pewni swojej decyzji?"
+      {
+        response: "Jasne, ale nad czym konkretnie? Może mogę pomóc odpowiedzieć na wątpliwości teraz.",
+        technique: "Konkretyzacja"
+      },
+      {
+        response: "Oczywiście. Kiedy mogę oddzwonić? Mam wolne miejsce w kalendarzu w tym tygodniu.",
+        technique: "Ustalenie follow-upu"
+      },
+      {
+        response: "Rozumiem. Co musiałoby się wydarzyć, żebyście byli pewni swojej decyzji?",
+        technique: "Identyfikacja bariery"
+      }
     ]
   },
   {
     objection: "Nie mam czasu na marketing",
     icon: "⏰",
+    category: "Czas",
     responses: [
-      "Właśnie dlatego my się tym zajmujemy! Potrzebujemy od Was tylko 30 minut na start.",
-      "To idealnie - bo nasi klienci poświęcają na współpracę z nami max 2 godziny miesięcznie.",
-      "A ile czasu poświęcacie na posty, które i tak nie działają?"
+      {
+        response: "Właśnie dlatego my się tym zajmujemy! Potrzebujemy od Was tylko 30 minut na start.",
+        technique: "Odwrócenie obiekcji"
+      },
+      {
+        response: "To idealnie - bo nasi klienci poświęcają na współpracę z nami max 2 godziny miesięcznie.",
+        technique: "Konkretne liczby"
+      },
+      {
+        response: "A ile czasu poświęcacie na posty, które i tak nie działają?",
+        technique: "Porównanie czasu"
+      }
     ]
   },
   {
     objection: "Facebook Ads nie działają",
     icon: "📱",
+    category: "Sceptycyzm",
     responses: [
-      "Rozumiem to rozczarowanie. Ale czy kampanię prowadziła agencja specjalizująca się w beauty? Bo to ma ogromne znaczenie.",
-      "Co konkretnie nie zadziałało? Bo najczęściej problem leży w targetowaniu lub kreacjach.",
-      "Mogę pokazać wyniki naszych klientów z podobnych salonów - potem możemy wrócić do rozmowy."
+      {
+        response: "Rozumiem to rozczarowanie. Ale czy kampanię prowadziła agencja specjalizująca się w beauty? Bo to ma ogromne znaczenie.",
+        technique: "Specjalizacja"
+      },
+      {
+        response: "Co konkretnie nie zadziałało? Bo najczęściej problem leży w targetowaniu lub kreacjach.",
+        technique: "Diagnoza problemu"
+      },
+      {
+        response: "Mogę pokazać wyniki naszych klientów z podobnych salonów - potem możemy wrócić do rozmowy.",
+        technique: "Dowód społeczny"
+      }
     ]
   },
   {
     objection: "Mam już kogoś od marketingu",
     icon: "👥",
+    category: "Konkurencja",
     responses: [
-      "Super! A jakie wyniki osiągacie? Bo chętnie porównamy nasze rezultaty.",
-      "To świetnie. A jak wygląda koszt pozyskania klienta u Was?",
-      "Rozumiem. Gdyby jednak obecna współpraca nie przynosiła oczekiwanych efektów - możemy wrócić do rozmowy?"
+      {
+        response: "Super! A jakie wyniki osiągacie? Bo chętnie porównamy nasze rezultaty.",
+        technique: "Wyzwanie"
+      },
+      {
+        response: "To świetnie. A jak wygląda koszt pozyskania klienta u Was?",
+        technique: "Pytanie o metryki"
+      },
+      {
+        response: "Rozumiem. Gdyby jednak obecna współpraca nie przynosiła oczekiwanych efektów - możemy wrócić do rozmowy?",
+        technique: "Zostawienie drzwi otwartych"
+      }
+    ]
+  },
+  {
+    objection: "Muszę porozmawiać z partnerem/mężem",
+    icon: "👫",
+    category: "Odkładanie",
+    responses: [
+      {
+        response: "Rozumiem. Może umówmy się na rozmowę we trójkę? Chętnie odpowiem na wszystkie pytania.",
+        technique: "Wspólne spotkanie"
+      },
+      {
+        response: "Jasne! Co według Ciebie będzie dla niego najważniejsze? Mogę przygotować te informacje.",
+        technique: "Przygotowanie argumentów"
+      },
+      {
+        response: "Oczywiście. Kiedy planujecie to omówić? Odezwę się dzień później.",
+        technique: "Konkretny follow-up"
+      }
     ]
   }
 ];
@@ -293,45 +448,63 @@ const goldenRules = [
   {
     icon: Heart,
     title: "Bądź autentyczny",
-    description: "Klienci wyczuwają sztuczność. Mów swoimi słowami, nie skryptem.",
-    color: "from-pink-500 to-rose-500"
+    description: "Klienci wyczuwają sztuczność. Mów swoimi słowami, nie skryptem. Bądź sobą.",
+    color: "from-pink-500 to-rose-500",
+    examples: ["Używaj naturalnego języka", "Dziel się własnymi przemyśleniami", "Przyznawaj się do niewiedzy"]
   },
   {
     icon: Users,
     title: "Słuchaj więcej niż mówisz",
-    description: "Zasada 70/30 - klient powinien mówić więcej niż Ty.",
-    color: "from-blue-500 to-indigo-500"
+    description: "Zasada 70/30 - klient powinien mówić więcej niż Ty. Zadawaj pytania i słuchaj odpowiedzi.",
+    color: "from-blue-500 to-indigo-500",
+    examples: ["Nie przerywaj", "Parafrazuj to co słyszysz", "Zadawaj pytania pogłębiające"]
   },
   {
     icon: Lightbulb,
     title: "Rozwiązuj problemy",
-    description: "Nie sprzedawaj usługi - oferuj rozwiązanie konkretnego problemu.",
-    color: "from-amber-500 to-orange-500"
+    description: "Nie sprzedawaj usługi - oferuj rozwiązanie konkretnego problemu klienta.",
+    color: "from-amber-500 to-orange-500",
+    examples: ["Zidentyfikuj główny problem", "Pokaż jak go rozwiązujesz", "Przedstaw korzyść, nie funkcję"]
   },
   {
     icon: TrendingUp,
     title: "Mów o wynikach",
-    description: "Konkretne liczby i case studies są bardziej przekonujące niż obietnice.",
-    color: "from-green-500 to-emerald-500"
+    description: "Konkretne liczby i case studies są bardziej przekonujące niż ogólne obietnice.",
+    color: "from-green-500 to-emerald-500",
+    examples: ["15-25 zł za rezerwację", "30 nowych klientek miesięcznie", "200% wzrost zapisów"]
   },
   {
     icon: Shield,
     title: "Buduj zaufanie",
-    description: "Nie obiecuj cudów. Szczerość buduje długoterminowe relacje.",
-    color: "from-purple-500 to-violet-500"
+    description: "Nie obiecuj cudów. Szczerość buduje długoterminowe relacje biznesowe.",
+    color: "from-purple-500 to-violet-500",
+    examples: ["Mów o realnych oczekiwaniach", "Nie obiecuj 100% gwarancji", "Bądź transparentny z cenami"]
   },
   {
     icon: Star,
     title: "Follow-up jest kluczem",
-    description: "80% sprzedaży wymaga 5+ kontaktów. Nie poddawaj się po pierwszym.",
-    color: "from-yellow-500 to-amber-500"
+    description: "80% sprzedaży wymaga 5+ kontaktów. Wytrwałość (nie nachalność) wygrywa.",
+    color: "from-yellow-500 to-amber-500",
+    examples: ["Systematyczne przypomnienia", "Różne kanały kontaktu", "Cierpliwość się opłaca"]
   }
 ];
 
 export default function ClientService() {
   const [activeTab, setActiveTab] = useState("process");
-  const [expandedStep, setExpandedStep] = useState<number | null>(null);
+  const [expandedStep, setExpandedStep] = useState<number | null>(1);
+  const [viewMode, setViewMode] = useState<'cards' | 'timeline'>('cards');
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Skopiowano do schowka!");
+  };
+
+  const filteredObjections = objectionHandling.filter(obj =>
+    obj.objection.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    obj.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <AppLayout>
@@ -339,14 +512,21 @@ export default function ClientService() {
         {/* Header */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 p-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(236,72,153,0.15),transparent_50%)]" />
+          <div className="absolute top-4 right-4 flex gap-2">
+            {[Rocket, Brain, Award].map((Icon, i) => (
+              <div key={i} className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-pink-500/10 border border-primary/30 flex items-center justify-center">
+                <Icon className="w-5 h-5 text-primary/70" />
+              </div>
+            ))}
+          </div>
           <div className="relative flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center shadow-lg shadow-primary/30">
-                <Sparkles className="w-7 h-7 text-white" />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center shadow-lg shadow-primary/30">
+                <BookOpen className="w-8 h-8 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Obsługa Klienta</h1>
-                <p className="text-muted-foreground">Kompletny przewodnik sprzedażowy od cold maila do umowy</p>
+                <p className="text-muted-foreground">Kompletny przewodnik od cold maila do podpisanej umowy</p>
               </div>
             </div>
             <Button 
@@ -357,6 +537,26 @@ export default function ClientService() {
               Generuj Welcome Pack
             </Button>
           </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {[
+            { label: "Kroków w procesie", value: "7", icon: CircleDot, color: "from-blue-500 to-cyan-500" },
+            { label: "Szablonów wiadomości", value: "5+", icon: FileText, color: "from-pink-500 to-rose-500" },
+            { label: "Technik obiekcji", value: "18", icon: Shield, color: "from-purple-500 to-violet-500" },
+            { label: "Złotych zasad", value: "6", icon: Star, color: "from-amber-500 to-orange-500" },
+          ].map((stat, i) => (
+            <div key={i} className="bg-card/50 border border-border/50 rounded-xl p-4 flex items-center gap-4">
+              <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-lg`}>
+                <stat.icon className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
+            </div>
+          ))}
         </div>
 
         {/* Tabs */}
@@ -394,16 +594,36 @@ export default function ClientService() {
 
           {/* Process Tab */}
           <TabsContent value="process" className="space-y-4">
-            {/* Timeline header */}
-            <div className="flex items-center gap-3 px-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-blue-500" />
-                <span className="text-xs text-muted-foreground">Start</span>
+            {/* View toggle */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 px-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-blue-500" />
+                  <span className="text-xs text-muted-foreground">Start</span>
+                </div>
+                <div className="flex-1 h-px bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 w-32" />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Umowa</span>
+                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                </div>
               </div>
-              <div className="flex-1 h-px bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500" />
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Umowa</span>
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+              <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-lg p-1">
+                <Button 
+                  variant={viewMode === 'cards' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setViewMode('cards')}
+                  className="h-8"
+                >
+                  <LayoutGrid className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant={viewMode === 'timeline' ? 'default' : 'ghost'} 
+                  size="sm"
+                  onClick={() => setViewMode('timeline')}
+                  className="h-8"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
@@ -417,23 +637,28 @@ export default function ClientService() {
                   onClick={() => setExpandedStep(expandedStep === step.id ? null : step.id)}
                 >
                   <div className="flex flex-col">
-                    {/* Step Header - Always visible */}
+                    {/* Step Header */}
                     <div className="flex items-center gap-4 p-4">
-                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
-                        <step.icon className="w-6 h-6 text-white" />
+                      <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${step.color} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                        <step.icon className="w-7 h-7 text-white" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">
                             Krok {step.id}
+                          </Badge>
+                          <Badge className={`text-[10px] bg-gradient-to-r ${step.color} text-white border-0`}>
+                            {step.timing}
                           </Badge>
                           <h3 className="font-bold text-foreground">{step.title}</h3>
                         </div>
                         <p className="text-sm text-muted-foreground">{step.description}</p>
                       </div>
-                      <ArrowRight className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${
-                        expandedStep === step.id ? 'rotate-90' : ''
-                      }`} />
+                      {expandedStep === step.id ? (
+                        <ChevronUp className="w-5 h-5 text-muted-foreground" />
+                      ) : (
+                        <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                      )}
                     </div>
 
                     {/* Expanded Content */}
@@ -448,43 +673,77 @@ export default function ClientService() {
                             <ul className="space-y-2">
                               {step.details.map((detail, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                  <ArrowRight className="w-3 h-3 text-primary mt-1 flex-shrink-0" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 flex-shrink-0" />
                                   {detail}
                                 </li>
                               ))}
                             </ul>
                           </div>
+
                           <div className="space-y-3">
                             <h4 className="font-semibold text-foreground flex items-center gap-2 text-sm">
-                              <Lightbulb className="w-4 h-4 text-yellow-500" />
-                              Pro tips
+                              <Lightbulb className="w-4 h-4 text-amber-500" />
+                              Pro tipy
                             </h4>
                             <ul className="space-y-2">
                               {step.tips.map((tip, i) => (
                                 <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                                  <Star className="w-3 h-3 text-yellow-500 mt-1 flex-shrink-0" />
+                                  <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 flex-shrink-0" />
                                   {tip}
                                 </li>
                               ))}
                             </ul>
                           </div>
-                          {step.donts && (
-                            <div className="space-y-3">
-                              <h4 className="font-semibold text-foreground flex items-center gap-2 text-sm">
-                                <XCircle className="w-4 h-4 text-red-500" />
-                                Czego nie robić
-                              </h4>
-                              <ul className="space-y-2">
-                                {step.donts.map((dont, i) => (
-                                  <li key={i} className="flex items-start gap-2 text-sm text-red-400/80">
-                                    <X className="w-3 h-3 text-red-500 mt-1 flex-shrink-0" />
-                                    {dont}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+
+                          <div className="space-y-3">
+                            <h4 className="font-semibold text-foreground flex items-center gap-2 text-sm">
+                              <XCircle className="w-4 h-4 text-red-500" />
+                              Czego nie robić
+                            </h4>
+                            <ul className="space-y-2">
+                              {step.donts.map((dont, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                  <div className="w-1.5 h-1.5 rounded-full bg-red-500 mt-1.5 flex-shrink-0" />
+                                  {dont}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         </div>
+
+                        {/* Scripts */}
+                        {step.scripts && step.scripts.length > 0 && (
+                          <div className="mt-6 pt-4 border-t border-border/30">
+                            <h4 className="font-semibold text-foreground flex items-center gap-2 text-sm mb-4">
+                              <FileText className="w-4 h-4 text-primary" />
+                              Szablony do użycia
+                            </h4>
+                            <div className="grid md:grid-cols-2 gap-4">
+                              {step.scripts.map((script, i) => (
+                                <div key={i} className="bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <span className="text-sm font-medium text-foreground">{script.title}</span>
+                                    <Button 
+                                      size="sm" 
+                                      variant="ghost" 
+                                      className="h-8 gap-2"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        copyToClipboard(script.content);
+                                      }}
+                                    >
+                                      <Copy className="w-3 h-3" />
+                                      Kopiuj
+                                    </Button>
+                                  </div>
+                                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono bg-zinc-950/50 rounded-lg p-3 max-h-48 overflow-auto">
+                                    {script.content}
+                                  </pre>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
@@ -495,29 +754,42 @@ export default function ClientService() {
 
           {/* Conversation Tab */}
           <TabsContent value="conversation" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-4">
-              {conversationTopics.map((topic) => (
-                <Card key={topic.category} className="bg-card/50 border-border/50 overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
-                  <CardHeader className="pb-3">
-                    <div className={`w-full h-1 bg-gradient-to-r ${topic.color} rounded-full mb-3`} />
-                    <CardTitle className="text-base flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${topic.color} flex items-center justify-center shadow-md`}>
-                        <topic.icon className="w-5 h-5 text-white" />
+            <div className="grid md:grid-cols-2 gap-6">
+              {conversationTopics.map((topic, idx) => (
+                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden">
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${topic.color} flex items-center justify-center shadow-lg`}>
+                        <topic.icon className="w-6 h-6 text-white" />
                       </div>
-                      {topic.category}
-                    </CardTitle>
+                      <div>
+                        <CardTitle className="text-lg">{topic.category}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{topic.description}</p>
+                      </div>
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-3">
-                      {topic.questions.map((question, i) => (
-                        <li key={i} className="flex items-start gap-3 text-sm group">
-                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center flex-shrink-0 font-semibold group-hover:bg-primary group-hover:text-white transition-colors">
-                            {i + 1}
-                          </span>
-                          <span className="text-muted-foreground group-hover:text-foreground transition-colors">{question}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <CardContent className="space-y-3">
+                    {topic.questions.map((item, i) => (
+                      <div key={i} className="group relative bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors">
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span className="text-xs font-bold text-primary">{i + 1}</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground mb-1">"{item.q}"</p>
+                            <p className="text-xs text-muted-foreground">{item.why}</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="opacity-0 group-hover:opacity-100 transition-opacity h-8"
+                            onClick={() => copyToClipboard(item.q)}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </CardContent>
                 </Card>
               ))}
@@ -526,55 +798,101 @@ export default function ClientService() {
 
           {/* Objections Tab */}
           <TabsContent value="objections" className="space-y-4">
-            {objectionHandling.map((item, index) => (
-              <Card key={index} className="bg-card/50 border-border/50 overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-3">
-                    <span className="text-2xl">{item.icon}</span>
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Obiekcja klienta</p>
-                      <p className="text-lg font-bold text-foreground">"{item.objection}"</p>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Szukaj obiekcji..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-card/50 border border-border/50 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredObjections.map((item, idx) => (
+                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden group hover:shadow-lg hover:shadow-primary/5 transition-all">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">{item.icon}</span>
+                        <div>
+                          <Badge variant="outline" className="text-[10px] mb-1">{item.category}</Badge>
+                          <CardTitle className="text-base">"{item.objection}"</CardTitle>
+                        </div>
+                      </div>
                     </div>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
-                    <CheckCircle2 className="w-3 h-3 text-green-500" />
-                    Możliwe odpowiedzi
-                  </p>
-                  <div className="space-y-3">
-                    {item.responses.map((response, i) => (
-                      <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-transparent border border-primary/10 hover:border-primary/30 transition-colors">
-                        <span className="w-6 h-6 rounded-full bg-primary/20 text-primary text-xs flex items-center justify-center flex-shrink-0 font-bold mt-0.5">
-                          {i + 1}
-                        </span>
-                        <p className="text-sm text-foreground leading-relaxed">{response}</p>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {item.responses.map((resp, i) => (
+                      <div key={i} className="relative bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl p-4 border border-border/30">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <Badge className="text-[10px] bg-primary/20 text-primary border-0">
+                            {resp.technique}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => copyToClipboard(resp.response)}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                        <p className="text-sm text-foreground leading-relaxed">{resp.response}</p>
                       </div>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </TabsContent>
-
-          {/* Golden Rules Tab */}
-          <TabsContent value="rules" className="space-y-6">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {goldenRules.map((rule, index) => (
-                <Card 
-                  key={index} 
-                  className="bg-card/50 border-border/50 overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 group"
-                >
-                  <CardContent className="p-6">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${rule.color} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <rule.icon className="w-7 h-7 text-white" />
-                    </div>
-                    <h3 className="font-bold text-lg text-foreground mb-2">{rule.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{rule.description}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          {/* Golden Rules Tab */}
+          <TabsContent value="rules" className="space-y-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {goldenRules.map((rule, idx) => (
+                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden group hover:shadow-xl hover:shadow-primary/10 transition-all hover:-translate-y-1">
+                  <div className={`h-1.5 bg-gradient-to-r ${rule.color}`} />
+                  <CardContent className="pt-6">
+                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${rule.color} flex items-center justify-center mb-5 shadow-xl group-hover:scale-110 transition-transform`}>
+                      <rule.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-bold text-foreground mb-3">{rule.title}</h3>
+                    <p className="text-muted-foreground mb-5">{rule.description}</p>
+                    
+                    <div className="space-y-2">
+                      {rule.examples.map((example, i) => (
+                        <div key={i} className="flex items-center gap-2 text-sm">
+                          <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
+                          <span className="text-muted-foreground">{example}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Summary Card */}
+            <Card className="bg-gradient-to-br from-primary/10 to-pink-500/5 border-primary/20">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                    <Award className="w-7 h-7 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold text-foreground mb-2">Pamiętaj</h3>
+                    <p className="text-muted-foreground leading-relaxed">
+                      Najważniejsze to być autentycznym i naprawdę chcieć pomóc. Klienci wyczuwają czy zależy Ci na ich 
+                      sukcesie, czy tylko na prowizji. Buduj relacje, a sprzedaż przyjdzie naturalnie. Każda rozmowa 
+                      to szansa na naukę - analizuj co działa, a co nie i stale się rozwijaj.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
