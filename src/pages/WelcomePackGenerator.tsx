@@ -14,8 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import jsPDF from "jspdf";
 import { toJpeg } from "html-to-image";
 
-const TOTAL_SLIDES = 5;
-const slideNames = ["Powitanie", "Nasz zespół", "Harmonogram", "Co potrzebujemy", "Kontakt"];
+const TOTAL_SLIDES = 6;
+const slideNames = ["Powitanie", "Twój opiekun", "Onboarding", "Ciągła obsługa", "Wymagania", "Kontakt"];
 
 interface ClientOption {
   id: string;
