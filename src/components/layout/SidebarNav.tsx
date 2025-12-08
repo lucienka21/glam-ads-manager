@@ -50,12 +50,16 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
 
   const isActive = (path: string) => currentPath === path;
 
-  // Restore scroll position after render
+  // Restore scroll position after route change
   useLayoutEffect(() => {
-    if (navRef.current && savedScrollPosition > 0) {
-      navRef.current.scrollTop = savedScrollPosition;
+    const nav = navRef.current;
+    if (nav && savedScrollPosition > 0) {
+      // Use requestAnimationFrame to ensure DOM is ready
+      requestAnimationFrame(() => {
+        nav.scrollTop = savedScrollPosition;
+      });
     }
-  });
+  }, [currentPath]);
 
   useEffect(() => {
     if (!user) return;
