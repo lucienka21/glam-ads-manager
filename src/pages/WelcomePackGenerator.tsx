@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { WelcomePackPreview } from "@/components/welcomepack/WelcomePackPreview";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -24,6 +25,13 @@ interface ClientOption {
   city: string | null;
 }
 
+interface ManagerOption {
+  id: string;
+  full_name: string;
+  phone: string | null;
+  email: string | null;
+}
+
 const WelcomePackGenerator = () => {
   const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
@@ -34,7 +42,9 @@ const WelcomePackGenerator = () => {
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [previewScale, setPreviewScale] = useState(0.5);
   const [clients, setClients] = useState<ClientOption[]>([]);
+  const [managers, setManagers] = useState<ManagerOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
+  const [selectedManagerId, setSelectedManagerId] = useState<string>("");
   const previewContainerRef = useRef<HTMLDivElement>(null);
 
   const [formData, setFormData] = useState({
@@ -42,9 +52,9 @@ const WelcomePackGenerator = () => {
     salonName: "",
     city: "",
     startDate: "",
-    managerName: "Przemek",
-    managerPhone: "+48 123 456 789",
-    managerEmail: "kontakt@aurine.pl",
+    managerName: "",
+    managerPhone: "",
+    managerEmail: "",
   });
 
   useEffect(() => {
@@ -52,7 +62,14 @@ const WelcomePackGenerator = () => {
       const { data } = await supabase.from('clients').select('id, salon_name, owner_name, city').order('salon_name');
       setClients(data || []);
     };
+    
+    const fetchManagers = async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, phone, email').not('full_name', 'is', null).order('full_name');
+      setManagers(data || []);
+    };
+    
     fetchClients();
+    fetchManagers();
   }, []);
 
   useEffect(() => {
@@ -113,6 +130,21 @@ const WelcomePackGenerator = () => {
           ownerName: client.owner_name || "",
           salonName: client.salon_name || "",
           city: client.city || "",
+        }));
+      }
+    }
+  };
+
+  const handleManagerSelect = (managerId: string) => {
+    setSelectedManagerId(managerId);
+    if (managerId) {
+      const manager = managers.find(m => m.id === managerId);
+      if (manager) {
+        setFormData(prev => ({
+          ...prev,
+          managerName: manager.full_name || "",
+          managerPhone: manager.phone || "",
+          managerEmail: manager.email || "",
         }));
       }
     }
@@ -315,9 +347,26 @@ const WelcomePackGenerator = () => {
               </div>
             </div>
 
-            {/* Manager Info */}
+            {/* Manager Selection */}
             <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 space-y-3">
-              <p className="text-xs font-medium text-foreground">Dane opiekuna</p>
+              <p className="text-xs font-medium text-foreground">Wybierz opiekuna</p>
+              
+              <div>
+                <Label className="text-xs">Opiekun klienta</Label>
+                <Select value={selectedManagerId} onValueChange={handleManagerSelect}>
+                  <SelectTrigger className="h-9 mt-1">
+                    <SelectValue placeholder="Wybierz opiekuna..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {managers.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        {m.full_name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div>
                 <Label className="text-xs">Imię opiekuna</Label>
                 <Input
@@ -328,7 +377,7 @@ const WelcomePackGenerator = () => {
                 />
               </div>
               <div>
-                <Label className="text-xs">Telefon</Label>
+                <Label className="text-xs">Telefon / WhatsApp</Label>
                 <Input
                   value={formData.managerPhone}
                   onChange={(e) => handleInputChange("managerPhone", e.target.value)}
