@@ -168,7 +168,7 @@ const InvoiceGenerator = () => {
     const updateScale = () => {
       if (previewContainerRef.current) {
         const width = previewContainerRef.current.clientWidth;
-        setPreviewScale(Math.min(width / 794, 0.7));
+        setPreviewScale(Math.min(width / 595, 0.85));
       }
     };
     updateScale();
@@ -232,13 +232,13 @@ const InvoiceGenerator = () => {
         const thumbnail = await genThumb({
           elementId: "invoice-preview",
           format: 'jpeg',
-          backgroundColor: "#1f1f23",
-          pixelRatio: 0.2,
-          quality: 0.7,
+          backgroundColor: "#09090b",
+          pixelRatio: 0.3,
+          quality: 0.8,
           maxRetries: 3,
           retryDelay: 300,
-          width: 794,
-          height: 1123
+          width: 595,
+          height: 842
         });
         if (thumbnail) await updateThumbnail(docId, thumbnail);
       }, 300);
@@ -280,17 +280,31 @@ const InvoiceGenerator = () => {
           const thumbnail = await genThumb({
             elementId: "invoice-preview",
             format: 'jpeg',
-            backgroundColor: "#1f1f23",
-            pixelRatio: 0.2,
-            quality: 0.6,
+            backgroundColor: "#09090b",
+            pixelRatio: 0.3,
+            quality: 0.8,
           });
           if (thumbnail) await updateThumbnail(docId, thumbnail);
         }
       }
 
-      const canvas = await toJpeg(element, { cacheBust: true, pixelRatio: 1, backgroundColor: "#1f1f23", quality: 0.85 });
-      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
-      pdf.addImage(canvas, "JPEG", 0, 0, 794, 1123, undefined, "FAST");
+      // A4 format: 210mm x 297mm = 595.28 x 841.89 pt
+      const A4_WIDTH = 595.28;
+      const A4_HEIGHT = 841.89;
+      
+      const canvas = await toJpeg(element, { 
+        cacheBust: true, 
+        pixelRatio: 2, 
+        backgroundColor: "#09090b", 
+        quality: 0.95 
+      });
+      const pdf = new jsPDF({ 
+        orientation: "portrait", 
+        unit: "pt", 
+        format: "a4",
+        compress: true 
+      });
+      pdf.addImage(canvas, "JPEG", 0, 0, A4_WIDTH, A4_HEIGHT);
       pdf.save(`${formData.invoiceNumber.replace(/\//g, "-")}.pdf`);
       toast.success("Faktura PDF pobrana!");
     } catch (error) {
