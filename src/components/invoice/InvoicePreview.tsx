@@ -1,4 +1,3 @@
-import { Building2, FileText, Calendar, CreditCard, User, Sparkles, Flower2 } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
 
 interface InvoiceData {
@@ -12,6 +11,8 @@ interface InvoiceData {
   amount: string;
   advanceAmount: string;
   paymentDue: string;
+  bankName: string;
+  bankAccount: string;
 }
 
 interface InvoicePreviewProps {
@@ -71,10 +72,10 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
   const finalAmount = data.invoiceType === "final" ? amount - advanceAmount : amount;
   
   const invoiceTitle = data.invoiceType === "advance" 
-    ? "FAKTURA ZALICZKOWA" 
+    ? "Faktura zaliczkowa" 
     : data.invoiceType === "final" 
-      ? "FAKTURA KOŃCOWA" 
-      : "FAKTURA";
+      ? "Faktura końcowa" 
+      : "Faktura";
 
   const zloteSlownie = numberToWords(Math.floor(finalAmount));
   const grosze = Math.round((finalAmount % 1) * 100);
@@ -82,212 +83,140 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
   return (
     <div
       id="invoice-preview"
-      className="w-[794px] min-h-[1123px] bg-black text-white overflow-hidden"
-      style={{ backgroundColor: '#000000' }}
+      className="w-[794px] min-h-[1123px] bg-white text-zinc-900 p-12"
+      style={{ backgroundColor: '#ffffff' }}
     >
       {/* Header */}
-      <div className="bg-gradient-to-r from-zinc-900 via-zinc-950 to-black p-6 border-b border-pink-900/30">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <img 
-              src={agencyLogo} 
-              alt="Aurine" 
-              className="w-14 h-14 object-contain"
-            />
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-zinc-500 font-light">
-                Aurine Agency
-              </p>
-              <p className="text-lg font-semibold text-white">
-                {invoiceTitle}
-              </p>
-            </div>
+      <div className="flex items-start justify-between mb-12">
+        <div className="flex items-center gap-4">
+          <img src={agencyLogo} alt="Aurine" className="w-12 h-12 object-contain" />
+          <div>
+            <p className="text-xl font-semibold text-zinc-900">Aurine</p>
+            <p className="text-xs text-zinc-500">Marketing dla beauty</p>
           </div>
-          <div className="text-right">
-            <div className="inline-flex flex-col items-end gap-1 px-5 py-3 rounded-2xl bg-gradient-to-br from-pink-600 to-rose-700 shadow-xl shadow-pink-500/25">
-              <span className="text-[9px] uppercase tracking-[0.25em] text-pink-100 font-light">
-                Numer faktury
-              </span>
-              <p className="text-lg font-bold text-white">
-                {data.invoiceNumber || "FV/____/____"}
-              </p>
-            </div>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-light text-zinc-900">{invoiceTitle}</p>
+          <p className="text-lg font-medium text-zinc-700 mt-1">{data.invoiceNumber || "—"}</p>
+        </div>
+      </div>
+
+      {/* Dates Row */}
+      <div className="flex gap-12 mb-10 text-sm">
+        <div>
+          <p className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Data wystawienia</p>
+          <p className="text-zinc-900">{formatDate(data.issueDate)}</p>
+        </div>
+        <div>
+          <p className="text-zinc-400 text-xs uppercase tracking-wider mb-1">Termin płatności</p>
+          <p className="text-zinc-900">{formatDate(data.paymentDue)}</p>
+        </div>
+      </div>
+
+      {/* Parties */}
+      <div className="grid grid-cols-2 gap-12 mb-10">
+        <div>
+          <p className="text-zinc-400 text-xs uppercase tracking-wider mb-3">Sprzedawca</p>
+          <p className="font-medium text-zinc-900">Aurine Agency</p>
+          <p className="text-sm text-zinc-600 mt-1">ul. Przykładowa 123</p>
+          <p className="text-sm text-zinc-600">00-000 Warszawa</p>
+        </div>
+        <div>
+          <p className="text-zinc-400 text-xs uppercase tracking-wider mb-3">Nabywca</p>
+          <p className="font-medium text-zinc-900">{data.clientName || "—"}</p>
+          <p className="text-sm text-zinc-600 mt-1">{data.clientAddress || "—"}</p>
+          {data.clientNIP && <p className="text-sm text-zinc-600">NIP: {data.clientNIP}</p>}
+        </div>
+      </div>
+
+      {/* Services */}
+      <div className="mb-10">
+        <div className="border-b border-zinc-200 pb-2 mb-4">
+          <div className="grid grid-cols-12 text-xs text-zinc-400 uppercase tracking-wider">
+            <div className="col-span-6">Usługa</div>
+            <div className="col-span-2 text-right">Ilość</div>
+            <div className="col-span-2 text-right">Cena</div>
+            <div className="col-span-2 text-right">Wartość</div>
+          </div>
+        </div>
+        
+        <div className="grid grid-cols-12 py-3 text-sm">
+          <div className="col-span-6 text-zinc-900">{data.serviceDescription || "Usługi marketingowe"}</div>
+          <div className="col-span-2 text-right text-zinc-600">1</div>
+          <div className="col-span-2 text-right text-zinc-600">{formatAmount(data.amount)} zł</div>
+          <div className="col-span-2 text-right font-medium text-zinc-900">{formatAmount(data.amount)} zł</div>
+        </div>
+        
+        {data.invoiceType === "final" && advanceAmount > 0 && (
+          <div className="grid grid-cols-12 py-3 text-sm border-t border-zinc-100">
+            <div className="col-span-6 text-zinc-600">Zaliczka wpłacona</div>
+            <div className="col-span-2 text-right text-zinc-600">1</div>
+            <div className="col-span-2 text-right text-zinc-600">-{formatAmount(data.advanceAmount)} zł</div>
+            <div className="col-span-2 text-right font-medium text-zinc-600">-{formatAmount(data.advanceAmount)} zł</div>
+          </div>
+        )}
+      </div>
+
+      {/* Summary */}
+      <div className="flex justify-end mb-10">
+        <div className="w-64">
+          <div className="flex justify-between py-2 text-sm">
+            <span className="text-zinc-500">Netto</span>
+            <span className="text-zinc-900">{formatAmount(String(finalAmount))} zł</span>
+          </div>
+          <div className="flex justify-between py-2 text-sm border-b border-zinc-200">
+            <span className="text-zinc-500">VAT (zw.)</span>
+            <span className="text-zinc-500">—</span>
+          </div>
+          <div className="flex justify-between py-3">
+            <span className="font-medium text-zinc-900">Do zapłaty</span>
+            <span className="text-xl font-semibold text-zinc-900">{formatAmount(String(finalAmount))} zł</span>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-6 space-y-5">
-        {/* Dates */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/30">
-                <Calendar className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-medium">Data wystawienia</span>
-            </div>
-            <p className="text-lg font-semibold text-white ml-11">{formatDate(data.issueDate)}</p>
+      {/* Amount in words */}
+      <div className="mb-10 text-sm">
+        <span className="text-zinc-400">Słownie: </span>
+        <span className="text-zinc-700">{zloteSlownie} złotych {grosze}/100</span>
+      </div>
+
+      {/* Payment info */}
+      <div className="bg-zinc-50 rounded-lg p-5 mb-10">
+        <p className="text-xs text-zinc-400 uppercase tracking-wider mb-3">Dane do przelewu</p>
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-zinc-500">Bank</p>
+            <p className="text-zinc-900 font-medium">{data.bankName || "mBank"}</p>
           </div>
-          <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="bg-gradient-to-br from-amber-500 to-orange-600 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/30">
-                <CreditCard className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-[9px] uppercase tracking-wider text-zinc-500 font-medium">Termin płatności</span>
-            </div>
-            <p className="text-lg font-semibold text-white ml-11">{formatDate(data.paymentDue)}</p>
+          <div>
+            <p className="text-zinc-500">Numer konta</p>
+            <p className="text-zinc-900 font-medium">{data.bankAccount || "00 0000 0000 0000 0000 0000 0000"}</p>
           </div>
         </div>
-
-        {/* Parties */}
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-gradient-to-br from-pink-950/30 via-zinc-950/50 to-zinc-950/50 rounded-2xl border border-pink-800/20 p-4 backdrop-blur shadow-lg">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-gradient-to-br from-pink-500 to-rose-600 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-pink-500/30">
-                <Building2 className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-[9px] uppercase tracking-wider text-pink-300 font-medium">Sprzedawca</p>
-                <h4 className="text-sm font-semibold text-white">Aurine Agency</h4>
-              </div>
-            </div>
-            <div className="space-y-1 text-[10px] text-zinc-400 ml-12">
-              <p>ul. Przykładowa 123</p>
-              <p>00-000 Warszawa</p>
-              <p className="text-pink-300 font-medium mt-2">Zwolnione z VAT</p>
-              <p className="text-zinc-500 text-[9px]">na podstawie art. 113 ust. 1 ustawy o VAT</p>
-            </div>
-          </div>
-
-          <div className="bg-zinc-950 rounded-2xl border border-zinc-800/50 p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 w-9 h-9 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-[9px] uppercase tracking-wider text-zinc-500 font-medium">Nabywca</p>
-                <h4 className="text-sm font-semibold text-white">{data.clientName || "Nazwa klienta"}</h4>
-              </div>
-            </div>
-            <div className="space-y-1 text-[10px] text-zinc-400 ml-12">
-              <p>{data.clientAddress || "Adres klienta"}</p>
-              {data.clientNIP && <p className="text-zinc-300 mt-2">NIP: {data.clientNIP}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Services Table */}
-        <div className="bg-zinc-950/80 rounded-2xl border border-zinc-800/50 overflow-hidden">
-          <div className="bg-gradient-to-r from-zinc-800 to-zinc-900 px-5 py-3">
-            <div className="grid grid-cols-12 gap-2 text-[9px] font-bold uppercase tracking-wider text-zinc-400">
-              <div className="col-span-1">Lp.</div>
-              <div className="col-span-5">Nazwa usługi</div>
-              <div className="col-span-2 text-right">Ilość</div>
-              <div className="col-span-2 text-right">Cena jedn.</div>
-              <div className="col-span-2 text-right">Wartość</div>
-            </div>
-          </div>
-          <div className="divide-y divide-zinc-800/50">
-            <div className="grid grid-cols-12 gap-2 px-5 py-4 text-sm">
-              <div className="col-span-1 text-zinc-500 text-sm">1</div>
-              <div className="col-span-5 font-medium text-white text-sm">{data.serviceDescription || "Usługi marketingowe Facebook Ads"}</div>
-              <div className="col-span-2 text-right text-zinc-400 text-sm">1 szt.</div>
-              <div className="col-span-2 text-right text-zinc-400 text-sm">{formatAmount(data.amount)} PLN</div>
-              <div className="col-span-2 text-right font-bold text-white text-sm">{formatAmount(data.amount)} PLN</div>
-            </div>
-            
-            {data.invoiceType === "final" && advanceAmount > 0 && (
-              <div className="grid grid-cols-12 gap-2 px-5 py-4 bg-amber-950/20">
-                <div className="col-span-1 text-zinc-500 text-sm">2</div>
-                <div className="col-span-5 font-medium text-amber-300 text-sm">Zaliczka wpłacona</div>
-                <div className="col-span-2 text-right text-zinc-400 text-sm">1 szt.</div>
-                <div className="col-span-2 text-right text-zinc-400 text-sm">-{formatAmount(data.advanceAmount)} PLN</div>
-                <div className="col-span-2 text-right font-bold text-amber-300 text-sm">-{formatAmount(data.advanceAmount)} PLN</div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Summary */}
-        <div className="flex justify-end">
-          <div className="w-80 space-y-2">
-            <div className="flex justify-between py-2 border-b border-zinc-800">
-              <span className="text-zinc-500 text-sm">Wartość netto</span>
-              <span className="font-medium text-white">{formatAmount(String(finalAmount))} PLN</span>
-            </div>
-            <div className="flex justify-between py-2 border-b border-zinc-800">
-              <span className="text-zinc-500 text-sm">VAT (zw.)</span>
-              <span className="font-medium text-zinc-400">0,00 PLN</span>
-            </div>
-            <div className="flex justify-between items-center py-4 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-2xl px-5 shadow-xl shadow-pink-500/25">
-              <span className="font-bold text-sm uppercase tracking-wide">Do zapłaty</span>
-              <span className="font-bold text-2xl">{formatAmount(String(finalAmount))} PLN</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Amount in words */}
-        <div className="bg-zinc-950/80 rounded-xl border border-zinc-800/50 p-4">
-          <p className="text-[9px] text-zinc-500 uppercase tracking-wider mb-1">Kwota słownie</p>
-          <p className="font-medium text-white">{zloteSlownie} złotych {grosze}/100</p>
-        </div>
-
-        {/* Payment info */}
-        <div className="bg-gradient-to-br from-emerald-950/30 via-zinc-950/60 to-zinc-950/50 rounded-2xl border border-emerald-800/30 p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 w-8 h-8 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/30">
-              <CreditCard className="w-4 h-4 text-white" />
-            </div>
-            <p className="text-[10px] uppercase tracking-wider text-emerald-300 font-bold">Dane do przelewu</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4 ml-11">
-            <div>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Bank</p>
-              <p className="font-medium text-white text-sm">mBank</p>
-            </div>
-            <div>
-              <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Numer konta</p>
-              <p className="font-medium text-white text-sm">00 1140 0000 0000 0000 0000 0000</p>
-            </div>
-          </div>
-          <div className="mt-3 ml-11">
-            <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Tytuł przelewu</p>
-            <p className="font-medium text-white text-sm">{data.invoiceNumber || "FV/____/____"}</p>
-          </div>
-        </div>
-
-        {/* VAT exempt notice */}
-        <div className="bg-gradient-to-br from-pink-950/20 to-zinc-950/50 rounded-xl border border-pink-800/20 p-4 text-center">
-          <p className="text-xs text-pink-300 font-medium">Zwolnione z VAT</p>
-          <p className="text-[10px] text-zinc-500 mt-1">na podstawie art. 113 ust. 1 ustawy o podatku od towarów i usług</p>
-        </div>
-
-        {/* Signatures */}
-        <div className="grid grid-cols-2 gap-6 pt-4">
-          <div className="text-center">
-            <div className="h-12 border-b border-zinc-700 mb-2"></div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Podpis wystawcy</p>
-          </div>
-          <div className="text-center">
-            <div className="h-12 border-b border-zinc-700 mb-2"></div>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Podpis odbiorcy</p>
-          </div>
+        <div className="mt-3">
+          <p className="text-zinc-500 text-sm">Tytuł</p>
+          <p className="text-zinc-900 font-medium text-sm">{data.invoiceNumber || "—"}</p>
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="px-6 py-3 border-t border-zinc-900 flex items-center justify-between mt-auto">
-        <div className="flex items-center gap-3">
-          <img src={agencyLogo} alt="Aurine" className="w-7 h-7 object-contain opacity-60" />
-          <div className="flex items-center gap-2">
-            <Flower2 className="w-3 h-3 text-pink-500/50" />
-            <span className="text-[9px] text-zinc-600">aurine.pl</span>
+      {/* VAT notice */}
+      <p className="text-xs text-zinc-400 text-center mb-16">
+        Zwolnienie z VAT na podstawie art. 113 ust. 1 ustawy o podatku od towarów i usług
+      </p>
+
+      {/* Signatures */}
+      <div className="grid grid-cols-2 gap-24 mt-auto">
+        <div className="text-center">
+          <div className="border-t border-zinc-300 pt-2">
+            <p className="text-xs text-zinc-400">Wystawił</p>
           </div>
         </div>
-        <p className="text-[8px] text-zinc-600">
-          Profesjonalny marketing dla salonów beauty
-        </p>
+        <div className="text-center">
+          <div className="border-t border-zinc-300 pt-2">
+            <p className="text-xs text-zinc-400">Odebrał</p>
+          </div>
+        </div>
       </div>
     </div>
   );
