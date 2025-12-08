@@ -187,7 +187,6 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             </div>
             <div>
               <p className="text-xl font-bold text-white">{data.agencyName || "Aurine"}</p>
-              <p className="text-sm text-zinc-500">{data.agencyOwner || "—"}</p>
             </div>
           </div>
           <div className="text-right">
@@ -339,7 +338,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider">Tytuł przelewu</p>
               <p className="text-white font-medium text-sm">
-                {data.invoiceNumber || "FV/2025/01/001"} - {data.clientName || "Klient"}
+                {services.length > 0 ? services[0].description : "Usługa"} - {data.invoiceNumber || "FV/2025/01/001"}
               </p>
             </div>
           </div>
@@ -354,7 +353,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         <div className="grid grid-cols-2 gap-16">
           <div className="text-center">
             <div className="h-14 border-b-2 border-zinc-700 mb-2"></div>
-            <p className="text-xs text-zinc-500">{data.agencyOwner || "Wystawił"}</p>
+            <p className="text-xs text-zinc-500">Wystawca</p>
           </div>
           <div className="text-center">
             <div className="h-14 border-b-2 border-zinc-700 mb-2"></div>
