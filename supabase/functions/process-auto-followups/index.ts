@@ -194,6 +194,29 @@ async function logFollowUpSend(
   }
 }
 
+// Helper to check if follow-up was already sent today
+async function wasFollowUpAlreadySentToday(
+  supabase: any,
+  leadId: string,
+  followupType: string
+): Promise<boolean> {
+  const today = new Date().toISOString().split("T")[0];
+  const { data, error } = await supabase
+    .from("auto_followup_logs")
+    .select("id")
+    .eq("lead_id", leadId)
+    .eq("followup_type", followupType)
+    .eq("status", "sent")
+    .gte("created_at", `${today}T00:00:00Z`)
+    .limit(1);
+
+  if (error) {
+    console.error("Error checking duplicate:", error);
+    return false;
+  }
+  return (data?.length || 0) > 0;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -261,7 +284,7 @@ serve(async (req) => {
       .lte("email_follow_up_2_date", today)
       .not("status", "in", '("converted","lost")');
 
-    const results = { sent: 0, failed: 0, processed: [] as string[] };
+    const results = { sent: 0, failed: 0, skipped: 0, processed: [] as string[] };
 
     console.log(`Found ${leadsForFollowUp1?.length || 0} leads for Follow-up 1`);
     console.log(`Found ${leadsForFollowUp2?.length || 0} leads for Follow-up 2`);
@@ -269,6 +292,14 @@ serve(async (req) => {
     // Process Follow-up 1
     for (const lead of leadsForFollowUp1 || []) {
       try {
+        // Check if already sent today to prevent duplicates
+        const alreadySent = await wasFollowUpAlreadySentToday(supabase, lead.id, "followup_1");
+        if (alreadySent) {
+          console.log(`Skipping lead ${lead.id} - follow-up 1 already sent today`);
+          results.skipped++;
+          continue;
+        }
+
         const emailFrom = lead.email_from;
         const accessToken = await getZohoAccessToken(supabase, emailFrom);
         
@@ -318,6 +349,14 @@ serve(async (req) => {
     // Process Follow-up 2
     for (const lead of leadsForFollowUp2 || []) {
       try {
+        // Check if already sent today to prevent duplicates
+        const alreadySent = await wasFollowUpAlreadySentToday(supabase, lead.id, "followup_2");
+        if (alreadySent) {
+          console.log(`Skipping lead ${lead.id} - follow-up 2 already sent today`);
+          results.skipped++;
+          continue;
+        }
+
         const emailFrom = lead.email_from;
         const accessToken = await getZohoAccessToken(supabase, emailFrom);
         

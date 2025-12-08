@@ -107,11 +107,19 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       e.preventDefault();
       e.stopPropagation();
     }
-    // Use setTimeout to prevent scroll jump
-    setTimeout(() => {
-      navigate(url);
-      onNavigate?.();
-    }, 0);
+    // Save scroll position before navigation
+    const navElement = document.querySelector('nav.custom-scrollbar');
+    const scrollTop = navElement?.scrollTop || 0;
+    
+    navigate(url);
+    onNavigate?.();
+    
+    // Restore scroll position after navigation
+    requestAnimationFrame(() => {
+      if (navElement) {
+        navElement.scrollTop = scrollTop;
+      }
+    });
   };
 
   const mainItems: NavItem[] = [
