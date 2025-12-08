@@ -67,6 +67,7 @@ const InvoiceGenerator = () => {
 
   const [formData, setFormData] = useState({
     clientName: "",
+    clientOwnerName: "",
     clientAddress: "",
     clientNIP: "",
     invoiceNumber: "",
@@ -80,6 +81,27 @@ const InvoiceGenerator = () => {
     agencyAddress: storedAgency.agencyAddress,
     agencyNIP: storedAgency.agencyNIP,
   });
+
+  // Generate next invoice number
+  const [invoiceCount, setInvoiceCount] = useState<number>(1);
+
+  useEffect(() => {
+    const fetchInvoiceCount = async () => {
+      const { count } = await supabase
+        .from('documents')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'invoice');
+      const nextNum = (count || 0) + 1;
+      setInvoiceCount(nextNum);
+      const year = new Date().getFullYear();
+      const month = String(new Date().getMonth() + 1).padStart(2, '0');
+      setFormData(prev => ({ 
+        ...prev, 
+        invoiceNumber: prev.invoiceNumber || `FV/${year}/${month}/${String(nextNum).padStart(3, '0')}`
+      }));
+    };
+    fetchInvoiceCount();
+  }, []);
 
   // Save agency data when it changes
   useEffect(() => {
@@ -112,6 +134,7 @@ const InvoiceGenerator = () => {
           setFormData(prev => ({
             ...prev,
             clientName: loadedData.clientName || "",
+            clientOwnerName: loadedData.clientOwnerName || "",
             clientAddress: loadedData.clientAddress || "",
             clientNIP: loadedData.clientNIP || "",
             invoiceNumber: loadedData.invoiceNumber || "",
@@ -344,7 +367,7 @@ const InvoiceGenerator = () => {
             {/* Form Fields */}
             <div className="space-y-3">
               <div>
-                <Label className="text-xs">Nazwa klienta *</Label>
+                <Label className="text-xs">Nazwa salonu / firmy *</Label>
                 <Input
                   value={formData.clientName}
                   onChange={(e) => handleInputChange("clientName", e.target.value)}
@@ -354,11 +377,21 @@ const InvoiceGenerator = () => {
               </div>
 
               <div>
+                <Label className="text-xs">Imię i nazwisko właścicielki</Label>
+                <Input
+                  value={formData.clientOwnerName}
+                  onChange={(e) => handleInputChange("clientOwnerName", e.target.value)}
+                  placeholder="Anna Kowalska"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div>
                 <Label className="text-xs">Numer faktury *</Label>
                 <Input
                   value={formData.invoiceNumber}
                   onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
-                  placeholder="FV/2025/001"
+                  placeholder="FV/2025/01/001"
                   className="h-9 mt-1"
                 />
               </div>
@@ -391,6 +424,7 @@ const InvoiceGenerator = () => {
                         setFormData(prev => ({
                           ...prev,
                           clientName: client.salon_name,
+                          clientOwnerName: client.owner_name || "",
                           clientAddress: client.city ? `${client.city}` : prev.clientAddress,
                         }));
                       }
