@@ -367,14 +367,12 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         </div>
 
         {/* Amount in words */}
-        <div className="mb-3 p-3 bg-gradient-to-r from-zinc-800/40 to-zinc-800/20 border border-zinc-700/30 rounded-lg">
-          <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-1">Kwota słownie</p>
-          <p className="text-sm text-white font-medium">
+        <div className="text-xs mb-3 px-3 py-1.5 bg-zinc-800/30 rounded-md inline-block">
+          <span className="text-zinc-500">Słownie: </span>
+          <span className="text-zinc-300">
             {zloteSlownie} {getZlotyForm(zlote)}
-            {grosze > 0 && (
-              <span className="text-zinc-400"> i {groszeSlownie} {getGroszyForm(grosze)}</span>
-            )}
-          </p>
+            {grosze > 0 ? ` i ${groszeSlownie} ${getGroszyForm(grosze)}` : ""}
+          </span>
         </div>
 
         {/* Payment info */}
