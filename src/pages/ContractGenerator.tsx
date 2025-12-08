@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, FileImage, ArrowLeft, Building2, User, FileText, Sparkles } from "lucide-react";
+import { Download, FileImage, ArrowLeft, Building2, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,6 +19,8 @@ interface ClientOption {
   salon_name: string;
   city?: string;
   owner_name?: string;
+  email?: string;
+  phone?: string;
 }
 
 interface LeadOption {
@@ -26,7 +28,11 @@ interface LeadOption {
   salon_name: string;
   city?: string;
   owner_name?: string;
+  email?: string;
+  phone?: string;
 }
+
+const STORAGE_KEY = "contract-agency-data";
 
 const ContractGenerator = () => {
   const navigate = useNavigate();
@@ -41,21 +47,39 @@ const ContractGenerator = () => {
   const [previewScale, setPreviewScale] = useState(0.5);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
+  // Load agency data from localStorage
+  const getStoredAgencyData = () => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch {}
+    return {
+      agencyName: "Agencja Marketingowa Aurine",
+      agencyOwner: "",
+      agencyAddress: "",
+      agencyNIP: "",
+      agencyEmail: "kontakt@aurine.pl",
+    };
+  };
+
   const [formData, setFormData] = useState({
     clientName: "",
+    clientOwnerName: "",
     clientAddress: "",
+    clientNIP: "",
+    clientEmail: "",
+    clientPhone: "",
     signDate: new Date().toISOString().split("T")[0],
     signCity: "",
     contractValue: "",
-    agencyEmail: "kontakt@aurine.pl",
-    agencyAddress: "",
+    ...getStoredAgencyData(),
   });
 
   useEffect(() => {
     const fetchData = async () => {
       const [clientsRes, leadsRes] = await Promise.all([
-        supabase.from('clients').select('id, salon_name, city, owner_name').order('salon_name'),
-        supabase.from('leads').select('id, salon_name, city, owner_name').not('status', 'in', '("converted","lost")').order('salon_name')
+        supabase.from('clients').select('id, salon_name, city, owner_name, email, phone').order('salon_name'),
+        supabase.from('leads').select('id, salon_name, city, owner_name, email, phone').not('status', 'in', '("converted","lost")').order('salon_name')
       ]);
       setClients(clientsRes.data || []);
       setLeads(leadsRes.data || []);
@@ -90,6 +114,18 @@ const ContractGenerator = () => {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
+  // Persist agency data to localStorage
+  useEffect(() => {
+    const agencyData = {
+      agencyName: formData.agencyName,
+      agencyOwner: formData.agencyOwner,
+      agencyAddress: formData.agencyAddress,
+      agencyNIP: formData.agencyNIP,
+      agencyEmail: formData.agencyEmail,
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(agencyData));
+  }, [formData.agencyName, formData.agencyOwner, formData.agencyAddress, formData.agencyNIP, formData.agencyEmail]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -104,7 +140,10 @@ const ContractGenerator = () => {
         setFormData(prev => ({
           ...prev,
           clientName: client.salon_name,
+          clientOwnerName: client.owner_name || "",
           signCity: client.city || prev.signCity,
+          clientEmail: client.email || "",
+          clientPhone: client.phone || "",
         }));
       }
     }
@@ -120,7 +159,10 @@ const ContractGenerator = () => {
         setFormData(prev => ({
           ...prev,
           clientName: lead.salon_name,
+          clientOwnerName: lead.owner_name || "",
           signCity: lead.city || prev.signCity,
+          clientEmail: lead.email || "",
+          clientPhone: lead.phone || "",
         }));
       }
     }
@@ -175,7 +217,6 @@ const ContractGenerator = () => {
 
     setIsGenerating(true);
     try {
-      // Auto-save before download
       let docId = currentDocId;
       if (!docId) {
         docId = await saveDocument(
@@ -201,7 +242,6 @@ const ContractGenerator = () => {
         }
       }
 
-      // A4 format: 210mm x 297mm = 595.28 x 841.89 pt
       const A4_WIDTH = 595.28;
       const A4_HEIGHT = 841.89;
 
@@ -267,105 +307,181 @@ const ContractGenerator = () => {
           </div>
 
           <div className="p-4 space-y-4">
-            {/* Form Fields */}
+            {/* Client/Lead Selection */}
             <div className="space-y-3">
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-xs flex items-center gap-1">
-                    <Building2 className="w-3 h-3 text-primary" />
-                    Klient
-                  </Label>
-                  <SearchableSelect
-                    options={clients.map(c => ({ value: c.id, label: c.salon_name, description: c.city || "" }))}
-                    value={selectedClientId}
-                    onValueChange={handleClientSelect}
-                    placeholder="Wybierz klienta..."
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs flex items-center gap-1">
-                    <User className="w-3 h-3 text-primary" />
-                    Lead
-                  </Label>
-                  <SearchableSelect
-                    options={leads.map(l => ({ value: l.id, label: l.salon_name, description: l.city || "" }))}
-                    value={selectedLeadId}
-                    onValueChange={handleLeadSelect}
-                    placeholder="Wybierz leada..."
-                  />
-                </div>
-              </div>
-
               <div>
-                <Label className="text-xs">Nazwa Zleceniodawcy *</Label>
-                <Input
-                  value={formData.clientName}
-                  onChange={(e) => handleInputChange("clientName", e.target.value)}
-                  placeholder="Salon Beauty XYZ"
-                  className="h-9 mt-1"
+                <Label className="text-xs flex items-center gap-1">
+                  <Building2 className="w-3 h-3 text-primary" />
+                  Klient
+                </Label>
+                <SearchableSelect
+                  options={clients.map(c => ({ value: c.id, label: c.salon_name, description: c.city || "" }))}
+                  value={selectedClientId}
+                  onValueChange={handleClientSelect}
+                  placeholder="Wybierz klienta..."
                 />
               </div>
-
               <div>
-                <Label className="text-xs">Adres Zleceniodawcy</Label>
-                <Input
-                  value={formData.clientAddress}
-                  onChange={(e) => handleInputChange("clientAddress", e.target.value)}
-                  placeholder="ul. Przykładowa 123, 00-000 Warszawa"
-                  className="h-9 mt-1"
+                <Label className="text-xs flex items-center gap-1">
+                  <User className="w-3 h-3 text-primary" />
+                  Lead
+                </Label>
+                <SearchableSelect
+                  options={leads.map(l => ({ value: l.id, label: l.salon_name, description: l.city || "" }))}
+                  value={selectedLeadId}
+                  onValueChange={handleLeadSelect}
+                  placeholder="Wybierz leada..."
                 />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-3">
+            {/* Zleceniodawca Section */}
+            <div className="pt-2 border-t border-border/30">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Dane Zleceniodawcy</p>
+              <div className="space-y-2">
                 <div>
-                  <Label className="text-xs">Data zawarcia</Label>
+                  <Label className="text-xs">Nazwa firmy / salonu *</Label>
                   <Input
-                    type="date"
-                    value={formData.signDate}
-                    onChange={(e) => handleInputChange("signDate", e.target.value)}
+                    value={formData.clientName}
+                    onChange={(e) => handleInputChange("clientName", e.target.value)}
+                    placeholder="Salon Beauty XYZ"
                     className="h-9 mt-1"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs">Miejscowość</Label>
+                  <Label className="text-xs">Imię i nazwisko właściciela</Label>
                   <Input
-                    value={formData.signCity}
-                    onChange={(e) => handleInputChange("signCity", e.target.value)}
-                    placeholder="Warszawa"
+                    value={formData.clientOwnerName}
+                    onChange={(e) => handleInputChange("clientOwnerName", e.target.value)}
+                    placeholder="Anna Kowalska"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Adres</Label>
+                  <Input
+                    value={formData.clientAddress}
+                    onChange={(e) => handleInputChange("clientAddress", e.target.value)}
+                    placeholder="ul. Przykładowa 123, 00-000 Warszawa"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">NIP</Label>
+                  <Input
+                    value={formData.clientNIP}
+                    onChange={(e) => handleInputChange("clientNIP", e.target.value)}
+                    placeholder="1234567890"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">E-mail</Label>
+                    <Input
+                      value={formData.clientEmail}
+                      onChange={(e) => handleInputChange("clientEmail", e.target.value)}
+                      placeholder="kontakt@salon.pl"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Telefon</Label>
+                    <Input
+                      value={formData.clientPhone}
+                      onChange={(e) => handleInputChange("clientPhone", e.target.value)}
+                      placeholder="+48 123 456 789"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contract Details */}
+            <div className="pt-2 border-t border-border/30">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Szczegóły umowy</p>
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Data zawarcia</Label>
+                    <Input
+                      type="date"
+                      value={formData.signDate}
+                      onChange={(e) => handleInputChange("signDate", e.target.value)}
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Miejscowość</Label>
+                    <Input
+                      value={formData.signCity}
+                      onChange={(e) => handleInputChange("signCity", e.target.value)}
+                      placeholder="Warszawa"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Wynagrodzenie miesięczne (PLN brutto) *</Label>
+                  <Input
+                    type="number"
+                    value={formData.contractValue}
+                    onChange={(e) => handleInputChange("contractValue", e.target.value)}
+                    placeholder="1500"
                     className="h-9 mt-1"
                   />
                 </div>
               </div>
+            </div>
 
-              <div>
-                <Label className="text-xs">Wynagrodzenie miesięczne (PLN brutto) *</Label>
-                <Input
-                  type="number"
-                  value={formData.contractValue}
-                  onChange={(e) => handleInputChange("contractValue", e.target.value)}
-                  placeholder="1500"
-                  className="h-9 mt-1"
-                />
-              </div>
-
-              <div className="pt-2 border-t border-border/30">
-                <p className="text-xs text-muted-foreground mb-2">Dane Wykonawcy (Aurine)</p>
-                <div className="space-y-2">
+            {/* Wykonawca Section */}
+            <div className="pt-2 border-t border-border/30">
+              <p className="text-xs text-muted-foreground mb-2 font-medium">Dane Wykonawcy (Aurine)</p>
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs">Nazwa agencji</Label>
+                  <Input
+                    value={formData.agencyName}
+                    onChange={(e) => handleInputChange("agencyName", e.target.value)}
+                    placeholder="Agencja Marketingowa Aurine"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Właściciel</Label>
+                  <Input
+                    value={formData.agencyOwner}
+                    onChange={(e) => handleInputChange("agencyOwner", e.target.value)}
+                    placeholder="Imię i nazwisko"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Adres do korespondencji</Label>
+                  <Input
+                    value={formData.agencyAddress}
+                    onChange={(e) => handleInputChange("agencyAddress", e.target.value)}
+                    placeholder="Adres agencji..."
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">NIP</Label>
+                    <Input
+                      value={formData.agencyNIP}
+                      onChange={(e) => handleInputChange("agencyNIP", e.target.value)}
+                      placeholder="1234567890"
+                      className="h-9 mt-1"
+                    />
+                  </div>
                   <div>
                     <Label className="text-xs">E-mail</Label>
                     <Input
                       value={formData.agencyEmail}
                       onChange={(e) => handleInputChange("agencyEmail", e.target.value)}
                       placeholder="kontakt@aurine.pl"
-                      className="h-9 mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Adres do korespondencji</Label>
-                    <Input
-                      value={formData.agencyAddress}
-                      onChange={(e) => handleInputChange("agencyAddress", e.target.value)}
-                      placeholder="Adres agencji..."
                       className="h-9 mt-1"
                     />
                   </div>
