@@ -10,7 +10,7 @@ import { format, addDays, isPast, isToday, isFuture } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import {
   Loader2, Mail, Send, Clock, CheckCircle2, AlertCircle,
-  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, FileText, History, XCircle
+  Calendar, User, Building2, Play, Pause, RefreshCw, Zap, FileText, History, XCircle, TestTube2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -58,6 +58,7 @@ export default function AutoFollowUps() {
   const [showLogsDialog, setShowLogsDialog] = useState(false);
   const [logs, setLogs] = useState<FollowUpLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [testingLeadId, setTestingLeadId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchLeads();
@@ -100,7 +101,7 @@ export default function AutoFollowUps() {
       
       if (error) throw error;
       
-      toast.success(`Wysłano ${data.sent} follow-upów automatycznie`);
+      toast.success(`Wysłano ${data.sent} follow-upów automatycznie${data.skipped ? `, pominięto ${data.skipped} (duplikaty)` : ''}`);
       fetchLeads();
       fetchLogs();
     } catch (error: any) {
@@ -108,6 +109,29 @@ export default function AutoFollowUps() {
       console.error(error);
     }
     setProcessing(false);
+  };
+
+  const testFollowUp = async (leadId: string, leadName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setTestingLeadId(leadId);
+    try {
+      const { data, error } = await supabase.functions.invoke('test-followup', {
+        body: { leadId, followupType: 'followup_1' }
+      });
+      
+      if (error) throw error;
+      
+      if (data.success) {
+        toast.success(`Testowy email wysłany do ${leadName}`);
+        fetchLogs();
+      } else {
+        toast.error(data.error || 'Błąd wysyłki testowej');
+      }
+    } catch (error: any) {
+      toast.error(`Błąd testu: ${error.message}`);
+      console.error(error);
+    }
+    setTestingLeadId(null);
   };
 
   const recentLogs = logs.slice(0, 10);
@@ -374,6 +398,20 @@ export default function AutoFollowUps() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 text-xs border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                          onClick={(e) => testFollowUp(lead.id, lead.salon_name, e)}
+                          disabled={testingLeadId === lead.id}
+                        >
+                          {testingLeadId === lead.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <TestTube2 className="w-3 h-3" />
+                          )}
+                          Test
+                        </Button>
                         <Badge className={status.color}>{status.label}</Badge>
                         <span className="text-xs text-muted-foreground">z {lead.email_from}</span>
                       </div>
@@ -424,6 +462,20 @@ export default function AutoFollowUps() {
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="gap-1.5 text-xs"
+                        onClick={(e) => testFollowUp(lead.id, lead.salon_name, e)}
+                        disabled={testingLeadId === lead.id}
+                      >
+                        {testingLeadId === lead.id ? (
+                          <Loader2 className="w-3 h-3 animate-spin" />
+                        ) : (
+                          <TestTube2 className="w-3 h-3" />
+                        )}
+                        Test
+                      </Button>
                       {/* Progress indicator */}
                       <div className="flex items-center gap-1">
                         <div className={`w-3 h-3 rounded-full ${lead.cold_email_sent ? 'bg-green-500' : 'bg-zinc-600'}`} />
