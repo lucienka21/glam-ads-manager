@@ -178,7 +178,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto custom-scrollbar p-2 overscroll-contain">
+      <nav className="flex-1 overflow-y-auto custom-scrollbar p-2" style={{ scrollBehavior: 'auto' }}>
         {sections.map((section, sectionIndex) => (
           <div key={section.label} className={cn(sectionIndex > 0 && "mt-4")}>
             <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
