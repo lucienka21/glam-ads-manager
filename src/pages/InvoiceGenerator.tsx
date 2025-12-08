@@ -70,6 +70,8 @@ const InvoiceGenerator = () => {
     clientOwnerName: "",
     clientAddress: "",
     clientNIP: "",
+    clientPhone: "",
+    clientEmail: "",
     invoiceNumber: "",
     issueDate: new Date().toISOString().split("T")[0],
     advanceAmount: "",
@@ -80,6 +82,8 @@ const InvoiceGenerator = () => {
     agencyOwner: storedAgency.agencyOwner,
     agencyAddress: storedAgency.agencyAddress,
     agencyNIP: storedAgency.agencyNIP,
+    agencyPhone: storedAgency.agencyPhone || "",
+    agencyEmail: storedAgency.agencyEmail || "",
   });
 
   // Generate next invoice number
@@ -110,11 +114,13 @@ const InvoiceGenerator = () => {
       agencyOwner: formData.agencyOwner,
       agencyAddress: formData.agencyAddress,
       agencyNIP: formData.agencyNIP,
+      agencyPhone: formData.agencyPhone,
+      agencyEmail: formData.agencyEmail,
       bankName: formData.bankName,
       bankAccount: formData.bankAccount,
     };
     localStorage.setItem(AGENCY_STORAGE_KEY, JSON.stringify(agencyData));
-  }, [formData.agencyName, formData.agencyOwner, formData.agencyAddress, formData.agencyNIP, formData.bankName, formData.bankAccount]);
+  }, [formData.agencyName, formData.agencyOwner, formData.agencyAddress, formData.agencyNIP, formData.agencyPhone, formData.agencyEmail, formData.bankName, formData.bankAccount]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -440,6 +446,8 @@ const InvoiceGenerator = () => {
                           clientName: client.salon_name,
                           clientOwnerName: client.owner_name || "",
                           clientAddress: client.city ? `${client.city}` : prev.clientAddress,
+                          clientPhone: client.phone || "",
+                          clientEmail: client.email || "",
                         }));
                       }
                     }
@@ -480,6 +488,29 @@ const InvoiceGenerator = () => {
                   />
                 </div>
                 <div>
+                  <Label className="text-xs">Telefon klienta</Label>
+                  <Input
+                    value={formData.clientPhone}
+                    onChange={(e) => handleInputChange("clientPhone", e.target.value)}
+                    placeholder="+48 123 456 789"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs">Email klienta</Label>
+                <Input
+                  type="email"
+                  value={formData.clientEmail}
+                  onChange={(e) => handleInputChange("clientEmail", e.target.value)}
+                  placeholder="klient@example.com"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
                   <Label className="text-xs">Data wystawienia</Label>
                   <Input
                     type="date"
@@ -488,17 +519,17 @@ const InvoiceGenerator = () => {
                     className="h-9 mt-1"
                   />
                 </div>
+                <div>
+                  <Label className="text-xs">Termin płatności</Label>
+                  <Input
+                    type="date"
+                    value={formData.paymentDue}
+                    onChange={(e) => handleInputChange("paymentDue", e.target.value)}
+                    className="h-9 mt-1"
+                  />
+                </div>
               </div>
 
-              <div>
-                <Label className="text-xs">Termin płatności</Label>
-                <Input
-                  type="date"
-                  value={formData.paymentDue}
-                  onChange={(e) => handleInputChange("paymentDue", e.target.value)}
-                  className="h-9 mt-1"
-                />
-              </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
@@ -620,12 +651,33 @@ const InvoiceGenerator = () => {
                     className="h-9 mt-1"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">NIP agencji</Label>
+                    <Input
+                      value={formData.agencyNIP}
+                      onChange={(e) => handleInputChange("agencyNIP", e.target.value)}
+                      placeholder="1234567890"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Telefon agencji</Label>
+                    <Input
+                      value={formData.agencyPhone}
+                      onChange={(e) => handleInputChange("agencyPhone", e.target.value)}
+                      placeholder="+48 123 456 789"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                </div>
                 <div>
-                  <Label className="text-xs">NIP agencji</Label>
+                  <Label className="text-xs">Email agencji</Label>
                   <Input
-                    value={formData.agencyNIP}
-                    onChange={(e) => handleInputChange("agencyNIP", e.target.value)}
-                    placeholder="1234567890"
+                    type="email"
+                    value={formData.agencyEmail}
+                    onChange={(e) => handleInputChange("agencyEmail", e.target.value)}
+                    placeholder="kontakt@aurine.pl"
                     className="h-9 mt-1"
                   />
                 </div>
