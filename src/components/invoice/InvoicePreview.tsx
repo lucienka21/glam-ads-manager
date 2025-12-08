@@ -86,34 +86,72 @@ const numberToWords = (num: number): string => {
   const teens = ["dziesięć", "jedenaście", "dwanaście", "trzynaście", "czternaście", "piętnaście", "szesnaście", "siedemnaście", "osiemnaście", "dziewiętnaście"];
   const tens = ["", "", "dwadzieścia", "trzydzieści", "czterdzieści", "pięćdziesiąt", "sześćdziesiąt", "siedemdziesiąt", "osiemdziesiąt", "dziewięćdziesiąt"];
   const hundreds = ["", "sto", "dwieście", "trzysta", "czterysta", "pięćset", "sześćset", "siedemset", "osiemset", "dziewięćset"];
-  const thousands = ["", "tysiąc", "tysiące", "tysięcy"];
 
   if (num === 0) return "zero";
+  if (num < 0) return "minus " + numberToWords(-num);
   
-  const getThousandForm = (n: number) => {
-    if (n === 1) return thousands[1];
-    if (n >= 2 && n <= 4) return thousands[2];
-    return thousands[3];
-  };
-
   let result = "";
-  const th = Math.floor(num / 1000);
-  const h = Math.floor((num % 1000) / 100);
-  const t = Math.floor((num % 100) / 10);
-  const o = num % 10;
-
-  if (th > 0) {
-    if (th === 1) result += "tysiąc ";
-    else result += ones[th] + " " + getThousandForm(th) + " ";
+  
+  // Handle thousands
+  if (num >= 1000) {
+    const th = Math.floor(num / 1000);
+    if (th === 1) {
+      result += "tysiąc ";
+    } else if (th >= 2 && th <= 4) {
+      result += numberToWords(th) + " tysiące ";
+    } else if (th >= 5 && th <= 21) {
+      result += numberToWords(th) + " tysięcy ";
+    } else {
+      const lastDigit = th % 10;
+      const lastTwoDigits = th % 100;
+      if (lastTwoDigits >= 12 && lastTwoDigits <= 14) {
+        result += numberToWords(th) + " tysięcy ";
+      } else if (lastDigit >= 2 && lastDigit <= 4) {
+        result += numberToWords(th) + " tysiące ";
+      } else {
+        result += numberToWords(th) + " tysięcy ";
+      }
+    }
+    num = num % 1000;
   }
-  if (h > 0) result += hundreds[h] + " ";
-  if (t === 1) result += teens[o] + " ";
-  else {
+  
+  // Handle hundreds
+  const h = Math.floor(num / 100);
+  if (h > 0) {
+    result += hundreds[h] + " ";
+    num = num % 100;
+  }
+  
+  // Handle tens and ones
+  if (num >= 10 && num <= 19) {
+    result += teens[num - 10] + " ";
+  } else {
+    const t = Math.floor(num / 10);
+    const o = num % 10;
     if (t > 0) result += tens[t] + " ";
     if (o > 0) result += ones[o] + " ";
   }
 
   return result.trim();
+};
+
+const getZlotyForm = (num: number): string => {
+  const absNum = Math.abs(num);
+  if (absNum === 1) return "złoty";
+  const lastDigit = absNum % 10;
+  const lastTwoDigits = absNum % 100;
+  if (lastTwoDigits >= 12 && lastTwoDigits <= 14) return "złotych";
+  if (lastDigit >= 2 && lastDigit <= 4) return "złote";
+  return "złotych";
+};
+
+const getGroszyForm = (num: number): string => {
+  if (num === 1) return "grosz";
+  const lastDigit = num % 10;
+  const lastTwoDigits = num % 100;
+  if (lastTwoDigits >= 12 && lastTwoDigits <= 14) return "groszy";
+  if (lastDigit >= 2 && lastDigit <= 4) return "grosze";
+  return "groszy";
 };
 
 // Decorative components from WelcomePack style
@@ -176,8 +214,10 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       ? "Faktura końcowa" 
       : "Faktura";
 
-  const zloteSlownie = numberToWords(Math.floor(finalAmount));
+  const zlote = Math.floor(finalAmount);
   const grosze = Math.round((finalAmount % 1) * 100);
+  const zloteSlownie = numberToWords(zlote);
+  const groszeSlownie = grosze > 0 ? numberToWords(grosze) : "";
 
   return (
     <div
@@ -327,9 +367,14 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         </div>
 
         {/* Amount in words */}
-        <div className="text-xs mb-3 px-3 py-1.5 bg-zinc-800/30 rounded-md inline-block">
-          <span className="text-zinc-500">Słownie: </span>
-          <span className="text-zinc-300">{zloteSlownie} złotych {grosze}/100</span>
+        <div className="mb-3 p-3 bg-gradient-to-r from-zinc-800/40 to-zinc-800/20 border border-zinc-700/30 rounded-lg">
+          <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-1">Kwota słownie</p>
+          <p className="text-sm text-white font-medium">
+            {zloteSlownie} {getZlotyForm(zlote)}
+            {grosze > 0 && (
+              <span className="text-zinc-400"> i {groszeSlownie} {getGroszyForm(grosze)}</span>
+            )}
+          </p>
         </div>
 
         {/* Payment info */}
