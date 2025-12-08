@@ -24,24 +24,22 @@ import {
   Layers,
   ZoomIn,
   ZoomOut,
-  Move,
   Star,
   Crown,
   Diamond,
   Gem,
   Heart,
   Scissors,
-  Brush,
   Camera,
-  Eye,
   Gift,
-  Clock,
   Percent,
-  MessageCircle,
   ChevronRight,
   ArrowRight,
   Check,
-  Plus,
+  Quote,
+  Phone,
+  MapPin,
+  Calendar,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -59,65 +57,61 @@ interface Template {
 
 const TEMPLATES: Template[] = [
   // Metamorfozy - Before/After
-  { id: 'meta-luxury', name: 'Luxury Split', category: 'metamorphosis', aspect: '1:1', description: 'Elegancki podział z efektem glow' },
-  { id: 'meta-diagonal', name: 'Diagonal Cut', category: 'metamorphosis', aspect: '1:1', description: 'Dynamiczne diagonalne przejście' },
-  { id: 'meta-reveal', name: 'Reveal Effect', category: 'metamorphosis', aspect: '4:5', description: 'Efekt odsłaniania z animacją' },
-  { id: 'meta-magazine', name: 'Magazine Style', category: 'metamorphosis', aspect: '4:5', description: 'Styl okładki magazynu beauty' },
-  { id: 'meta-minimal', name: 'Clean Minimal', category: 'metamorphosis', aspect: '1:1', description: 'Minimalistyczny design premium' },
+  { id: 'meta-glamour', name: 'Glamour Split', category: 'metamorphosis', aspect: '1:1', description: 'Luksusowy podział ze złotymi akcentami' },
+  { id: 'meta-magazine', name: 'Beauty Magazine', category: 'metamorphosis', aspect: '4:5', description: 'Styl okładki Vogue' },
+  { id: 'meta-reveal', name: 'Reveal Slider', category: 'metamorphosis', aspect: '1:1', description: 'Efekt odsłaniania' },
+  { id: 'meta-story', name: 'Story Split', category: 'metamorphosis', aspect: '9:16', description: 'Pionowy format story' },
   
-  // Promocje
-  { id: 'promo-flash', name: 'Flash Sale', category: 'promo', aspect: '1:1', description: 'Mocna promocja z countdown' },
+  // Promocje - zachowuję elegant i seasonal, dodaję nowe
   { id: 'promo-elegant', name: 'Elegant Offer', category: 'promo', aspect: '1:1', description: 'Elegancka oferta specjalna' },
-  { id: 'promo-vip', name: 'VIP Access', category: 'promo', aspect: '4:5', description: 'Ekskluzywna oferta VIP', premium: true },
   { id: 'promo-seasonal', name: 'Seasonal Sale', category: 'promo', aspect: '1:1', description: 'Promocja sezonowa' },
+  { id: 'promo-luxury', name: 'Luxury Deal', category: 'promo', aspect: '1:1', description: 'Luksusowa promocja premium', premium: true },
+  { id: 'promo-flash', name: 'Flash Discount', category: 'promo', aspect: '4:5', description: 'Błyskawiczna promocja' },
   
   // Usługi
-  { id: 'service-showcase', name: 'Service Showcase', category: 'service', aspect: '1:1', description: 'Prezentacja pojedynczej usługi' },
-  { id: 'service-menu', name: 'Service Menu', category: 'service', aspect: '4:5', description: 'Menu usług salonu' },
-  { id: 'service-highlight', name: 'Feature Highlight', category: 'service', aspect: '1:1', description: 'Wyróżnienie specjalności' },
+  { id: 'service-hero', name: 'Service Hero', category: 'service', aspect: '1:1', description: 'Pełnoekranowa prezentacja' },
+  { id: 'service-card', name: 'Beauty Card', category: 'service', aspect: '4:5', description: 'Elegancka karta usługi' },
+  { id: 'service-minimal', name: 'Minimal Service', category: 'service', aspect: '1:1', description: 'Minimalistyczny styl' },
   
   // Opinie
-  { id: 'review-elegant', name: 'Elegant Review', category: 'testimonial', aspect: '1:1', description: 'Elegancka opinia klienta' },
-  { id: 'review-photo', name: 'Photo Review', category: 'testimonial', aspect: '4:5', description: 'Opinia ze zdjęciem' },
-  { id: 'review-stars', name: '5-Star Review', category: 'testimonial', aspect: '1:1', description: 'Opinia z gwiazdkami' },
+  { id: 'review-luxury', name: 'Luxury Review', category: 'testimonial', aspect: '1:1', description: 'Luksusowa opinia klienta' },
+  { id: 'review-photo', name: 'Photo Testimonial', category: 'testimonial', aspect: '4:5', description: 'Opinia ze zdjęciem' },
   
   // Stories
   { id: 'story-promo', name: 'Story Promo', category: 'story', aspect: '9:16', description: 'Promocja na story' },
-  { id: 'story-result', name: 'Story Result', category: 'story', aspect: '9:16', description: 'Efekt zabiegu na story' },
-  { id: 'story-cta', name: 'Story CTA', category: 'story', aspect: '9:16', description: 'Call to action na story' },
+  { id: 'story-cta', name: 'Story CTA', category: 'story', aspect: '9:16', description: 'Call to action' },
 ];
 
 const CATEGORIES: Record<TemplateCategory, { label: string; icon: any; gradient: string }> = {
   metamorphosis: { label: 'Metamorfozy', icon: Sparkles, gradient: 'from-rose-500 via-pink-500 to-fuchsia-500' },
   promo: { label: 'Promocje', icon: Percent, gradient: 'from-amber-400 via-orange-500 to-red-500' },
   service: { label: 'Usługi', icon: Scissors, gradient: 'from-violet-500 via-purple-500 to-indigo-500' },
-  testimonial: { label: 'Opinie', icon: MessageCircle, gradient: 'from-cyan-400 via-teal-500 to-emerald-500' },
+  testimonial: { label: 'Opinie', icon: Star, gradient: 'from-cyan-400 via-teal-500 to-emerald-500' },
   story: { label: 'Stories', icon: Camera, gradient: 'from-pink-500 via-rose-500 to-red-500' },
 };
 
-// Preset color palettes for beauty industry
+// Profesjonalne palety kolorów dla beauty
 const COLOR_PALETTES = [
-  { name: 'Neon Rose', primary: '#ff0080', secondary: '#ff66b2', accent: '#ffccdd', bg: '#0a0008' },
-  { name: 'Luxury Gold', primary: '#d4a574', secondary: '#e8c9a0', accent: '#f5e6d3', bg: '#0a0806' },
-  { name: 'Royal Purple', primary: '#9b59b6', secondary: '#c39bd3', accent: '#e8daef', bg: '#08060a' },
-  { name: 'Ocean Teal', primary: '#00b4d8', secondary: '#48cae4', accent: '#90e0ef', bg: '#060a0c' },
-  { name: 'Coral Sunset', primary: '#ff6b6b', secondary: '#ffa8a8', accent: '#ffd6d6', bg: '#0a0606' },
-  { name: 'Emerald', primary: '#2ecc71', secondary: '#82e0aa', accent: '#d5f5e3', bg: '#060a08' },
-  { name: 'Soft Blush', primary: '#f8b4d9', secondary: '#fad0e4', accent: '#fce4ef', bg: '#0a0608' },
-  { name: 'Midnight Pink', primary: '#e91e8c', secondary: '#f06ebc', accent: '#f7b8dc', bg: '#050208' },
+  { name: 'Rose Gold', primary: '#e8b4b8', secondary: '#f5d5d8', accent: '#d4a574', bg: '#1a1212' },
+  { name: 'Champagne', primary: '#d4a574', secondary: '#e8c9a0', accent: '#c9b896', bg: '#141210' },
+  { name: 'Blush Pink', primary: '#f4a5c7', secondary: '#f8c8dc', accent: '#e8b4b8', bg: '#1a1016' },
+  { name: 'Soft Mauve', primary: '#c8a2c8', secondary: '#d8bfd8', accent: '#dda0dd', bg: '#16121a' },
+  { name: 'Pearl White', primary: '#f5f5f5', secondary: '#ffffff', accent: '#e8e8e8', bg: '#0a0a0a' },
+  { name: 'Nude Beige', primary: '#d2b48c', secondary: '#deb887', accent: '#c4a77d', bg: '#12100e' },
+  { name: 'Berry Wine', primary: '#8b2252', secondary: '#a0526e', accent: '#c08090', bg: '#120a0e' },
+  { name: 'Soft Coral', primary: '#f08080', secondary: '#f5a9a9', accent: '#ffc0cb', bg: '#1a1010' },
 ];
 
 const FONTS = [
-  { id: 'elegant', name: 'Elegancki', family: 'Playfair Display, serif' },
-  { id: 'modern', name: 'Nowoczesny', family: 'Montserrat, sans-serif' },
-  { id: 'minimal', name: 'Minimalistyczny', family: 'Inter, sans-serif' },
-  { id: 'bold', name: 'Odważny', family: 'Oswald, sans-serif' },
-  { id: 'luxury', name: 'Luksusowy', family: 'Cormorant Garamond, serif' },
+  { id: 'playfair', name: 'Elegancki', family: 'Playfair Display, serif' },
+  { id: 'cormorant', name: 'Luksusowy', family: 'Cormorant Garamond, serif' },
+  { id: 'montserrat', name: 'Nowoczesny', family: 'Montserrat, sans-serif' },
+  { id: 'raleway', name: 'Subtelny', family: 'Raleway, sans-serif' },
 ];
 
 export default function GraphicsCreator() {
   // Template & Category
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('meta-luxury');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('promo-elegant');
   const [activeCategory, setActiveCategory] = useState<TemplateCategory | 'all'>('all');
   
   // Images
@@ -128,26 +122,25 @@ export default function GraphicsCreator() {
   
   // Content
   const [salonName, setSalonName] = useState('Beauty Studio');
-  const [headline, setHeadline] = useState('Odkryj Piękno');
-  const [subheadline, setSubheadline] = useState('Profesjonalne zabiegi dla Twojej urody');
+  const [headline, setHeadline] = useState('Odkryj Swoje Piękno');
+  const [subheadline, setSubheadline] = useState('Profesjonalne zabiegi kosmetyczne');
   const [serviceName, setServiceName] = useState('Makijaż Permanentny');
   const [discount, setDiscount] = useState('-30%');
   const [originalPrice, setOriginalPrice] = useState('599 zł');
   const [newPrice, setNewPrice] = useState('419 zł');
-  const [reviewText, setReviewText] = useState('Jestem zachwycona efektami! Polecam każdej kobiecie, która chce poczuć się pięknie.');
+  const [reviewText, setReviewText] = useState('Jestem zachwycona efektami! Polecam każdej kobiecie.');
   const [reviewerName, setReviewerName] = useState('Anna K.');
   const [ctaText, setCtaText] = useState('Zarezerwuj wizytę');
   
   // Style
   const [palette, setPalette] = useState(COLOR_PALETTES[0]);
   const [selectedFont, setSelectedFont] = useState(FONTS[0]);
-  const [overlayOpacity, setOverlayOpacity] = useState([40]);
+  const [overlayOpacity, setOverlayOpacity] = useState([50]);
   const [showLogo, setShowLogo] = useState(true);
-  const [showWatermark, setShowWatermark] = useState(false);
   
   // UI State
   const [isGenerating, setIsGenerating] = useState(false);
-  const [previewScale, setPreviewScale] = useState(1);
+  const [previewScale, setPreviewScale] = useState(0.8);
   const previewRef = useRef<HTMLDivElement>(null);
   
   const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
@@ -196,16 +189,16 @@ export default function GraphicsCreator() {
     setAfterImage(null);
     setMainImage(null);
     setSalonName('Beauty Studio');
-    setHeadline('Odkryj Piękno');
-    setSubheadline('Profesjonalne zabiegi dla Twojej urody');
+    setHeadline('Odkryj Swoje Piękno');
+    setSubheadline('Profesjonalne zabiegi kosmetyczne');
     setServiceName('Makijaż Permanentny');
     setDiscount('-30%');
     setOriginalPrice('599 zł');
     setNewPrice('419 zł');
-    setReviewText('Jestem zachwycona efektami! Polecam każdej kobiecie, która chce poczuć się pięknie.');
+    setReviewText('Jestem zachwycona efektami! Polecam każdej kobiecie.');
     setReviewerName('Anna K.');
     setCtaText('Zarezerwuj wizytę');
-    setOverlayOpacity([40]);
+    setOverlayOpacity([50]);
     toast.success('Wszystko zostało zresetowane');
   };
 
@@ -217,7 +210,7 @@ export default function GraphicsCreator() {
     }
   };
 
-  // Placeholder images
+  // Placeholder images - professional beauty
   const placeholderBefore = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80';
   const placeholderAfter = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80';
   const placeholderMain = 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&q=80';
@@ -228,7 +221,7 @@ export default function GraphicsCreator() {
 
   // ====== RENDER TEMPLATES ======
   const renderTemplate = () => {
-    const styles = {
+    const baseStyles = {
       fontFamily: selectedFont.family,
       '--primary': palette.primary,
       '--secondary': palette.secondary,
@@ -236,431 +229,316 @@ export default function GraphicsCreator() {
     } as React.CSSProperties;
 
     switch (selectedTemplate) {
-      case 'meta-luxury':
+      // ============ METAMORFOZY ============
+      case 'meta-glamour':
         return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: `linear-gradient(135deg, ${palette.bg} 0%, #000 100%)` }}>
-            {/* Ambient glow */}
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[150%] aspect-square rounded-full blur-[120px] opacity-30" 
-                style={{ background: `radial-gradient(circle, ${palette.primary}40 0%, transparent 70%)` }} />
-            </div>
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Elegant gradient overlay */}
+            <div className="absolute inset-0" style={{ 
+              background: `radial-gradient(ellipse at center, ${palette.primary}15 0%, transparent 70%)`
+            }} />
             
-            {/* Decorative elements */}
-            <div className="absolute top-8 left-8 w-20 h-20 border border-white/5 rounded-full" />
-            <div className="absolute bottom-8 right-8 w-16 h-16 border border-white/5 rounded-full" />
-            <div className="absolute top-1/4 right-1/4 w-2 h-2 rounded-full" style={{ background: palette.primary, boxShadow: `0 0 20px ${palette.primary}` }} />
-            <div className="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full" style={{ background: palette.secondary }} />
+            {/* Gold decorative corners */}
+            <div className="absolute top-4 left-4 w-16 h-16 border-l-2 border-t-2" style={{ borderColor: palette.accent }} />
+            <div className="absolute top-4 right-4 w-16 h-16 border-r-2 border-t-2" style={{ borderColor: palette.accent }} />
+            <div className="absolute bottom-4 left-4 w-16 h-16 border-l-2 border-b-2" style={{ borderColor: palette.accent }} />
+            <div className="absolute bottom-4 right-4 w-16 h-16 border-r-2 border-b-2" style={{ borderColor: palette.accent }} />
             
             {/* Header */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-20">
-              <div>
-                <span className="text-[10px] tracking-[0.4em] uppercase font-medium" style={{ color: palette.primary }}>{salonName}</span>
-              </div>
-              {showLogo && logoImage && (
-                <img src={logoImage} alt="Logo" className="h-8 w-auto object-contain opacity-80" />
-              )}
+            <div className="absolute top-6 left-0 right-0 text-center z-20">
+              <span className="text-[10px] tracking-[0.5em] uppercase" style={{ color: palette.accent }}>{salonName}</span>
             </div>
             
-            {/* Images container */}
-            <div className="absolute inset-8 top-16 bottom-20 flex gap-4">
+            {/* Images */}
+            <div className="absolute inset-12 flex gap-3">
               {/* Before */}
-              <div className="flex-1 relative group">
-                <div className="absolute inset-0 rounded-[2rem] overflow-hidden border border-white/10 shadow-2xl">
-                  <img src={before} alt="Przed" className="w-full h-full object-cover" style={{ filter: 'brightness(0.9)' }} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+              <div className="flex-1 relative">
+                <div className="absolute inset-0 rounded-2xl overflow-hidden shadow-2xl" 
+                  style={{ boxShadow: `0 25px 50px -12px ${palette.bg}` }}>
+                  <img src={before} alt="Przed" className="w-full h-full object-cover" style={{ filter: 'brightness(0.85) contrast(1.05)' }} />
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}ee, transparent 40%)` }} />
                 </div>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10">
-                  <span className="text-white/90 text-xs font-semibold tracking-[0.25em] uppercase">Przed</span>
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full backdrop-blur-sm"
+                  style={{ background: `${palette.bg}cc`, border: `1px solid ${palette.accent}40` }}>
+                  <span className="text-[11px] font-medium tracking-[0.3em] uppercase" style={{ color: palette.primary }}>Przed</span>
                 </div>
               </div>
               
-              {/* Divider */}
-              <div className="w-px self-center h-[60%] relative">
-                <div className="absolute inset-0 rounded-full" style={{ background: `linear-gradient(to bottom, transparent, ${palette.primary}, transparent)` }} />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center"
-                  style={{ background: palette.primary, boxShadow: `0 0 30px ${palette.primary}80` }}>
-                  <Sparkles className="w-5 h-5 text-white" />
+              {/* Divider with diamond */}
+              <div className="w-8 flex flex-col items-center justify-center gap-2 relative z-10">
+                <div className="flex-1 w-px" style={{ background: `linear-gradient(to bottom, transparent, ${palette.accent}, transparent)` }} />
+                <div className="w-8 h-8 rotate-45 flex items-center justify-center" 
+                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`, boxShadow: `0 0 30px ${palette.primary}60` }}>
+                  <Sparkles className="w-4 h-4 text-white -rotate-45" />
                 </div>
+                <div className="flex-1 w-px" style={{ background: `linear-gradient(to bottom, transparent, ${palette.accent}, transparent)` }} />
               </div>
               
               {/* After */}
               <div className="flex-1 relative">
-                <div className="absolute inset-0 rounded-[2rem] overflow-hidden shadow-2xl"
-                  style={{ border: `2px solid ${palette.primary}40`, boxShadow: `0 0 60px ${palette.primary}30` }}>
+                <div className="absolute inset-0 rounded-2xl overflow-hidden"
+                  style={{ boxShadow: `0 0 60px ${palette.primary}40, 0 25px 50px -12px ${palette.bg}` }}>
                   <img src={after} alt="Po" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent" />
+                  <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}ee, transparent 40%)` }} />
                 </div>
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full"
-                  style={{ background: palette.primary, boxShadow: `0 0 20px ${palette.primary}60` }}>
-                  <span className="text-white text-xs font-bold tracking-[0.25em] uppercase">Po</span>
+                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`, boxShadow: `0 4px 20px ${palette.primary}60` }}>
+                  <span className="text-[11px] font-bold tracking-[0.3em] uppercase text-white">Po</span>
                 </div>
               </div>
             </div>
             
-            {/* Footer */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
-              <h2 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: selectedFont.family }}>{headline}</h2>
-              <p className="text-sm text-white/50">{subheadline}</p>
-            </div>
-          </div>
-        );
-
-      case 'meta-diagonal':
-        return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: '#000' }}>
-            {/* Before image - full */}
-            <div className="absolute inset-0">
-              <img src={before} alt="" className="w-full h-full object-cover" style={{ filter: 'brightness(0.5) grayscale(30%)' }} />
-            </div>
-            
-            {/* After image - diagonal clip */}
-            <div className="absolute inset-0" style={{ clipPath: 'polygon(35% 0, 100% 0, 100% 100%, 65% 100%)' }}>
-              <img src={after} alt="" className="w-full h-full object-cover" />
-            </div>
-            
-            {/* Diagonal line */}
-            <div className="absolute inset-0" style={{ 
-              background: `linear-gradient(115deg, transparent 49.5%, ${palette.primary} 49.5%, ${palette.primary} 50.5%, transparent 50.5%)`,
-              filter: `drop-shadow(0 0 10px ${palette.primary})`
-            }} />
-            
-            {/* Labels */}
-            <div className="absolute top-8 left-8">
-              <div className="px-5 py-2.5 bg-black/70 backdrop-blur-md rounded-full border border-white/10">
-                <span className="text-white/80 text-sm tracking-[0.2em] uppercase">Przed</span>
-              </div>
-            </div>
-            <div className="absolute top-8 right-8">
-              <div className="px-5 py-2.5 rounded-full" style={{ background: palette.primary }}>
-                <span className="text-white text-sm font-bold tracking-[0.2em] uppercase">Po</span>
-              </div>
-            </div>
-            
-            {/* Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-8 text-center bg-gradient-to-t from-black via-black/80 to-transparent">
-              <span className="text-xs tracking-[0.4em] uppercase mb-3 block" style={{ color: palette.primary }}>{salonName}</span>
-              <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: selectedFont.family }}>{headline}</h2>
-              <p className="text-white/60 text-sm">{subheadline}</p>
-            </div>
-          </div>
-        );
-
-      case 'meta-reveal':
-        return (
-          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
-            {/* Main image */}
-            <div className="absolute inset-4 rounded-3xl overflow-hidden">
-              <img src={after} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}, transparent 50%)` }} />
-            </div>
-            
-            {/* Before image (small) */}
-            <div className="absolute top-8 left-8 w-28 aspect-square rounded-2xl overflow-hidden border-2 border-white/20 shadow-2xl"
-              style={{ boxShadow: `0 20px 50px ${palette.bg}` }}>
-              <img src={before} alt="" className="w-full h-full object-cover" style={{ filter: 'brightness(0.8)' }} />
-              <div className="absolute inset-0 bg-black/40" />
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 bg-black/60 rounded-full">
-                <span className="text-white/80 text-[10px] tracking-widest uppercase">Przed</span>
-              </div>
-            </div>
-            
-            {/* Floating elements */}
-            <div className="absolute top-8 right-8 w-12 h-12 rounded-full flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`, boxShadow: `0 0 30px ${palette.primary}50` }}>
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            
-            {/* Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-8">
-              <div className="text-center">
-                <span className="text-xs tracking-[0.3em] uppercase mb-2 block" style={{ color: palette.primary }}>{serviceName}</span>
-                <h2 className="text-4xl font-bold text-white mb-3" style={{ fontFamily: selectedFont.family }}>{headline}</h2>
-                <p className="text-white/50 text-sm mb-6">{subheadline}</p>
-                <div className="inline-flex items-center gap-2 px-6 py-3 rounded-full"
-                  style={{ background: palette.primary, boxShadow: `0 0 30px ${palette.primary}50` }}>
-                  <span className="text-white font-semibold">{ctaText}</span>
-                  <ArrowRight className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </div>
-            
-            {/* Salon name */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/30">{salonName}</span>
+            {/* Bottom text */}
+            <div className="absolute bottom-6 left-0 right-0 text-center">
+              <h2 className="text-xl font-semibold mb-1" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{headline}</h2>
+              <p className="text-xs" style={{ color: `${palette.primary}80` }}>{subheadline}</p>
             </div>
           </div>
         );
 
       case 'meta-magazine':
         return (
-          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...styles, background: '#000' }}>
-            {/* Full bleed image */}
+          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Main after image - large */}
             <div className="absolute inset-0">
               <img src={after} alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ 
-                background: `linear-gradient(to bottom, ${palette.bg}cc 0%, transparent 30%, transparent 60%, ${palette.bg} 100%)`
+                background: `linear-gradient(to bottom, ${palette.bg}dd 0%, transparent 25%, transparent 50%, ${palette.bg} 100%)`
               }} />
             </div>
             
             {/* Magazine header */}
-            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-center">
-              <span className="text-2xl font-bold tracking-tight text-white" style={{ fontFamily: selectedFont.family }}>{salonName}</span>
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md rounded-full">
-                <span className="text-xs text-white/80 tracking-widest uppercase">Metamorfoza</span>
+            <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start">
+              <div>
+                <span className="text-2xl font-bold tracking-tight" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{salonName}</span>
+                <div className="h-0.5 w-12 mt-1" style={{ background: palette.accent }} />
+              </div>
+              <div className="text-right">
+                <span className="text-[9px] tracking-[0.3em] uppercase block" style={{ color: palette.accent }}>Metamorfoza</span>
+                <span className="text-[9px] tracking-wider" style={{ color: `${palette.primary}60` }}>{serviceName}</span>
               </div>
             </div>
             
-            {/* Before inset */}
-            <div className="absolute top-24 right-6 w-24 aspect-[3/4] rounded-xl overflow-hidden border border-white/20 shadow-xl">
-              <img src={before} alt="" className="w-full h-full object-cover" style={{ filter: 'brightness(0.8)' }} />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
-                <span className="text-white/90 text-[9px] tracking-widest uppercase">Przed</span>
+            {/* Before inset - elegant frame */}
+            <div className="absolute top-24 right-6 w-28 aspect-[3/4] p-1 rounded-lg"
+              style={{ background: `linear-gradient(135deg, ${palette.accent}, ${palette.primary})` }}>
+              <div className="w-full h-full rounded-md overflow-hidden relative">
+                <img src={before} alt="" className="w-full h-full object-cover" style={{ filter: 'brightness(0.85)' }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}90, transparent)` }} />
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2">
+                  <span className="text-[9px] tracking-[0.2em] uppercase font-medium" style={{ color: palette.primary }}>Przed</span>
+                </div>
               </div>
             </div>
             
             {/* Content block */}
             <div className="absolute bottom-0 left-0 right-0 p-8">
-              <div className="mb-4">
-                <span className="text-xs tracking-[0.3em] uppercase" style={{ color: palette.primary }}>{serviceName}</span>
+              <div className="mb-4 flex items-center gap-2">
+                <div className="h-px flex-1" style={{ background: `linear-gradient(to right, ${palette.accent}, transparent)` }} />
+                <Diamond className="w-4 h-4" style={{ color: palette.accent }} />
+                <div className="h-px flex-1" style={{ background: `linear-gradient(to left, ${palette.accent}, transparent)` }} />
               </div>
-              <h2 className="text-5xl font-bold text-white leading-tight mb-4" style={{ fontFamily: selectedFont.family }}>
+              
+              <h2 className="text-4xl font-bold leading-tight mb-3" style={{ color: palette.primary, fontFamily: selectedFont.family }}>
                 {headline}
               </h2>
-              <p className="text-white/60 text-base max-w-xs">{subheadline}</p>
+              <p className="text-sm max-w-xs" style={{ color: `${palette.primary}70` }}>{subheadline}</p>
               
               {/* CTA */}
               <div className="mt-6 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full flex items-center justify-center"
-                  style={{ background: palette.primary }}>
+                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`, boxShadow: `0 4px 20px ${palette.primary}50` }}>
                   <ArrowRight className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-white font-medium">{ctaText}</span>
+                <span className="text-sm font-medium" style={{ color: palette.primary }}>{ctaText}</span>
               </div>
             </div>
           </div>
         );
 
-      case 'meta-minimal':
+      case 'meta-reveal':
         return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: '#fafafa' }}>
-            {/* Clean grid */}
-            <div className="absolute inset-8 grid grid-cols-2 gap-4">
-              <div className="relative rounded-2xl overflow-hidden shadow-lg">
-                <img src={before} alt="" className="w-full h-full object-cover" />
-                <div className="absolute bottom-3 left-3 px-3 py-1.5 bg-white/90 backdrop-blur rounded-full">
-                  <span className="text-zinc-800 text-[10px] font-medium tracking-widest uppercase">Przed</span>
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Background subtle pattern */}
+            <div className="absolute inset-0 opacity-5" style={{
+              backgroundImage: `radial-gradient(${palette.primary} 1px, transparent 1px)`,
+              backgroundSize: '24px 24px'
+            }} />
+            
+            {/* Images side by side with slider illusion */}
+            <div className="absolute inset-8 flex">
+              {/* Before side */}
+              <div className="w-1/2 relative overflow-hidden rounded-l-2xl">
+                <img src={before} alt="" className="absolute inset-0 w-[200%] h-full object-cover" style={{ filter: 'brightness(0.8) saturate(0.9)' }} />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(to right, transparent, ${palette.bg}40)` }} />
+              </div>
+              
+              {/* After side */}
+              <div className="w-1/2 relative overflow-hidden rounded-r-2xl">
+                <img src={after} alt="" className="absolute inset-0 w-[200%] h-full object-cover object-right" />
+                <div className="absolute inset-0" style={{ background: `linear-gradient(to left, transparent, ${palette.bg}20)` }} />
+              </div>
+              
+              {/* Center slider handle */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-1 -translate-x-1/2 flex flex-col items-center justify-center z-10"
+                style={{ background: palette.primary, boxShadow: `0 0 20px ${palette.primary}` }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ background: palette.primary, boxShadow: `0 4px 20px ${palette.primary}80` }}>
+                  <ChevronRight className="w-4 h-4 text-white -ml-1" />
+                  <ChevronRight className="w-4 h-4 text-white -ml-3" style={{ transform: 'rotate(180deg)' }} />
                 </div>
               </div>
-              <div className="relative rounded-2xl overflow-hidden shadow-lg" style={{ boxShadow: `0 20px 40px ${palette.primary}20` }}>
-                <img src={after} alt="" className="w-full h-full object-cover" />
-                <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-full" style={{ background: palette.primary }}>
-                  <span className="text-white text-[10px] font-semibold tracking-widest uppercase">Po</span>
-                </div>
+            </div>
+            
+            {/* Labels */}
+            <div className="absolute top-12 left-12 px-4 py-2 rounded-full backdrop-blur-sm"
+              style={{ background: `${palette.bg}cc`, border: `1px solid ${palette.primary}30` }}>
+              <span className="text-[10px] tracking-[0.2em] uppercase" style={{ color: palette.primary }}>Przed</span>
+            </div>
+            <div className="absolute top-12 right-12 px-4 py-2 rounded-full"
+              style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})` }}>
+              <span className="text-[10px] tracking-[0.2em] uppercase text-white font-semibold">Po</span>
+            </div>
+            
+            {/* Bottom info */}
+            <div className="absolute bottom-4 left-0 right-0 text-center">
+              <span className="text-[10px] tracking-[0.4em] uppercase" style={{ color: palette.accent }}>{salonName}</span>
+            </div>
+          </div>
+        );
+
+      case 'meta-story':
+        return (
+          <div className="w-full aspect-[9/16] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Top section - Before */}
+            <div className="absolute top-0 left-0 right-0 h-[48%] overflow-hidden">
+              <img src={before} alt="" className="w-full h-full object-cover" style={{ filter: 'brightness(0.85)' }} />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to bottom, ${palette.bg}40, ${palette.bg})` }} />
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full backdrop-blur-sm"
+                style={{ background: `${palette.bg}aa`, border: `1px solid ${palette.accent}40` }}>
+                <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: palette.primary }}>Przed</span>
+              </div>
+            </div>
+            
+            {/* Divider with sparkle */}
+            <div className="absolute top-[48%] left-0 right-0 h-[4%] flex items-center justify-center z-10">
+              <div className="w-full h-0.5" style={{ background: `linear-gradient(to right, transparent, ${palette.primary}, transparent)` }} />
+              <div className="absolute w-10 h-10 rounded-full flex items-center justify-center"
+                style={{ background: palette.bg, border: `2px solid ${palette.primary}`, boxShadow: `0 0 30px ${palette.primary}60` }}>
+                <Sparkles className="w-5 h-5" style={{ color: palette.primary }} />
+              </div>
+            </div>
+            
+            {/* Bottom section - After */}
+            <div className="absolute bottom-0 left-0 right-0 h-[48%] overflow-hidden">
+              <img src={after} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}ee, transparent)` }} />
+              <div className="absolute bottom-24 left-1/2 -translate-x-1/2 px-5 py-2 rounded-full"
+                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})` }}>
+                <span className="text-[10px] tracking-[0.3em] uppercase text-white font-semibold">Po</span>
               </div>
             </div>
             
             {/* Header */}
-            <div className="absolute top-3 left-8 right-8 flex justify-between items-center">
-              <span className="text-xs tracking-[0.3em] uppercase font-medium" style={{ color: palette.primary }}>{salonName}</span>
+            <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-20">
+              <span className="text-[9px] tracking-[0.3em] uppercase" style={{ color: palette.accent }}>{salonName}</span>
             </div>
             
             {/* Footer */}
-            <div className="absolute bottom-3 left-8 right-8 text-center">
-              <span className="text-zinc-800 text-sm font-medium">{headline}</span>
+            <div className="absolute bottom-6 left-0 right-0 text-center z-20">
+              <h2 className="text-xl font-semibold mb-1" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{headline}</h2>
+              <p className="text-[10px]" style={{ color: `${palette.primary}60` }}>{subheadline}</p>
             </div>
           </div>
         );
 
-      case 'promo-flash':
-        return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
-            {/* Dynamic background */}
-            <div className="absolute inset-0">
-              <div className="absolute top-0 right-0 w-96 h-96 rounded-full blur-[100px] opacity-40" style={{ background: palette.primary }} />
-              <div className="absolute bottom-0 left-0 w-72 h-72 rounded-full blur-[80px] opacity-30" style={{ background: palette.secondary }} />
-            </div>
-            
-            {/* Decorative lines */}
-            <div className="absolute top-0 left-1/4 w-px h-full opacity-10" style={{ background: `linear-gradient(to bottom, transparent, ${palette.primary}, transparent)` }} />
-            <div className="absolute top-0 right-1/3 w-px h-full opacity-10" style={{ background: `linear-gradient(to bottom, transparent, ${palette.secondary}, transparent)` }} />
-            
-            {/* Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
-              {/* Flash badge */}
-              <div className="mb-6 px-4 py-2 rounded-full border animate-pulse"
-                style={{ borderColor: palette.primary, background: `${palette.primary}15` }}>
-                <span className="text-xs font-bold tracking-[0.3em] uppercase" style={{ color: palette.primary }}>
-                  ⚡ Flash Sale ⚡
-                </span>
-              </div>
-              
-              {/* Main discount */}
-              <h1 className="text-8xl font-black text-white mb-2" style={{ 
-                fontFamily: selectedFont.family,
-                textShadow: `0 0 60px ${palette.primary}60`
-              }}>
-                {discount}
-              </h1>
-              
-              {/* Service */}
-              <div className="mb-8">
-                <span className="text-2xl font-bold text-white">{serviceName}</span>
-              </div>
-              
-              {/* Prices */}
-              <div className="flex items-center gap-6 mb-8">
-                <span className="text-2xl text-white/40 line-through">{originalPrice}</span>
-                <span className="text-4xl font-bold" style={{ color: palette.primary }}>{newPrice}</span>
-              </div>
-              
-              {/* CTA */}
-              <button className="px-8 py-4 rounded-full text-white font-bold text-lg"
-                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`, boxShadow: `0 0 40px ${palette.primary}40` }}>
-                {ctaText}
-              </button>
-            </div>
-            
-            {/* Salon name */}
-            <div className="absolute bottom-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.4em] uppercase text-white/30">{salonName}</span>
-            </div>
-          </div>
-        );
-
+      // ============ PROMOCJE ============
       case 'promo-elegant':
         return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: `linear-gradient(135deg, ${palette.bg} 0%, #000 100%)` }}>
-            {/* Image */}
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Subtle radial glow */}
+            <div className="absolute inset-0" style={{ 
+              background: `radial-gradient(ellipse at center, ${palette.primary}10 0%, transparent 60%)`
+            }} />
+            
+            {/* Background image with heavy overlay */}
             <div className="absolute inset-0">
               <img src={main} alt="" className="w-full h-full object-cover" style={{ opacity: overlayOpacity[0] / 100 }} />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}, transparent)` }} />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}, ${palette.bg}dd 30%, ${palette.bg}aa)` }} />
             </div>
             
             {/* Elegant frame */}
-            <div className="absolute inset-6 border border-white/10 rounded-3xl" />
-            <div className="absolute inset-10 border border-white/5 rounded-2xl" />
+            <div className="absolute inset-8 border rounded-2xl" style={{ borderColor: `${palette.accent}30` }} />
+            <div className="absolute inset-12 border rounded-xl" style={{ borderColor: `${palette.accent}15` }} />
             
             {/* Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
-              <Diamond className="w-8 h-8 mb-6" style={{ color: palette.primary }} />
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-16 text-center">
+              <Diamond className="w-8 h-8 mb-6" style={{ color: palette.accent }} />
               
-              <span className="text-xs tracking-[0.4em] uppercase mb-4" style={{ color: palette.primary }}>Oferta Specjalna</span>
+              <span className="text-[10px] tracking-[0.5em] uppercase mb-6" style={{ color: palette.accent }}>Oferta Specjalna</span>
               
-              <h2 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: selectedFont.family }}>{serviceName}</h2>
+              <h2 className="text-2xl font-semibold mb-4" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{serviceName}</h2>
               
-              <div className="flex items-baseline gap-3 mb-6">
-                <span className="text-lg text-white/40 line-through">{originalPrice}</span>
-                <span className="text-5xl font-bold" style={{ color: palette.primary }}>{newPrice}</span>
+              <div className="flex items-baseline gap-4 mb-6">
+                <span className="text-lg line-through" style={{ color: `${palette.primary}40` }}>{originalPrice}</span>
+                <span className="text-4xl font-bold" style={{ color: palette.primary }}>{newPrice}</span>
               </div>
               
-              <p className="text-white/60 text-sm max-w-xs mb-8">{subheadline}</p>
+              <p className="text-sm max-w-xs mb-8" style={{ color: `${palette.primary}60` }}>{subheadline}</p>
               
-              <div className="px-8 py-3 rounded-full border-2" style={{ borderColor: palette.primary }}>
-                <span className="font-semibold" style={{ color: palette.primary }}>{ctaText}</span>
+              <div className="px-8 py-3 rounded-full" style={{ border: `2px solid ${palette.primary}` }}>
+                <span className="text-sm font-medium" style={{ color: palette.primary }}>{ctaText}</span>
               </div>
             </div>
             
             {/* Salon name */}
             <div className="absolute bottom-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/30">{salonName}</span>
-            </div>
-          </div>
-        );
-
-      case 'promo-vip':
-        return (
-          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...styles, background: `linear-gradient(180deg, ${palette.bg} 0%, #000 100%)` }}>
-            {/* Luxury pattern */}
-            <div className="absolute inset-0 opacity-5" style={{
-              backgroundImage: `repeating-linear-gradient(45deg, ${palette.primary} 0, ${palette.primary} 1px, transparent 0, transparent 50%)`,
-              backgroundSize: '20px 20px'
-            }} />
-            
-            {/* Glow effects */}
-            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full blur-[120px] opacity-20" style={{ background: palette.primary }} />
-            
-            {/* VIP badge */}
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 px-6 py-3 rounded-full"
-              style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})` }}>
-              <Crown className="w-5 h-5 text-white" />
-              <span className="text-white font-bold tracking-widest uppercase text-sm">VIP Access</span>
-            </div>
-            
-            {/* Main content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center">
-              <span className="text-xs tracking-[0.4em] uppercase mb-4 text-white/50">Ekskluzywna Oferta</span>
-              
-              <h2 className="text-4xl font-bold text-white mb-4" style={{ fontFamily: selectedFont.family }}>{serviceName}</h2>
-              
-              <div className="w-16 h-px mb-6" style={{ background: `linear-gradient(to right, transparent, ${palette.primary}, transparent)` }} />
-              
-              <div className="text-7xl font-black mb-2" style={{ 
-                background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>
-                {discount}
-              </div>
-              
-              <div className="flex items-baseline gap-3 mb-8">
-                <span className="text-xl text-white/30 line-through">{originalPrice}</span>
-                <ArrowRight className="w-4 h-4 text-white/30" />
-                <span className="text-3xl font-bold text-white">{newPrice}</span>
-              </div>
-              
-              <p className="text-white/50 text-sm max-w-xs mb-8">{subheadline}</p>
-              
-              <button className="px-10 py-4 rounded-full text-white font-bold border-2"
-                style={{ borderColor: palette.primary, background: `${palette.primary}20` }}>
-                {ctaText}
-              </button>
-            </div>
-            
-            {/* Salon name */}
-            <div className="absolute bottom-8 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.4em] uppercase text-white/20">{salonName}</span>
+              <span className="text-[9px] tracking-[0.4em] uppercase" style={{ color: `${palette.accent}60` }}>{salonName}</span>
             </div>
           </div>
         );
 
       case 'promo-seasonal':
         return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
             {/* Background image */}
             <div className="absolute inset-0">
-              <img src={main} alt="" className="w-full h-full object-cover" style={{ opacity: 0.3 }} />
-              <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${palette.bg}ee, ${palette.bg}aa)` }} />
+              <img src={main} alt="" className="w-full h-full object-cover" style={{ opacity: 0.25 }} />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(135deg, ${palette.bg}f0, ${palette.bg}dd)` }} />
             </div>
+            
+            {/* Decorative elements */}
+            <div className="absolute top-8 right-8 w-24 h-24 rounded-full opacity-10" style={{ background: palette.primary }} />
+            <div className="absolute bottom-16 left-8 w-16 h-16 rounded-full opacity-10" style={{ background: palette.accent }} />
             
             {/* Content */}
             <div className="absolute inset-0 p-10 flex flex-col">
               {/* Header */}
               <div className="flex justify-between items-start">
-                <span className="text-xs tracking-[0.3em] uppercase" style={{ color: palette.primary }}>{salonName}</span>
-                <div className="px-4 py-2 rounded-full" style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}40` }}>
-                  <span className="text-xs font-medium" style={{ color: palette.primary }}>Promocja</span>
+                <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: palette.accent }}>{salonName}</span>
+                <div className="px-4 py-2 rounded-full" style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}30` }}>
+                  <span className="text-[10px] font-medium tracking-wider" style={{ color: palette.primary }}>Promocja</span>
                 </div>
               </div>
               
-              {/* Main */}
+              {/* Main content */}
               <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <h2 className="text-4xl font-bold text-white mb-4" style={{ fontFamily: selectedFont.family }}>{headline}</h2>
+                <h2 className="text-3xl font-semibold mb-4" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{headline}</h2>
                 
-                <div className="text-6xl font-black mb-4" style={{ color: palette.primary }}>{discount}</div>
+                <div className="text-6xl font-bold mb-4" style={{ color: palette.primary }}>{discount}</div>
                 
-                <p className="text-white/60 mb-6">{serviceName}</p>
+                <p className="mb-4" style={{ color: `${palette.primary}80` }}>{serviceName}</p>
                 
                 <div className="flex items-center gap-4">
-                  <span className="text-lg text-white/40 line-through">{originalPrice}</span>
-                  <span className="text-2xl font-bold text-white">{newPrice}</span>
+                  <span className="text-lg line-through" style={{ color: `${palette.primary}40` }}>{originalPrice}</span>
+                  <span className="text-2xl font-semibold" style={{ color: palette.primary }}>{newPrice}</span>
                 </div>
               </div>
               
               {/* CTA */}
               <div className="flex justify-center">
-                <button className="px-8 py-3 rounded-full font-semibold text-white"
-                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})` }}>
+                <button className="px-8 py-3 rounded-full font-medium text-white"
+                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`, boxShadow: `0 4px 20px ${palette.primary}40` }}>
                   {ctaText}
                 </button>
               </div>
@@ -668,345 +546,369 @@ export default function GraphicsCreator() {
           </div>
         );
 
-      case 'service-showcase':
+      case 'promo-luxury':
         return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
-            {/* Image */}
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: `linear-gradient(135deg, ${palette.bg}, #000)` }}>
+            {/* Luxury pattern overlay */}
+            <div className="absolute inset-0 opacity-[0.03]" style={{
+              backgroundImage: `repeating-linear-gradient(45deg, ${palette.primary} 0, ${palette.primary} 1px, transparent 0, transparent 50%)`,
+              backgroundSize: '16px 16px'
+            }} />
+            
+            {/* Glowing orbs */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-[100px] opacity-20" style={{ background: palette.primary }} />
+            
+            {/* Crown badge */}
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-2.5 rounded-full"
+              style={{ background: `linear-gradient(135deg, ${palette.accent}, ${palette.primary})` }}>
+              <Crown className="w-4 h-4 text-white" />
+              <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-white">Premium</span>
+            </div>
+            
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center">
+              <span className="text-[10px] tracking-[0.4em] uppercase mb-4" style={{ color: `${palette.primary}80` }}>Ekskluzywna Oferta</span>
+              
+              <h2 className="text-3xl font-semibold mb-4" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{serviceName}</h2>
+              
+              <div className="w-16 h-px mb-6" style={{ background: `linear-gradient(to right, transparent, ${palette.accent}, transparent)` }} />
+              
+              <div className="text-7xl font-bold mb-4" style={{ 
+                background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}>
+                {discount}
+              </div>
+              
+              <div className="flex items-baseline gap-4 mb-8">
+                <span className="text-xl line-through" style={{ color: `${palette.primary}30` }}>{originalPrice}</span>
+                <ArrowRight className="w-4 h-4" style={{ color: `${palette.primary}40` }} />
+                <span className="text-3xl font-semibold" style={{ color: palette.primary }}>{newPrice}</span>
+              </div>
+              
+              <p className="text-sm max-w-xs mb-8" style={{ color: `${palette.primary}50` }}>{subheadline}</p>
+              
+              <button className="px-10 py-4 rounded-full font-medium text-white"
+                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`, boxShadow: `0 8px 30px ${palette.primary}50` }}>
+                {ctaText}
+              </button>
+            </div>
+            
+            {/* Salon name */}
+            <div className="absolute bottom-6 left-0 right-0 text-center">
+              <span className="text-[9px] tracking-[0.4em] uppercase" style={{ color: `${palette.primary}30` }}>{salonName}</span>
+            </div>
+          </div>
+        );
+
+      case 'promo-flash':
+        return (
+          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Dynamic background */}
+            <div className="absolute inset-0">
+              <div className="absolute top-0 right-0 w-72 h-72 rounded-full blur-[80px] opacity-30" style={{ background: palette.primary }} />
+              <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full blur-[60px] opacity-20" style={{ background: palette.accent }} />
+            </div>
+            
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center">
+              {/* Flash badge */}
+              <div className="mb-8 px-5 py-2 rounded-full"
+                style={{ background: `${palette.primary}15`, border: `1px solid ${palette.primary}40` }}>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase" style={{ color: palette.primary }}>
+                  ⚡ Flash Sale ⚡
+                </span>
+              </div>
+              
+              {/* Discount */}
+              <h1 className="text-8xl font-black mb-4" style={{ 
+                color: palette.primary,
+                textShadow: `0 0 60px ${palette.primary}40`,
+                fontFamily: selectedFont.family
+              }}>
+                {discount}
+              </h1>
+              
+              {/* Service */}
+              <div className="mb-8">
+                <span className="text-2xl font-semibold" style={{ color: palette.primary }}>{serviceName}</span>
+              </div>
+              
+              {/* Prices */}
+              <div className="flex items-center gap-6 mb-10">
+                <span className="text-2xl line-through" style={{ color: `${palette.primary}35` }}>{originalPrice}</span>
+                <span className="text-4xl font-bold" style={{ color: palette.primary }}>{newPrice}</span>
+              </div>
+              
+              {/* CTA */}
+              <button className="px-10 py-4 rounded-full font-semibold text-white text-lg"
+                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})`, boxShadow: `0 8px 30px ${palette.primary}40` }}>
+                {ctaText}
+              </button>
+            </div>
+            
+            {/* Salon name */}
+            <div className="absolute bottom-8 left-0 right-0 text-center">
+              <span className="text-[9px] tracking-[0.4em] uppercase" style={{ color: `${palette.primary}40` }}>{salonName}</span>
+            </div>
+          </div>
+        );
+
+      // ============ USŁUGI ============
+      case 'service-hero':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Full image */}
             <div className="absolute inset-0">
               <img src={main} alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ 
-                background: `linear-gradient(to top, ${palette.bg} 0%, ${palette.bg}80 40%, transparent 100%)`
+                background: `linear-gradient(to top, ${palette.bg} 0%, ${palette.bg}cc 30%, transparent 60%)`
               }} />
             </div>
             
             {/* Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-8">
+            <div className="absolute bottom-0 left-0 right-0 p-10">
               <div className="mb-4 inline-flex items-center gap-2 px-4 py-2 rounded-full"
-                style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}40` }}>
-                <Gem className="w-4 h-4" style={{ color: palette.primary }} />
-                <span className="text-xs font-medium" style={{ color: palette.primary }}>Nasza Specjalność</span>
+                style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}30` }}>
+                <Gem className="w-3.5 h-3.5" style={{ color: palette.primary }} />
+                <span className="text-[10px] font-medium tracking-wider" style={{ color: palette.primary }}>Nasza Specjalność</span>
               </div>
               
-              <h2 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: selectedFont.family }}>{serviceName}</h2>
-              <p className="text-white/60 mb-6 max-w-sm">{subheadline}</p>
+              <h2 className="text-3xl font-semibold mb-3" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{serviceName}</h2>
+              <p className="mb-6 max-w-sm" style={{ color: `${palette.primary}60` }}>{subheadline}</p>
               
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold" style={{ color: palette.primary }}>{newPrice}</span>
-                <button className="px-6 py-2.5 rounded-full text-white font-medium"
-                  style={{ background: palette.primary }}>
+                <button className="px-6 py-3 rounded-full font-medium text-white"
+                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})` }}>
                   {ctaText}
                 </button>
               </div>
             </div>
             
-            {/* Logo */}
+            {/* Logo/name */}
             <div className="absolute top-6 left-6">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/50">{salonName}</span>
+              <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: `${palette.primary}70` }}>{salonName}</span>
             </div>
           </div>
         );
 
-      case 'service-menu':
+      case 'service-card':
         return (
-          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
-            {/* Background pattern */}
+          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Subtle background */}
             <div className="absolute inset-0 opacity-5" style={{
               backgroundImage: `radial-gradient(${palette.primary} 1px, transparent 1px)`,
               backgroundSize: '20px 20px'
             }} />
             
-            {/* Header */}
-            <div className="p-8">
+            {/* Image area */}
+            <div className="absolute top-6 left-6 right-6 h-[50%] rounded-2xl overflow-hidden"
+              style={{ boxShadow: `0 20px 40px ${palette.bg}` }}>
+              <img src={main} alt="" className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}80, transparent 50%)` }} />
+            </div>
+            
+            {/* Content area */}
+            <div className="absolute bottom-0 left-0 right-0 p-8 pt-4">
               <div className="text-center">
-                <span className="text-xs tracking-[0.4em] uppercase mb-2 block" style={{ color: palette.primary }}>{salonName}</span>
-                <h2 className="text-3xl font-bold text-white" style={{ fontFamily: selectedFont.family }}>Menu Usług</h2>
+                <span className="text-[9px] tracking-[0.4em] uppercase mb-3 block" style={{ color: palette.accent }}>{salonName}</span>
+                
+                <div className="w-10 h-px mx-auto mb-4" style={{ background: palette.accent }} />
+                
+                <h2 className="text-2xl font-semibold mb-3" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{serviceName}</h2>
+                <p className="text-sm mb-6" style={{ color: `${palette.primary}60` }}>{subheadline}</p>
+                
+                <div className="text-3xl font-bold mb-6" style={{ color: palette.primary }}>{newPrice}</div>
+                
+                <button className="w-full py-4 rounded-full font-medium text-white"
+                  style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})` }}>
+                  {ctaText}
+                </button>
               </div>
             </div>
-            
-            {/* Divider */}
-            <div className="w-16 h-px mx-auto mb-8" style={{ background: `linear-gradient(to right, transparent, ${palette.primary}, transparent)` }} />
-            
-            {/* Services list */}
-            <div className="px-8 space-y-4">
-              {[serviceName, 'Makijaż permanentny brwi', 'Laminacja rzęs', 'Stylizacja brwi'].map((service, i) => (
-                <div key={i} className="flex items-center justify-between py-4 border-b border-white/5">
-                  <span className="text-white font-medium">{service}</span>
-                  <span className="font-bold" style={{ color: palette.primary }}>{i === 0 ? newPrice : `${200 + i * 100} zł`}</span>
-                </div>
-              ))}
-            </div>
-            
-            {/* Footer */}
-            <div className="absolute bottom-8 left-0 right-0 text-center">
-              <button className="px-8 py-3 rounded-full font-semibold text-white"
-                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})` }}>
-                {ctaText}
-              </button>
-            </div>
           </div>
         );
 
-      case 'service-highlight':
+      case 'service-minimal':
         return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: `linear-gradient(135deg, ${palette.bg}, #000)` }}>
-            {/* Circle frame */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] aspect-square rounded-full overflow-hidden"
-              style={{ border: `3px solid ${palette.primary}`, boxShadow: `0 0 60px ${palette.primary}30` }}>
-              <img src={main} alt="" className="w-full h-full object-cover" />
-            </div>
-            
-            {/* Decorative rings */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[85%] aspect-square rounded-full border border-white/5" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[95%] aspect-square rounded-full border border-white/3" />
-            
-            {/* Header */}
-            <div className="absolute top-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.4em] uppercase" style={{ color: palette.primary }}>{salonName}</span>
-            </div>
-            
-            {/* Content */}
-            <div className="absolute bottom-6 left-0 right-0 p-6 text-center">
-              <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: selectedFont.family }}>{serviceName}</h2>
-              <span className="text-xl font-bold" style={{ color: palette.primary }}>{newPrice}</span>
-            </div>
-          </div>
-        );
-
-      case 'review-elegant':
-        return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: `linear-gradient(135deg, ${palette.bg}, #000)` }}>
-            {/* Glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-[100px] opacity-20" style={{ background: palette.primary }} />
-            
-            {/* Quote icon */}
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-16 h-16 rounded-full flex items-center justify-center"
-              style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}40` }}>
-              <span className="text-4xl" style={{ color: palette.primary }}>"</span>
-            </div>
-            
-            {/* Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center pt-24">
-              <p className="text-xl text-white leading-relaxed mb-8 max-w-sm" style={{ fontFamily: selectedFont.family }}>
-                {reviewText}
-              </p>
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: '#fafafa' }}>
+            {/* Clean layout */}
+            <div className="absolute inset-8 flex flex-col">
+              {/* Image */}
+              <div className="flex-1 rounded-xl overflow-hidden mb-6" style={{ boxShadow: `0 10px 30px ${palette.primary}15` }}>
+                <img src={main} alt="" className="w-full h-full object-cover" />
+              </div>
               
+              {/* Content */}
+              <div className="text-center">
+                <span className="text-[9px] tracking-[0.3em] uppercase mb-2 block" style={{ color: palette.primary }}>{salonName}</span>
+                <h2 className="text-xl font-medium mb-2" style={{ color: '#1a1a1a', fontFamily: selectedFont.family }}>{serviceName}</h2>
+                <div className="flex items-center justify-center gap-3">
+                  <span className="text-lg font-semibold" style={{ color: palette.primary }}>{newPrice}</span>
+                  <span className="text-xs px-3 py-1 rounded-full" style={{ background: `${palette.primary}15`, color: palette.primary }}>
+                    {ctaText}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ============ OPINIE ============
+      case 'review-luxury':
+        return (
+          <div className="w-full aspect-square relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Elegant glow */}
+            <div className="absolute inset-0" style={{ 
+              background: `radial-gradient(ellipse at center, ${palette.primary}08 0%, transparent 60%)`
+            }} />
+            
+            {/* Decorative frame */}
+            <div className="absolute inset-6 border rounded-2xl" style={{ borderColor: `${palette.accent}20` }} />
+            
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-12 text-center">
               {/* Stars */}
-              <div className="flex gap-1 mb-4">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 fill-current" style={{ color: palette.primary }} />
+              <div className="flex gap-1 mb-6">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className="w-5 h-5 fill-current" style={{ color: palette.accent }} />
                 ))}
               </div>
               
-              {/* Reviewer */}
-              <span className="text-white/60 text-sm">{reviewerName}</span>
+              {/* Quote */}
+              <Quote className="w-10 h-10 mb-4" style={{ color: `${palette.primary}30` }} />
+              
+              <p className="text-lg italic leading-relaxed mb-6" style={{ color: palette.primary, fontFamily: selectedFont.family }}>
+                "{reviewText}"
+              </p>
+              
+              <div className="w-12 h-px mb-4" style={{ background: `linear-gradient(to right, transparent, ${palette.accent}, transparent)` }} />
+              
+              <span className="text-sm font-medium" style={{ color: `${palette.primary}80` }}>{reviewerName}</span>
             </div>
             
-            {/* Salon name */}
+            {/* Salon */}
             <div className="absolute bottom-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/30">{salonName}</span>
+              <span className="text-[9px] tracking-[0.4em] uppercase" style={{ color: `${palette.accent}60` }}>{salonName}</span>
             </div>
           </div>
         );
 
       case 'review-photo':
         return (
-          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
-            {/* Image */}
+          <div className="w-full aspect-[4/5] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
+            {/* Background image */}
             <div className="absolute inset-0">
               <img src={main} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0" style={{ 
-                background: `linear-gradient(to top, ${palette.bg} 40%, transparent 100%)`
-              }} />
+              <div className="absolute inset-0" style={{ background: `linear-gradient(to top, ${palette.bg}, ${palette.bg}dd 50%, transparent)` }} />
             </div>
             
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-8">
               {/* Stars */}
               <div className="flex gap-1 mb-4">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-5 h-5 fill-current" style={{ color: palette.primary }} />
+                {[1, 2, 3, 4, 5].map(i => (
+                  <Star key={i} className="w-4 h-4 fill-current" style={{ color: palette.accent }} />
                 ))}
               </div>
               
-              <p className="text-lg text-white leading-relaxed mb-6" style={{ fontFamily: selectedFont.family }}>
+              <p className="text-lg italic leading-relaxed mb-4" style={{ color: palette.primary, fontFamily: selectedFont.family }}>
                 "{reviewText}"
               </p>
               
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-full overflow-hidden border-2" style={{ borderColor: palette.primary }}>
-                  <img src={main} alt="" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <span className="text-white font-medium block">{reviewerName}</span>
-                  <span className="text-white/50 text-sm">Zadowolona klientka</span>
-                </div>
-              </div>
+              <span className="text-sm font-medium" style={{ color: `${palette.primary}80` }}>— {reviewerName}</span>
             </div>
             
             {/* Header */}
-            <div className="absolute top-6 left-6">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/50">{salonName}</span>
-            </div>
-          </div>
-        );
-
-      case 'review-stars':
-        return (
-          <div className="w-full aspect-square relative overflow-hidden" style={{ ...styles, background: `linear-gradient(135deg, ${palette.bg}, #000)` }}>
-            {/* Big stars background */}
-            <div className="absolute inset-0 flex items-center justify-center opacity-5">
-              <Star className="w-96 h-96" style={{ color: palette.primary }} />
-            </div>
-            
-            {/* Content */}
-            <div className="absolute inset-0 flex flex-col items-center justify-center p-10 text-center">
-              {/* Big 5 */}
-              <div className="text-8xl font-black mb-2" style={{ 
-                background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent'
-              }}>5.0</div>
-              
-              {/* Stars */}
-              <div className="flex gap-2 mb-6">
-                {[1,2,3,4,5].map(i => (
-                  <Star key={i} className="w-8 h-8 fill-current" style={{ color: palette.primary }} />
-                ))}
+            <div className="absolute top-6 left-6 right-6 flex justify-between items-center">
+              <span className="text-[10px] tracking-[0.3em] uppercase" style={{ color: palette.primary }}>{salonName}</span>
+              <div className="px-3 py-1.5 rounded-full" style={{ background: `${palette.primary}20` }}>
+                <span className="text-[9px] tracking-wider" style={{ color: palette.primary }}>Opinia klienta</span>
               </div>
-              
-              <p className="text-lg text-white/80 leading-relaxed mb-6 max-w-sm" style={{ fontFamily: selectedFont.family }}>
-                "{reviewText}"
-              </p>
-              
-              <span className="text-white/60">— {reviewerName}</span>
-            </div>
-            
-            {/* Salon name */}
-            <div className="absolute bottom-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/30">{salonName}</span>
             </div>
           </div>
         );
 
+      // ============ STORIES ============
       case 'story-promo':
         return (
-          <div className="w-full aspect-[9/16] relative overflow-hidden" style={{ ...styles, background: palette.bg }}>
+          <div className="w-full aspect-[9/16] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
             {/* Image */}
             <div className="absolute inset-0">
               <img src={main} alt="" className="w-full h-full object-cover" />
               <div className="absolute inset-0" style={{ 
-                background: `linear-gradient(to bottom, transparent 30%, ${palette.bg} 100%)`
+                background: `linear-gradient(to bottom, ${palette.bg}60, transparent 30%, transparent 50%, ${palette.bg})` 
               }} />
             </div>
             
             {/* Header */}
             <div className="absolute top-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.4em] uppercase text-white/70">{salonName}</span>
+              <span className="text-[10px] tracking-[0.4em] uppercase" style={{ color: palette.primary }}>{salonName}</span>
             </div>
             
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-8 text-center">
               <div className="inline-block px-4 py-2 rounded-full mb-4"
-                style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}` }}>
-                <span className="text-sm font-bold" style={{ color: palette.primary }}>PROMOCJA</span>
+                style={{ background: `${palette.primary}20`, border: `1px solid ${palette.primary}40` }}>
+                <span className="text-[10px] font-bold tracking-wider" style={{ color: palette.primary }}>PROMOCJA</span>
               </div>
               
-              <h2 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: selectedFont.family }}>{serviceName}</h2>
+              <h2 className="text-2xl font-semibold mb-3" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{serviceName}</h2>
               
-              <div className="text-5xl font-black mb-4" style={{ color: palette.primary }}>{discount}</div>
+              <div className="text-5xl font-bold mb-4" style={{ color: palette.primary }}>{discount}</div>
               
               <div className="flex items-center justify-center gap-3 mb-6">
-                <span className="text-lg text-white/40 line-through">{originalPrice}</span>
-                <span className="text-2xl font-bold text-white">{newPrice}</span>
+                <span className="text-lg line-through" style={{ color: `${palette.primary}40` }}>{originalPrice}</span>
+                <span className="text-2xl font-semibold" style={{ color: palette.primary }}>{newPrice}</span>
               </div>
               
-              <button className="w-full py-4 rounded-full font-bold text-white"
-                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})` }}>
+              <button className="w-full py-4 rounded-full font-medium text-white"
+                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})` }}>
                 {ctaText}
               </button>
             </div>
           </div>
         );
 
-      case 'story-result':
-        return (
-          <div className="w-full aspect-[9/16] relative overflow-hidden" style={{ ...styles, background: '#000' }}>
-            {/* Before/After split */}
-            <div className="absolute inset-0 flex flex-col">
-              {/* Before */}
-              <div className="flex-1 relative overflow-hidden">
-                <img src={before} alt="" className="w-full h-full object-cover" style={{ filter: 'brightness(0.8)' }} />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 to-transparent" />
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 px-6 py-2 bg-black/50 backdrop-blur rounded-full">
-                  <span className="text-white/80 text-sm tracking-widest uppercase">Przed</span>
-                </div>
-              </div>
-              
-              {/* Divider */}
-              <div className="h-1 relative">
-                <div className="absolute inset-0" style={{ background: palette.primary, boxShadow: `0 0 20px ${palette.primary}` }} />
-              </div>
-              
-              {/* After */}
-              <div className="flex-1 relative overflow-hidden">
-                <img src={after} alt="" className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
-                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-6 py-2 rounded-full"
-                  style={{ background: palette.primary }}>
-                  <span className="text-white font-bold text-sm tracking-widest uppercase">Po</span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Header */}
-            <div className="absolute top-4 left-0 right-0 text-center z-10">
-              <span className="text-xs tracking-[0.3em] uppercase text-white/60">{salonName}</span>
-            </div>
-            
-            {/* Footer */}
-            <div className="absolute bottom-6 left-0 right-0 p-6 text-center z-10">
-              <h2 className="text-2xl font-bold text-white" style={{ fontFamily: selectedFont.family }}>{headline}</h2>
-            </div>
-          </div>
-        );
-
       case 'story-cta':
         return (
-          <div className="w-full aspect-[9/16] relative overflow-hidden" style={{ ...styles, background: `linear-gradient(180deg, ${palette.bg} 0%, #000 100%)` }}>
+          <div className="w-full aspect-[9/16] relative overflow-hidden" style={{ ...baseStyles, background: palette.bg }}>
             {/* Image */}
-            <div className="absolute inset-x-6 top-20 bottom-48 rounded-3xl overflow-hidden"
-              style={{ boxShadow: `0 0 60px ${palette.primary}30` }}>
+            <div className="absolute inset-x-6 top-20 bottom-52 rounded-3xl overflow-hidden"
+              style={{ boxShadow: `0 20px 60px ${palette.primary}30` }}>
               <img src={main} alt="" className="w-full h-full object-cover" />
             </div>
             
             {/* Glow */}
-            <div className="absolute bottom-40 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-[100px] opacity-30" style={{ background: palette.primary }} />
+            <div className="absolute bottom-44 left-1/2 -translate-x-1/2 w-64 h-64 rounded-full blur-[100px] opacity-25" style={{ background: palette.primary }} />
             
             {/* Header */}
             <div className="absolute top-6 left-0 right-0 text-center">
-              <span className="text-xs tracking-[0.4em] uppercase text-white/60">{salonName}</span>
+              <span className="text-[10px] tracking-[0.4em] uppercase" style={{ color: palette.accent }}>{salonName}</span>
             </div>
             
             {/* Content */}
             <div className="absolute bottom-0 left-0 right-0 p-8 text-center">
-              <h2 className="text-3xl font-bold text-white mb-3" style={{ fontFamily: selectedFont.family }}>{headline}</h2>
-              <p className="text-white/50 mb-6">{subheadline}</p>
+              <h2 className="text-2xl font-semibold mb-2" style={{ color: palette.primary, fontFamily: selectedFont.family }}>{headline}</h2>
+              <p className="text-sm mb-6" style={{ color: `${palette.primary}60` }}>{subheadline}</p>
               
-              <button className="w-full py-4 rounded-full font-bold text-white flex items-center justify-center gap-2"
-                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.secondary})` }}>
+              <button className="w-full py-4 rounded-full font-medium text-white flex items-center justify-center gap-2"
+                style={{ background: `linear-gradient(135deg, ${palette.primary}, ${palette.accent})` }}>
                 <span>{ctaText}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
               
-              <div className="mt-4 text-white/30 text-xs">Przesuń w górę</div>
+              <div className="mt-4 text-[10px]" style={{ color: `${palette.primary}40` }}>Przesuń w górę</div>
             </div>
           </div>
         );
 
       default:
         return (
-          <div className="w-full aspect-square bg-zinc-900 flex items-center justify-center">
-            <span className="text-zinc-500">Wybierz szablon</span>
+          <div className="w-full aspect-square flex items-center justify-center" style={{ background: palette.bg }}>
+            <span style={{ color: `${palette.primary}40` }}>Wybierz szablon</span>
           </div>
         );
     }
@@ -1051,51 +953,51 @@ export default function GraphicsCreator() {
     <AppLayout>
       <div className="h-full flex flex-col lg:flex-row gap-0">
         {/* Left Panel - Controls */}
-        <div className="w-full lg:w-[420px] border-r border-border/50 bg-card/30 flex flex-col">
+        <div className="w-full lg:w-[400px] border-r border-border/50 bg-card/30 flex flex-col">
           {/* Header */}
-          <div className="p-6 border-b border-border/50">
-            <div className="flex items-center gap-3 mb-2">
+          <div className="p-5 border-b border-border/50">
+            <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center">
                 <Wand2 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Kreator Grafik</h1>
+                <h1 className="text-lg font-semibold text-foreground">Kreator Grafik</h1>
                 <p className="text-xs text-muted-foreground">Facebook Ads dla Beauty</p>
               </div>
             </div>
           </div>
           
           <ScrollArea className="flex-1">
-            <div className="p-6">
+            <div className="p-5">
               <Tabs defaultValue="templates" className="w-full">
-                <TabsList className="w-full grid grid-cols-4 mb-6 bg-background/50">
-                  <TabsTrigger value="templates" className="text-xs gap-1.5">
+                <TabsList className="w-full grid grid-cols-4 mb-5 bg-background/50">
+                  <TabsTrigger value="templates" className="text-xs gap-1">
                     <Layers className="w-3.5 h-3.5" />
-                    Szablony
+                    <span className="hidden sm:inline">Szablony</span>
                   </TabsTrigger>
-                  <TabsTrigger value="images" className="text-xs gap-1.5">
+                  <TabsTrigger value="images" className="text-xs gap-1">
                     <ImageIcon className="w-3.5 h-3.5" />
-                    Zdjęcia
+                    <span className="hidden sm:inline">Zdjęcia</span>
                   </TabsTrigger>
-                  <TabsTrigger value="content" className="text-xs gap-1.5">
+                  <TabsTrigger value="content" className="text-xs gap-1">
                     <Type className="w-3.5 h-3.5" />
-                    Treść
+                    <span className="hidden sm:inline">Treść</span>
                   </TabsTrigger>
-                  <TabsTrigger value="style" className="text-xs gap-1.5">
+                  <TabsTrigger value="style" className="text-xs gap-1">
                     <Palette className="w-3.5 h-3.5" />
-                    Styl
+                    <span className="hidden sm:inline">Styl</span>
                   </TabsTrigger>
                 </TabsList>
                 
                 {/* Templates Tab */}
-                <TabsContent value="templates" className="space-y-6 mt-0">
+                <TabsContent value="templates" className="space-y-5 mt-0">
                   {/* Category filters */}
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-1.5">
                     <Button
                       size="sm"
                       variant={activeCategory === 'all' ? 'default' : 'outline'}
                       onClick={() => setActiveCategory('all')}
-                      className="text-xs h-8"
+                      className="text-xs h-7"
                     >
                       Wszystkie
                     </Button>
@@ -1105,16 +1007,16 @@ export default function GraphicsCreator() {
                         size="sm"
                         variant={activeCategory === key ? 'default' : 'outline'}
                         onClick={() => setActiveCategory(key as TemplateCategory)}
-                        className="text-xs h-8 gap-1.5"
+                        className="text-xs h-7 gap-1"
                       >
-                        <cat.icon className="w-3.5 h-3.5" />
+                        <cat.icon className="w-3 h-3" />
                         {cat.label}
                       </Button>
                     ))}
                   </div>
                   
                   {/* Templates grid */}
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2">
                     {filteredTemplates.map((tmpl) => {
                       const cat = CATEGORIES[tmpl.category];
                       const isSelected = selectedTemplate === tmpl.id;
@@ -1123,33 +1025,33 @@ export default function GraphicsCreator() {
                           key={tmpl.id}
                           onClick={() => setSelectedTemplate(tmpl.id)}
                           className={cn(
-                            "relative p-3 rounded-xl border text-left transition-all group",
+                            "relative p-3 rounded-lg border text-left transition-all",
                             isSelected 
                               ? "border-primary bg-primary/10" 
                               : "border-border/50 bg-card/50 hover:border-primary/50 hover:bg-card"
                           )}
                         >
                           {tmpl.premium && (
-                            <div className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                              <Crown className="w-3 h-3 text-white" />
+                            <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
+                              <Crown className="w-2.5 h-2.5 text-white" />
                             </div>
                           )}
                           <div className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center mb-2 bg-gradient-to-br",
+                            "w-7 h-7 rounded-md flex items-center justify-center mb-2 bg-gradient-to-br",
                             cat.gradient
                           )}>
-                            <cat.icon className="w-4 h-4 text-white" />
+                            <cat.icon className="w-3.5 h-3.5 text-white" />
                           </div>
-                          <div className="font-medium text-sm text-foreground mb-0.5">{tmpl.name}</div>
-                          <div className="text-[10px] text-muted-foreground">{tmpl.description}</div>
-                          <div className="mt-2 flex items-center gap-1.5">
+                          <div className="font-medium text-xs text-foreground mb-0.5">{tmpl.name}</div>
+                          <div className="text-[10px] text-muted-foreground line-clamp-1">{tmpl.description}</div>
+                          <div className="mt-1.5">
                             <span className="text-[9px] px-1.5 py-0.5 rounded bg-background/50 text-muted-foreground">
                               {tmpl.aspect}
                             </span>
                           </div>
                           {isSelected && (
-                            <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
-                              <Check className="w-3 h-3 text-primary-foreground" />
+                            <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="w-2.5 h-2.5 text-primary-foreground" />
                             </div>
                           )}
                         </button>
@@ -1159,9 +1061,9 @@ export default function GraphicsCreator() {
                 </TabsContent>
                 
                 {/* Images Tab */}
-                <TabsContent value="images" className="space-y-6 mt-0">
-                  {currentTemplate?.category === 'metamorphosis' || selectedTemplate === 'story-result' ? (
-                    <div className="grid grid-cols-2 gap-4">
+                <TabsContent value="images" className="space-y-5 mt-0">
+                  {currentTemplate?.category === 'metamorphosis' ? (
+                    <div className="grid grid-cols-2 gap-3">
                       <ImageUploadBox
                         label="Zdjęcie PRZED"
                         image={beforeImage}
@@ -1184,14 +1086,14 @@ export default function GraphicsCreator() {
                     />
                   )}
                   
-                  <div className="border-t border-border/50 pt-6">
+                  <div className="border-t border-border/50 pt-5">
                     <ImageUploadBox
                       label="Logo salonu (opcjonalne)"
                       image={logoImage}
                       onUpload={handleImageUpload(setLogoImage)}
                       onClear={() => setLogoImage(null)}
                     />
-                    <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center justify-between mt-3">
                       <Label className="text-sm text-muted-foreground">Pokaż logo</Label>
                       <Switch checked={showLogo} onCheckedChange={setShowLogo} />
                     </div>
@@ -1223,11 +1125,11 @@ export default function GraphicsCreator() {
                     <Textarea 
                       value={subheadline} 
                       onChange={(e) => setSubheadline(e.target.value)}
-                      className="bg-background/50 resize-none h-20"
+                      className="bg-background/50 resize-none h-16"
                     />
                   </div>
                   
-                  <div className="border-t border-border/50 pt-4 space-y-4">
+                  <div className="border-t border-border/50 pt-4 space-y-3">
                     <div className="space-y-2">
                       <Label className="text-xs text-muted-foreground">Nazwa usługi</Label>
                       <Input 
@@ -1237,67 +1139,67 @@ export default function GraphicsCreator() {
                       />
                     </div>
                     
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Rabat</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Rabat</Label>
                         <Input 
                           value={discount} 
                           onChange={(e) => setDiscount(e.target.value)}
-                          className="bg-background/50"
+                          className="bg-background/50 h-9"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Stara cena</Label>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Stara cena</Label>
                         <Input 
                           value={originalPrice} 
                           onChange={(e) => setOriginalPrice(e.target.value)}
-                          className="bg-background/50"
+                          className="bg-background/50 h-9"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs text-muted-foreground">Nowa cena</Label>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Nowa cena</Label>
                         <Input 
                           value={newPrice} 
                           onChange={(e) => setNewPrice(e.target.value)}
-                          className="bg-background/50"
+                          className="bg-background/50 h-9"
                         />
                       </div>
                     </div>
                   </div>
                   
-                  <div className="border-t border-border/50 pt-4 space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Opinia klienta</Label>
-                      <Textarea 
-                        value={reviewText} 
-                        onChange={(e) => setReviewText(e.target.value)}
-                        className="bg-background/50 resize-none h-20"
-                      />
+                  {currentTemplate?.category === 'testimonial' && (
+                    <div className="border-t border-border/50 pt-4 space-y-3">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Treść opinii</Label>
+                        <Textarea 
+                          value={reviewText} 
+                          onChange={(e) => setReviewText(e.target.value)}
+                          className="bg-background/50 resize-none h-20"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-muted-foreground">Imię klienta</Label>
+                        <Input 
+                          value={reviewerName} 
+                          onChange={(e) => setReviewerName(e.target.value)}
+                          className="bg-background/50"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Imię klienta</Label>
-                      <Input 
-                        value={reviewerName} 
-                        onChange={(e) => setReviewerName(e.target.value)}
-                        className="bg-background/50"
-                      />
-                    </div>
-                  </div>
+                  )}
                   
-                  <div className="border-t border-border/50 pt-4">
-                    <div className="space-y-2">
-                      <Label className="text-xs text-muted-foreground">Przycisk CTA</Label>
-                      <Input 
-                        value={ctaText} 
-                        onChange={(e) => setCtaText(e.target.value)}
-                        className="bg-background/50"
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Tekst CTA</Label>
+                    <Input 
+                      value={ctaText} 
+                      onChange={(e) => setCtaText(e.target.value)}
+                      className="bg-background/50"
+                    />
                   </div>
                 </TabsContent>
                 
                 {/* Style Tab */}
-                <TabsContent value="style" className="space-y-6 mt-0">
+                <TabsContent value="style" className="space-y-5 mt-0">
                   {/* Color palettes */}
                   <div className="space-y-3">
                     <Label className="text-xs text-muted-foreground">Paleta kolorów</Label>
@@ -1307,43 +1209,41 @@ export default function GraphicsCreator() {
                           key={i}
                           onClick={() => setPalette(p)}
                           className={cn(
-                            "aspect-square rounded-xl relative overflow-hidden transition-all",
-                            palette.name === p.name 
-                              ? "ring-2 ring-primary ring-offset-2 ring-offset-background" 
-                              : "hover:scale-105"
+                            "aspect-square rounded-lg overflow-hidden border-2 transition-all",
+                            palette.name === p.name ? "border-primary ring-2 ring-primary/30" : "border-transparent"
                           )}
-                          style={{ background: `linear-gradient(135deg, ${p.primary}, ${p.secondary})` }}
+                          style={{ background: p.bg }}
+                          title={p.name}
                         >
-                          {palette.name === p.name && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                              <Check className="w-5 h-5 text-white" />
+                          <div className="w-full h-full flex flex-col">
+                            <div className="flex-1" style={{ background: p.primary }} />
+                            <div className="h-1/3 flex">
+                              <div className="flex-1" style={{ background: p.secondary }} />
+                              <div className="flex-1" style={{ background: p.accent }} />
                             </div>
-                          )}
+                          </div>
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground text-center">{palette.name}</p>
+                    <p className="text-[10px] text-muted-foreground text-center">{palette.name}</p>
                   </div>
                   
                   {/* Fonts */}
                   <div className="space-y-3">
                     <Label className="text-xs text-muted-foreground">Czcionka</Label>
-                    <div className="grid grid-cols-1 gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       {FONTS.map((font) => (
                         <button
                           key={font.id}
                           onClick={() => setSelectedFont(font)}
                           className={cn(
-                            "p-3 rounded-xl text-left transition-all border",
+                            "p-3 rounded-lg border text-left transition-all",
                             selectedFont.id === font.id 
                               ? "border-primary bg-primary/10" 
                               : "border-border/50 bg-card/50 hover:border-primary/50"
                           )}
                         >
-                          <span className="text-lg text-foreground" style={{ fontFamily: font.family }}>
-                            {font.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground ml-2">Aa Bb Cc</span>
+                          <span className="text-sm" style={{ fontFamily: font.family }}>{font.name}</span>
                         </button>
                       ))}
                     </div>
@@ -1351,7 +1251,7 @@ export default function GraphicsCreator() {
                   
                   {/* Overlay opacity */}
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between">
+                    <div className="flex justify-between">
                       <Label className="text-xs text-muted-foreground">Przezroczystość zdjęcia</Label>
                       <span className="text-xs text-muted-foreground">{overlayOpacity[0]}%</span>
                     </div>
@@ -1370,82 +1270,71 @@ export default function GraphicsCreator() {
           </ScrollArea>
           
           {/* Actions */}
-          <div className="p-6 border-t border-border/50 space-y-3">
-            <Button
+          <div className="p-5 border-t border-border/50 space-y-2">
+            <Button 
+              className="w-full gap-2" 
               onClick={handleDownload}
               disabled={isGenerating}
-              className="w-full bg-gradient-to-r from-primary to-pink-600 hover:from-primary/90 hover:to-pink-600/90"
-              size="lg"
             >
               {isGenerating ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="w-4 h-4 animate-spin" />
                   Generowanie...
                 </>
               ) : (
                 <>
-                  <Download className="w-4 h-4 mr-2" />
+                  <Download className="w-4 h-4" />
                   Pobierz grafikę
                 </>
               )}
             </Button>
-            <Button
-              onClick={resetAll}
-              variant="outline"
-              className="w-full"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Resetuj wszystko
+            <Button variant="outline" className="w-full gap-2" onClick={resetAll}>
+              <RotateCcw className="w-4 h-4" />
+              Resetuj
             </Button>
           </div>
         </div>
         
         {/* Right Panel - Preview */}
-        <div className="flex-1 bg-[#0a0a0a] flex flex-col">
+        <div className="flex-1 bg-zinc-950 flex flex-col min-h-0">
           {/* Preview toolbar */}
-          <div className="p-4 border-b border-border/30 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Eye className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Podgląd</span>
-              {currentTemplate && (
-                <span className="text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">
-                  {currentTemplate.aspect}
-                </span>
-              )}
+          <div className="p-3 border-b border-border/30 flex items-center justify-between bg-zinc-900/50">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="px-2 py-1 rounded bg-background/30">{currentTemplate?.aspect}</span>
+              <span>{currentTemplate?.name}</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
-                onClick={() => setPreviewScale(Math.max(0.5, previewScale - 0.1))}
+            <div className="flex items-center gap-1">
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-7 w-7"
+                onClick={() => setPreviewScale(Math.max(0.3, previewScale - 0.1))}
               >
-                <ZoomOut className="w-4 h-4" />
+                <ZoomOut className="w-3.5 h-3.5" />
               </Button>
-              <span className="text-xs text-muted-foreground w-12 text-center">
-                {Math.round(previewScale * 100)}%
-              </span>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8"
+              <span className="text-xs text-muted-foreground w-12 text-center">{Math.round(previewScale * 100)}%</span>
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="h-7 w-7"
                 onClick={() => setPreviewScale(Math.min(1.5, previewScale + 0.1))}
               >
-                <ZoomIn className="w-4 h-4" />
+                <ZoomIn className="w-3.5 h-3.5" />
               </Button>
             </div>
           </div>
           
-          {/* Preview canvas */}
-          <div className="flex-1 flex items-center justify-center p-8 overflow-auto">
+          {/* Preview area */}
+          <div className="flex-1 overflow-auto p-6 flex items-center justify-center">
             <div 
-              className={cn("transition-transform duration-200 shadow-2xl", getAspectClass())}
-              style={{ 
-                transform: `scale(${previewScale})`,
-                width: currentTemplate?.aspect === '9:16' ? '320px' : currentTemplate?.aspect === '4:5' ? '400px' : '480px'
-              }}
+              className="transition-transform duration-200"
+              style={{ transform: `scale(${previewScale})`, transformOrigin: 'center' }}
             >
-              <div ref={previewRef} className="w-full h-full">
+              <div 
+                ref={previewRef}
+                className={cn("max-w-md shadow-2xl", getAspectClass())}
+                style={{ width: '400px' }}
+              >
                 {renderTemplate()}
               </div>
             </div>
