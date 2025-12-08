@@ -354,10 +354,15 @@ const goldenRules = [
 ];
 
 export default function ClientService() {
-  const [activeTab, setActiveTab] = useState("process");
+  const [activeTab, setActiveTab] = useState<string>("process");
   const [expandedStep, setExpandedStep] = useState<number | null>(1);
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+
+  const handleTabChange = (value: string) => {
+    console.log("Tab change:", value);
+    setActiveTab(value);
+  };
 
   const filteredObjections = objectionHandling.filter(obj =>
     obj.objection.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -418,7 +423,7 @@ export default function ClientService() {
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="bg-card/80 border border-border/50 p-1.5 h-auto flex-wrap">
             <TabsTrigger 
               value="process" 
