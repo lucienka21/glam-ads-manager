@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, FileImage, ArrowLeft, Link, Building2 } from "lucide-react";
+import { Download, FileImage, ArrowLeft, Link, Building2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { InvoicePreview } from "@/components/invoice/InvoicePreview";
+import { InvoicePreview, InvoiceService } from "@/components/invoice/InvoicePreview";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useCloudDocumentHistory } from "@/hooks/useCloudDocumentHistory";
 import { useThumbnailGenerator } from "@/hooks/useThumbnailGenerator";
@@ -26,6 +26,13 @@ interface ClientOption {
 }
 
 const AGENCY_STORAGE_KEY = "aurine_agency_data";
+
+const createDefaultService = (): InvoiceService => ({
+  id: crypto.randomUUID(),
+  description: "Usługi marketingowe Facebook Ads",
+  quantity: 1,
+  price: "",
+});
 
 const InvoiceGenerator = () => {
   const navigate = useNavigate();
@@ -56,14 +63,14 @@ const InvoiceGenerator = () => {
 
   const storedAgency = getStoredAgencyData();
 
+  const [services, setServices] = useState<InvoiceService[]>([createDefaultService()]);
+
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
     clientNIP: "",
     invoiceNumber: "",
     issueDate: new Date().toISOString().split("T")[0],
-    serviceDescription: "Usługi marketingowe Facebook Ads",
-    amount: "",
     advanceAmount: "",
     paymentDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
     bankName: storedAgency.bankName,
@@ -101,8 +108,31 @@ const InvoiceGenerator = () => {
       try {
         const doc = JSON.parse(stored);
         if (doc.type === "invoice") {
-          setFormData(doc.data as typeof formData);
-          if (doc.data.invoiceType) setInvoiceType(doc.data.invoiceType as InvoiceType);
+          const loadedData = doc.data;
+          setFormData(prev => ({
+            ...prev,
+            clientName: loadedData.clientName || "",
+            clientAddress: loadedData.clientAddress || "",
+            clientNIP: loadedData.clientNIP || "",
+            invoiceNumber: loadedData.invoiceNumber || "",
+            issueDate: loadedData.issueDate || prev.issueDate,
+            advanceAmount: loadedData.advanceAmount || "",
+            paymentDue: loadedData.paymentDue || prev.paymentDue,
+            bankName: loadedData.bankName || prev.bankName,
+            bankAccount: loadedData.bankAccount || prev.bankAccount,
+            agencyName: loadedData.agencyName || prev.agencyName,
+            agencyOwner: loadedData.agencyOwner || prev.agencyOwner,
+            agencyAddress: loadedData.agencyAddress || prev.agencyAddress,
+            agencyNIP: loadedData.agencyNIP || prev.agencyNIP,
+          }));
+          // Parse services from JSON string if stored that way
+          if (loadedData.services) {
+            const parsedServices = typeof loadedData.services === 'string' 
+              ? JSON.parse(loadedData.services) 
+              : loadedData.services;
+            if (Array.isArray(parsedServices)) setServices(parsedServices);
+          }
+          if (loadedData.invoiceType) setInvoiceType(loadedData.invoiceType as InvoiceType);
         }
       } catch (e) {
         console.error("Error loading document:", e);
@@ -127,7 +157,22 @@ const InvoiceGenerator = () => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const hasRequiredFields = formData.clientName && formData.invoiceNumber && formData.amount;
+  const handleServiceChange = (id: string, field: keyof InvoiceService, value: string | number) => {
+    setServices(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
+  };
+
+  const addService = () => {
+    setServices(prev => [...prev, createDefaultService()]);
+  };
+
+  const removeService = (id: string) => {
+    if (services.length > 1) {
+      setServices(prev => prev.filter(s => s.id !== id));
+    }
+  };
+
+  const totalAmount = services.reduce((sum, s) => sum + (parseFloat(s.price || "0") * s.quantity), 0);
+  const hasRequiredFields = formData.clientName && formData.invoiceNumber && totalAmount > 0;
 
   const handleSave = async () => {
     if (!hasRequiredFields) {
@@ -140,11 +185,18 @@ const InvoiceGenerator = () => {
       return;
     }
 
+    const docData: Record<string, string> = {
+      ...formData,
+      services: JSON.stringify(services),
+      invoiceType,
+      amount: String(totalAmount),
+    };
+    
     const docId = await saveDocument(
       "invoice",
       formData.clientName,
       `Faktura ${formData.invoiceNumber}`,
-      { ...formData, invoiceType },
+      docData,
       undefined,
       selectedClientId || undefined,
       undefined
@@ -157,7 +209,7 @@ const InvoiceGenerator = () => {
         const thumbnail = await genThumb({
           elementId: "invoice-preview",
           format: 'jpeg',
-          backgroundColor: "#ffffff",
+          backgroundColor: "#1f1f23",
           pixelRatio: 0.2,
           quality: 0.7,
           maxRetries: 3,
@@ -184,11 +236,17 @@ const InvoiceGenerator = () => {
       // Auto-save before download
       let docId = currentDocId;
       if (!docId) {
+        const docData: Record<string, string> = {
+          ...formData,
+          services: JSON.stringify(services),
+          invoiceType,
+          amount: String(totalAmount),
+        };
         docId = await saveDocument(
           "invoice",
           formData.clientName,
           `Faktura ${formData.invoiceNumber}`,
-          { ...formData, invoiceType },
+          docData,
           undefined,
           selectedClientId || undefined,
           undefined
@@ -199,7 +257,7 @@ const InvoiceGenerator = () => {
           const thumbnail = await genThumb({
             elementId: "invoice-preview",
             format: 'jpeg',
-            backgroundColor: "#ffffff",
+            backgroundColor: "#1f1f23",
             pixelRatio: 0.2,
             quality: 0.6,
           });
@@ -207,7 +265,7 @@ const InvoiceGenerator = () => {
         }
       }
 
-      const canvas = await toJpeg(element, { cacheBust: true, pixelRatio: 1, backgroundColor: "#ffffff", quality: 0.85 });
+      const canvas = await toJpeg(element, { cacheBust: true, pixelRatio: 1, backgroundColor: "#1f1f23", quality: 0.85 });
       const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
       pdf.addImage(canvas, "JPEG", 0, 0, 794, 1123, undefined, "FAST");
       pdf.save(`${formData.invoiceNumber.replace(/\//g, "-")}.pdf`);
@@ -225,7 +283,7 @@ const InvoiceGenerator = () => {
 
     setIsGenerating(true);
     try {
-      const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#ffffff" });
+      const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#1f1f23" });
       const link = document.createElement("a");
       link.download = `${formData.invoiceNumber.replace(/\//g, "-")}.png`;
       link.href = imgData;
@@ -295,26 +353,14 @@ const InvoiceGenerator = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Numer faktury *</Label>
-                  <Input
-                    value={formData.invoiceNumber}
-                    onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
-                    placeholder="FV/2025/001"
-                    className="h-9 mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Kwota (PLN) *</Label>
-                  <Input
-                    type="number"
-                    value={formData.amount}
-                    onChange={(e) => handleInputChange("amount", e.target.value)}
-                    placeholder="5000"
-                    className="h-9 mt-1"
-                  />
-                </div>
+              <div>
+                <Label className="text-xs">Numer faktury *</Label>
+                <Input
+                  value={formData.invoiceNumber}
+                  onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
+                  placeholder="FV/2025/001"
+                  className="h-9 mt-1"
+                />
               </div>
 
               {invoiceType === "final" && (
@@ -396,25 +442,14 @@ const InvoiceGenerator = () => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label className="text-xs">Termin płatności</Label>
-                  <Input
-                    type="date"
-                    value={formData.paymentDue}
-                    onChange={(e) => handleInputChange("paymentDue", e.target.value)}
-                    className="h-9 mt-1"
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs">Opis usługi</Label>
-                  <Input
-                    value={formData.serviceDescription}
-                    onChange={(e) => handleInputChange("serviceDescription", e.target.value)}
-                    placeholder="Usługi marketingowe"
-                    className="h-9 mt-1"
-                  />
-                </div>
+              <div>
+                <Label className="text-xs">Termin płatności</Label>
+                <Input
+                  type="date"
+                  value={formData.paymentDue}
+                  onChange={(e) => handleInputChange("paymentDue", e.target.value)}
+                  className="h-9 mt-1"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -435,6 +470,68 @@ const InvoiceGenerator = () => {
                     placeholder="00 0000 0000 0000 0000 0000"
                     className="h-9 mt-1"
                   />
+                </div>
+              </div>
+            </div>
+
+            {/* Services Section */}
+            <div className="p-4 border-t border-border/50">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-foreground">Usługi *</h3>
+                <Button variant="ghost" size="sm" onClick={addService} className="h-7 text-xs">
+                  <Plus className="w-3 h-3 mr-1" />
+                  Dodaj
+                </Button>
+              </div>
+              <div className="space-y-3">
+                {services.map((service, index) => (
+                  <div key={service.id} className="p-3 rounded-lg border border-border/50 bg-muted/30 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Usługa {index + 1}</span>
+                      {services.length > 1 && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => removeService(service.id)}
+                          className="h-6 w-6 p-0 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                    <Input
+                      value={service.description}
+                      onChange={(e) => handleServiceChange(service.id, "description", e.target.value)}
+                      placeholder="Opis usługi"
+                      className="h-8 text-sm"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Ilość</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={service.quantity}
+                          onChange={(e) => handleServiceChange(service.id, "quantity", parseInt(e.target.value) || 1)}
+                          className="h-8 text-sm mt-1"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Cena (PLN)</Label>
+                        <Input
+                          type="number"
+                          value={service.price}
+                          onChange={(e) => handleServiceChange(service.id, "price", e.target.value)}
+                          placeholder="0"
+                          className="h-8 text-sm mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                <div className="flex justify-between items-center pt-2 border-t border-border/30">
+                  <span className="text-sm text-muted-foreground">Suma</span>
+                  <span className="text-sm font-bold text-primary">{totalAmount.toLocaleString("pl-PL", { minimumFractionDigits: 2 })} zł</span>
                 </div>
               </div>
             </div>
@@ -514,10 +611,11 @@ const InvoiceGenerator = () => {
           
           <div className="flex justify-center">
             <div 
-              className="bg-white rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
+              className="rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
               style={{ 
                 width: `${794 * previewScale}px`,
                 height: `${1123 * previewScale}px`,
+                backgroundColor: '#1f1f23',
               }}
             >
               <div 
@@ -528,7 +626,7 @@ const InvoiceGenerator = () => {
                   height: '1123px',
                 }}
               >
-                <InvoicePreview data={{ ...formData, invoiceType }} />
+                <InvoicePreview data={{ ...formData, services, invoiceType, amount: String(totalAmount) }} />
               </div>
             </div>
           </div>
