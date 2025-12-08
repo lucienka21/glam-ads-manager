@@ -49,7 +49,10 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       let docWidth = 1600;
       let docHeight = 900;
       
-      if (document.type === "invoice" || document.type === "contract") {
+      if (document.type === "invoice") {
+        docWidth = 595;
+        docHeight = 842;
+      } else if (document.type === "contract") {
         docWidth = 794;
         docHeight = 1123;
       }
@@ -99,11 +102,16 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       let height = 900;
       let bgColor = "#000000";
 
-      if (document.type === "invoice" || document.type === "contract") {
+      if (document.type === "invoice") {
+        orientation = "portrait";
+        width = 595;
+        height = 842;
+        bgColor = "#09090b";
+      } else if (document.type === "contract") {
         orientation = "portrait";
         width = 794;
         height = 1123;
-        bgColor = "#ffffff";
+        bgColor = "#09090b";
       }
 
       // For presentations and welcomepacks, capture from pre-rendered hidden slides
@@ -196,6 +204,7 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       case "welcomepack":
         return { width: 1600, height: 900 };
       case "invoice":
+        return { width: 595, height: 842 };
       case "contract":
         return { width: 794, height: 1123 };
       default:
