@@ -227,6 +227,15 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-primary/50;
   }
+
+  /* Prevent scroll jump on focus */
+  .custom-scrollbar:focus-within {
+    scroll-behavior: auto;
+  }
+  .custom-scrollbar a:focus,
+  .custom-scrollbar button:focus {
+    scroll-margin: 0;
+  }
 }
 
 @layer utilities {
