@@ -35,8 +35,8 @@ interface SidebarNavProps {
   onClose?: () => void;
 }
 
-// Store scroll position outside component to persist across re-renders
-let savedScrollPosition = 0;
+// Store scroll position in sessionStorage to persist across re-renders and navigations
+const SCROLL_KEY = 'sidebar-scroll-position';
 
 export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavProps) {
   const location = useLocation();
@@ -47,16 +47,25 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
   const [incompleteTasks, setIncompleteTasks] = useState(0);
   const [pendingFollowUps, setPendingFollowUps] = useState(0);
   const navRef = useRef<HTMLElement>(null);
+  const isRestoringScroll = useRef(false);
 
   const isActive = (path: string) => currentPath === path;
 
-  // Restore scroll position after route change
+  // Restore scroll position after mount and route changes
   useLayoutEffect(() => {
     const nav = navRef.current;
-    if (nav && savedScrollPosition > 0) {
-      // Use requestAnimationFrame to ensure DOM is ready
+    if (!nav) return;
+    
+    const savedPosition = sessionStorage.getItem(SCROLL_KEY);
+    if (savedPosition) {
+      isRestoringScroll.current = true;
+      const position = parseInt(savedPosition, 10);
+      // Use multiple frames to ensure DOM is fully ready
       requestAnimationFrame(() => {
-        nav.scrollTop = savedScrollPosition;
+        requestAnimationFrame(() => {
+          nav.scrollTop = position;
+          isRestoringScroll.current = false;
+        });
       });
     }
   }, [currentPath]);
@@ -124,7 +133,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
     }
     // Save scroll position before navigation
     if (navRef.current) {
-      savedScrollPosition = navRef.current.scrollTop;
+      sessionStorage.setItem(SCROLL_KEY, navRef.current.scrollTop.toString());
     }
     navigate(url);
     onNavigate?.();
@@ -132,8 +141,8 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
 
   // Save scroll position on scroll
   const handleScroll = () => {
-    if (navRef.current) {
-      savedScrollPosition = navRef.current.scrollTop;
+    if (navRef.current && !isRestoringScroll.current) {
+      sessionStorage.setItem(SCROLL_KEY, navRef.current.scrollTop.toString());
     }
   };
 
