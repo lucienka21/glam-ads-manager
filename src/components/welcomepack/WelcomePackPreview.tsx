@@ -7,6 +7,7 @@ import {
   Briefcase, Shield, Palette, BarChart3, MessageSquare
 } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
+import { getDiminutiveName } from "@/lib/polishDiminutives";
 
 interface WelcomePackData {
   ownerName: string;
@@ -221,7 +222,7 @@ export const WelcomePackPreview = ({ data, currentSlide }: WelcomePackPreviewPro
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-3xl font-bold text-white">{data.managerName || "Account Manager"}</h3>
+                  <h3 className="text-3xl font-bold text-white">{getDiminutiveName(data.managerName) || "Opiekun"}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <Crown className="w-5 h-5 text-amber-400" />
                     <p className="text-pink-400 text-base font-medium">Twój dedykowany opiekun</p>
@@ -630,7 +631,7 @@ export const WelcomePackPreview = ({ data, currentSlide }: WelcomePackPreviewPro
           {/* Manager contact note */}
           <div className="mt-6 flex items-center gap-3 px-5 py-3 bg-zinc-800/50 rounded-xl border border-zinc-700/50">
             <Users className="w-5 h-5 text-pink-400" />
-            <span className="text-zinc-400">Twój opiekun <span className="text-white font-medium">{data.managerName || "Account Manager"}</span> skontaktuje się z Tobą wkrótce!</span>
+            <span className="text-zinc-400">Twój opiekun <span className="text-white font-medium">{getDiminutiveName(data.managerName) || "Opiekun"}</span> skontaktuje się z Tobą wkrótce!</span>
           </div>
         </div>
 
