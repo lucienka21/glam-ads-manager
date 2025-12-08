@@ -58,6 +58,8 @@ const InvoiceGenerator = () => {
     amount: "",
     advanceAmount: "",
     paymentDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+    bankName: "mBank",
+    bankAccount: "",
   });
 
   useEffect(() => {
@@ -427,6 +429,27 @@ const InvoiceGenerator = () => {
                     value={formData.serviceDescription}
                     onChange={(e) => handleInputChange("serviceDescription", e.target.value)}
                     placeholder="Usługi marketingowe"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Nazwa banku</Label>
+                  <Input
+                    value={formData.bankName}
+                    onChange={(e) => handleInputChange("bankName", e.target.value)}
+                    placeholder="mBank"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Numer konta</Label>
+                  <Input
+                    value={formData.bankAccount}
+                    onChange={(e) => handleInputChange("bankAccount", e.target.value)}
+                    placeholder="00 0000 0000 0000 0000 0000"
                     className="h-9 mt-1"
                   />
                 </div>
