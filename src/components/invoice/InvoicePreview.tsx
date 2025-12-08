@@ -43,15 +43,8 @@ const ClockIcon = () => (
 );
 
 const RevolutIcon = () => (
-  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
-    <circle cx="12" cy="12" r="11" fill="url(#revolut-gradient)" />
-    <path d="M8 8h4.5c1.5 0 2.5 1 2.5 2.3s-1 2.3-2.5 2.3H10v3.4H8V8zm2 3.2h2.3c.5 0 .9-.3.9-.9s-.4-.9-.9-.9H10v1.8z" fill="white"/>
-    <defs>
-      <linearGradient id="revolut-gradient" x1="0" y1="0" x2="24" y2="24">
-        <stop stopColor="#00D4FF"/>
-        <stop offset="1" stopColor="#0075EB"/>
-      </linearGradient>
-    </defs>
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="white">
+    <path d="M6 3v18h3v-7h2l4 7h3.5l-4.5-7.5c2.1-.8 3.5-2.8 3.5-5.5 0-3.3-2.7-5-6-5H6zm3 2.5h3c1.9 0 3 1 3 2.5s-1.1 2.5-3 2.5H9V5.5z"/>
   </svg>
 );
 
@@ -345,7 +338,9 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             </div>
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider">Tytuł przelewu</p>
-              <p className="text-white font-medium text-sm">{data.invoiceNumber || "—"}</p>
+              <p className="text-white font-medium text-sm">
+                {data.invoiceNumber || "FV/2025/01/001"} - {data.clientName || "Klient"}
+              </p>
             </div>
           </div>
         </div>
