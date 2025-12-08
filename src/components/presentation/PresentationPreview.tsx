@@ -475,7 +475,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 1: Welcome - warm, personal introduction with phone mockup
   const Slide1 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
       {/* Rich background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
@@ -543,7 +543,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 2: Understanding challenges - empathetic, with graphics
   const Slide2 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/15 via-transparent to-rose-500/10 rounded-full blur-3xl" />
@@ -677,7 +677,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 3: How we help - the solution with testimonials
   const Slide3 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl" />
@@ -882,7 +882,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 4: Cooperation process with visuals
   const Slide4 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-gradient-to-br from-pink-500/10 via-transparent to-fuchsia-500/10 rounded-full blur-3xl" />
@@ -993,7 +993,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 5: Special offer - irresistible with more graphics
   const Slide5 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
       {/* Rich celebratory background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
@@ -1113,7 +1113,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 6: Contact & CTA - warm and inviting
   const Slide6 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
