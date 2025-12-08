@@ -10,6 +10,7 @@ export interface InvoiceService {
 interface InvoiceData {
   invoiceType: "advance" | "final" | "full";
   clientName: string;
+  clientOwnerName: string;
   clientAddress: string;
   clientNIP: string;
   invoiceNumber: string;
@@ -25,6 +26,48 @@ interface InvoiceData {
   agencyAddress: string;
   agencyNIP: string;
 }
+
+// SVG Icons
+const CalendarIcon = () => (
+  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
+    <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
+  </svg>
+);
+
+const ClockIcon = () => (
+  <svg className="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="10" strokeWidth="2"/>
+    <path d="M12 6v6l4 2" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
+
+const RevolutIcon = () => (
+  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="11" fill="url(#revolut-gradient)" />
+    <path d="M8 8h4.5c1.5 0 2.5 1 2.5 2.3s-1 2.3-2.5 2.3H10v3.4H8V8zm2 3.2h2.3c.5 0 .9-.3.9-.9s-.4-.9-.9-.9H10v1.8z" fill="white"/>
+    <defs>
+      <linearGradient id="revolut-gradient" x1="0" y1="0" x2="24" y2="24">
+        <stop stopColor="#00D4FF"/>
+        <stop offset="1" stopColor="#0075EB"/>
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
+const CreditCardIcon = () => (
+  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <rect x="2" y="5" width="20" height="14" rx="2" strokeWidth="2"/>
+    <path d="M2 10h20" strokeWidth="2"/>
+  </svg>
+);
+
+const DocumentIcon = () => (
+  <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" strokeWidth="2"/>
+    <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+);
 
 interface InvoicePreviewProps {
   data: InvoiceData;
@@ -163,10 +206,10 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         </div>
 
         {/* Dates */}
-        <div className="flex gap-8 mb-6">
+        <div className="flex gap-6 mb-6">
           <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-800/40 border border-zinc-700/50 rounded-xl">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <span className="text-pink-400 text-xs">📅</span>
+              <CalendarIcon />
             </div>
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider">Data wystawienia</p>
@@ -175,7 +218,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
           </div>
           <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-800/40 border border-zinc-700/50 rounded-xl">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
-              <span className="text-amber-400 text-xs">⏰</span>
+              <ClockIcon />
             </div>
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider">Termin płatności</p>
@@ -202,6 +245,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-5">
             <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold mb-3">Nabywca</p>
             <p className="text-base font-bold text-white">{data.clientName || "—"}</p>
+            {data.clientOwnerName && <p className="text-sm text-zinc-400 mt-1">{data.clientOwnerName}</p>}
             <p className="text-sm text-zinc-500 mt-2">{data.clientAddress || "—"}</p>
             {data.clientNIP && <p className="text-sm text-zinc-500 mt-1">NIP: {data.clientNIP}</p>}
           </div>
@@ -277,8 +321,8 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
           <p className="text-xs text-pink-400 uppercase tracking-wider font-semibold mb-4">Dane do przelewu</p>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
-                <span className="text-blue-400 text-sm">🏦</span>
+              <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
+                <RevolutIcon />
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider">Bank</p>
@@ -286,18 +330,18 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
               </div>
             </div>
             <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-emerald-500/20 flex items-center justify-center">
-                <span className="text-green-400 text-sm">💳</span>
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
+                <CreditCardIcon />
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider">Numer konta</p>
-                <p className="text-white font-medium text-sm">{data.bankAccount || "—"}</p>
+                <p className="text-white font-medium text-sm font-mono text-xs">{data.bankAccount || "—"}</p>
               </div>
             </div>
           </div>
           <div className="mt-3 flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center">
-              <span className="text-purple-400 text-sm">📝</span>
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
+              <DocumentIcon />
             </div>
             <div>
               <p className="text-xs text-zinc-500 uppercase tracking-wider">Tytuł przelewu</p>
