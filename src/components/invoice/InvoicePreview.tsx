@@ -13,6 +13,8 @@ interface InvoiceData {
   clientOwnerName: string;
   clientAddress: string;
   clientNIP: string;
+  clientPhone?: string;
+  clientEmail?: string;
   invoiceNumber: string;
   issueDate: string;
   services: InvoiceService[];
@@ -25,6 +27,8 @@ interface InvoiceData {
   agencyOwner: string;
   agencyAddress: string;
   agencyNIP: string;
+  agencyPhone?: string;
+  agencyEmail?: string;
 }
 
 // SVG Icons
@@ -198,15 +202,12 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
               <div className="absolute inset-0 bg-pink-500/30 blur-xl rounded-full" />
               <img src={agencyLogo} alt="Aurine" className="relative w-10 h-10 object-contain" />
             </div>
-            <div>
-              <p className="text-lg font-bold text-white">{data.agencyName || "Aurine"}</p>
-            </div>
           </div>
           <div className="text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full">
-              <span className="text-pink-300 text-xs font-medium uppercase tracking-wider">{invoiceTitle}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
+              <span className="text-white text-sm font-semibold">{invoiceTitle}</span>
             </div>
-            <p className="text-zinc-400 text-xs mt-2 font-mono tracking-widest">{data.invoiceNumber || "—"}</p>
+            <p className="text-zinc-500 text-[11px] mt-2 font-mono">{data.invoiceNumber || "—"}</p>
           </div>
         </div>
 
@@ -239,9 +240,11 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             <div className="relative bg-zinc-900 border border-pink-500/30 rounded-lg p-3">
               <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Sprzedawca</p>
               <p className="text-sm font-bold text-white">{data.agencyName || "Aurine"}</p>
-              <p className="text-xs text-zinc-400 mt-0.5">{data.agencyOwner || "—"}</p>
-              <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress || "—"}</p>
+              {data.agencyOwner && <p className="text-xs text-zinc-400 mt-0.5">{data.agencyOwner}</p>}
+              {data.agencyAddress && <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress}</p>}
               {data.agencyNIP && <p className="text-xs text-zinc-500 mt-0.5">NIP: {data.agencyNIP}</p>}
+              {data.agencyPhone && <p className="text-xs text-zinc-500 mt-0.5">Tel: {data.agencyPhone}</p>}
+              {data.agencyEmail && <p className="text-xs text-zinc-500 mt-0.5">{data.agencyEmail}</p>}
               <div className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 bg-pink-500/10 rounded">
                 <span className="text-[10px] text-pink-400 font-medium">Zwolniony z VAT</span>
               </div>
@@ -251,8 +254,10 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Nabywca</p>
             <p className="text-sm font-bold text-white">{data.clientName || "—"}</p>
             {data.clientOwnerName && <p className="text-xs text-zinc-400 mt-0.5">{data.clientOwnerName}</p>}
-            <p className="text-xs text-zinc-500 mt-1">{data.clientAddress || "—"}</p>
+            {data.clientAddress && <p className="text-xs text-zinc-500 mt-1">{data.clientAddress}</p>}
             {data.clientNIP && <p className="text-xs text-zinc-500 mt-0.5">NIP: {data.clientNIP}</p>}
+            {data.clientPhone && <p className="text-xs text-zinc-500 mt-0.5">Tel: {data.clientPhone}</p>}
+            {data.clientEmail && <p className="text-xs text-zinc-500 mt-0.5">{data.clientEmail}</p>}
           </div>
         </div>
 
