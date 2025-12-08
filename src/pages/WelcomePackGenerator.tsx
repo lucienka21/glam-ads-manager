@@ -449,7 +449,7 @@ const WelcomePackGenerator = () => {
           }}
           aria-hidden="true"
         >
-          {[1, 2, 3, 4, 5].map((slideNum) => (
+          {[1, 2, 3, 4, 5, 6].map((slideNum) => (
             <div
               key={slideNum}
               id={`capture-welcomepack-slide-${slideNum}`}
