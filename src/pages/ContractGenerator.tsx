@@ -28,6 +28,10 @@ interface LeadOption {
   owner_name?: string;
 }
 
+const TOTAL_PAGES = 4;
+const PAGE_WIDTH = 595;
+const PAGE_HEIGHT = 842;
+
 const ContractGenerator = () => {
   const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
@@ -82,7 +86,7 @@ const ContractGenerator = () => {
     const updateScale = () => {
       if (previewContainerRef.current) {
         const width = previewContainerRef.current.clientWidth;
-        setPreviewScale(Math.min(width / 595, 0.85));
+        setPreviewScale(Math.min(width / PAGE_WIDTH, 0.75));
       }
     };
     updateScale();
@@ -148,18 +152,23 @@ const ContractGenerator = () => {
 
     if (docId) {
       setTimeout(async () => {
-        const thumbnail = await genThumb({
-          elementId: "contract-preview",
-          format: 'jpeg',
-          backgroundColor: "#09090b",
-          pixelRatio: 0.3,
-          quality: 0.8,
-          maxRetries: 3,
-          retryDelay: 300,
-          width: 595,
-          height: 842
-        });
-        if (thumbnail) await updateThumbnail(docId, thumbnail);
+        const element = document.getElementById("contract-preview");
+        if (!element) return;
+        
+        // Get first page for thumbnail
+        const firstPage = element.children[0] as HTMLElement;
+        if (!firstPage) return;
+        
+        try {
+          const thumbnail = await toJpeg(firstPage, {
+            backgroundColor: "#09090b",
+            pixelRatio: 0.3,
+            quality: 0.8,
+          });
+          if (thumbnail) await updateThumbnail(docId, thumbnail);
+        } catch (e) {
+          console.error("Thumbnail generation failed:", e);
+        }
       }, 300);
     }
   };
@@ -190,14 +199,15 @@ const ContractGenerator = () => {
         setCurrentDocId(docId);
         
         if (docId) {
-          const thumbnail = await genThumb({
-            elementId: "contract-preview",
-            format: 'jpeg',
-            backgroundColor: "#09090b",
-            pixelRatio: 0.3,
-            quality: 0.8,
-          });
-          if (thumbnail) await updateThumbnail(docId, thumbnail);
+          const firstPage = element.children[0] as HTMLElement;
+          if (firstPage) {
+            const thumbnail = await toJpeg(firstPage, {
+              backgroundColor: "#09090b",
+              pixelRatio: 0.3,
+              quality: 0.8,
+            });
+            if (thumbnail) await updateThumbnail(docId, thumbnail);
+          }
         }
       }
 
@@ -205,24 +215,37 @@ const ContractGenerator = () => {
       const A4_WIDTH = 595.28;
       const A4_HEIGHT = 841.89;
 
-      const canvas = await toJpeg(element, { 
-        cacheBust: true, 
-        pixelRatio: 2, 
-        backgroundColor: "#09090b", 
-        quality: 0.95 
-      });
       const pdf = new jsPDF({ 
         orientation: "portrait", 
         unit: "pt", 
         format: "a4",
         compress: true 
       });
-      pdf.addImage(canvas, "JPEG", 0, 0, A4_WIDTH, A4_HEIGHT);
+
+      // Generate each page
+      const pages = element.children;
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+        
+        const canvas = await toJpeg(page, { 
+          cacheBust: true, 
+          pixelRatio: 2, 
+          backgroundColor: "#09090b", 
+          quality: 0.95 
+        });
+        
+        if (i > 0) {
+          pdf.addPage();
+        }
+        
+        pdf.addImage(canvas, "JPEG", 0, 0, A4_WIDTH, A4_HEIGHT);
+      }
       
       const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}.pdf`;
       pdf.save(fileName);
       toast.success("Umowa PDF pobrana!");
     } catch (error) {
+      console.error("PDF generation error:", error);
       toast.error("Nie udało się wygenerować PDF");
     } finally {
       setIsGenerating(false);
@@ -235,13 +258,17 @@ const ContractGenerator = () => {
 
     setIsGenerating(true);
     try {
-      const imgData = await toPng(element, { cacheBust: true, pixelRatio: 2, backgroundColor: "#09090b" });
+      // For multi-page, download first page only as PNG
+      const firstPage = element.children[0] as HTMLElement;
+      if (!firstPage) return;
+      
+      const imgData = await toPng(firstPage, { cacheBust: true, pixelRatio: 2, backgroundColor: "#09090b" });
       const link = document.createElement("a");
-      const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}.png`;
+      const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}_strona1.png`;
       link.download = fileName;
       link.href = imgData;
       link.click();
-      toast.success("Umowa PNG pobrana!");
+      toast.success("Pierwsza strona umowy PNG pobrana!");
     } catch (error) {
       toast.error("Nie udało się pobrać obrazu");
     } finally {
@@ -392,30 +419,21 @@ const ContractGenerator = () => {
           </div>
         </div>
 
-        {/* Right Panel - Live Preview */}
+        {/* Right Panel - Live Preview (scrollable multi-page) */}
         <div ref={previewContainerRef} className="flex-1 overflow-auto bg-muted/30 p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo</h2>
+            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo ({TOTAL_PAGES} strony)</h2>
           </div>
           
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-6">
             <div 
-              className="rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
               style={{ 
-                width: `${595 * previewScale}px`,
-                height: `${842 * previewScale}px`,
+                transform: `scale(${previewScale})`,
+                transformOrigin: 'top center',
+                width: `${PAGE_WIDTH}px`,
               }}
             >
-              <div 
-                style={{ 
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: 'top left',
-                  width: '595px',
-                  height: '842px',
-                }}
-              >
-                <ContractPreview data={formData} />
-              </div>
+              <ContractPreview data={formData} />
             </div>
           </div>
         </div>
