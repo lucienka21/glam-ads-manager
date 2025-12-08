@@ -20,12 +20,14 @@ const allowedTemplates = [
 
 // Input validation schema
 const inputSchema = z.object({
-  beforeImage: z.string().url().max(10000).optional(),
-  afterImage: z.string().url().max(10000).optional(),
+  beforeImage: z.string().max(5000000).optional(), // Allow base64 images
+  afterImage: z.string().max(5000000).optional(),
   template: z.enum(allowedTemplates).default('before-after-horizontal'),
   headline: z.string().max(200).optional(),
   subheadline: z.string().max(300).optional(),
-  accentColor: z.string().max(50).regex(/^[a-zA-Z0-9#\s]+$/).optional().default('pink'),
+  accentColor: z.string().max(50).optional().default('pink'),
+  seasonalTheme: z.string().max(500).optional(),
+  customInstructions: z.string().max(1000).optional(),
 }).refine((data) => data.beforeImage || data.afterImage, {
   message: "At least one image is required",
 });
@@ -56,67 +58,109 @@ serve(async (req) => {
       });
     }
 
-    const { beforeImage, afterImage, template, headline, subheadline, accentColor } = validationResult.data;
+    const { beforeImage, afterImage, template, headline, subheadline, accentColor, seasonalTheme, customInstructions } = validationResult.data;
 
-    // Build prompt based on template
+    // Build comprehensive prompt based on template
+    const basePrompt = `You are an expert graphic designer specializing in beauty salon marketing for Facebook Ads and Instagram.
+    
+Create a STUNNING, PROFESSIONAL, HIGH-QUALITY graphic for a beauty salon social media campaign.
+
+CRITICAL REQUIREMENTS:
+- The design must be BEAUTIFUL, MODERN, and PREMIUM looking
+- Use sophisticated color palette with ${accentColor || 'pink'} as the main accent color
+- Apply elegant gradients, subtle shadows, and professional typography
+- Make it look like it was designed by a top-tier agency
+- Ensure the image is suitable for Facebook Ads targeting women aged 25-55
+- The aesthetic should be luxurious, clean, and aspirational
+
+`;
+
     const templatePrompts: Record<string, string> = {
-      'before-after-horizontal': `Create a professional horizontal before/after comparison graphic for a beauty salon social media post. 
-        Split the image into two equal halves side by side. 
-        Add a sleek vertical divider line in ${accentColor} color between the halves.
-        Add elegant "PRZED" label on the left side and "PO" label on the right side with modern typography.
-        Add subtle gradient overlay and professional polish.
-        ${headline ? `Add headline text "${headline}" at the top with elegant styling.` : ''}
-        ${subheadline ? `Add subheadline "${subheadline}" below the headline.` : ''}
-        Make it look like a premium beauty brand advertisement with smooth transitions and modern aesthetics.`,
+      'before-after-horizontal': `${basePrompt}
+TEMPLATE: Horizontal Before/After Comparison (Square 1:1 format)
+- Create a side-by-side comparison with the "before" image on the left and "after" on the right
+- Add a sleek, elegant vertical divider line in ${accentColor} color in the center
+- Add beautiful "PRZED" label on the left side and "PO" label on the right side
+- Use modern, elegant typography (think high-end fashion magazine)
+- Add subtle gradient overlays to enhance the images
+- Include soft glow effects and premium finishing touches
+${headline ? `- Add headline text "${headline}" at the top with stunning typography` : ''}
+${subheadline ? `- Add subheadline "${subheadline}" below the headline` : ''}`,
       
-      'before-after-vertical': `Create a professional vertical before/after comparison graphic for Instagram Stories or Reels.
-        Stack the images vertically with "before" on top and "after" on bottom.
-        Add a horizontal ${accentColor} colored divider between them.
-        Add stylish "PRZED" and "PO" labels with modern font.
-        ${headline ? `Include headline "${headline}" with elegant styling.` : ''}
-        Apply beauty industry aesthetic with soft gradients and professional finish.`,
+      'before-after-vertical': `${basePrompt}
+TEMPLATE: Vertical Before/After Comparison (9:16 Story/Reels format)
+- Stack the images vertically with "before" on top and "after" on bottom
+- Add an elegant horizontal ${accentColor} colored divider between them
+- Add stylish "PRZED" and "PO" labels with premium typography
+- Design for maximum mobile impact with bold, eye-catching elements
+${headline ? `- Include headline "${headline}" with stunning styling` : ''}
+- Apply beauty industry aesthetic with soft gradients and luxurious finish`,
       
-      'before-after-diagonal': `Create an artistic diagonal split before/after comparison.
-        Divide the image diagonally from top-right to bottom-left.
-        Add a sleek ${accentColor} diagonal line as divider.
-        Place "PRZED" in top-left corner and "PO" in bottom-right with stylish typography.
-        ${headline ? `Add headline "${headline}" with elegant positioning.` : ''}
-        Make it visually striking with beauty salon aesthetics.`,
+      'before-after-diagonal': `${basePrompt}
+TEMPLATE: Artistic Diagonal Before/After Split (Square 1:1 format)
+- Create an artistic diagonal split from top-right to bottom-left
+- Add a sleek ${accentColor} diagonal line as the divider with subtle glow
+- Place elegant "PRZED" in top-left corner and "PO" in bottom-right
+- Use sophisticated typography and modern design elements
+${headline ? `- Add headline "${headline}" with artistic positioning` : ''}
+- Make it visually striking and Instagram-worthy`,
       
-      'carousel-item': `Create a square carousel post graphic for Instagram.
-        Design it as a premium beauty treatment showcase.
-        Add elegant ${accentColor} accent elements and modern typography.
-        ${headline ? `Feature headline "${headline}" prominently.` : ''}
-        ${subheadline ? `Include subheadline "${subheadline}".` : ''}
-        Make it scroll-stopping with professional beauty brand aesthetics.`,
+      'carousel-item': `${basePrompt}
+TEMPLATE: Instagram Carousel Item (Square 1:1 format)
+- Design as a premium beauty treatment showcase
+- Add elegant ${accentColor} accent elements throughout
+- Use modern, clean typography with generous spacing
+${headline ? `- Feature headline "${headline}" prominently with impact` : ''}
+${subheadline ? `- Include subheadline "${subheadline}" with refined styling` : ''}
+- Make it scroll-stopping with professional beauty brand aesthetics`,
       
-      'story': `Create a vertical Story/Reels format graphic (9:16 aspect ratio).
-        Design for maximum impact on mobile with bold visuals.
-        Add dynamic ${accentColor} accent elements and engaging typography.
-        ${headline ? `Feature headline "${headline}" with attention-grabbing style.` : ''}
-        ${subheadline ? `Include subheadline "${subheadline}".` : ''}
-        Optimize for beauty industry social media with trendy aesthetics.`,
+      'story': `${basePrompt}
+TEMPLATE: Story/Reels Format (Vertical 9:16)
+- Design for maximum mobile impact with bold, dynamic visuals
+- Add energetic ${accentColor} accent elements and engaging typography
+- Create visual hierarchy that works on small screens
+${headline ? `- Feature headline "${headline}" with attention-grabbing styling` : ''}
+${subheadline ? `- Include subheadline "${subheadline}"` : ''}
+- Optimize for beauty industry with trendy, modern aesthetics`,
       
-      'promo-square': `Create a promotional square graphic for beauty salon.
-        Design with premium aesthetics and ${accentColor} accent colors.
-        ${headline ? `Feature promotional headline "${headline}" prominently.` : ''}
-        ${subheadline ? `Add supporting text "${subheadline}".` : ''}
-        Make it look like a high-end beauty brand advertisement.`,
+      'promo-square': `${basePrompt}
+TEMPLATE: Promotional Post (Square 1:1 format)
+- Design a compelling promotional graphic
+- Use ${accentColor} as the main accent color
+- Create visual urgency and desirability
+${headline ? `- Feature promotional headline "${headline}" prominently` : ''}
+${subheadline ? `- Add supporting text "${subheadline}"` : ''}
+- Make it look like a high-end beauty brand advertisement`,
       
-      'reels-cover': `Create an eye-catching Reels cover image.
-        Design for maximum visibility in the feed with bold composition.
-        Use ${accentColor} accents strategically for visual impact.
-        ${headline ? `Feature title "${headline}" with dynamic typography.` : ''}
-        Optimize for beauty industry content with modern, trendy aesthetics.`,
+      'reels-cover': `${basePrompt}
+TEMPLATE: Reels Cover Image
+- Design for maximum visibility in the Instagram feed
+- Use bold composition that stands out
+- Apply ${accentColor} accents strategically for visual impact
+${headline ? `- Feature title "${headline}" with dynamic typography` : ''}
+- Optimize for beauty industry content`,
       
-      'multi-image-carousel': `Create a multi-image carousel showcase graphic.
-        Design as a collage-style layout showing multiple beauty treatments or results.
-        Use ${accentColor} as the accent color throughout.
-        ${headline ? `Add headline "${headline}" with elegant styling.` : ''}
-        Make it cohesive and professional for beauty salon marketing.`
+      'multi-image-carousel': `${basePrompt}
+TEMPLATE: Multi-Image Showcase
+- Design as a premium collage-style layout
+- Use ${accentColor} as the accent color throughout
+${headline ? `- Add headline "${headline}" with elegant styling` : ''}
+- Make it cohesive and professional for beauty salon marketing`
     };
 
-    const prompt = templatePrompts[template] || templatePrompts['before-after-horizontal'];
+    let prompt = templatePrompts[template] || templatePrompts['before-after-horizontal'];
+    
+    // Add seasonal theme if provided
+    if (seasonalTheme) {
+      prompt += `\n\nSEASONAL THEME:\n${seasonalTheme}`;
+    }
+    
+    // Add custom instructions if provided
+    if (customInstructions) {
+      prompt += `\n\nADDITIONAL INSTRUCTIONS FROM USER:\n${customInstructions}`;
+    }
+    
+    prompt += `\n\nIMPORTANT: Generate a SINGLE, complete, ready-to-use image. The image must be polished and professional, ready for immediate use in Facebook Ads.`;
 
     // Prepare messages with images
     const content: { type: string; text?: string; image_url?: { url: string } }[] = [
