@@ -49,12 +49,9 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       let docWidth = 1600;
       let docHeight = 900;
       
-      if (document.type === "invoice") {
+      if (document.type === "invoice" || document.type === "contract") {
         docWidth = 595;
         docHeight = 842;
-      } else if (document.type === "contract") {
-        docWidth = 794;
-        docHeight = 1123;
       }
       
       const scaleByWidth = viewportWidth / docWidth;
@@ -102,15 +99,10 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       let height = 900;
       let bgColor = "#000000";
 
-      if (document.type === "invoice") {
+      if (document.type === "invoice" || document.type === "contract") {
         orientation = "portrait";
         width = 595;
         height = 842;
-        bgColor = "#09090b";
-      } else if (document.type === "contract") {
-        orientation = "portrait";
-        width = 794;
-        height = 1123;
         bgColor = "#09090b";
       }
 
@@ -204,9 +196,8 @@ export const DocumentViewer = ({ document, open, onClose }: DocumentViewerProps)
       case "welcomepack":
         return { width: 1600, height: 900 };
       case "invoice":
-        return { width: 595, height: 842 };
       case "contract":
-        return { width: 794, height: 1123 };
+        return { width: 595, height: 842 };
       default:
         return { width: 1600, height: 900 };
     }

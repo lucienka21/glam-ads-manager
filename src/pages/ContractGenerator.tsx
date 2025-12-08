@@ -82,7 +82,7 @@ const ContractGenerator = () => {
     const updateScale = () => {
       if (previewContainerRef.current) {
         const width = previewContainerRef.current.clientWidth;
-        setPreviewScale(Math.min(width / 794, 0.65));
+        setPreviewScale(Math.min(width / 595, 0.85));
       }
     };
     updateScale();
@@ -152,12 +152,12 @@ const ContractGenerator = () => {
           elementId: "contract-preview",
           format: 'jpeg',
           backgroundColor: "#09090b",
-          pixelRatio: 0.2,
-          quality: 0.7,
+          pixelRatio: 0.3,
+          quality: 0.8,
           maxRetries: 3,
           retryDelay: 300,
-          width: 794,
-          height: 1123
+          width: 595,
+          height: 842
         });
         if (thumbnail) await updateThumbnail(docId, thumbnail);
       }, 300);
@@ -194,21 +194,30 @@ const ContractGenerator = () => {
             elementId: "contract-preview",
             format: 'jpeg',
             backgroundColor: "#09090b",
-            pixelRatio: 0.2,
-            quality: 0.6,
+            pixelRatio: 0.3,
+            quality: 0.8,
           });
           if (thumbnail) await updateThumbnail(docId, thumbnail);
         }
       }
 
+      // A4 format: 210mm x 297mm = 595.28 x 841.89 pt
+      const A4_WIDTH = 595.28;
+      const A4_HEIGHT = 841.89;
+
       const canvas = await toJpeg(element, { 
         cacheBust: true, 
         pixelRatio: 2, 
         backgroundColor: "#09090b", 
-        quality: 0.92 
+        quality: 0.95 
       });
-      const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [794, 1123], compress: true });
-      pdf.addImage(canvas, "JPEG", 0, 0, 794, 1123, undefined, "FAST");
+      const pdf = new jsPDF({ 
+        orientation: "portrait", 
+        unit: "pt", 
+        format: "a4",
+        compress: true 
+      });
+      pdf.addImage(canvas, "JPEG", 0, 0, A4_WIDTH, A4_HEIGHT);
       
       const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}.pdf`;
       pdf.save(fileName);
@@ -393,16 +402,16 @@ const ContractGenerator = () => {
             <div 
               className="rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
               style={{ 
-                width: `${794 * previewScale}px`,
-                height: `${1123 * previewScale}px`,
+                width: `${595 * previewScale}px`,
+                height: `${842 * previewScale}px`,
               }}
             >
               <div 
                 style={{ 
                   transform: `scale(${previewScale})`,
                   transformOrigin: 'top left',
-                  width: '794px',
-                  height: '1123px',
+                  width: '595px',
+                  height: '842px',
                 }}
               >
                 <ContractPreview data={formData} />
