@@ -173,7 +173,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto custom-scrollbar p-2">
+      <nav className="flex-1 overflow-y-auto custom-scrollbar p-2 overscroll-contain">
         {sections.map((section, sectionIndex) => (
           <div key={section.label} className={cn(sectionIndex > 0 && "mt-4")}>
             <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
@@ -183,9 +183,12 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
               {section.items.map((item) => (
                 <button
                   key={item.url}
-                  onClick={() => handleNavigate(item.url)}
+                  onClick={(e) => {
+                    e.currentTarget.blur();
+                    handleNavigate(item.url);
+                  }}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors focus:outline-none",
                     isActive(item.url)
                       ? "bg-primary/15 text-primary font-medium"
                       : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"

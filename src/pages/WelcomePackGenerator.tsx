@@ -171,7 +171,7 @@ const WelcomePackGenerator = () => {
     if (docId) {
       setTimeout(async () => {
         const thumbnail = await genThumb({
-          elementId: "capture-slide-1",
+          elementId: "capture-welcomepack-slide-1",
           format: 'jpeg',
           backgroundColor: "#000000",
           pixelRatio: 0.2,
@@ -208,7 +208,7 @@ const WelcomePackGenerator = () => {
         
         if (docId) {
           const thumbnail = await genThumb({
-            elementId: "capture-slide-1",
+            elementId: "capture-welcomepack-slide-1",
             format: 'jpeg',
             backgroundColor: "#000000",
             pixelRatio: 0.2,
