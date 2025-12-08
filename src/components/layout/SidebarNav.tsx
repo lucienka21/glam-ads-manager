@@ -103,6 +103,11 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
   };
 
   const handleNavigate = (url: string) => {
+    // Prevent scroll jump from focus
+    const activeElement = document.activeElement as HTMLElement;
+    if (activeElement) {
+      activeElement.blur();
+    }
     navigate(url);
     onNavigate?.();
   };
@@ -181,14 +186,15 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
             </p>
             <div className="space-y-0.5">
               {section.items.map((item) => (
-                <button
+                <a
                   key={item.url}
+                  href={item.url}
                   onClick={(e) => {
-                    e.currentTarget.blur();
+                    e.preventDefault();
                     handleNavigate(item.url);
                   }}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors focus:outline-none",
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-0",
                     isActive(item.url)
                       ? "bg-primary/15 text-primary font-medium"
                       : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -204,7 +210,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
                       {item.badge}
                     </span>
                   )}
-                </button>
+                </a>
               ))}
             </div>
           </div>
