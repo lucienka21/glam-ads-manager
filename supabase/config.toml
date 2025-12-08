@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.process-auto-followups]
 verify_jwt = false
+
+[functions.test-followup]
+verify_jwt = true

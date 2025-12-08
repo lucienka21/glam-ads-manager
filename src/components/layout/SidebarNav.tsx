@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useLayoutEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { 
   LayoutDashboard, FileText, Receipt, FileSignature, Presentation,
@@ -35,6 +35,9 @@ interface SidebarNavProps {
   onClose?: () => void;
 }
 
+// Store scroll position outside component to persist across re-renders
+let savedScrollPosition = 0;
+
 export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavProps) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -43,8 +46,16 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
   const currentPath = location.pathname;
   const [incompleteTasks, setIncompleteTasks] = useState(0);
   const [pendingFollowUps, setPendingFollowUps] = useState(0);
+  const navRef = useRef<HTMLElement>(null);
 
   const isActive = (path: string) => currentPath === path;
+
+  // Restore scroll position after render
+  useLayoutEffect(() => {
+    if (navRef.current && savedScrollPosition > 0) {
+      navRef.current.scrollTop = savedScrollPosition;
+    }
+  });
 
   useEffect(() => {
     if (!user) return;
@@ -108,18 +119,18 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       e.stopPropagation();
     }
     // Save scroll position before navigation
-    const navElement = document.querySelector('nav.custom-scrollbar');
-    const scrollTop = navElement?.scrollTop || 0;
-    
+    if (navRef.current) {
+      savedScrollPosition = navRef.current.scrollTop;
+    }
     navigate(url);
     onNavigate?.();
-    
-    // Restore scroll position after navigation
-    requestAnimationFrame(() => {
-      if (navElement) {
-        navElement.scrollTop = scrollTop;
-      }
-    });
+  };
+
+  // Save scroll position on scroll
+  const handleScroll = () => {
+    if (navRef.current) {
+      savedScrollPosition = navRef.current.scrollTop;
+    }
   };
 
   const mainItems: NavItem[] = [
@@ -189,7 +200,11 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto custom-scrollbar p-2" style={{ scrollBehavior: 'auto' }}>
+      <nav 
+        ref={navRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto custom-scrollbar p-2"
+      >
         {sections.map((section, sectionIndex) => (
           <div key={section.label} className={cn(sectionIndex > 0 && "mt-4")}>
             <p className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
