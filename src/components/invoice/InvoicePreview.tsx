@@ -148,7 +148,20 @@ const DotsPattern = ({ className = "" }: { className?: string }) => (
 );
 
 export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
-  const services = data.services || [];
+  // Parse services - may be string from database or array
+  const services: InvoiceService[] = (() => {
+    if (!data.services) return [];
+    if (Array.isArray(data.services)) return data.services;
+    if (typeof data.services === 'string') {
+      try {
+        return JSON.parse(data.services);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  })();
+  
   const totalAmount = services.reduce((sum, s) => sum + (parseFloat(s.price || "0") * s.quantity), 0);
   const advanceAmount = parseFloat(data.advanceAmount || "0");
   const finalAmount = data.invoiceType === "final" ? totalAmount - advanceAmount : totalAmount;
