@@ -102,14 +102,16 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
     navigate("/auth");
   };
 
-  const handleNavigate = (url: string) => {
-    // Prevent scroll jump from focus
-    const activeElement = document.activeElement as HTMLElement;
-    if (activeElement) {
-      activeElement.blur();
+  const handleNavigate = (url: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
     }
-    navigate(url);
-    onNavigate?.();
+    // Use setTimeout to prevent scroll jump
+    setTimeout(() => {
+      navigate(url);
+      onNavigate?.();
+    }, 0);
   };
 
   const mainItems: NavItem[] = [
@@ -157,9 +159,10 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       {/* Header */}
       <div className="flex-shrink-0 p-3 border-b border-sidebar-border/50">
         <div className="flex items-center justify-between">
-          <div 
-            className="flex items-center gap-2.5 cursor-pointer group"
-            onClick={() => handleNavigate("/")}
+          <button 
+            type="button"
+            className="flex items-center gap-2.5 group"
+            onClick={(e) => handleNavigate("/", e)}
           >
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex items-center justify-center overflow-hidden">
               <img src={agencyLogo} alt="Aurine" className="w-5 h-5 object-contain" />
@@ -168,7 +171,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
               <span className="text-sm font-bold text-sidebar-foreground">Aurine</span>
               <span className="text-[9px] text-primary font-semibold uppercase tracking-wider">CRM</span>
             </div>
-          </div>
+          </button>
           {showCloseButton && (
             <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8">
               <X className="w-4 h-4" />
@@ -186,15 +189,12 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
             </p>
             <div className="space-y-0.5">
               {section.items.map((item) => (
-                <a
+                <button
+                  type="button"
                   key={item.url}
-                  href={item.url}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleNavigate(item.url);
-                  }}
+                  onClick={(e) => handleNavigate(item.url, e)}
                   className={cn(
-                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors focus:outline-none focus-visible:ring-0",
+                    "w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors",
                     isActive(item.url)
                       ? "bg-primary/15 text-primary font-medium"
                       : "text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent/60"
@@ -210,7 +210,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
                       {item.badge}
                     </span>
                   )}
-                </a>
+                </button>
               ))}
             </div>
           </div>
@@ -220,7 +220,8 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
       {/* Footer */}
       <div className="flex-shrink-0 border-t border-sidebar-border/50 p-2 space-y-1">
         <button
-          onClick={() => handleNavigate("/settings")}
+          type="button"
+          onClick={(e) => handleNavigate("/settings", e)}
           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
         >
           <Settings className="w-4 h-4" />
