@@ -202,6 +202,12 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
               <div className="absolute inset-0 bg-pink-500/30 blur-xl rounded-full" />
               <img src={agencyLogo} alt="Aurine" className="relative w-10 h-10 object-contain" />
             </div>
+            <div>
+              <p className="text-base font-semibold bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent">
+                {data.agencyName || "Aurine"}
+              </p>
+              <p className="text-[10px] text-zinc-500 tracking-wide">Marketing dla salonów beauty</p>
+            </div>
           </div>
           <div className="text-right">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
