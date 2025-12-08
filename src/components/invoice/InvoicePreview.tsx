@@ -190,13 +190,10 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
             </div>
           </div>
           <div className="text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full mb-1">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full">
               <span className="text-pink-300 text-xs font-medium uppercase tracking-wider">{invoiceTitle}</span>
             </div>
-            <div className="flex items-center justify-end gap-2 mt-1">
-              <span className="text-zinc-500 text-xs">Nr:</span>
-              <span className="text-base font-bold text-white tracking-wide">{data.invoiceNumber || "—"}</span>
-            </div>
+            <p className="text-zinc-400 text-xs mt-2 font-mono tracking-widest">{data.invoiceNumber || "—"}</p>
           </div>
         </div>
 
