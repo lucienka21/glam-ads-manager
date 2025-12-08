@@ -5,16 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Mail, Phone, MessageSquare, FileSignature, CheckCircle2, 
-  AlertCircle, Lightbulb, Target, Heart, Clock, ArrowRight,
-  Sparkles, Users, TrendingUp, Shield, Star, XCircle, X,
-  Package, Play, Zap, Copy, ChevronDown, ChevronUp, 
-  ThumbsUp, ThumbsDown, BookOpen, Rocket, Calendar, FileText,
-  Brain, Award, CircleDot, LayoutGrid, List, Search
+  AlertCircle, Lightbulb, Target, Heart, Clock, 
+  Users, TrendingUp, Shield, Star, XCircle,
+  Package, Play, Zap, ChevronDown, ChevronUp, 
+  BookOpen, Rocket, CircleDot, Search
 } from "lucide-react";
-import { toast } from "sonner";
 
 const processSteps = [
   {
@@ -29,34 +26,17 @@ const processSteps = [
       "Krótka, zwięzła wiadomość (max 150 słów)",
       "Załącz prezentację PDF - pokazuje profesjonalizm",
       "Prezentacja mówi za Ciebie - edukuje o Facebook Ads",
-      "Jeden jasny CTA - zachęta do rozmowy",
-      "Podpis z danymi kontaktowymi"
+      "Jeden jasny CTA - zachęta do rozmowy"
     ],
     tips: [
       "Wysyłaj wt-czw w godzinach 9-11 lub 14-16",
       "Unikaj poniedziałków (za dużo maili) i piątków (weekend)",
-      "Sprawdź profil salonu i social media przed wysłaniem",
-      "Prezentacja powinna być spersonalizowana pod miasto"
+      "Sprawdź profil salonu i social media przed wysłaniem"
     ],
     donts: [
       "Nie wysyłaj bez prezentacji - mail sam w sobie jest za słaby",
       "Nie pisz długich elaboratów - nikt tego nie przeczyta",
       "Nie używaj 'Szanowna Pani' - brzmi jak spam"
-    ],
-    scripts: [
-      {
-        title: "Szablon cold maila",
-        content: `Cześć [Imię]!
-
-Prowadzisz salon [Nazwa salonu] w [Miasto] - widziałam wasze profile i mam pomysł jak pozyskać więcej klientek z okolicy.
-
-Specjalizujemy się w reklamach na Facebooku dla salonów beauty. W załączniku przesyłam krótką prezentację pokazującą jak to działa.
-
-Czy mogłybyśmy porozmawiać przez 15 minut w tym tygodniu?
-
-Pozdrawiam,
-[Twoje imię]`
-      }
     ]
   },
   {
@@ -70,8 +50,7 @@ Pozdrawiam,
       "SMS wychodzi 2 dni po cold mailu jako celowy trigger",
       "Bardzo krótki - max 160 znaków",
       "Nawiąż do wysłanego maila z prezentacją",
-      "Bezpośrednie pytanie o zainteresowanie",
-      "Zaproponuj krótką rozmowę telefoniczną"
+      "Bezpośrednie pytanie o zainteresowanie"
     ],
     tips: [
       "SMS wysyłaj w godzinach pracy salonu (10-17)",
@@ -82,12 +61,6 @@ Pozdrawiam,
       "Nie wysyłaj SMS-ów wieczorem",
       "Nie pisz długich wiadomości",
       "Nie dzwoń bez uprzedzenia SMS-em"
-    ],
-    scripts: [
-      {
-        title: "Szablon SMS",
-        content: `Cześć [Imię]! Wysłałam maila z prezentacją o reklamach dla [Salon]. Widziałaś? Chętnie porozmawiam 5 min 📱 [Twoje imię] z Aurine`
-      }
     ]
   },
   {
@@ -101,8 +74,7 @@ Pozdrawiam,
       "Nawiąż do poprzedniej wiadomości i prezentacji",
       "Dodaj nową wartość - case study, konkretna statystyka",
       "Zadaj otwarte pytanie o ich salon",
-      "Krótsze niż cold mail - max 80 słów",
-      "Nie załączaj ponownie prezentacji"
+      "Krótsze niż cold mail - max 80 słów"
     ],
     tips: [
       "Bądź pomocny, nie nachalny",
@@ -113,20 +85,6 @@ Pozdrawiam,
       "Nie przepraszaj za 'nachodzenie'",
       "Nie pisz 'pewnie nie miała Pani czasu'",
       "Nie powtarzaj treści pierwszego maila"
-    ],
-    scripts: [
-      {
-        title: "Szablon follow-up #1",
-        content: `Cześć [Imię]!
-
-Wracam do tematu z poprzedniego tygodnia. Widziałam, że [salon] ma świetne opinie na Google - to świetna baza!
-
-Ciekawość - jak obecnie pozyskujecie nowe klientki? Może mogę pomóc zwiększyć tę liczbę przez reklamy.
-
-Daj znać czy warto porozmawiać 10 minut.
-
-[Twoje imię]`
-      }
     ]
   },
   {
@@ -140,7 +98,6 @@ Daj znać czy warto porozmawiać 10 minut.
       "Ostatni email w sekwencji",
       "Bardziej bezpośrednie pytanie o zainteresowanie",
       "Możesz użyć techniki 'break-up email'",
-      "Zaproponuj konkretny termin rozmowy",
       "Daj jasną opcję rezygnacji"
     ],
     tips: [
@@ -152,20 +109,6 @@ Daj znać czy warto porozmawiać 10 minut.
       "Nie bądź zdesperowany",
       "Nie obwiniaj ich za brak odpowiedzi",
       "Nie wysyłaj więcej niż 2 follow-upy mailowe"
-    ],
-    scripts: [
-      {
-        title: "Szablon break-up email",
-        content: `Cześć [Imię]!
-
-Pisałam kilka razy o reklamach dla [salon] - nie chcę być nachalna, więc to ostatni mail w tym temacie.
-
-Jeśli kiedykolwiek będziesz szukać sposobu na więcej klientek z okolicy - odezwij się. Zawsze chętnie porozmawiam.
-
-Powodzenia z salonem! 🌸
-
-[Twoje imię]`
-      }
     ]
   },
   {
@@ -180,8 +123,7 @@ Powodzenia z salonem! 🌸
       "Zacznij od pytań, nie od sprzedaży",
       "Słuchaj więcej niż mówisz (zasada 70/30)",
       "Diagnozuj problemy - dopiero potem proponuj rozwiązanie",
-      "Zawsze kończ z ustalonym następnym krokiem",
-      "Potwierdź ustalenia SMS-em lub mailem"
+      "Zawsze kończ z ustalonym następnym krokiem"
     ],
     tips: [
       "Dzwoń stojąc - lepszy głos i energia",
@@ -194,26 +136,6 @@ Powodzenia z salonem! 🌸
       "Nie mów tylko o sobie i ofercie",
       "Nie przerywaj klientowi",
       "Nie kończ rozmowy bez ustalenia następnego kroku"
-    ],
-    scripts: [
-      {
-        title: "Struktura rozmowy",
-        content: `1. OTWARCIE (2 min)
-"Cześć [Imię]! Dzięki że znalazłaś chwilę. Jak tam dzisiaj w salonie?"
-
-2. DIAGNOZA (5-7 min)
-"Opowiedz mi - jak teraz pozyskujecie nowe klientki?"
-"Co działa, a co nie?"
-"Ile wizyt miesięcznie chciałabyś mieć więcej?"
-
-3. PREZENTACJA ROZWIĄZANIA (3-4 min)
-"Z tego co mówisz, mogłybyśmy..."
-"U podobnych salonów widzimy..."
-
-4. ZAMKNIĘCIE (2 min)
-"Co powiesz na to, żebyśmy przygotowali ofertę?"
-"Kiedy mogłybyśmy porozmawiać o szczegółach?"`
-      }
     ]
   },
   {
@@ -227,8 +149,7 @@ Powodzenia z salonem! 🌸
       "Przygotuj spersonalizowaną ofertę",
       "Odnieś się do konkretnych problemów z rozmowy",
       "Przedstaw 2-3 opcje cenowe",
-      "Pokaż case studies z podobnych salonów",
-      "Zaproponuj okres próbny jeśli wahają się"
+      "Pokaż case studies z podobnych salonów"
     ],
     tips: [
       "Wyślij ofertę tego samego dnia po rozmowie",
@@ -239,8 +160,7 @@ Powodzenia z salonem! 🌸
       "Nie dawaj zbyt dużo czasu 'do namysłu'",
       "Nie wysyłaj oferty bez wcześniejszej rozmowy",
       "Nie obniżaj ceny bez uzasadnienia"
-    ],
-    scripts: []
+    ]
   },
   {
     id: 7,
@@ -253,9 +173,8 @@ Powodzenia z salonem! 🌸
       "Wyślij umowę natychmiast po akceptacji oferty",
       "Omów wszystkie punkty umowy telefonicznie",
       "Ustal konkretną datę startu kampanii",
-      "Dodaj się do Business Managera klienta lub pomóż założyć nowe konto",
-      "Wyślij Welcome Pack z harmonogramem współpracy",
-      "Omów pierwszy tydzień i oczekiwania"
+      "Dodaj się do Business Managera klienta",
+      "Wyślij Welcome Pack z harmonogramem współpracy"
     ],
     tips: [
       "Deadline na podpisanie - max 3 dni",
@@ -267,8 +186,7 @@ Powodzenia z salonem! 🌸
       "Nie zostawiaj umowy 'do przemyślenia' na tydzień",
       "Nie zaczynaj bez podpisanej umowy",
       "Nie zapominaj o onboardingu - to buduje relację"
-    ],
-    scripts: []
+    ]
   }
 ];
 
@@ -333,18 +251,9 @@ const objectionHandling = [
     icon: "💰",
     category: "Cena",
     responses: [
-      {
-        response: "Rozumiem. Ale policzmy - ile kosztuje Was teraz pozyskanie jednego klienta? Nasi klienci płacą średnio 15-25 zł za rezerwację.",
-        technique: "Porównanie kosztów"
-      },
-      {
-        response: "Drogo w porównaniu do czego? Posty na Facebooku nic nie kosztują, ale też nic nie dają.",
-        technique: "Pytanie zwrotne"
-      },
-      {
-        response: "Ile kosztuje Was puste miejsce w grafiku? Bo właśnie to możemy wypełnić.",
-        technique: "Koszt alternatywny"
-      }
+      { response: "Rozumiem. Ale policzmy - ile kosztuje Was teraz pozyskanie jednego klienta? Nasi klienci płacą średnio 15-25 zł za rezerwację.", technique: "Porównanie kosztów" },
+      { response: "Drogo w porównaniu do czego? Posty na Facebooku nic nie kosztują, ale też nic nie dają.", technique: "Pytanie zwrotne" },
+      { response: "Ile kosztuje Was puste miejsce w grafiku? Bo właśnie to możemy wypełnić.", technique: "Koszt alternatywny" }
     ]
   },
   {
@@ -352,18 +261,9 @@ const objectionHandling = [
     icon: "🤔",
     category: "Odkładanie",
     responses: [
-      {
-        response: "Jasne, ale nad czym konkretnie? Może mogę pomóc odpowiedzieć na wątpliwości teraz.",
-        technique: "Konkretyzacja"
-      },
-      {
-        response: "Oczywiście. Kiedy mogę oddzwonić? Mam wolne miejsce w kalendarzu w tym tygodniu.",
-        technique: "Ustalenie follow-upu"
-      },
-      {
-        response: "Rozumiem. Co musiałoby się wydarzyć, żebyście byli pewni swojej decyzji?",
-        technique: "Identyfikacja bariery"
-      }
+      { response: "Jasne, ale nad czym konkretnie? Może mogę pomóc odpowiedzieć na wątpliwości teraz.", technique: "Konkretyzacja" },
+      { response: "Oczywiście. Kiedy mogę oddzwonić? Mam wolne miejsce w kalendarzu w tym tygodniu.", technique: "Ustalenie follow-upu" },
+      { response: "Rozumiem. Co musiałoby się wydarzyć, żebyście byli pewni swojej decyzji?", technique: "Identyfikacja bariery" }
     ]
   },
   {
@@ -371,18 +271,9 @@ const objectionHandling = [
     icon: "⏰",
     category: "Czas",
     responses: [
-      {
-        response: "Właśnie dlatego my się tym zajmujemy! Potrzebujemy od Was tylko 30 minut na start.",
-        technique: "Odwrócenie obiekcji"
-      },
-      {
-        response: "To idealnie - bo nasi klienci poświęcają na współpracę z nami max 2 godziny miesięcznie.",
-        technique: "Konkretne liczby"
-      },
-      {
-        response: "A ile czasu poświęcacie na posty, które i tak nie działają?",
-        technique: "Porównanie czasu"
-      }
+      { response: "Właśnie dlatego my się tym zajmujemy! Potrzebujemy od Was tylko 30 minut na start.", technique: "Odwrócenie obiekcji" },
+      { response: "To idealnie - bo nasi klienci poświęcają na współpracę z nami max 2 godziny miesięcznie.", technique: "Konkretne liczby" },
+      { response: "A ile czasu poświęcacie na posty, które i tak nie działają?", technique: "Porównanie czasu" }
     ]
   },
   {
@@ -390,18 +281,9 @@ const objectionHandling = [
     icon: "📱",
     category: "Sceptycyzm",
     responses: [
-      {
-        response: "Rozumiem to rozczarowanie. Ale czy kampanię prowadziła agencja specjalizująca się w beauty? Bo to ma ogromne znaczenie.",
-        technique: "Specjalizacja"
-      },
-      {
-        response: "Co konkretnie nie zadziałało? Bo najczęściej problem leży w targetowaniu lub kreacjach.",
-        technique: "Diagnoza problemu"
-      },
-      {
-        response: "Mogę pokazać wyniki naszych klientów z podobnych salonów - potem możemy wrócić do rozmowy.",
-        technique: "Dowód społeczny"
-      }
+      { response: "Rozumiem to rozczarowanie. Ale czy kampanię prowadziła agencja specjalizująca się w beauty? Bo to ma ogromne znaczenie.", technique: "Specjalizacja" },
+      { response: "Co konkretnie nie zadziałało? Bo najczęściej problem leży w targetowaniu lub kreacjach.", technique: "Diagnoza problemu" },
+      { response: "Mogę pokazać wyniki naszych klientów z podobnych salonów - potem możemy wrócić do rozmowy.", technique: "Dowód społeczny" }
     ]
   },
   {
@@ -409,18 +291,9 @@ const objectionHandling = [
     icon: "👥",
     category: "Konkurencja",
     responses: [
-      {
-        response: "Super! A jakie wyniki osiągacie? Bo chętnie porównamy nasze rezultaty.",
-        technique: "Wyzwanie"
-      },
-      {
-        response: "To świetnie. A jak wygląda koszt pozyskania klienta u Was?",
-        technique: "Pytanie o metryki"
-      },
-      {
-        response: "Rozumiem. Gdyby jednak obecna współpraca nie przynosiła oczekiwanych efektów - możemy wrócić do rozmowy?",
-        technique: "Zostawienie drzwi otwartych"
-      }
+      { response: "Super! A jakie wyniki osiągacie? Bo chętnie porównamy nasze rezultaty.", technique: "Wyzwanie" },
+      { response: "To świetnie. A jak wygląda koszt pozyskania klienta u Was?", technique: "Pytanie o metryki" },
+      { response: "Rozumiem. Gdyby jednak obecna współpraca nie przynosiła oczekiwanych efektów - możemy wrócić do rozmowy?", technique: "Zostawienie drzwi otwartych" }
     ]
   },
   {
@@ -428,18 +301,9 @@ const objectionHandling = [
     icon: "👫",
     category: "Odkładanie",
     responses: [
-      {
-        response: "Rozumiem. Może umówmy się na rozmowę we trójkę? Chętnie odpowiem na wszystkie pytania.",
-        technique: "Wspólne spotkanie"
-      },
-      {
-        response: "Jasne! Co według Ciebie będzie dla niego najważniejsze? Mogę przygotować te informacje.",
-        technique: "Przygotowanie argumentów"
-      },
-      {
-        response: "Oczywiście. Kiedy planujecie to omówić? Odezwę się dzień później.",
-        technique: "Konkretny follow-up"
-      }
+      { response: "Rozumiem. Może umówmy się na rozmowę we trójkę? Chętnie odpowiem na wszystkie pytania.", technique: "Wspólne spotkanie" },
+      { response: "Jasne! Co według Ciebie będzie dla niego najważniejsze? Mogę przygotować te informacje.", technique: "Przygotowanie argumentów" },
+      { response: "Oczywiście. Kiedy planujecie to omówić? Odezwę się dzień później.", technique: "Konkretny follow-up" }
     ]
   }
 ];
@@ -492,14 +356,8 @@ const goldenRules = [
 export default function ClientService() {
   const [activeTab, setActiveTab] = useState("process");
   const [expandedStep, setExpandedStep] = useState<number | null>(1);
-  const [viewMode, setViewMode] = useState<'cards' | 'timeline'>('cards');
   const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Skopiowano do schowka!");
-  };
 
   const filteredObjections = objectionHandling.filter(obj =>
     obj.objection.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -513,7 +371,7 @@ export default function ClientService() {
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent border border-primary/20 p-6">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(236,72,153,0.15),transparent_50%)]" />
           <div className="absolute top-4 right-4 flex gap-2">
-            {[Rocket, Brain, Award].map((Icon, i) => (
+            {[Rocket, BookOpen, Star].map((Icon, i) => (
               <div key={i} className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-pink-500/10 border border-primary/30 flex items-center justify-center">
                 <Icon className="w-5 h-5 text-primary/70" />
               </div>
@@ -543,7 +401,7 @@ export default function ClientService() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[
             { label: "Kroków w procesie", value: "7", icon: CircleDot, color: "from-blue-500 to-cyan-500" },
-            { label: "Szablonów wiadomości", value: "5+", icon: FileText, color: "from-pink-500 to-rose-500" },
+            { label: "Kategorii pytań", value: "4", icon: MessageSquare, color: "from-pink-500 to-rose-500" },
             { label: "Technik obiekcji", value: "18", icon: Shield, color: "from-purple-500 to-violet-500" },
             { label: "Złotych zasad", value: "6", icon: Star, color: "from-amber-500 to-orange-500" },
           ].map((stat, i) => (
@@ -594,36 +452,16 @@ export default function ClientService() {
 
           {/* Process Tab */}
           <TabsContent value="process" className="space-y-4">
-            {/* View toggle */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3 px-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-blue-500" />
-                  <span className="text-xs text-muted-foreground">Start</span>
-                </div>
-                <div className="flex-1 h-px bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 w-32" />
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Umowa</span>
-                  <div className="w-3 h-3 rounded-full bg-emerald-500" />
-                </div>
+            {/* Timeline indicator */}
+            <div className="flex items-center justify-center gap-3 px-4 py-3 bg-card/30 rounded-xl border border-border/30">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-blue-500" />
+                <span className="text-xs text-muted-foreground">Cold Mail</span>
               </div>
-              <div className="flex items-center gap-2 bg-card/50 border border-border/50 rounded-lg p-1">
-                <Button 
-                  variant={viewMode === 'cards' ? 'default' : 'ghost'} 
-                  size="sm"
-                  onClick={() => setViewMode('cards')}
-                  className="h-8"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </Button>
-                <Button 
-                  variant={viewMode === 'timeline' ? 'default' : 'ghost'} 
-                  size="sm"
-                  onClick={() => setViewMode('timeline')}
-                  className="h-8"
-                >
-                  <List className="w-4 h-4" />
-                </Button>
+              <div className="flex-1 h-px bg-gradient-to-r from-blue-500 via-purple-500 to-emerald-500 max-w-xs" />
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">Umowa</span>
+                <div className="w-3 h-3 rounded-full bg-emerald-500" />
               </div>
             </div>
 
@@ -710,40 +548,6 @@ export default function ClientService() {
                             </ul>
                           </div>
                         </div>
-
-                        {/* Scripts */}
-                        {step.scripts && step.scripts.length > 0 && (
-                          <div className="mt-6 pt-4 border-t border-border/30">
-                            <h4 className="font-semibold text-foreground flex items-center gap-2 text-sm mb-4">
-                              <FileText className="w-4 h-4 text-primary" />
-                              Szablony do użycia
-                            </h4>
-                            <div className="grid md:grid-cols-2 gap-4">
-                              {step.scripts.map((script, i) => (
-                                <div key={i} className="bg-zinc-900/50 rounded-xl p-4 border border-zinc-800">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <span className="text-sm font-medium text-foreground">{script.title}</span>
-                                    <Button 
-                                      size="sm" 
-                                      variant="ghost" 
-                                      className="h-8 gap-2"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        copyToClipboard(script.content);
-                                      }}
-                                    >
-                                      <Copy className="w-3 h-3" />
-                                      Kopiuj
-                                    </Button>
-                                  </div>
-                                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap font-mono bg-zinc-950/50 rounded-lg p-3 max-h-48 overflow-auto">
-                                    {script.content}
-                                  </pre>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
@@ -770,7 +574,7 @@ export default function ClientService() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {topic.questions.map((item, i) => (
-                      <div key={i} className="group relative bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors">
+                      <div key={i} className="bg-muted/30 rounded-xl p-4 hover:bg-muted/50 transition-colors">
                         <div className="flex items-start gap-3">
                           <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-0.5">
                             <span className="text-xs font-bold text-primary">{i + 1}</span>
@@ -779,14 +583,6 @@ export default function ClientService() {
                             <p className="text-sm font-medium text-foreground mb-1">"{item.q}"</p>
                             <p className="text-xs text-muted-foreground">{item.why}</p>
                           </div>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="opacity-0 group-hover:opacity-100 transition-opacity h-8"
-                            onClick={() => copyToClipboard(item.q)}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
                         </div>
                       </div>
                     ))}
@@ -812,35 +608,21 @@ export default function ClientService() {
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredObjections.map((item, idx) => (
-                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden group hover:shadow-lg hover:shadow-primary/5 transition-all">
+                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden hover:shadow-lg hover:shadow-primary/5 transition-all">
                   <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="text-3xl">{item.icon}</span>
-                        <div>
-                          <Badge variant="outline" className="text-[10px] mb-1">{item.category}</Badge>
-                          <CardTitle className="text-base">"{item.objection}"</CardTitle>
-                        </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-3xl">{item.icon}</span>
+                      <div>
+                        <Badge variant="outline" className="text-[10px] mb-1">{item.category}</Badge>
+                        <CardTitle className="text-base">"{item.objection}"</CardTitle>
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {item.responses.map((resp, i) => (
-                      <div key={i} className="relative bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl p-4 border border-border/30">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <Badge className="text-[10px] bg-primary/20 text-primary border-0">
-                            {resp.technique}
-                          </Badge>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={() => copyToClipboard(resp.response)}
-                          >
-                            <Copy className="w-3 h-3" />
-                          </Button>
-                        </div>
-                        <p className="text-sm text-foreground leading-relaxed">{resp.response}</p>
+                      <div key={i} className="bg-gradient-to-r from-muted/50 to-muted/30 rounded-xl p-4 border border-border/30">
+                        <Badge variant="secondary" className="text-[10px] mb-2">{resp.technique}</Badge>
+                        <p className="text-sm text-foreground">"{resp.response}"</p>
                       </div>
                     ))}
                   </CardContent>
@@ -853,20 +635,20 @@ export default function ClientService() {
           <TabsContent value="rules" className="space-y-6">
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {goldenRules.map((rule, idx) => (
-                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden group hover:shadow-xl hover:shadow-primary/10 transition-all hover:-translate-y-1">
-                  <div className={`h-1.5 bg-gradient-to-r ${rule.color}`} />
-                  <CardContent className="pt-6">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${rule.color} flex items-center justify-center mb-5 shadow-xl group-hover:scale-110 transition-transform`}>
-                      <rule.icon className="w-8 h-8 text-white" />
+                <Card key={idx} className="bg-card/50 border-border/50 overflow-hidden group hover:shadow-xl hover:shadow-primary/10 transition-all">
+                  <CardHeader className="pb-3">
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${rule.color} flex items-center justify-center shadow-lg mb-4 group-hover:scale-110 transition-transform`}>
+                      <rule.icon className="w-7 h-7 text-white" />
                     </div>
-                    <h3 className="text-xl font-bold text-foreground mb-3">{rule.title}</h3>
-                    <p className="text-muted-foreground mb-5">{rule.description}</p>
-                    
+                    <CardTitle className="text-xl">{rule.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-muted-foreground text-sm leading-relaxed">{rule.description}</p>
                     <div className="space-y-2">
                       {rule.examples.map((example, i) => (
                         <div key={i} className="flex items-center gap-2 text-sm">
                           <CheckCircle2 className="w-4 h-4 text-primary flex-shrink-0" />
-                          <span className="text-muted-foreground">{example}</span>
+                          <span className="text-foreground">{example}</span>
                         </div>
                       ))}
                     </div>
@@ -874,25 +656,6 @@ export default function ClientService() {
                 </Card>
               ))}
             </div>
-
-            {/* Summary Card */}
-            <Card className="bg-gradient-to-br from-primary/10 to-pink-500/5 border-primary/20">
-              <CardContent className="p-6">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-pink-600 flex items-center justify-center shadow-lg flex-shrink-0">
-                    <Award className="w-7 h-7 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-foreground mb-2">Pamiętaj</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Najważniejsze to być autentycznym i naprawdę chcieć pomóc. Klienci wyczuwają czy zależy Ci na ich 
-                      sukcesie, czy tylko na prowizji. Buduj relacje, a sprzedaż przyjdzie naturalnie. Każda rozmowa 
-                      to szansa na naukę - analizuj co działa, a co nie i stale się rozwijaj.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
         </Tabs>
       </div>
