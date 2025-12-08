@@ -15,13 +15,13 @@ interface ContractPreviewProps {
 }
 
 const formatDate = (dateStr: string) => {
-  if (!dateStr) return "—";
+  if (!dateStr) return "…………………";
   const date = new Date(dateStr);
   return date.toLocaleDateString("pl-PL", { day: "2-digit", month: "long", year: "numeric" });
 };
 
 const formatAmount = (amount: string) => {
-  if (!amount) return "0";
+  if (!amount) return "…………";
   const num = parseFloat(amount);
   return num.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 };
@@ -61,199 +61,322 @@ const DotsPattern = ({ className = "" }: { className?: string }) => (
   </div>
 );
 
+// Contract pages component
+const ContractPage = ({ 
+  children, 
+  pageNumber,
+  showHeader = true
+}: { 
+  children: React.ReactNode; 
+  pageNumber: number;
+  showHeader?: boolean;
+}) => (
+  <div
+    className="w-[595px] h-[842px] relative overflow-hidden"
+    style={{ backgroundColor: '#09090b' }}
+  >
+    {/* Background decorations */}
+    <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
+    <GradientOrbs />
+    <FloatingShapes />
+    <DecorativeLines />
+    <DotsPattern className="top-16 right-6" />
+    <DotsPattern className="bottom-40 left-6" />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col p-8">
+      {showHeader && (
+        <div className="flex items-center gap-3 mb-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-pink-500/30 blur-xl rounded-full" />
+            <img src={agencyLogo} alt="Aurine" className="relative w-8 h-8 object-contain" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent">
+              Aurine
+            </p>
+          </div>
+        </div>
+      )}
+
+      <div className="flex-1">
+        {children}
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between pt-4 border-t border-zinc-800/50">
+        <div className="flex items-center gap-1.5">
+          <img src={agencyLogo} alt="Aurine" className="w-4 h-4 object-contain opacity-50" />
+          <span className="text-zinc-600 text-[9px]">aurine.pl</span>
+        </div>
+        <p className="text-[9px] text-zinc-600">Strona {pageNumber}</p>
+      </div>
+    </div>
+  </div>
+);
+
+const SectionTitle = ({ number, title }: { number: string; title: string }) => (
+  <div className="flex items-center gap-2 mb-2">
+    <div className="px-2 py-0.5 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded">
+      <span className="text-pink-400 font-semibold text-[10px]">{number}</span>
+    </div>
+    <span className="text-white font-semibold text-[11px]">{title}</span>
+  </div>
+);
+
+const Paragraph = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <p className={`text-[9px] text-zinc-400 leading-relaxed mb-1.5 ${className}`}>{children}</p>
+);
+
+const ListItem = ({ number, children }: { number: string; children: React.ReactNode }) => (
+  <div className="flex gap-2 mb-1">
+    <span className="text-pink-400 text-[9px] font-medium min-w-[12px]">{number}</span>
+    <span className="text-[9px] text-zinc-400 leading-relaxed">{children}</span>
+  </div>
+);
+
+const SubListItem = ({ letter, children }: { letter: string; children: React.ReactNode }) => (
+  <div className="flex gap-2 mb-0.5 ml-4">
+    <span className="text-zinc-500 text-[8px] min-w-[10px]">{letter})</span>
+    <span className="text-[8px] text-zinc-400 leading-relaxed">{children}</span>
+  </div>
+);
+
 export const ContractPreview = ({ data }: ContractPreviewProps) => {
   return (
-    <div
-      id="contract-preview"
-      className="w-[595px] min-h-[842px] relative overflow-hidden"
-      style={{ backgroundColor: '#09090b' }}
-    >
-      {/* Background decorations */}
-      <div className="absolute inset-0 bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950" />
-      <GradientOrbs />
-      <FloatingShapes />
-      <DecorativeLines />
-      <DotsPattern className="top-16 right-6" />
-      <DotsPattern className="bottom-40 left-6" />
-
-      {/* Content */}
-      <div className="relative h-full flex flex-col p-6">
+    <div id="contract-preview" className="flex flex-col">
+      {/* Page 1 */}
+      <ContractPage pageNumber={1} showHeader={false}>
         {/* Header */}
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-pink-500/30 blur-xl rounded-full" />
-              <img src={agencyLogo} alt="Aurine" className="relative w-10 h-10 object-contain" />
+              <img src={agencyLogo} alt="Aurine" className="relative w-12 h-12 object-contain" />
             </div>
             <div>
-              <p className="text-base font-semibold bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent">
+              <p className="text-lg font-semibold bg-gradient-to-r from-white via-pink-100 to-white bg-clip-text text-transparent">
                 Aurine
               </p>
-              <p className="text-[10px] text-zinc-500 tracking-wide">Marketing dla salonów beauty</p>
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
-              <span className="text-white text-sm font-semibold">Umowa współpracy</span>
+              <p className="text-[9px] text-zinc-500 tracking-wide">Marketing dla salonów beauty</p>
             </div>
           </div>
         </div>
 
-        {/* Date and City */}
-        <div className="flex gap-4 mb-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <rect x="3" y="4" width="18" height="18" rx="2" strokeWidth="2"/>
-                <path d="M16 2v4M8 2v4M3 10h18" strokeWidth="2"/>
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Data zawarcia</p>
-              <p className="text-white font-medium text-xs">{formatDate(data.signDate)}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
-              <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z" strokeWidth="2"/>
-                <circle cx="12" cy="10" r="3" strokeWidth="2"/>
-              </svg>
-            </div>
-            <div>
-              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Miejscowość</p>
-              <p className="text-white font-medium text-xs">{data.signCity || "—"}</p>
-            </div>
+        {/* Title */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
+            <span className="text-white text-sm font-bold tracking-wide">UMOWA O ŚWIADCZENIE USŁUG MARKETINGOWYCH</span>
           </div>
         </div>
+
+        {/* Contract intro */}
+        <Paragraph className="text-center mb-4">
+          zawarta w dniu <span className="text-pink-300 font-medium">{formatDate(data.signDate)}</span> w miejscowości <span className="text-pink-300 font-medium">{data.signCity || "…………………"}</span> pomiędzy:
+        </Paragraph>
 
         {/* Parties */}
         <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Zleceniodawcą:</p>
+            <p className="text-sm font-bold text-white">{data.clientName || "………………………………"}</p>
+            <p className="text-[9px] text-zinc-500 mt-1">adres: {data.clientAddress || "………………………………"}</p>
+          </div>
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500/50 to-fuchsia-500/50 rounded-lg blur-sm opacity-30" />
             <div className="relative bg-zinc-900 border border-pink-500/30 rounded-lg p-3">
-              <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Wykonawca</p>
+              <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Wykonawcą:</p>
               <p className="text-sm font-bold text-white">Agencja Marketingowa Aurine</p>
-              {data.agencyAddress && <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress}</p>}
-              <p className="text-xs text-zinc-500 mt-0.5">{data.agencyEmail || "kontakt@aurine.pl"}</p>
-            </div>
-          </div>
-          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3">
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Zleceniodawca</p>
-            <p className="text-sm font-bold text-white">{data.clientName || "—"}</p>
-            {data.clientAddress && <p className="text-xs text-zinc-500 mt-1">{data.clientAddress}</p>}
-          </div>
-        </div>
-
-        {/* Contract Value */}
-        <div className="relative mb-4 group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg blur-sm opacity-40" />
-          <div className="relative flex justify-between items-center py-3 px-4 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
-            <div>
-              <span className="text-[10px] text-pink-300 uppercase tracking-wider font-semibold">Wynagrodzenie miesięczne</span>
-              <p className="text-[9px] text-zinc-500">Płatność zgodnie z warunkami umowy</p>
-            </div>
-            <div className="text-right">
-              <span className="text-xl font-bold text-white">{formatAmount(data.contractValue)} zł</span>
-              <p className="text-[9px] text-pink-300">brutto/miesiąc</p>
+              <p className="text-[9px] text-zinc-500 mt-1">adres: {data.agencyAddress || "………………………………"}</p>
+              <p className="text-[9px] text-zinc-500">e-mail: {data.agencyEmail || "kontakt@aurine.pl"}</p>
             </div>
           </div>
         </div>
 
-        {/* Contract Sections */}
-        <div className="space-y-2 flex-1">
-          {/* §1 Przedmiot umowy */}
-          <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-            <p className="text-[10px] text-pink-400 font-semibold mb-1">§1 Przedmiot umowy</p>
-            <p className="text-[9px] text-zinc-400 leading-relaxed">
-              Świadczenie usług marketingowych online: kampanie Facebook Ads, materiały reklamowe, optymalizacja, raportowanie i doradztwo marketingowe.
-            </p>
-          </div>
+        <Paragraph className="mb-4 italic text-zinc-500">
+          Strony oświadczają, że niniejsza umowa została zawarta w celu określenia zasad współpracy w zakresie świadczenia usług marketingowych przez Wykonawcę na rzecz Zleceniodawcy, w tym w szczególności świadczenia usług promocyjnych, reklamowych oraz doradztwa marketingowego.
+        </Paragraph>
 
-          {/* §2 & §3 */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-              <p className="text-[10px] text-pink-400 font-semibold mb-1">§2 Obowiązki Wykonawcy</p>
-              <ul className="text-[8px] text-zinc-400 leading-relaxed space-y-0.5">
-                <li>• Prowadzenie kampanii zgodnie z celami</li>
-                <li>• Kreacje reklamowe i optymalizacja</li>
-                <li>• Raporty do 7. dnia miesiąca</li>
-                <li>• Zachowanie poufności</li>
-              </ul>
-            </div>
-            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-              <p className="text-[10px] text-pink-400 font-semibold mb-1">§3 Obowiązki Zleceniodawcy</p>
-              <ul className="text-[8px] text-zinc-400 leading-relaxed space-y-0.5">
-                <li>• Dostęp do fanpage i konta Meta Ads</li>
-                <li>• Materiały (zdjęcia, opisy, logo)</li>
-                <li>• Akceptacja kreacji w 3 dni robocze</li>
-                <li>• Terminowe płatności</li>
-              </ul>
-            </div>
-          </div>
+        {/* §1 Przedmiot umowy */}
+        <div className="mb-4">
+          <SectionTitle number="§1" title="Przedmiot umowy" />
+          <ListItem number="1.">
+            Przedmiotem niniejszej umowy jest świadczenie przez Wykonawcę usług marketingowych online na rzecz Zleceniodawcy, w szczególności:
+          </ListItem>
+          <SubListItem letter="a">tworzenie, konfiguracja i prowadzenie kampanii reklamowych w systemie Facebook Ads,</SubListItem>
+          <SubListItem letter="b">przygotowanie i publikacja materiałów reklamowych (grafiki, treści, wideo),</SubListItem>
+          <SubListItem letter="c">bieżąca optymalizacja i monitorowanie wyników kampanii,</SubListItem>
+          <SubListItem letter="d">sporządzanie raportów z prowadzonych działań marketingowych,</SubListItem>
+          <SubListItem letter="e">doradztwo w zakresie działań reklamowych i komunikacji marketingowej.</SubListItem>
+          <ListItem number="2.">
+            Usługi świadczone będą w oparciu o informacje, materiały i dostęp do kont reklamowych, które Zleceniodawca zobowiązuje się udostępnić Wykonawcy.
+          </ListItem>
+          <ListItem number="3.">
+            Wykonawca zobowiązuje się realizować powierzone zadania z należytą starannością, zgodnie z najlepszą praktyką marketingową.
+          </ListItem>
+        </div>
+      </ContractPage>
 
-          {/* §4 Wynagrodzenie */}
-          <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-            <p className="text-[10px] text-pink-400 font-semibold mb-1">§4 Wynagrodzenie</p>
-            <p className="text-[8px] text-zinc-400 leading-relaxed">
-              <span className="text-pink-300">Zaliczka 50%</span> w ciągu 3 dni od otrzymania umowy. <span className="text-pink-300">Pozostałe 50%</span> w 7 dni od zakończenia miesiąca. Budżet reklamowy finansowany przez Zleceniodawcę.
-            </p>
-          </div>
+      {/* Page 2 */}
+      <ContractPage pageNumber={2}>
+        {/* §2 Obowiązki Wykonawcy */}
+        <div className="mb-4">
+          <SectionTitle number="§2" title="Obowiązki Wykonawcy" />
+          <ListItem number="1.">Wykonawca zobowiązuje się do:</ListItem>
+          <SubListItem letter="a">prowadzenia kampanii reklamowych zgodnie z celami ustalonymi ze Zleceniodawcą,</SubListItem>
+          <SubListItem letter="b">przygotowywania propozycji kreacji reklamowych (grafik, treści, wideo),</SubListItem>
+          <SubListItem letter="c">bieżącej optymalizacji ustawień kampanii, aby zwiększyć skuteczność działań,</SubListItem>
+          <SubListItem letter="d">przekazywania Zleceniodawcy raportu z wyników kampanii raz w miesiącu, nie później niż do 7. dnia roboczego następnego miesiąca,</SubListItem>
+          <SubListItem letter="e">udzielania konsultacji i rekomendacji dotyczących działań marketingowych online.</SubListItem>
+          <ListItem number="2.">
+            Wykonawca ma prawo korzystać z podwykonawców (np. grafików, copywriterów), przy czym ponosi pełną odpowiedzialność za ich działania wobec Zleceniodawcy.
+          </ListItem>
+          <ListItem number="3.">
+            Wykonawca realizuje działania marketingowe z należytą starannością, zgodnie z aktualną wiedzą i praktyką rynkową, przy czym nie gwarantuje osiągnięcia określonych wyników finansowych, sprzedażowych czy frekwencyjnych, ponieważ zależą one od czynników zewnętrznych, niezależnych od Wykonawcy.
+          </ListItem>
+          <ListItem number="4.">
+            Wykonawca zobowiązuje się do zachowania w poufności wszelkich informacji uzyskanych od Zleceniodawcy w związku z realizacją niniejszej umowy, także po jej zakończeniu.
+          </ListItem>
+        </div>
 
-          {/* §5 & §6 */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-              <p className="text-[10px] text-pink-400 font-semibold mb-1">§5 Prawa autorskie</p>
-              <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Materiały chronione prawem autorskim. Licencja niewyłączna po uregulowaniu płatności. Wykonawca może używać w portfolio.
-              </p>
-            </div>
-            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-              <p className="text-[10px] text-pink-400 font-semibold mb-1">§6 Okres obowiązywania</p>
-              <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Umowa obowiązuje od dnia wpłaty zaliczki. Przedłużenie za zgodą obu stron. Możliwość natychmiastowego rozwiązania przy naruszeniach.
-              </p>
-            </div>
-          </div>
+        {/* §3 Obowiązki Zleceniodawcy */}
+        <div className="mb-4">
+          <SectionTitle number="§3" title="Obowiązki Zleceniodawcy" />
+          <ListItem number="1.">Zleceniodawca zobowiązuje się do:</ListItem>
+          <SubListItem letter="a">udostępnienia Wykonawcy dostępu do fanpage na Facebooku oraz konta reklamowego w systemie Meta Ads Manager,</SubListItem>
+          <SubListItem letter="b">przekazania niezbędnych materiałów (np. zdjęć, opisów usług, logo, informacji o promocjach),</SubListItem>
+          <SubListItem letter="c">akceptuje lub odrzuca propozycje kreacji reklamowych w terminie 3 dni roboczych od ich doręczenia. Brak odpowiedzi w tym terminie uznaje się za akceptację,</SubListItem>
+          <SubListItem letter="d">przekazywania informacji o zmianach w ofercie lub działalności, które mogą mieć wpływ na prowadzone kampanie,</SubListItem>
+          <SubListItem letter="e">terminowego uiszczania ustalonego wynagrodzenia.</SubListItem>
+          <ListItem number="2.">
+            Zleceniodawca ponosi odpowiedzialność za zgodność z prawem oraz prawdziwość materiałów i treści dostarczonych Wykonawcy.
+          </ListItem>
+        </div>
 
-          {/* §7 & §8 */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-              <p className="text-[10px] text-pink-400 font-semibold mb-1">§7 Rozwiązanie umowy</p>
-              <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Natychmiastowe rozwiązanie przy: opóźnieniu płatności &gt;14 dni, braku materiałów, naruszeniu obowiązków. Forma pisemna lub elektroniczna.
-              </p>
-            </div>
-            <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
-              <p className="text-[10px] text-pink-400 font-semibold mb-1">§8 Postanowienia końcowe</p>
-              <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Zastosowanie Kodeksu cywilnego. Forma elektroniczna wystarczająca. Przystąpienie do realizacji = akceptacja umowy.
-              </p>
+        {/* §4 Wynagrodzenie */}
+        <div className="mb-4">
+          <SectionTitle number="§4" title="Wynagrodzenie" />
+          
+          {/* Contract Value Highlight */}
+          <div className="relative mb-3 group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg blur-sm opacity-40" />
+            <div className="relative flex justify-between items-center py-2 px-3 bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 border border-pink-500/30 rounded-lg">
+              <span className="text-[9px] text-pink-300 uppercase tracking-wider font-semibold">Wynagrodzenie miesięczne</span>
+              <span className="text-base font-bold text-white">{formatAmount(data.contractValue)} zł brutto</span>
             </div>
           </div>
+          
+          <ListItem number="1.">
+            Za świadczenie usług określonych w niniejszej umowie Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości <span className="text-pink-300 font-medium">{formatAmount(data.contractValue)} zł brutto</span> miesięcznie.
+          </ListItem>
+          <ListItem number="2.">
+            Zleceniodawca wpłaca zaliczkę w wysokości 50% miesięcznego wynagrodzenia w terminie 3 dni od otrzymania umowy w formie elektronicznej. Po otrzymaniu zaliczki Wykonawca wystawi rachunek na kwotę wpłaconej zaliczki.
+          </ListItem>
+          <ListItem number="3.">
+            Pozostała część wynagrodzenia (50%) płatna jest w terminie 7 dni od zakończenia obowiązywania umowy, na podstawie rachunku wystawionego przez Wykonawcę na kwotę pozostałą do zapłaty.
+          </ListItem>
+        </div>
+      </ContractPage>
+
+      {/* Page 3 */}
+      <ContractPage pageNumber={3}>
+        {/* §4 continued */}
+        <div className="mb-4">
+          <div className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700/50 rounded inline-block mb-2">
+            <span className="text-zinc-500 text-[9px]">§4 Wynagrodzenie (cd.)</span>
+          </div>
+          <ListItem number="4.">
+            W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług do momentu uregulowania zaległości.
+          </ListItem>
+          <ListItem number="5.">
+            Budżet reklamowy na kampanie w systemie Meta Ads Manager finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia Wykonawcy. Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu reklamowego.
+          </ListItem>
+        </div>
+
+        {/* §5 Prawa autorskie */}
+        <div className="mb-4">
+          <SectionTitle number="§5" title="Prawa autorskie" />
+          <ListItem number="1.">
+            Wszelkie materiały reklamowe przygotowane przez Wykonawcę w ramach niniejszej umowy (grafiki, treści reklamowe, materiały wideo itp.) podlegają ochronie prawnoautorskiej.
+          </ListItem>
+          <ListItem number="2.">
+            Z chwilą uregulowania pełnego wynagrodzenia określonego w § 4, Wykonawca udziela Zleceniodawcy niewyłącznej, bezterminowej licencji na korzystanie z przygotowanych materiałów w celach związanych z działalnością Zleceniodawcy.
+          </ListItem>
+          <ListItem number="3.">
+            Zleceniodawca nie ma prawa do odsprzedaży, sublicencjonowania ani wykorzystywania materiałów do celów niezwiązanych bezpośrednio z jego działalnością bez uprzedniej zgody Wykonawcy.
+          </ListItem>
+          <ListItem number="4.">
+            Wykonawca zachowuje prawo do wykorzystywania przygotowanych materiałów w celach marketingowych i promocyjnych własnej agencji (np. jako element portfolio), o ile nie narusza to tajemnicy przedsiębiorstwa Zleceniodawcy.
+          </ListItem>
+        </div>
+
+        {/* §6 Określenie terminów */}
+        <div className="mb-4">
+          <SectionTitle number="§6" title="Określenie terminów" />
+          <ListItem number="1.">
+            Umowa zostaje zawarta i obowiązuje od dnia dokonania przez Zleceniodawcę wpłaty zaliczki, o której mowa w §4 ust. 2.
+          </ListItem>
+          <ListItem number="2.">
+            Po upływie pierwszego miesiąca umowa może zostać przedłużona wyłącznie za zgodą obu stron, na warunkach ustalonych w odrębnym aneksie lub w formie potwierdzenia mailowego.
+          </ListItem>
+          <ListItem number="3.">
+            W przypadku rażącego naruszenia postanowień umowy przez drugą stronę, rozwiązanie może nastąpić ze skutkiem natychmiastowym.
+          </ListItem>
+        </div>
+
+        {/* §7 Rozwiązanie umowy */}
+        <div className="mb-4">
+          <SectionTitle number="§7" title="Rozwiązanie umowy" />
+          <ListItem number="1.">
+            Umowa może zostać rozwiązana przez każdą ze stron z zachowaniem zasad określonych w § 6.
+          </ListItem>
+          <ListItem number="2.">Wykonawca ma prawo rozwiązać umowę ze skutkiem natychmiastowym, jeżeli:</ListItem>
+          <SubListItem letter="a">Zleceniodawca opóźnia się z płatnością wynagrodzenia o więcej niż 14 dni,</SubListItem>
+          <SubListItem letter="b">Zleceniodawca nie przekazuje materiałów lub informacji niezbędnych do prowadzenia kampanii,</SubListItem>
+          <SubListItem letter="c">Zleceniodawca narusza obowiązki określone w § 3, uniemożliwiając prawidłowe wykonanie umowy.</SubListItem>
+          <ListItem number="3.">
+            Zleceniodawca ma prawo rozwiązać umowę ze skutkiem natychmiastowym, jeżeli Wykonawca rażąco narusza obowiązki określone w § 2.
+          </ListItem>
+        </div>
+      </ContractPage>
+
+      {/* Page 4 */}
+      <ContractPage pageNumber={4}>
+        {/* §7 continued */}
+        <div className="mb-4">
+          <div className="px-2 py-0.5 bg-zinc-800/50 border border-zinc-700/50 rounded inline-block mb-2">
+            <span className="text-zinc-500 text-[9px]">§7 Rozwiązanie umowy (cd.)</span>
+          </div>
+          <ListItem number="4.">
+            Rozwiązanie umowy wymaga formy pisemnej, w tym również w formie elektronicznej (np. poprzez oświadczenie przesłane na adres e-mail wskazany w niniejszej umowie).
+          </ListItem>
+        </div>
+
+        {/* §8 Postanowienia końcowe */}
+        <div className="mb-6">
+          <SectionTitle number="§8" title="Postanowienia końcowe" />
+          <ListItem number="1.">
+            W sprawach nieuregulowanych niniejszą umową zastosowanie mają przepisy Kodeksu cywilnego.
+          </ListItem>
+          <ListItem number="2.">
+            Umowa została sporządzona i przekazana w formie elektronicznej (plik PDF) drogą mailową. Strony zgodnie przyjmują, że taka forma jest wystarczająca do jej ważności i wykonywania, a podpisanie umowy nie jest wymagane, jeżeli Zleceniodawca przystąpi do jej realizacji.
+          </ListItem>
         </div>
 
         {/* Signatures */}
-        <div className="grid grid-cols-2 gap-10 mt-4">
-          <div className="text-center">
-            <div className="h-10 border-b-2 border-zinc-700 mb-1"></div>
-            <p className="text-[10px] text-zinc-500">Zleceniodawca</p>
-          </div>
-          <div className="text-center">
-            <div className="h-10 border-b-2 border-zinc-700 mb-1"></div>
-            <p className="text-[10px] text-zinc-500">Wykonawca</p>
+        <div className="mt-auto">
+          <div className="grid grid-cols-2 gap-16 pt-8">
+            <div className="text-center">
+              <div className="h-16 border-b-2 border-dashed border-zinc-700 mb-2"></div>
+              <p className="text-[10px] text-zinc-500 font-medium">Zleceniodawca</p>
+            </div>
+            <div className="text-center">
+              <div className="h-16 border-b-2 border-dashed border-zinc-700 mb-2"></div>
+              <p className="text-[10px] text-zinc-500 font-medium">Agencja marketingowa Aurine</p>
+            </div>
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between mt-auto pt-4">
-          <div className="flex items-center gap-1.5">
-            <img src={agencyLogo} alt="Aurine" className="w-4 h-4 object-contain opacity-50" />
-            <span className="text-zinc-600 text-[10px]">aurine.pl</span>
-          </div>
-          <p className="text-[10px] text-zinc-600">Marketing dla salonów beauty</p>
-        </div>
-      </div>
+      </ContractPage>
     </div>
   );
 };
