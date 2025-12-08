@@ -165,7 +165,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
   return (
     <div
       id="invoice-preview"
-      className="w-[794px] min-h-[1123px] relative overflow-hidden"
+      className="w-[595px] min-h-[842px] relative overflow-hidden"
       style={{ backgroundColor: '#09090b' }}
     >
       {/* Background decorations */}
@@ -177,76 +177,79 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
       <DotsPattern className="bottom-40 left-6" />
 
       {/* Content */}
-      <div className="relative h-full flex flex-col p-10">
+      <div className="relative h-full flex flex-col p-6">
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
-          <div className="flex items-center gap-4">
+        <div className="flex items-start justify-between mb-5">
+          <div className="flex items-center gap-3">
             <div className="relative">
               <div className="absolute inset-0 bg-pink-500/30 blur-xl rounded-full" />
-              <img src={agencyLogo} alt="Aurine" className="relative w-12 h-12 object-contain" />
+              <img src={agencyLogo} alt="Aurine" className="relative w-10 h-10 object-contain" />
             </div>
             <div>
-              <p className="text-xl font-bold text-white">{data.agencyName || "Aurine"}</p>
+              <p className="text-lg font-bold text-white">{data.agencyName || "Aurine"}</p>
             </div>
           </div>
           <div className="text-right">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-pink-500/10 border border-pink-500/20 rounded-full mb-2">
-              <span className="text-pink-300 text-sm font-medium uppercase tracking-wider">{invoiceTitle}</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-pink-500/10 border border-pink-500/20 rounded-full mb-1">
+              <span className="text-pink-300 text-xs font-medium uppercase tracking-wider">{invoiceTitle}</span>
             </div>
-            <p className="text-2xl font-bold text-white">{data.invoiceNumber || "—"}</p>
+            <div className="flex items-center justify-end gap-2 mt-1">
+              <span className="text-zinc-500 text-xs">Nr:</span>
+              <span className="text-base font-bold text-white tracking-wide">{data.invoiceNumber || "—"}</span>
+            </div>
           </div>
         </div>
 
         {/* Dates */}
-        <div className="flex gap-6 mb-6">
-          <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-800/40 border border-zinc-700/50 rounded-xl">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
+        <div className="flex gap-4 mb-4">
+          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
               <CalendarIcon />
             </div>
             <div>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">Data wystawienia</p>
-              <p className="text-white font-medium text-sm">{formatDate(data.issueDate)}</p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Data wystawienia</p>
+              <p className="text-white font-medium text-xs">{formatDate(data.issueDate)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 px-4 py-2.5 bg-zinc-800/40 border border-zinc-700/50 rounded-xl">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
+          <div className="flex items-center gap-2 px-3 py-2 bg-zinc-800/40 border border-zinc-700/50 rounded-lg">
+            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center">
               <ClockIcon />
             </div>
             <div>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">Termin płatności</p>
-              <p className="text-white font-medium text-sm">{formatDate(data.paymentDue)}</p>
+              <p className="text-[10px] text-zinc-500 uppercase tracking-wider">Termin płatności</p>
+              <p className="text-white font-medium text-xs">{formatDate(data.paymentDue)}</p>
             </div>
           </div>
         </div>
 
         {/* Parties */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500/50 to-fuchsia-500/50 rounded-xl blur-sm opacity-30" />
-            <div className="relative bg-zinc-900 border border-pink-500/30 rounded-xl p-5">
-              <p className="text-xs text-pink-400 uppercase tracking-wider font-semibold mb-3">Sprzedawca</p>
-              <p className="text-base font-bold text-white">{data.agencyName || "Aurine"}</p>
-              <p className="text-sm text-zinc-400 mt-1">{data.agencyOwner || "—"}</p>
-              <p className="text-sm text-zinc-500 mt-2">{data.agencyAddress || "—"}</p>
-              {data.agencyNIP && <p className="text-sm text-zinc-500 mt-1">NIP: {data.agencyNIP}</p>}
-              <div className="inline-flex items-center gap-1.5 mt-3 px-2.5 py-1 bg-pink-500/10 rounded-md">
-                <span className="text-xs text-pink-400 font-medium">Zwolniony z VAT</span>
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500/50 to-fuchsia-500/50 rounded-lg blur-sm opacity-30" />
+            <div className="relative bg-zinc-900 border border-pink-500/30 rounded-lg p-3">
+              <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Sprzedawca</p>
+              <p className="text-sm font-bold text-white">{data.agencyName || "Aurine"}</p>
+              <p className="text-xs text-zinc-400 mt-0.5">{data.agencyOwner || "—"}</p>
+              <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress || "—"}</p>
+              {data.agencyNIP && <p className="text-xs text-zinc-500 mt-0.5">NIP: {data.agencyNIP}</p>}
+              <div className="inline-flex items-center gap-1 mt-2 px-2 py-0.5 bg-pink-500/10 rounded">
+                <span className="text-[10px] text-pink-400 font-medium">Zwolniony z VAT</span>
               </div>
             </div>
           </div>
-          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-5">
-            <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold mb-3">Nabywca</p>
-            <p className="text-base font-bold text-white">{data.clientName || "—"}</p>
-            {data.clientOwnerName && <p className="text-sm text-zinc-400 mt-1">{data.clientOwnerName}</p>}
-            <p className="text-sm text-zinc-500 mt-2">{data.clientAddress || "—"}</p>
-            {data.clientNIP && <p className="text-sm text-zinc-500 mt-1">NIP: {data.clientNIP}</p>}
+          <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Nabywca</p>
+            <p className="text-sm font-bold text-white">{data.clientName || "—"}</p>
+            {data.clientOwnerName && <p className="text-xs text-zinc-400 mt-0.5">{data.clientOwnerName}</p>}
+            <p className="text-xs text-zinc-500 mt-1">{data.clientAddress || "—"}</p>
+            {data.clientNIP && <p className="text-xs text-zinc-500 mt-0.5">NIP: {data.clientNIP}</p>}
           </div>
         </div>
 
         {/* Services Table */}
-        <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl overflow-hidden mb-6">
-          <div className="bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 px-5 py-3 border-b border-zinc-700/50">
-            <div className="grid grid-cols-12 text-xs uppercase tracking-wider font-semibold text-pink-300">
+        <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg overflow-hidden mb-4">
+          <div className="bg-gradient-to-r from-pink-500/20 to-fuchsia-500/20 px-3 py-2 border-b border-zinc-700/50">
+            <div className="grid grid-cols-12 text-[10px] uppercase tracking-wider font-semibold text-pink-300">
               <div className="col-span-1">#</div>
               <div className="col-span-5">Usługa</div>
               <div className="col-span-2 text-right">Ilość</div>
@@ -256,7 +259,7 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
           </div>
           <div className="divide-y divide-zinc-700/30">
             {services.length > 0 ? services.map((service, index) => (
-              <div key={service.id} className="grid grid-cols-12 px-5 py-3 text-sm hover:bg-zinc-700/10 transition-colors">
+              <div key={service.id} className="grid grid-cols-12 px-3 py-2 text-xs hover:bg-zinc-700/10 transition-colors">
                 <div className="col-span-1 text-zinc-600">{index + 1}</div>
                 <div className="col-span-5 text-zinc-200">{service.description || "—"}</div>
                 <div className="col-span-2 text-right text-zinc-500">{service.quantity}</div>
@@ -266,11 +269,11 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
                 </div>
               </div>
             )) : (
-              <div className="px-5 py-4 text-sm text-zinc-600 text-center">Brak usług</div>
+              <div className="px-3 py-3 text-xs text-zinc-600 text-center">Brak usług</div>
             )}
             
             {data.invoiceType === "final" && advanceAmount > 0 && (
-              <div className="grid grid-cols-12 px-5 py-3 text-sm bg-amber-500/5">
+              <div className="grid grid-cols-12 px-3 py-2 text-xs bg-amber-500/5">
                 <div className="col-span-1 text-zinc-600">—</div>
                 <div className="col-span-5 text-amber-400">Zaliczka wpłacona</div>
                 <div className="col-span-2 text-right text-zinc-600">1</div>
@@ -282,62 +285,62 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         </div>
 
         {/* Summary */}
-        <div className="flex justify-end mb-4">
-          <div className="w-72">
-            <div className="flex justify-between py-2 text-sm border-b border-zinc-700/50">
+        <div className="flex justify-end mb-3">
+          <div className="w-56">
+            <div className="flex justify-between py-1.5 text-xs border-b border-zinc-700/50">
               <span className="text-zinc-500">Netto</span>
               <span className="text-zinc-300">{formatAmount(finalAmount)} zł</span>
             </div>
-            <div className="flex justify-between py-2 text-sm border-b border-zinc-700/50">
+            <div className="flex justify-between py-1.5 text-xs border-b border-zinc-700/50">
               <span className="text-zinc-500">VAT (zw.)</span>
               <span className="text-zinc-600">—</span>
             </div>
-            <div className="relative mt-3 group">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-xl blur-sm opacity-50" />
-              <div className="relative flex justify-between items-center py-3 px-4 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white rounded-xl">
-                <span className="text-sm font-medium">Do zapłaty</span>
-                <span className="text-xl font-bold">{formatAmount(finalAmount)} zł</span>
+            <div className="relative mt-2 group">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg blur-sm opacity-50" />
+              <div className="relative flex justify-between items-center py-2 px-3 bg-gradient-to-r from-pink-500 to-fuchsia-500 text-white rounded-lg">
+                <span className="text-xs font-medium">Do zapłaty</span>
+                <span className="text-base font-bold">{formatAmount(finalAmount)} zł</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Amount in words */}
-        <div className="text-sm mb-4 px-4 py-2 bg-zinc-800/30 rounded-lg inline-block">
+        <div className="text-xs mb-3 px-3 py-1.5 bg-zinc-800/30 rounded-md inline-block">
           <span className="text-zinc-500">Słownie: </span>
           <span className="text-zinc-300">{zloteSlownie} złotych {grosze}/100</span>
         </div>
 
         {/* Payment info */}
-        <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-xl p-5 mb-4">
-          <p className="text-xs text-pink-400 uppercase tracking-wider font-semibold mb-4">Dane do przelewu</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-              <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center">
+        <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-3 mb-3">
+          <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Dane do przelewu</p>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2 p-2 bg-zinc-800/50 rounded-md border border-zinc-700/30">
+              <div className="w-7 h-7 rounded-md bg-zinc-800 flex items-center justify-center">
                 <RevolutIcon />
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Bank</p>
-                <p className="text-white font-medium text-sm">{data.bankName || "—"}</p>
+                <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Bank</p>
+                <p className="text-white font-medium text-[11px]">{data.bankName || "—"}</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
+            <div className="flex items-center gap-2 p-2 bg-zinc-800/50 rounded-md border border-zinc-700/30">
+              <div className="w-7 h-7 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
                 <CreditCardIcon />
               </div>
               <div>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider">Numer konta</p>
-                <p className="text-white font-medium text-sm font-mono text-xs">{data.bankAccount || "—"}</p>
+                <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Numer konta</p>
+                <p className="text-white font-medium font-mono text-[10px]">{data.bankAccount || "—"}</p>
               </div>
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-3 p-3 bg-zinc-800/50 rounded-lg border border-zinc-700/30">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
+          <div className="mt-2 flex items-center gap-2 p-2 bg-zinc-800/50 rounded-md border border-zinc-700/30">
+            <div className="w-7 h-7 rounded-md bg-gradient-to-br from-pink-500/20 to-fuchsia-500/20 flex items-center justify-center">
               <DocumentIcon />
             </div>
             <div>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">Tytuł przelewu</p>
-              <p className="text-white font-medium text-sm">
+              <p className="text-[9px] text-zinc-500 uppercase tracking-wider">Tytuł przelewu</p>
+              <p className="text-white font-medium text-[11px]">
                 {services.length > 0 ? services[0].description : "Usługa"} - {data.invoiceNumber || "FV/2025/01/001"}
               </p>
             </div>
@@ -345,29 +348,29 @@ export const InvoicePreview = ({ data }: InvoicePreviewProps) => {
         </div>
 
         {/* VAT notice */}
-        <p className="text-xs text-zinc-600 text-center mb-6">
+        <p className="text-[10px] text-zinc-600 text-center mb-4">
           Zwolnienie z VAT na podstawie art. 113 ust. 1 ustawy o podatku od towarów i usług
         </p>
 
         {/* Signatures */}
-        <div className="grid grid-cols-2 gap-16">
+        <div className="grid grid-cols-2 gap-10">
           <div className="text-center">
-            <div className="h-14 border-b-2 border-zinc-700 mb-2"></div>
-            <p className="text-xs text-zinc-500">Wystawca</p>
+            <div className="h-10 border-b-2 border-zinc-700 mb-1"></div>
+            <p className="text-[10px] text-zinc-500">Wystawca</p>
           </div>
           <div className="text-center">
-            <div className="h-14 border-b-2 border-zinc-700 mb-2"></div>
-            <p className="text-xs text-zinc-500">Odebrał</p>
+            <div className="h-10 border-b-2 border-zinc-700 mb-1"></div>
+            <p className="text-[10px] text-zinc-500">Odebrał</p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between mt-auto pt-6">
-          <div className="flex items-center gap-2">
-            <img src={agencyLogo} alt="Aurine" className="w-5 h-5 object-contain opacity-50" />
-            <span className="text-zinc-600 text-xs">aurine.pl</span>
+        <div className="flex items-center justify-between mt-auto pt-4">
+          <div className="flex items-center gap-1.5">
+            <img src={agencyLogo} alt="Aurine" className="w-4 h-4 object-contain opacity-50" />
+            <span className="text-zinc-600 text-[10px]">aurine.pl</span>
           </div>
-          <p className="text-xs text-zinc-600">Marketing dla salonów beauty</p>
+          <p className="text-[10px] text-zinc-600">Marketing dla salonów beauty</p>
         </div>
       </div>
     </div>
