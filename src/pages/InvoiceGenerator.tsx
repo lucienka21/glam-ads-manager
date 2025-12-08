@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Download, FileImage, ArrowLeft, Link, Users } from "lucide-react";
+import { Download, FileImage, ArrowLeft, Link, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,14 +25,7 @@ interface ClientOption {
   phone?: string | null;
 }
 
-interface LeadOption {
-  id: string;
-  salon_name: string;
-  owner_name?: string | null;
-  city?: string | null;
-  email?: string | null;
-  phone?: string | null;
-}
+const AGENCY_STORAGE_KEY = "aurine_agency_data";
 
 const InvoiceGenerator = () => {
   const navigate = useNavigate();
@@ -42,12 +35,27 @@ const InvoiceGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
-  const [leads, setLeads] = useState<LeadOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
-  const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const [previewScale, setPreviewScale] = useState(0.5);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
+  const getStoredAgencyData = () => {
+    try {
+      const stored = localStorage.getItem(AGENCY_STORAGE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    return {
+      agencyName: "Aurine",
+      agencyOwner: "",
+      agencyAddress: "",
+      agencyNIP: "",
+      bankName: "",
+      bankAccount: "",
+    };
+  };
+
+  const storedAgency = getStoredAgencyData();
+
   const [formData, setFormData] = useState({
     clientName: "",
     clientAddress: "",
@@ -58,18 +66,31 @@ const InvoiceGenerator = () => {
     amount: "",
     advanceAmount: "",
     paymentDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-    bankName: "mBank",
-    bankAccount: "",
+    bankName: storedAgency.bankName,
+    bankAccount: storedAgency.bankAccount,
+    agencyName: storedAgency.agencyName,
+    agencyOwner: storedAgency.agencyOwner,
+    agencyAddress: storedAgency.agencyAddress,
+    agencyNIP: storedAgency.agencyNIP,
   });
+
+  // Save agency data when it changes
+  useEffect(() => {
+    const agencyData = {
+      agencyName: formData.agencyName,
+      agencyOwner: formData.agencyOwner,
+      agencyAddress: formData.agencyAddress,
+      agencyNIP: formData.agencyNIP,
+      bankName: formData.bankName,
+      bankAccount: formData.bankAccount,
+    };
+    localStorage.setItem(AGENCY_STORAGE_KEY, JSON.stringify(agencyData));
+  }, [formData.agencyName, formData.agencyOwner, formData.agencyAddress, formData.agencyNIP, formData.bankName, formData.bankAccount]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const [clientsRes, leadsRes] = await Promise.all([
-        supabase.from('clients').select('id, salon_name, owner_name, city, email, phone').order('salon_name'),
-        supabase.from('leads').select('id, salon_name, owner_name, city, email, phone').not('status', 'in', '("converted","lost")').order('salon_name')
-      ]);
+      const clientsRes = await supabase.from('clients').select('id, salon_name, owner_name, city, email, phone').order('salon_name');
       setClients(clientsRes.data || []);
-      setLeads(leadsRes.data || []);
     };
     fetchData();
   }, []);
@@ -126,7 +147,7 @@ const InvoiceGenerator = () => {
       { ...formData, invoiceType },
       undefined,
       selectedClientId || undefined,
-      selectedLeadId || undefined
+      undefined
     );
     setCurrentDocId(docId);
     toast.success("Faktura zapisana!");
@@ -170,7 +191,7 @@ const InvoiceGenerator = () => {
           { ...formData, invoiceType },
           undefined,
           selectedClientId || undefined,
-          selectedLeadId || undefined
+          undefined
         );
         setCurrentDocId(docId);
         
@@ -309,7 +330,6 @@ const InvoiceGenerator = () => {
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-3">
               <div>
                 <Label className="text-xs flex items-center gap-1">
                   <Link className="w-3 h-3 text-primary" />
@@ -319,7 +339,6 @@ const InvoiceGenerator = () => {
                   value={selectedClientId || "none"} 
                   onValueChange={(v) => { 
                     setSelectedClientId(v === "none" ? "" : v); 
-                    setSelectedLeadId(""); 
                     if (v !== "none") {
                       const client = clients.find(c => c.id === v);
                       if (client) {
@@ -344,42 +363,6 @@ const InvoiceGenerator = () => {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label className="text-xs flex items-center gap-1">
-                  <Users className="w-3 h-3 text-primary" />
-                  Lub lead
-                </Label>
-                <Select 
-                  value={selectedLeadId || "none"} 
-                  onValueChange={(v) => { 
-                    setSelectedLeadId(v === "none" ? "" : v); 
-                    setSelectedClientId(""); 
-                    if (v !== "none") {
-                      const lead = leads.find(l => l.id === v);
-                      if (lead) {
-                        setFormData(prev => ({
-                          ...prev,
-                          clientName: lead.salon_name,
-                          clientAddress: lead.city ? `${lead.city}` : prev.clientAddress,
-                        }));
-                      }
-                    }
-                  }}
-                >
-                  <SelectTrigger className="h-9 mt-1">
-                    <SelectValue placeholder="Lub wybierz lead..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Bez powiązania</SelectItem>
-                    {leads.map((l) => (
-                      <SelectItem key={l.id} value={l.id}>
-                        {l.salon_name} {l.owner_name ? `(${l.owner_name})` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
               </div>
 
               <div>
@@ -450,6 +433,54 @@ const InvoiceGenerator = () => {
                     value={formData.bankAccount}
                     onChange={(e) => handleInputChange("bankAccount", e.target.value)}
                     placeholder="00 0000 0000 0000 0000 0000"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Agency Data Section */}
+            <div className="p-4 border-t border-border/50">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-medium text-foreground">Dane agencji (zapamiętywane)</h3>
+              </div>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs">Nazwa firmy</Label>
+                    <Input
+                      value={formData.agencyName}
+                      onChange={(e) => handleInputChange("agencyName", e.target.value)}
+                      placeholder="Aurine"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Imię i nazwisko</Label>
+                    <Input
+                      value={formData.agencyOwner}
+                      onChange={(e) => handleInputChange("agencyOwner", e.target.value)}
+                      placeholder="Jan Kowalski"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs">Adres agencji</Label>
+                  <Input
+                    value={formData.agencyAddress}
+                    onChange={(e) => handleInputChange("agencyAddress", e.target.value)}
+                    placeholder="ul. Przykładowa 123, 00-000 Miasto"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">NIP agencji</Label>
+                  <Input
+                    value={formData.agencyNIP}
+                    onChange={(e) => handleInputChange("agencyNIP", e.target.value)}
+                    placeholder="1234567890"
                     className="h-9 mt-1"
                   />
                 </div>
