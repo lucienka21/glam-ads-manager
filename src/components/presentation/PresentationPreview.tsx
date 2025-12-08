@@ -475,12 +475,12 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 1: Welcome - warm, personal introduction with phone mockup
   const Slide1 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900/95 to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Rich background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-pink-500/20 via-fuchsia-500/15 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-rose-500/20 via-pink-500/15 to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-pink-600/15 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-gradient-to-bl from-blue-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-gradient-to-tr from-rose-500/15 via-pink-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] bg-gradient-to-br from-blue-600/10 to-transparent rounded-full blur-3xl" />
       </div>
 
       {/* Phone with Facebook Ads mockup */}
@@ -543,11 +543,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 2: Understanding challenges - empathetic, with graphics
   const Slide2 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/10 to-rose-500/15 rounded-full blur-3xl" />
-        <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-pink-500/15 to-transparent rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/15 via-transparent to-rose-500/10 rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
@@ -678,12 +677,11 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 3: How we help - the solution with testimonials
   const Slide3 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-gradient-to-br from-pink-500/15 via-fuchsia-500/10 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-gradient-to-tl from-pink-500/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[80px]" />
+        <div className="absolute top-0 right-1/4 w-[700px] h-[700px] bg-gradient-to-br from-blue-500/10 to-transparent rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-[800px] h-[800px] bg-gradient-to-tl from-pink-500/15 to-transparent rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
@@ -884,11 +882,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 4: Cooperation process with visuals
   const Slide4 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-gradient-to-br from-pink-500/15 via-fuchsia-500/10 to-pink-500/15 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-pink-500/15 to-transparent rounded-full blur-[100px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[900px] h-[900px] bg-gradient-to-br from-pink-500/10 via-transparent to-fuchsia-500/10 rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
@@ -996,12 +993,11 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 5: Special offer - irresistible with more graphics
   const Slide5 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Rich celebratory background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/25 via-fuchsia-500/20 to-rose-500/25 rounded-full blur-3xl" />
-        <div className="absolute top-10 right-20 w-[300px] h-[300px] bg-gradient-to-br from-pink-500/20 to-transparent rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-fuchsia-500/15 to-transparent rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
+        <div className="absolute top-10 right-20 w-[300px] h-[300px] bg-gradient-to-br from-amber-500/15 to-transparent rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
@@ -1117,12 +1113,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
   // Slide 6: Contact & CTA - warm and inviting
   const Slide6 = () => (
-    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-zinc-900 to-zinc-950 relative overflow-hidden">
+    <div className="w-full h-full bg-gradient-to-br from-zinc-950 via-black to-zinc-950 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/25 via-fuchsia-500/20 to-rose-500/25 rounded-full blur-3xl" />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-pink-500/20 to-transparent rounded-full blur-[100px]" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-fuchsia-500/15 to-transparent rounded-full blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1200px] h-[1200px] bg-gradient-to-br from-pink-500/20 via-fuchsia-500/15 to-rose-500/20 rounded-full blur-3xl" />
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
       </div>
 
