@@ -189,151 +189,175 @@ const cityDeclensions: Record<string, string> = {
 function declineByRules(name: string): string {
   const trimmed = name.trim();
   
-  // Multi-word names - decline last word
-  if (trimmed.includes(' ')) {
-    const parts = trimmed.split(' ');
-    const lastPart = parts[parts.length - 1];
-    const declinedLast = declineByRules(lastPart);
-    parts[parts.length - 1] = declinedLast;
-    return parts.join(' ');
-  }
-
-  // Check dictionary first
+  // Check dictionary first for exact match (including multi-word cities)
   if (cityDeclensions[trimmed]) {
     return cityDeclensions[trimmed];
   }
+  
+  // Multi-word names - decline ALL words (Polish locative requires agreement)
+  if (trimmed.includes(' ')) {
+    const parts = trimmed.split(' ');
+    // Check if it's a known compound city first
+    if (cityDeclensions[trimmed]) {
+      return cityDeclensions[trimmed];
+    }
+    // Decline each word separately
+    return parts.map(part => declineSingleWord(part)).join(' ');
+  }
+
+  return declineSingleWord(trimmed);
+}
+
+// Decline a single word to locative
+function declineSingleWord(word: string): string {
+  if (!word) return '';
+  
+  // Check dictionary first
+  if (cityDeclensions[word]) {
+    return cityDeclensions[word];
+  }
 
   // Apply grammatical rules
-  const lower = trimmed.toLowerCase();
+  const lower = word.toLowerCase();
   
   // Feminine -a endings
   if (lower.endsWith('a')) {
     // -ka, -ga -> -ce, -dze (palatalization)
     if (lower.endsWith('ka')) {
-      return trimmed.slice(0, -2) + 'ce';
+      return word.slice(0, -2) + 'ce';
     }
     if (lower.endsWith('ga')) {
-      return trimmed.slice(0, -2) + 'dze';
+      return word.slice(0, -2) + 'dze';
     }
     // -owa -> -owej
     if (lower.endsWith('owa')) {
-      return trimmed.slice(0, -1) + 'ej';
+      return word.slice(0, -1) + 'ej';
+    }
+    // -cka, -ska -> -ckiej, -skiej (adjectives)
+    if (lower.endsWith('cka') || lower.endsWith('ska')) {
+      return word.slice(0, -1) + 'iej';
     }
     // -ia -> -ii
     if (lower.endsWith('ia')) {
-      return trimmed.slice(0, -1) + 'i';
+      return word.slice(0, -1) + 'i';
     }
     // -ja -> -ji
     if (lower.endsWith('ja')) {
-      return trimmed.slice(0, -1) + 'i';
+      return word.slice(0, -1) + 'i';
     }
     // Generic -a -> -ie
-    return trimmed.slice(0, -1) + 'ie';
+    return word.slice(0, -1) + 'ie';
   }
 
   // Neuter -o endings
   if (lower.endsWith('o')) {
     // -no -> -nie
     if (lower.endsWith('no')) {
-      return trimmed.slice(0, -1) + 'ie';
+      return word.slice(0, -1) + 'ie';
     }
     // -wo -> -wie
     if (lower.endsWith('wo')) {
-      return trimmed.slice(0, -1) + 'ie';
+      return word.slice(0, -1) + 'ie';
     }
     // Generic -o -> -ie
-    return trimmed.slice(0, -1) + 'ie';
+    return word.slice(0, -1) + 'ie';
   }
 
   // Neuter -e endings (places like Zakopane)
   if (lower.endsWith('e')) {
     // -ie -> -iu
     if (lower.endsWith('ie')) {
-      return trimmed.slice(0, -2) + 'iu';
+      return word.slice(0, -2) + 'iu';
     }
     // -ce -> -cu
     if (lower.endsWith('ce')) {
-      return trimmed.slice(0, -1) + 'u';
+      return word.slice(0, -1) + 'u';
     }
-    return trimmed;
+    return word;
+  }
+
+  // Adjective masculine endings (for compound city names)
+  // -ski -> -skim, -cki -> -ckim
+  if (lower.endsWith('ski') || lower.endsWith('cki')) {
+    return word + 'm';
   }
 
   // Masculine endings
   // -ów -> -owie
   if (lower.endsWith('ów')) {
-    return trimmed.slice(0, -2) + 'owie';
+    return word.slice(0, -2) + 'owie';
   }
   // -ew -> -ewie
   if (lower.endsWith('ew')) {
-    return trimmed + 'ie';
+    return word + 'ie';
   }
   // -aw -> -awie
   if (lower.endsWith('aw')) {
-    return trimmed + 'ie';
+    return word + 'ie';
   }
   // -in -> -inie
   if (lower.endsWith('in')) {
-    return trimmed + 'ie';
+    return word + 'ie';
   }
   // -yn -> -ynie
   if (lower.endsWith('yn')) {
-    return trimmed + 'ie';
+    return word + 'ie';
   }
   // -ań -> -aniu
   if (lower.endsWith('ań')) {
-    return trimmed.slice(0, -1) + 'niu';
+    return word.slice(0, -1) + 'niu';
   }
   // -eń -> -eniu
   if (lower.endsWith('eń')) {
-    return trimmed.slice(0, -1) + 'niu';
+    return word.slice(0, -1) + 'niu';
   }
   // -ń -> -niu
   if (lower.endsWith('ń')) {
-    return trimmed.slice(0, -1) + 'niu';
+    return word.slice(0, -1) + 'niu';
   }
   // -sk -> -sku
   if (lower.endsWith('sk')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -ck -> -cku
   if (lower.endsWith('ck')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -k -> -ku
   if (lower.endsWith('k')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -c -> -cu
   if (lower.endsWith('c')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -ec -> -cu (drop e)
   if (lower.endsWith('ec')) {
-    return trimmed.slice(0, -2) + 'cu';
+    return word.slice(0, -2) + 'cu';
   }
   // -ż -> -żu
   if (lower.endsWith('ż')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -sz -> -szu
   if (lower.endsWith('sz')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -cz -> -czu
   if (lower.endsWith('cz')) {
-    return trimmed + 'u';
+    return word + 'u';
   }
   // -dź -> -dziu
   if (lower.endsWith('dź')) {
-    return trimmed.slice(0, -1) + 'ziu';
+    return word.slice(0, -1) + 'ziu';
   }
   // -ł -> -le
   if (lower.endsWith('ł')) {
-    return trimmed + 'e';
+    return word + 'e';
   }
 
   // Default: add -ie for consonants
-  return trimmed + 'ie';
+  return word + 'ie';
 }
 
 /**
