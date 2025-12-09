@@ -602,7 +602,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Reklamy, które <span className="text-pink-400">naprawdę działają</span>
+            Co z nami <span className="text-pink-400">zyskujesz?</span>
           </h2>
           <p className="text-lg text-zinc-300">
             Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
@@ -742,25 +742,25 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             
             {[
               {
-                name: "Magda",
-                salon: "Studio Urody Magda",
-                city: "Nowy Sącz",
-                text: "Po 2 miesiącach współpracy mam pełny grafik! Polecam każdej właścicielce salonu.",
+                name: "Magdalena W.",
+                salon: "Gabinet kosmetyczny",
+                city: "Marki",
+                text: "Serdecznie polecam. Pan Przemek ma super podejście, nawet trudne rzeczy wyjaśniał w prosty sposób.",
                 avatar: "M"
               },
               {
                 name: "Karolina",
-                salon: "Beauty by Karo",
+                salon: "Salon fryzjerski",
                 city: "Tarnów",
-                text: "Wreszcie ktoś, kto rozumie branżę beauty. Reklamy są piękne i skuteczne!",
+                text: "Pełen profesjonalizm od samego początku. Cała współpraca przebiegała krok po kroku, świetny kontakt i bardzo przyjemne rozmowy z Przemkiem. Z czystym sumieniem polecam! :)",
                 avatar: "K"
               },
               {
-                name: "Anna",
-                salon: "Salon Piękności Anna",
-                city: "Gorlice",
-                text: "Bałam się płatnych reklam, ale ekipa Aurine wszystko wytłumaczyła. Teraz co tydzień mam nowe klientki.",
-                avatar: "A"
+                name: "Joanna B.",
+                salon: "Studio stylizacji",
+                city: "Kobyłka",
+                text: "Współpracuję z Aurine już od kilku miesięcy i z pełnym przekonaniem mogę polecić Przemka i cały zespół. Naprawdę wiedzą, jak robić marketing lokalny i przyciągać klientów. Chętnie dzielą się wiedzą, tłumaczą wszystko krok po kroku i cierpliwie pomagają.",
+                avatar: "J"
               }
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/15">
