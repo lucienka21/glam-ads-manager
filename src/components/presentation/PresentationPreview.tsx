@@ -846,15 +846,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="Jak możemy Ci pomóc" />
+        <Header subtitle="Dlaczego warto" />
 
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Dlaczego <span className="text-pink-400">Facebook Ads?</span>
+            Korzyści z <span className="text-pink-400">reklam na Facebooku</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Reklamy na Facebooku to <span className="text-pink-300">najskuteczniejszy sposób</span> na pozyskanie nowych klientek
+            Docieraj do <span className="text-pink-300">idealnych klientek</span> w Twojej okolicy
           </p>
         </div>
 
