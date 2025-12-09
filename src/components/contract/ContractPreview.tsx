@@ -10,6 +10,7 @@ interface ContractData {
   signDate: string;
   signCity: string;
   contractValue: string;
+  paymentType: "split" | "full";
   agencyName: string;
   agencyOwnerName: string;
   agencyAddress: string;
@@ -267,16 +268,33 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
 
         {/* §4 Wynagrodzenie */}
         <Section title="§4 Wynagrodzenie">
-          <BulletList items={[
-            `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
-            "Zaliczka 50% miesięcznego wynagrodzenia płatna w terminie 3 dni od otrzymania umowy w formie elektronicznej",
-            "Pozostała część (50%) płatna w terminie 7 dni od zakończenia miesiąca, na podstawie rachunku",
-            "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług do momentu uregulowania zaległości",
-            "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia Wykonawcy"
-          ]} />
-          <p className="text-[7.5px] text-zinc-500 mt-1 italic">
-            Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu reklamowego.
-          </p>
+          {data.paymentType === "full" ? (
+            <>
+              <BulletList items={[
+                `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
+                "Wynagrodzenie płatne z góry w całości (100%) w terminie 3 dni od otrzymania umowy w formie elektronicznej",
+                "Po otrzymaniu płatności Wykonawca wystawi rachunek na pełną kwotę wynagrodzenia",
+                "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług do momentu uregulowania zaległości",
+                "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia Wykonawcy"
+              ]} />
+              <p className="text-[7.5px] text-zinc-500 mt-1 italic">
+                Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu reklamowego.
+              </p>
+            </>
+          ) : (
+            <>
+              <BulletList items={[
+                `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
+                "Zaliczka 50% miesięcznego wynagrodzenia płatna w terminie 3 dni od otrzymania umowy w formie elektronicznej",
+                "Pozostała część (50%) płatna w terminie 7 dni od zakończenia miesiąca, na podstawie rachunku",
+                "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług do momentu uregulowania zaległości",
+                "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia Wykonawcy"
+              ]} />
+              <p className="text-[7.5px] text-zinc-500 mt-1 italic">
+                Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu reklamowego.
+              </p>
+            </>
+          )}
         </Section>
 
         {/* §5 Prawa autorskie */}
@@ -292,7 +310,9 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
         {/* §6 Okres obowiązywania */}
         <Section title="§6 Okres obowiązywania">
           <BulletList items={[
-            "Umowa zostaje zawarta i obowiązuje od dnia dokonania przez Zleceniodawcę wpłaty zaliczki",
+            data.paymentType === "full" 
+              ? "Umowa zostaje zawarta i obowiązuje od dnia dokonania przez Zleceniodawcę wpłaty pełnego wynagrodzenia"
+              : "Umowa zostaje zawarta i obowiązuje od dnia dokonania przez Zleceniodawcę wpłaty zaliczki",
             "Po upływie pierwszego miesiąca umowa może zostać przedłużona za zgodą obu stron (aneks lub potwierdzenie mailowe)",
             "W przypadku rażącego naruszenia postanowień umowy przez drugą stronę, rozwiązanie może nastąpić ze skutkiem natychmiastowym"
           ]} />
