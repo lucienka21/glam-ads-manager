@@ -10,7 +10,8 @@ interface ContractData {
   signDate: string;
   signCity: string;
   contractValue: string;
-  paymentType: "split" | "full";
+  paymentType: "split50" | "split30" | "full";
+  paymentDueDate: string;
   agencyName: string;
   agencyOwnerName: string;
   agencyAddress: string;
@@ -269,32 +270,39 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
         {/* §4 Wynagrodzenie */}
         <Section title="§4 Wynagrodzenie">
           {data.paymentType === "full" ? (
-            <>
-              <BulletList items={[
-                `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
-                "Wynagrodzenie płatne z góry w całości (100%) w terminie 3 dni od otrzymania umowy w formie elektronicznej",
-                "Po otrzymaniu płatności Wykonawca wystawi rachunek na pełną kwotę wynagrodzenia",
-                "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług do momentu uregulowania zaległości",
-                "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia Wykonawcy"
-              ]} />
-              <p className="text-[7.5px] text-zinc-500 mt-1 italic">
-                Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu reklamowego.
-              </p>
-            </>
+            <BulletList items={[
+              `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
+              data.paymentDueDate 
+                ? `Wynagrodzenie płatne z góry w całości (100%) do dnia ${formatDate(data.paymentDueDate)}`
+                : "Wynagrodzenie płatne z góry w całości (100%) w terminie 3 dni od otrzymania umowy",
+              "Po otrzymaniu płatności Wykonawca wystawi rachunek na pełną kwotę wynagrodzenia",
+              "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług",
+              "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę"
+            ]} />
+          ) : data.paymentType === "split30" ? (
+            <BulletList items={[
+              `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
+              data.paymentDueDate 
+                ? `Zaliczka 30% wynagrodzenia płatna do dnia ${formatDate(data.paymentDueDate)}`
+                : "Zaliczka 30% wynagrodzenia płatna w terminie 3 dni od otrzymania umowy",
+              "Pozostała część (70%) płatna w terminie 7 dni od zakończenia miesiąca",
+              "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług",
+              "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę"
+            ]} />
           ) : (
-            <>
-              <BulletList items={[
-                `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
-                "Zaliczka 50% miesięcznego wynagrodzenia płatna w terminie 3 dni od otrzymania umowy w formie elektronicznej",
-                "Pozostała część (50%) płatna w terminie 7 dni od zakończenia miesiąca, na podstawie rachunku",
-                "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług do momentu uregulowania zaległości",
-                "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia Wykonawcy"
-              ]} />
-              <p className="text-[7.5px] text-zinc-500 mt-1 italic">
-                Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu reklamowego.
-              </p>
-            </>
+            <BulletList items={[
+              `Za świadczenie usług Zleceniodawca zapłaci Wykonawcy wynagrodzenie w wysokości ${formatAmount(data.contractValue)} zł brutto miesięcznie`,
+              data.paymentDueDate 
+                ? `Zaliczka 50% wynagrodzenia płatna do dnia ${formatDate(data.paymentDueDate)}`
+                : "Zaliczka 50% wynagrodzenia płatna w terminie 3 dni od otrzymania umowy",
+              "Pozostała część (50%) płatna w terminie 7 dni od zakończenia miesiąca",
+              "W przypadku opóźnienia w płatności Wykonawca ma prawo wstrzymać świadczenie usług",
+              "Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę"
+            ]} />
           )}
+          <p className="text-[7.5px] text-zinc-500 mt-1 italic">
+            Wykonawca nie ponosi odpowiedzialności za brak efektów kampanii wynikający z niedostatecznego budżetu.
+          </p>
         </Section>
 
         {/* §5 Prawa autorskie */}
