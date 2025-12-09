@@ -2,73 +2,54 @@ import { useState, useRef } from 'react';
 import { toPng } from 'html-to-image';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
 import { 
   Download, 
-  RotateCcw, 
-  Upload, 
-  X, 
-  Loader2,
-  ZoomIn,
-  ZoomOut,
-  Snowflake,
-  Gift,
-  Star,
+  ChevronLeft,
   Sparkles,
+  Check,
+  Loader2,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 // ====== TEMPLATES ======
-type TemplateId = 'christmas-elegance' | 'christmas-promo';
+type TemplateId = 
+  | "christmas-promo" 
+  | "elegant-offer" 
+  | "spring-fresh" 
+  | "summer-glow"
+  | "minimal-beauty"
+  | "new-year"
+  | "valentine"
+  | "autumn-vibes";
 
 interface Template {
   id: TemplateId;
   name: string;
-  description: string;
+  category: "seasonal" | "universal";
 }
 
-const TEMPLATES: Template[] = [
-  { id: 'christmas-elegance', name: 'Świąteczna Elegancja', description: 'Elegancki szablon z zimową aurą' },
-  { id: 'christmas-promo', name: 'Świąteczna Promocja', description: 'Promocja z magią świąt' },
+const templates: Template[] = [
+  { id: "christmas-promo", name: "Świąteczna Promocja", category: "seasonal" },
+  { id: "new-year", name: "Nowy Rok", category: "seasonal" },
+  { id: "valentine", name: "Walentynki", category: "seasonal" },
+  { id: "spring-fresh", name: "Wiosenna Świeżość", category: "seasonal" },
+  { id: "summer-glow", name: "Letni Blask", category: "seasonal" },
+  { id: "autumn-vibes", name: "Jesienne Klimaty", category: "seasonal" },
+  { id: "elegant-offer", name: "Elegancka Oferta", category: "universal" },
+  { id: "minimal-beauty", name: "Minimalistyczna Uroda", category: "universal" },
 ];
 
 export default function GraphicsCreator() {
-  // State
-  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId>('christmas-elegance');
-  const [mainImage, setMainImage] = useState<string | null>(null);
-  const [salonName, setSalonName] = useState('Beauty Studio');
-  const [headline, setHeadline] = useState('Magiczne Święta');
-  const [subheadline, setSubheadline] = useState('Podaruj sobie piękno');
-  const [discount, setDiscount] = useState('-30%');
-  const [originalPrice, setOriginalPrice] = useState('599 zł');
-  const [newPrice, setNewPrice] = useState('419 zł');
-  const [ctaText, setCtaText] = useState('Zarezerwuj');
-  
-  // UI State
+  const [selectedTemplate, setSelectedTemplate] = useState<TemplateId | null>(null);
+  const [filterCategory, setFilterCategory] = useState<"all" | "seasonal" | "universal">("all");
   const [isGenerating, setIsGenerating] = useState(false);
-  const [previewScale, setPreviewScale] = useState(0.65);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
+  const filteredTemplates = templates.filter(
+    t => filterCategory === "all" || t.category === filterCategory
+  );
 
-  // Handlers
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Maksymalny rozmiar pliku to 10MB');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = (ev) => setMainImage(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const handleDownload = async () => {
+  const handleExport = async () => {
     if (!previewRef.current) return;
     setIsGenerating(true);
     try {
@@ -76,10 +57,9 @@ export default function GraphicsCreator() {
         quality: 1, 
         pixelRatio: 3, 
         cacheBust: true,
-        skipFonts: true,
       });
       const a = document.createElement('a');
-      a.download = `${selectedTemplate}-${Date.now()}.png`;
+      a.download = `grafika-${selectedTemplate}-${Date.now()}.png`;
       a.href = url;
       a.click();
       toast.success('Grafika została pobrana!');
@@ -91,734 +71,658 @@ export default function GraphicsCreator() {
     }
   };
 
-  const resetAll = () => {
-    setMainImage(null);
-    setSalonName('Beauty Studio');
-    setHeadline('Magiczne Święta');
-    setSubheadline('Podaruj sobie piękno');
-    setDiscount('-30%');
-    setOriginalPrice('599 zł');
-    setNewPrice('419 zł');
-    setCtaText('Zarezerwuj');
-    toast.success('Zresetowano');
-  };
-
-  // Placeholder
-  const placeholderMain = 'https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=800&q=80';
-  const main = mainImage || placeholderMain;
-
-  // ====== RENDER TEMPLATES ======
-  const renderTemplate = () => {
-    switch (selectedTemplate) {
-      case 'christmas-elegance':
-        return (
-          <div 
-            className="w-[600px] h-[600px] relative overflow-hidden"
-            style={{ 
-              background: 'linear-gradient(135deg, #0a0c14 0%, #111827 50%, #0f172a 100%)',
-              fontFamily: "'Playfair Display', Georgia, serif"
-            }}
-          >
-            {/* Animated snow effect - layered particles */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-              {/* Large snowflakes - slow fall */}
-              {[...Array(20)].map((_, i) => (
-                <div
-                  key={`snow-lg-${i}`}
-                  className="absolute animate-pulse"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    opacity: 0.3 + Math.random() * 0.4,
-                    transform: `scale(${0.5 + Math.random() * 0.5})`,
-                  }}
-                >
-                  <Snowflake className="w-3 h-3 text-white/60" />
-                </div>
-              ))}
-              {/* Tiny sparkles */}
-              {[...Array(40)].map((_, i) => (
-                <div
-                  key={`sparkle-${i}`}
-                  className="absolute w-1 h-1 rounded-full bg-white/40"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${Math.random() * 100}%`,
-                    boxShadow: '0 0 4px rgba(255,255,255,0.6)',
-                  }}
-                />
-              ))}
-            </div>
-
-            {/* Subtle gradient overlays for depth */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(circle at 20% 20%, rgba(139,92,246,0.08) 0%, transparent 50%)',
-              }}
-            />
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(circle at 80% 80%, rgba(236,72,153,0.06) 0%, transparent 50%)',
-              }}
-            />
-
-            {/* Golden corner ornaments */}
-            <div className="absolute top-0 left-0 w-32 h-32">
-              <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
-                <defs>
-                  <linearGradient id="gold1" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#d4af37" />
-                    <stop offset="50%" stopColor="#f5e6a3" />
-                    <stop offset="100%" stopColor="#b8860b" />
-                  </linearGradient>
-                </defs>
-                <path d="M0,0 L100,0 L100,10 Q50,10 10,50 L10,100 L0,100 Z" fill="url(#gold1)" opacity="0.8" />
-                <circle cx="25" cy="25" r="4" fill="url(#gold1)" />
-                <circle cx="15" cy="40" r="2" fill="url(#gold1)" />
-                <circle cx="40" cy="15" r="2" fill="url(#gold1)" />
-              </svg>
-            </div>
-            <div className="absolute top-0 right-0 w-32 h-32" style={{ transform: 'scaleX(-1)' }}>
-              <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
-                <path d="M0,0 L100,0 L100,10 Q50,10 10,50 L10,100 L0,100 Z" fill="url(#gold1)" opacity="0.8" />
-                <circle cx="25" cy="25" r="4" fill="url(#gold1)" />
-                <circle cx="15" cy="40" r="2" fill="url(#gold1)" />
-                <circle cx="40" cy="15" r="2" fill="url(#gold1)" />
-              </svg>
-            </div>
-            <div className="absolute bottom-0 left-0 w-32 h-32" style={{ transform: 'scaleY(-1)' }}>
-              <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
-                <path d="M0,0 L100,0 L100,10 Q50,10 10,50 L10,100 L0,100 Z" fill="url(#gold1)" opacity="0.8" />
-                <circle cx="25" cy="25" r="4" fill="url(#gold1)" />
-              </svg>
-            </div>
-            <div className="absolute bottom-0 right-0 w-32 h-32" style={{ transform: 'scale(-1)' }}>
-              <svg viewBox="0 0 100 100" className="w-full h-full opacity-60">
-                <path d="M0,0 L100,0 L100,10 Q50,10 10,50 L10,100 L0,100 Z" fill="url(#gold1)" opacity="0.8" />
-                <circle cx="25" cy="25" r="4" fill="url(#gold1)" />
-              </svg>
-            </div>
-
-            {/* Central image with elegant frame */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="relative">
-                {/* Outer glow */}
-                <div 
-                  className="absolute -inset-4 rounded-full opacity-40 blur-2xl"
-                  style={{ background: 'linear-gradient(135deg, #d4af37, #f5e6a3, #b8860b)' }}
-                />
-                
-                {/* Gold frame */}
-                <div 
-                  className="relative w-64 h-64 rounded-full p-1"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #d4af37 0%, #f5e6a3 25%, #d4af37 50%, #b8860b 75%, #d4af37 100%)',
-                    boxShadow: '0 0 40px rgba(212,175,55,0.4), inset 0 0 20px rgba(0,0,0,0.3)'
-                  }}
-                >
-                  {/* Inner gold ring */}
-                  <div 
-                    className="w-full h-full rounded-full p-1"
-                    style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.1))' }}
-                  >
-                    <div 
-                      className="w-full h-full rounded-full p-0.5"
-                      style={{ background: 'linear-gradient(135deg, #b8860b, #f5e6a3, #d4af37)' }}
-                    >
-                      {/* Image container */}
-                      <div className="w-full h-full rounded-full overflow-hidden">
-                        <img 
-                          src={main} 
-                          alt="" 
-                          className="w-full h-full object-cover"
-                          style={{ filter: 'brightness(1.05) contrast(1.05) saturate(1.1)' }}
-                        />
-                        {/* Subtle overlay for mood */}
-                        <div 
-                          className="absolute inset-0 rounded-full"
-                          style={{ 
-                            background: 'linear-gradient(to bottom, transparent 40%, rgba(10,12,20,0.4) 100%)',
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Decorative stars around frame */}
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2">
-                  <Star className="w-5 h-5 text-amber-300 fill-amber-300" style={{ filter: 'drop-shadow(0 0 6px rgba(251,191,36,0.8))' }} />
-                </div>
-                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-                  <Sparkles className="w-4 h-4 text-amber-200" style={{ filter: 'drop-shadow(0 0 4px rgba(251,191,36,0.6))' }} />
-                </div>
-                <div className="absolute top-1/2 -left-5 -translate-y-1/2">
-                  <Star className="w-3 h-3 text-amber-300 fill-amber-300" style={{ filter: 'drop-shadow(0 0 4px rgba(251,191,36,0.6))' }} />
-                </div>
-                <div className="absolute top-1/2 -right-5 -translate-y-1/2">
-                  <Star className="w-3 h-3 text-amber-300 fill-amber-300" style={{ filter: 'drop-shadow(0 0 4px rgba(251,191,36,0.6))' }} />
-                </div>
-              </div>
-            </div>
-
-            {/* Top salon name */}
-            <div className="absolute top-10 left-0 right-0 text-center">
-              <div className="inline-block">
-                <p 
-                  className="text-xs tracking-[0.4em] uppercase mb-1"
-                  style={{ 
-                    color: 'rgba(212,175,55,0.9)',
-                    textShadow: '0 0 20px rgba(212,175,55,0.5)',
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 500,
-                  }}
-                >
-                  {salonName}
-                </p>
-                <div 
-                  className="h-px w-full"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent)' }}
-                />
-              </div>
-            </div>
-
-            {/* Bottom content */}
-            <div className="absolute bottom-8 left-0 right-0 text-center px-8">
-              {/* Decorative line */}
-              <div className="flex items-center justify-center gap-4 mb-4">
-                <div className="h-px w-16" style={{ background: 'linear-gradient(90deg, transparent, rgba(212,175,55,0.5))' }} />
-                <Snowflake className="w-4 h-4 text-amber-300/60" />
-                <div className="h-px w-16" style={{ background: 'linear-gradient(90deg, rgba(212,175,55,0.5), transparent)' }} />
-              </div>
-              
-              {/* Headline */}
-              <h1 
-                className="text-4xl font-bold mb-2"
-                style={{ 
-                  background: 'linear-gradient(135deg, #ffffff 0%, #f5e6a3 50%, #d4af37 100%)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  textShadow: '0 4px 30px rgba(212,175,55,0.3)',
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                }}
-              >
-                {headline}
-              </h1>
-              
-              {/* Subheadline */}
-              <p 
-                className="text-base mb-5"
-                style={{ 
-                  color: 'rgba(255,255,255,0.7)',
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 300,
-                  letterSpacing: '0.05em',
-                }}
-              >
-                {subheadline}
-              </p>
-              
-              {/* CTA Button */}
-              <button
-                className="px-8 py-3 rounded-full text-sm font-medium tracking-wide"
-                style={{
-                  background: 'linear-gradient(135deg, #d4af37 0%, #f5e6a3 50%, #d4af37 100%)',
-                  color: '#0a0c14',
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  boxShadow: '0 4px 20px rgba(212,175,55,0.4), 0 0 40px rgba(212,175,55,0.2)',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {ctaText}
-              </button>
-            </div>
-          </div>
-        );
-
-      case 'christmas-promo':
-        return (
-          <div 
-            className="w-[600px] h-[600px] relative overflow-hidden"
-            style={{ 
-              background: 'linear-gradient(150deg, #1a0a0a 0%, #2d1515 30%, #1f0f0f 70%, #0d0505 100%)',
-              fontFamily: "'Playfair Display', Georgia, serif"
-            }}
-          >
-            {/* Rich red/burgundy gradient overlays */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(ellipse at 30% 0%, rgba(153,27,27,0.25) 0%, transparent 60%)',
-              }}
-            />
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(ellipse at 100% 100%, rgba(127,29,29,0.2) 0%, transparent 50%)',
-              }}
-            />
-
-            {/* Floating bokeh/glow effects */}
-            {[...Array(12)].map((_, i) => (
-              <div
-                key={`bokeh-${i}`}
-                className="absolute rounded-full"
-                style={{
-                  left: `${10 + Math.random() * 80}%`,
-                  top: `${10 + Math.random() * 80}%`,
-                  width: `${30 + Math.random() * 60}px`,
-                  height: `${30 + Math.random() * 60}px`,
-                  background: `radial-gradient(circle, ${
-                    i % 3 === 0 ? 'rgba(212,175,55,0.15)' : 
-                    i % 3 === 1 ? 'rgba(239,68,68,0.1)' : 
-                    'rgba(255,255,255,0.05)'
-                  } 0%, transparent 70%)`,
-                  filter: 'blur(1px)',
-                }}
-              />
-            ))}
-
-            {/* Decorative holly/ornament corners */}
-            <div className="absolute top-4 left-4">
-              <div className="relative">
-                <div 
-                  className="w-16 h-16 rounded-full"
-                  style={{ 
-                    background: 'radial-gradient(circle, rgba(212,175,55,0.3) 0%, transparent 70%)',
-                    filter: 'blur(8px)',
-                  }}
-                />
-                <Gift className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-amber-400/70" />
-              </div>
-            </div>
-            <div className="absolute top-4 right-4">
-              <div className="relative">
-                <div 
-                  className="w-16 h-16 rounded-full"
-                  style={{ 
-                    background: 'radial-gradient(circle, rgba(212,175,55,0.3) 0%, transparent 70%)',
-                    filter: 'blur(8px)',
-                  }}
-                />
-                <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 text-amber-400/70" />
-              </div>
-            </div>
-
-            {/* Main image - diagonal/artistic placement */}
-            <div 
-              className="absolute right-0 top-0 w-[55%] h-full"
-              style={{
-                clipPath: 'polygon(25% 0, 100% 0, 100% 100%, 0% 100%)',
-              }}
+  // Editor view
+  if (selectedTemplate) {
+    return (
+      <AppLayout>
+        <div className="min-h-screen bg-background p-6 lg:p-10">
+          <div className="max-w-6xl mx-auto">
+            <Button
+              variant="ghost"
+              onClick={() => setSelectedTemplate(null)}
+              className="mb-6 text-muted-foreground hover:text-foreground"
             >
-              <img 
-                src={main} 
-                alt="" 
-                className="w-full h-full object-cover"
-                style={{ filter: 'brightness(0.9) contrast(1.1) saturate(1.1)' }}
-              />
-              {/* Color overlay for mood */}
-              <div 
-                className="absolute inset-0"
-                style={{ 
-                  background: 'linear-gradient(135deg, rgba(127,29,29,0.3) 0%, transparent 60%)',
-                }}
-              />
-              {/* Fade to background */}
-              <div 
-                className="absolute inset-0"
-                style={{ 
-                  background: 'linear-gradient(to right, #1a0a0a 0%, transparent 40%)',
-                }}
-              />
-            </div>
+              <ChevronLeft className="w-4 h-4 mr-2" />
+              Powrót do galerii
+            </Button>
 
-            {/* Golden accent line */}
-            <div 
-              className="absolute left-[35%] top-[10%] bottom-[10%] w-px"
-              style={{
-                background: 'linear-gradient(to bottom, transparent, rgba(212,175,55,0.6), rgba(212,175,55,0.6), transparent)',
-              }}
-            />
-
-            {/* Content - Left side */}
-            <div className="absolute left-8 top-0 bottom-0 w-[45%] flex flex-col justify-center">
-              {/* Salon name */}
-              <p 
-                className="text-xs tracking-[0.3em] uppercase mb-6"
-                style={{ 
-                  color: 'rgba(212,175,55,0.8)',
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 500,
-                }}
-              >
-                {salonName}
-              </p>
-
-              {/* Holiday badge */}
-              <div 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 w-fit"
-                style={{
-                  background: 'linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.1))',
-                  border: '1px solid rgba(212,175,55,0.3)',
-                }}
-              >
-                <Snowflake className="w-3 h-3 text-amber-400" />
-                <span 
-                  className="text-xs tracking-wider uppercase"
-                  style={{ 
-                    color: 'rgba(255,255,255,0.9)',
-                    fontFamily: "'Montserrat', sans-serif",
-                    fontWeight: 500,
-                  }}
-                >
-                  Świąteczna Oferta
-                </span>
-              </div>
-
-              {/* Headline */}
-              <h1 
-                className="text-4xl font-bold leading-tight mb-4"
-                style={{ 
-                  color: '#ffffff',
-                  textShadow: '0 4px 30px rgba(0,0,0,0.5)',
-                  fontFamily: "'Playfair Display', Georgia, serif",
-                }}
-              >
-                {headline}
+            <div className="flex items-center justify-between mb-8">
+              <h1 className="text-2xl font-semibold text-foreground">
+                {templates.find(t => t.id === selectedTemplate)?.name}
               </h1>
-
-              {/* Subheadline */}
-              <p 
-                className="text-sm mb-8 leading-relaxed"
-                style={{ 
-                  color: 'rgba(255,255,255,0.6)',
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 300,
-                }}
+              <Button 
+                onClick={handleExport} 
+                disabled={isGenerating}
+                className="bg-primary hover:bg-primary/90"
               >
-                {subheadline}
-              </p>
-
-              {/* Price section */}
-              <div className="mb-8">
-                <div className="flex items-baseline gap-4 mb-2">
-                  {/* Discount badge */}
-                  <div 
-                    className="px-3 py-1 rounded-md"
-                    style={{
-                      background: 'linear-gradient(135deg, #dc2626, #b91c1c)',
-                      boxShadow: '0 4px 15px rgba(220,38,38,0.4)',
-                    }}
-                  >
-                    <span 
-                      className="text-lg font-bold text-white"
-                      style={{ fontFamily: "'Montserrat', sans-serif" }}
-                    >
-                      {discount}
-                    </span>
-                  </div>
-                  
-                  {/* Original price */}
-                  <span 
-                    className="text-lg line-through"
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
-                  >
-                    {originalPrice}
-                  </span>
-                </div>
-                
-                {/* New price */}
-                <div 
-                  className="text-4xl font-bold"
-                  style={{ 
-                    background: 'linear-gradient(135deg, #d4af37, #f5e6a3)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontFamily: "'Playfair Display', Georgia, serif",
-                  }}
-                >
-                  {newPrice}
-                </div>
-              </div>
-
-              {/* CTA */}
-              <button
-                className="px-8 py-3 rounded-full text-sm font-medium w-fit"
-                style={{
-                  background: 'linear-gradient(135deg, #d4af37 0%, #f5e6a3 50%, #d4af37 100%)',
-                  color: '#1a0a0a',
-                  fontFamily: "'Montserrat', sans-serif",
-                  fontWeight: 600,
-                  boxShadow: '0 4px 20px rgba(212,175,55,0.4), 0 0 40px rgba(212,175,55,0.2)',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {ctaText}
-              </button>
-            </div>
-
-            {/* Bottom decorative stars */}
-            <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-8">
-              {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i}
-                  className="w-3 h-3"
-                  style={{ 
-                    color: i === 2 ? 'rgba(212,175,55,0.8)' : 'rgba(212,175,55,0.4)',
-                    fill: i === 2 ? 'rgba(212,175,55,0.8)' : 'transparent',
-                    filter: i === 2 ? 'drop-shadow(0 0 6px rgba(212,175,55,0.6))' : 'none',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        );
-
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <AppLayout>
-      <div className="h-[calc(100vh-4rem)] flex">
-        {/* Left Panel - Controls */}
-        <div className="w-[400px] border-r border-border bg-card/50 flex flex-col">
-          {/* Header */}
-          <div className="p-6 border-b border-border">
-            <h1 className="text-2xl font-bold text-foreground mb-1">Kreator Grafik</h1>
-            <p className="text-sm text-muted-foreground">Szablony świąteczne</p>
-          </div>
-
-          <ScrollArea className="flex-1">
-            <div className="p-6 space-y-8">
-              {/* Template Selection */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-foreground">Wybierz szablon</Label>
-                <div className="grid grid-cols-1 gap-3">
-                  {TEMPLATES.map((template) => (
-                    <button
-                      key={template.id}
-                      onClick={() => setSelectedTemplate(template.id)}
-                      className={cn(
-                        "p-4 rounded-xl border text-left transition-all duration-200",
-                        selectedTemplate === template.id
-                          ? "border-primary bg-primary/10 shadow-lg shadow-primary/10"
-                          : "border-border bg-card hover:border-primary/50 hover:bg-card/80"
-                      )}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className={cn(
-                            "w-10 h-10 rounded-lg flex items-center justify-center",
-                            selectedTemplate === template.id
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-secondary text-muted-foreground"
-                          )}
-                        >
-                          <Snowflake className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-foreground">{template.name}</p>
-                          <p className="text-xs text-muted-foreground">{template.description}</p>
-                        </div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Image Upload */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-foreground">Zdjęcie</Label>
-                <div 
-                  className={cn(
-                    "relative aspect-video rounded-xl border-2 border-dashed overflow-hidden transition-all",
-                    mainImage ? "border-primary/50" : "border-border hover:border-primary/30"
-                  )}
-                >
-                  {mainImage ? (
-                    <>
-                      <img src={mainImage} alt="" className="w-full h-full object-cover" />
-                      <button
-                        onClick={() => setMainImage(null)}
-                        className="absolute top-2 right-2 w-8 h-8 bg-background/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center h-full cursor-pointer hover:bg-secondary/50 transition-colors">
-                      <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                      <span className="text-sm text-muted-foreground">Kliknij aby dodać</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                    </label>
-                  )}
-                </div>
-              </div>
-
-              {/* Text Fields */}
-              <div className="space-y-4">
-                <Label className="text-sm font-medium text-foreground">Treść</Label>
-                
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Nazwa salonu</label>
-                    <Input 
-                      value={salonName} 
-                      onChange={(e) => setSalonName(e.target.value)}
-                      className="bg-secondary/50 border-border"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Nagłówek</label>
-                    <Input 
-                      value={headline} 
-                      onChange={(e) => setHeadline(e.target.value)}
-                      className="bg-secondary/50 border-border"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Podtytuł</label>
-                    <Input 
-                      value={subheadline} 
-                      onChange={(e) => setSubheadline(e.target.value)}
-                      className="bg-secondary/50 border-border"
-                    />
-                  </div>
-
-                  {selectedTemplate === 'christmas-promo' && (
-                    <>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Rabat</label>
-                          <Input 
-                            value={discount} 
-                            onChange={(e) => setDiscount(e.target.value)}
-                            className="bg-secondary/50 border-border"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Stara cena</label>
-                          <Input 
-                            value={originalPrice} 
-                            onChange={(e) => setOriginalPrice(e.target.value)}
-                            className="bg-secondary/50 border-border"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground mb-1 block">Nowa cena</label>
-                        <Input 
-                          value={newPrice} 
-                          onChange={(e) => setNewPrice(e.target.value)}
-                          className="bg-secondary/50 border-border"
-                        />
-                      </div>
-                    </>
-                  )}
-                  
-                  <div>
-                    <label className="text-xs text-muted-foreground mb-1 block">Przycisk CTA</label>
-                    <Input 
-                      value={ctaText} 
-                      onChange={(e) => setCtaText(e.target.value)}
-                      className="bg-secondary/50 border-border"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </ScrollArea>
-
-          {/* Actions */}
-          <div className="p-4 border-t border-border space-y-3">
-            <Button 
-              onClick={handleDownload} 
-              disabled={isGenerating}
-              className="w-full bg-primary hover:bg-primary/90"
-            >
-              {isGenerating ? (
-                <>
+                {isGenerating ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generowanie...
-                </>
-              ) : (
-                <>
+                ) : (
                   <Download className="w-4 h-4 mr-2" />
-                  Pobierz PNG
-                </>
-              )}
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={resetAll}
-              className="w-full"
-            >
-              <RotateCcw className="w-4 h-4 mr-2" />
-              Resetuj
-            </Button>
+                )}
+                Eksportuj PNG
+              </Button>
+            </div>
+
+            <div className="flex justify-center">
+              <div 
+                ref={previewRef} 
+                className="shadow-2xl rounded-lg overflow-hidden"
+              >
+                <TemplateRenderer templateId={selectedTemplate} />
+              </div>
+            </div>
           </div>
         </div>
+      </AppLayout>
+    );
+  }
 
-        {/* Right Panel - Preview */}
-        <div className="flex-1 bg-background flex flex-col">
-          {/* Preview toolbar */}
-          <div className="h-14 border-b border-border px-6 flex items-center justify-between bg-card/30">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-foreground">Podgląd</span>
-              <span className="text-xs text-muted-foreground px-2 py-1 rounded bg-secondary">
-                {currentTemplate?.name}
-              </span>
+  // Gallery view
+  return (
+    <AppLayout>
+      <div className="min-h-screen bg-background p-6 lg:p-10">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary mb-4">
+              <Sparkles className="w-4 h-4" />
+              <span className="text-sm font-medium">Kreator Grafik</span>
             </div>
-            <div className="flex items-center gap-3">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPreviewScale(Math.max(0.3, previewScale - 0.1))}
-              >
-                <ZoomOut className="w-4 h-4" />
-              </Button>
-              <span className="text-sm text-muted-foreground w-12 text-center">
-                {Math.round(previewScale * 100)}%
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setPreviewScale(Math.min(1.5, previewScale + 0.1))}
-              >
-                <ZoomIn className="w-4 h-4" />
-              </Button>
-            </div>
+            <h1 className="text-4xl font-bold text-foreground mb-3">
+              Wybierz szablon
+            </h1>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Profesjonalne szablony grafik dla Twojego salonu beauty
+            </p>
           </div>
 
-          {/* Preview canvas */}
-          <div className="flex-1 overflow-auto p-8 flex items-center justify-center">
-            <div 
-              className="transition-transform duration-200"
-              style={{ transform: `scale(${previewScale})` }}
-            >
-              <div 
-                ref={previewRef}
-                className="shadow-2xl rounded-lg overflow-hidden"
-                style={{ 
-                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.3)'
-                }}
+          {/* Filters */}
+          <div className="flex justify-center gap-2 mb-10">
+            {[
+              { value: "all", label: "Wszystkie" },
+              { value: "seasonal", label: "Sezonowe" },
+              { value: "universal", label: "Uniwersalne" },
+            ].map((filter) => (
+              <Button
+                key={filter.value}
+                variant={filterCategory === filter.value ? "default" : "outline"}
+                onClick={() => setFilterCategory(filter.value as typeof filterCategory)}
+                className="px-6"
               >
-                {renderTemplate()}
-              </div>
-            </div>
+                {filter.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Template Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredTemplates.map((template) => (
+              <TemplateCard
+                key={template.id}
+                template={template}
+                onClick={() => setSelectedTemplate(template.id)}
+              />
+            ))}
           </div>
         </div>
       </div>
     </AppLayout>
   );
 }
+
+const TemplateCard = ({ 
+  template, 
+  onClick 
+}: { 
+  template: Template; 
+  onClick: () => void;
+}) => {
+  return (
+    <button
+      onClick={onClick}
+      className="group relative overflow-hidden rounded-2xl border-2 border-border hover:border-primary/50 transition-all duration-300 bg-card"
+    >
+      {/* Preview - scaled down */}
+      <div className="aspect-square overflow-hidden">
+        <div className="w-full h-full flex items-center justify-center">
+          <div 
+            className="origin-center"
+            style={{ 
+              transform: 'scale(0.25)', 
+              width: '400%', 
+              height: '400%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <TemplateRenderer templateId={template.id} />
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      {/* Info */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+        <p className="text-white font-medium text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+          {template.name}
+        </p>
+        <p className="text-white/60 text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+          {template.category === "seasonal" ? "Sezonowy" : "Uniwersalny"}
+        </p>
+      </div>
+
+      {/* Permanent label */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-card to-transparent group-hover:opacity-0 transition-opacity">
+        <p className="text-foreground font-medium text-sm">{template.name}</p>
+      </div>
+    </button>
+  );
+};
+
+const TemplateRenderer = ({ templateId }: { templateId: TemplateId }) => {
+  switch (templateId) {
+    case "christmas-promo":
+      return <ChristmasPromoTemplate />;
+    case "elegant-offer":
+      return <ElegantOfferTemplate />;
+    case "spring-fresh":
+      return <SpringFreshTemplate />;
+    case "summer-glow":
+      return <SummerGlowTemplate />;
+    case "minimal-beauty":
+      return <MinimalBeautyTemplate />;
+    case "new-year":
+      return <NewYearTemplate />;
+    case "valentine":
+      return <ValentineTemplate />;
+    case "autumn-vibes":
+      return <AutumnVibesTemplate />;
+    default:
+      return null;
+  }
+};
+
+// === TEMPLATE COMPONENTS ===
+
+const ChristmasPromoTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: '#0c0404',
+    }}
+  >
+    {/* Subtle texture */}
+    <div 
+      className="absolute inset-0 opacity-30"
+      style={{
+        backgroundImage: `radial-gradient(circle at 20% 20%, rgba(139,69,69,0.3) 0%, transparent 50%),
+                          radial-gradient(circle at 80% 80%, rgba(139,69,69,0.2) 0%, transparent 50%)`,
+      }}
+    />
+
+    {/* Gold line accents */}
+    <div className="absolute top-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(90deg, transparent, #c9a962, transparent)' }} />
+    <div className="absolute bottom-0 left-0 right-0 h-1" style={{ background: 'linear-gradient(90deg, transparent, #c9a962, transparent)' }} />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col items-center justify-center text-center px-24">
+      <p 
+        className="text-2xl tracking-[0.5em] uppercase mb-10"
+        style={{ color: '#c9a962' }}
+      >
+        Świąteczna
+      </p>
+      
+      <h1 
+        className="text-[140px] font-extralight leading-none mb-6"
+        style={{ color: '#ffffff' }}
+      >
+        -30%
+      </h1>
+      
+      <div className="w-40 h-[1px] mb-10" style={{ background: '#c9a962' }} />
+      
+      <p 
+        className="text-4xl font-light mb-6"
+        style={{ color: 'rgba(255,255,255,0.8)' }}
+      >
+        na wszystkie zabiegi
+      </p>
+      
+      <p 
+        className="text-xl tracking-[0.3em]"
+        style={{ color: '#c9a962' }}
+      >
+        DO 31 GRUDNIA
+      </p>
+    </div>
+  </div>
+);
+
+const ElegantOfferTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: '#0a0a0a',
+    }}
+  >
+    {/* Geometric accents */}
+    <div 
+      className="absolute top-24 right-24 w-48 h-48 border rotate-45"
+      style={{ borderColor: 'rgba(255,255,255,0.08)' }}
+    />
+    <div 
+      className="absolute bottom-24 left-24 w-36 h-36 border rotate-12"
+      style={{ borderColor: 'rgba(255,255,255,0.06)' }}
+    />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col justify-center px-28">
+      <p 
+        className="text-lg tracking-[0.6em] uppercase mb-10"
+        style={{ color: 'rgba(255,255,255,0.35)' }}
+      >
+        Ekskluzywna oferta
+      </p>
+      
+      <h1 
+        className="text-[110px] font-extralight leading-[0.85] mb-10"
+        style={{ color: '#ffffff' }}
+      >
+        Odkryj<br />
+        <span className="font-normal">Piękno</span>
+      </h1>
+      
+      <div 
+        className="w-28 h-[2px] mb-10"
+        style={{ background: 'linear-gradient(90deg, #e879a9, #ec4899)' }}
+      />
+      
+      <p 
+        className="text-2xl font-light max-w-lg mb-14"
+        style={{ color: 'rgba(255,255,255,0.55)' }}
+      >
+        Profesjonalne zabiegi pielęgnacyjne dla Twojej skóry
+      </p>
+      
+      <div 
+        className="inline-block px-10 py-5 border self-start"
+        style={{ borderColor: 'rgba(255,255,255,0.15)' }}
+      >
+        <span 
+          className="text-sm tracking-[0.25em] uppercase"
+          style={{ color: '#ffffff' }}
+        >
+          Umów wizytę
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+const SpringFreshTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: 'linear-gradient(135deg, #f9faf9 0%, #e8f4e8 100%)',
+    }}
+  >
+    {/* Soft shapes */}
+    <div 
+      className="absolute -top-48 -right-48 w-[500px] h-[500px] rounded-full"
+      style={{ background: 'rgba(180,210,180,0.4)' }}
+    />
+    <div 
+      className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full"
+      style={{ background: 'rgba(160,195,160,0.3)' }}
+    />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col items-center justify-center text-center px-24">
+      <p className="text-7xl mb-10">🌿</p>
+      
+      <p 
+        className="text-xl tracking-[0.4em] uppercase mb-8"
+        style={{ color: '#4a7c4a' }}
+      >
+        Wiosenna kolekcja
+      </p>
+      
+      <h1 
+        className="text-[90px] font-light leading-tight mb-10"
+        style={{ color: '#2d4d2d' }}
+      >
+        Odnowa<br />& Świeżość
+      </h1>
+      
+      <div className="w-24 h-[2px] mb-10" style={{ background: '#4a7c4a' }} />
+      
+      <p 
+        className="text-2xl max-w-xl"
+        style={{ color: 'rgba(74,124,74,0.7)' }}
+      >
+        Zabiegi regenerujące, które obudzą Twoją skórę po zimie
+      </p>
+    </div>
+  </div>
+);
+
+const SummerGlowTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: 'linear-gradient(180deg, #fef6e6 0%, #fdecc8 100%)',
+    }}
+  >
+    {/* Sun rays */}
+    <div className="absolute inset-0 flex items-center justify-center opacity-15">
+      {[...Array(16)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute w-1 origin-bottom"
+          style={{ 
+            height: '60%',
+            background: 'linear-gradient(to top, #e8a44a, transparent)',
+            transform: `rotate(${i * 22.5}deg)`,
+          }}
+        />
+      ))}
+    </div>
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col items-center justify-center text-center px-24">
+      <p 
+        className="text-xl tracking-[0.5em] uppercase mb-10"
+        style={{ color: '#c8863a' }}
+      >
+        Lato 2024
+      </p>
+      
+      <h1 
+        className="text-[100px] font-light leading-none mb-4"
+        style={{ color: '#8b5a2b' }}
+      >
+        Summer
+      </h1>
+      <h2 
+        className="text-[70px] font-extralight italic mb-12"
+        style={{ color: '#c8863a' }}
+      >
+        Glow
+      </h2>
+      
+      <div className="flex items-center gap-6 mb-12">
+        <div className="w-20 h-[1px]" style={{ background: '#c8863a' }} />
+        <span className="text-3xl" style={{ color: '#c8863a' }}>☀</span>
+        <div className="w-20 h-[1px]" style={{ background: '#c8863a' }} />
+      </div>
+      
+      <p 
+        className="text-2xl"
+        style={{ color: 'rgba(139,90,43,0.65)' }}
+      >
+        Przygotuj skórę na słońce
+      </p>
+    </div>
+  </div>
+);
+
+const MinimalBeautyTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: '#ffffff',
+    }}
+  >
+    {/* Accent line */}
+    <div 
+      className="absolute left-28 top-0 bottom-0 w-[1px]"
+      style={{ background: 'rgba(0,0,0,0.08)' }}
+    />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col justify-center pl-48 pr-28">
+      <p 
+        className="text-sm tracking-[0.6em] uppercase mb-16"
+        style={{ color: 'rgba(0,0,0,0.25)' }}
+      >
+        Beauty Studio
+      </p>
+      
+      <h1 
+        className="text-[130px] font-thin leading-[0.8] mb-16"
+        style={{ color: '#000000' }}
+      >
+        Less<br />
+        is<br />
+        More
+      </h1>
+      
+      <div className="w-20 h-[1px] mb-16" style={{ background: '#000000' }} />
+      
+      <p 
+        className="text-xl font-light"
+        style={{ color: 'rgba(0,0,0,0.45)' }}
+      >
+        Minimalistyczne podejście<br />
+        do piękna
+      </p>
+    </div>
+
+    {/* Corner */}
+    <div 
+      className="absolute bottom-28 right-28 w-28 h-28"
+      style={{ 
+        borderRight: '1px solid rgba(0,0,0,0.08)',
+        borderBottom: '1px solid rgba(0,0,0,0.08)',
+      }}
+    />
+  </div>
+);
+
+const NewYearTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: '#07070f',
+    }}
+  >
+    {/* Stars */}
+    {[...Array(40)].map((_, i) => (
+      <div
+        key={i}
+        className="absolute w-1 h-1 rounded-full"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          background: '#ffffff',
+          opacity: 0.15 + Math.random() * 0.35,
+        }}
+      />
+    ))}
+
+    {/* Rings */}
+    <div 
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] rounded-full border"
+      style={{ borderColor: 'rgba(201,169,98,0.15)' }}
+    />
+    <div 
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full border"
+      style={{ borderColor: 'rgba(201,169,98,0.08)' }}
+    />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col items-center justify-center text-center">
+      <p 
+        className="text-2xl tracking-[0.6em] mb-8"
+        style={{ color: '#c9a962' }}
+      >
+        WITAJ
+      </p>
+      
+      <h1 
+        className="text-[200px] font-thin leading-none"
+        style={{ color: '#ffffff' }}
+      >
+        2025
+      </h1>
+      
+      <div className="flex items-center gap-8 my-12">
+        <div 
+          className="w-24 h-[1px]"
+          style={{ background: 'linear-gradient(90deg, transparent, #c9a962)' }}
+        />
+        <span className="text-4xl" style={{ color: '#c9a962' }}>✦</span>
+        <div 
+          className="w-24 h-[1px]"
+          style={{ background: 'linear-gradient(90deg, #c9a962, transparent)' }}
+        />
+      </div>
+      
+      <p 
+        className="text-3xl font-light"
+        style={{ color: 'rgba(255,255,255,0.55)' }}
+      >
+        Nowy rok, nowe piękno
+      </p>
+    </div>
+  </div>
+);
+
+const ValentineTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: '#fdf4f5',
+    }}
+  >
+    {/* Subtle hearts */}
+    <div className="absolute inset-0 opacity-[0.04]">
+      {[...Array(20)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute text-5xl"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            color: '#e11d48',
+            transform: `rotate(${Math.random() * 40 - 20}deg)`,
+          }}
+        >
+          ♥
+        </div>
+      ))}
+    </div>
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col items-center justify-center text-center px-24">
+      <div className="text-6xl mb-10" style={{ color: '#e11d48' }}>♥</div>
+      
+      <p 
+        className="text-xl tracking-[0.4em] uppercase mb-8"
+        style={{ color: '#be123c' }}
+      >
+        14 lutego
+      </p>
+      
+      <h1 
+        className="text-[85px] font-light leading-tight mb-10"
+        style={{ color: '#881337' }}
+      >
+        Podaruj<br />Piękno
+      </h1>
+      
+      <div className="w-24 h-[2px] mb-10" style={{ background: '#e11d48' }} />
+      
+      <p 
+        className="text-2xl max-w-lg mb-14"
+        style={{ color: 'rgba(190,18,60,0.65)' }}
+      >
+        Voucher na zabiegi dla ukochanej osoby
+      </p>
+      
+      <div 
+        className="px-12 py-5 border rounded-full"
+        style={{ borderColor: 'rgba(225,29,72,0.25)' }}
+      >
+        <span 
+          className="text-lg tracking-[0.2em]"
+          style={{ color: '#be123c' }}
+        >
+          ZAMÓW VOUCHER
+        </span>
+      </div>
+    </div>
+  </div>
+);
+
+const AutumnVibesTemplate = () => (
+  <div 
+    className="relative overflow-hidden"
+    style={{ 
+      width: '1080px', 
+      height: '1080px',
+      background: 'linear-gradient(145deg, #181310 0%, #2a1f16 100%)',
+    }}
+  >
+    {/* Leaves accent */}
+    <div className="absolute top-24 right-36 text-7xl opacity-15" style={{ transform: 'rotate(15deg)' }}>🍂</div>
+    <div className="absolute bottom-48 left-28 text-6xl opacity-10" style={{ transform: 'rotate(-12deg)' }}>🍁</div>
+
+    {/* Warm glow */}
+    <div 
+      className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full"
+      style={{ 
+        background: 'radial-gradient(circle, rgba(201,118,58,0.08) 0%, transparent 70%)',
+      }}
+    />
+
+    {/* Content */}
+    <div className="relative h-full flex flex-col items-center justify-center text-center px-24">
+      <p 
+        className="text-xl tracking-[0.5em] uppercase mb-10"
+        style={{ color: '#c9763a' }}
+      >
+        Sezon jesień
+      </p>
+      
+      <h1 
+        className="text-[95px] font-light leading-tight mb-8"
+        style={{ color: '#f5e6d3' }}
+      >
+        Czas na<br />Regenerację
+      </h1>
+      
+      <div className="flex items-center gap-5 my-10">
+        <div className="w-16 h-[1px]" style={{ background: '#c9763a' }} />
+        <span style={{ color: '#c9763a' }}>✦</span>
+        <div className="w-16 h-[1px]" style={{ background: '#c9763a' }} />
+      </div>
+      
+      <p 
+        className="text-2xl max-w-xl"
+        style={{ color: 'rgba(245,230,211,0.55)' }}
+      >
+        Odżywcze zabiegi przygotowujące skórę na chłodniejsze dni
+      </p>
+    </div>
+  </div>
+);
