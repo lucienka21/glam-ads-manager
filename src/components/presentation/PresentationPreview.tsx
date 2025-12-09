@@ -22,6 +22,166 @@ interface PresentationPreviewProps {
   currentSlide: number;
 }
 
+// Helper function to decline Polish first name to genitive case (dopełniacz) - "dla kogo?"
+const declineNameToGenitive = (name: string): string => {
+  if (!name) return "Ciebie";
+  
+  const nameTrimmed = name.trim();
+  const nameLower = nameTrimmed.toLowerCase();
+  
+  // Common female names exceptions
+  const femaleExceptions: Record<string, string> = {
+    "anna": "Anny",
+    "maria": "Marii",
+    "zofia": "Zofii",
+    "julia": "Julii",
+    "maja": "Mai",
+    "kaja": "Kai",
+    "alicja": "Alicji",
+    "emilia": "Emilii",
+    "natalia": "Natalii",
+    "oliwia": "Oliwii",
+    "wiktoria": "Wiktorii",
+    "aleksandra": "Aleksandry",
+    "karolina": "Karoliny",
+    "magdalena": "Magdaleny",
+    "joanna": "Joanny",
+    "monika": "Moniki",
+    "agnieszka": "Agnieszki",
+    "dorota": "Doroty",
+    "barbara": "Barbary",
+    "katarzyna": "Katarzyny",
+    "małgorzata": "Małgorzaty",
+    "krystyna": "Krystyny",
+    "beata": "Beaty",
+    "iwona": "Iwony",
+    "renata": "Renaty",
+    "paulina": "Pauliny",
+    "sylwia": "Sylwii",
+    "patrycja": "Patrycji",
+    "justyna": "Justyny",
+    "marta": "Marty",
+    "ewelina": "Eweliny",
+    "dominika": "Dominiki",
+    "aneta": "Anety",
+    "izabela": "Izabeli",
+    "weronika": "Weroniki",
+    "adrianna": "Adrianny",
+    "angelika": "Angeliki",
+    "kamila": "Kamili",
+    "klaudia": "Klaudii",
+    "sandra": "Sandry",
+    "dagmara": "Dagmary",
+    "ilona": "Ilony",
+    "lucyna": "Lucyny",
+    "edyta": "Edyty",
+    "danuta": "Danuty",
+    "grażyna": "Grażyny",
+    "helena": "Heleny",
+    "bożena": "Bożeny",
+    "urszula": "Urszuli",
+    "elżbieta": "Elżbiety",
+    "teresa": "Teresy",
+    "jolanta": "Jolanty",
+    "ewa": "Ewy",
+    "agata": "Agaty",
+    "kinga": "Kingi",
+    "celina": "Celiny",
+    "liliana": "Liliany",
+    "marlena": "Marleny",
+    "łucja": "Łucji",
+    "laura": "Laury",
+    "hanna": "Hanny",
+    "gabriela": "Gabrieli",
+    "michalina": "Michaliny",
+  };
+  
+  // Common male names exceptions  
+  const maleExceptions: Record<string, string> = {
+    "jan": "Jana",
+    "adam": "Adama",
+    "piotr": "Piotra",
+    "paweł": "Pawła",
+    "krzysztof": "Krzysztofa",
+    "andrzej": "Andrzeja",
+    "tomasz": "Tomasza",
+    "michał": "Michała",
+    "marcin": "Marcina",
+    "marek": "Marka",
+    "grzegorz": "Grzegorza",
+    "jakub": "Jakuba",
+    "łukasz": "Łukasza",
+    "mateusz": "Mateusza",
+    "wojciech": "Wojciecha",
+    "robert": "Roberta",
+    "rafał": "Rafała",
+    "kamil": "Kamila",
+    "sebastian": "Sebastiana",
+    "przemysław": "Przemysława",
+    "przemek": "Przemka",
+    "bartosz": "Bartosza",
+    "damian": "Damiana",
+    "artur": "Artura",
+    "daniel": "Daniela",
+    "dawid": "Dawida",
+    "dominik": "Dominika",
+    "filip": "Filipa",
+    "hubert": "Huberta",
+    "kacper": "Kacpra",
+    "konrad": "Konrada",
+    "maciej": "Macieja",
+    "patryk": "Patryka",
+    "szymon": "Szymona",
+    "wiktor": "Wiktora",
+    "adrian": "Adriana",
+    "bartłomiej": "Bartłomieja",
+    "błażej": "Błażeja",
+    "igor": "Igora",
+    "karol": "Karola",
+    "krystian": "Krystiana",
+    "mariusz": "Mariusza",
+    "norbert": "Norberta",
+    "oskar": "Oskara",
+    "radosław": "Radosława",
+    "stanisław": "Stanisława",
+    "tadeusz": "Tadeusza",
+    "zbigniew": "Zbigniewa",
+  };
+  
+  if (femaleExceptions[nameLower]) {
+    return femaleExceptions[nameLower];
+  }
+  
+  if (maleExceptions[nameLower]) {
+    return maleExceptions[nameLower];
+  }
+  
+  // Apply general rules
+  // Female names ending in -a → -y (most common)
+  if (nameLower.endsWith("a")) {
+    // Names ending in -ia → -ii
+    if (nameLower.endsWith("ia")) {
+      return nameTrimmed.slice(0, -1) + "i";
+    }
+    // Names ending in -ja → -i
+    if (nameLower.endsWith("ja")) {
+      return nameTrimmed.slice(0, -2) + "i";
+    }
+    // Names ending in -ga, -ka → -gi, -ki
+    if (nameLower.endsWith("ga")) {
+      return nameTrimmed.slice(0, -1) + "i";
+    }
+    if (nameLower.endsWith("ka")) {
+      return nameTrimmed.slice(0, -1) + "i";
+    }
+    // Default -a → -y
+    return nameTrimmed.slice(0, -1) + "y";
+  }
+  
+  // Male names (not ending in -a) typically add -a
+  return nameTrimmed + "a";
+};
+
 // Helper function to convert a single Polish word to locative case
 const declineSingleWord = (word: string): string => {
   const wordLower = word.toLowerCase().trim();
@@ -519,8 +679,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Sparkles className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <p className="text-zinc-400 text-xs">Przygotowane specjalnie dla</p>
-                <p className="text-2xl font-bold text-white">{data.ownerName || "Ciebie"}</p>
+                <p className="text-zinc-400 text-xs">Prezentacja przygotowana dla</p>
+                <p className="text-2xl font-bold text-white">{declineNameToGenitive(data.ownerName)}</p>
               </div>
             </div>
             <div className="h-px bg-gradient-to-r from-pink-500/40 via-fuchsia-500/30 to-transparent mb-3" />
