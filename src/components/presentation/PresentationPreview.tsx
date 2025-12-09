@@ -794,10 +794,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <TrendingUp className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Klientki są w telefonie</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Polecenia to za mało</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Twoje potencjalne klientki spędzają <span className="text-pink-400 font-semibold">średnio 2-3 godziny dziennie</span> scrollując Facebooka i Instagrama. 
-                  Jeśli nie widzą tam Twojego salonu, to tak jakby nie istniał. Reklama dociera do nich dokładnie wtedy, gdy szukają inspiracji na nowy zabieg.
+                  Wiele salonów liczy tylko na polecenia od zadowolonych klientek. Problem w tym, że polecenia są <span className="text-pink-400 font-semibold">nieprzewidywalne</span> i nie da się ich skalować.
+                  Gdy konkurencja zacznie się reklamować, Twoje stałe klientki zobaczą inne oferty i mogą się skusić.
                 </p>
               </div>
             </div>
