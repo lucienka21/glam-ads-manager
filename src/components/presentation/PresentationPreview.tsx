@@ -749,7 +749,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 avatar: "M"
               },
               {
-                name: "Karolina",
+                name: "Karolina Ł.",
                 salon: "Salon fryzjerski",
                 city: "Tarnów",
                 text: "Pełen profesjonalizm od samego początku. Cała współpraca przebiegała krok po kroku, świetny kontakt i bardzo przyjemne rozmowy z Przemkiem. Z czystym sumieniem polecam! :)",
