@@ -854,7 +854,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             Dlaczego warto korzystać z <span className="text-pink-400">Facebook Ads?</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Docieraj do <span className="text-pink-300">idealnych klientek</span> w Twojej okolicy
+            Docieraj do <span className="text-pink-300">kobiet zainteresowanych urodą</span> w Twojej okolicy
           </p>
         </div>
 
@@ -864,32 +864,32 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <div className="space-y-3">
             {[
               { 
-                icon: Target, 
-                title: "Precyzyjne dotarcie", 
-                desc: "Reklamy trafiają do kobiet 25-45 lat, zainteresowanych urodą, w promieniu 15 km od Ciebie",
+                icon: Users, 
+                title: "Nowe klientki co miesiąc", 
+                desc: "Regularny napływ nowych klientek zainteresowanych Twoimi usługami. Buduj bazę stałych klientek",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
               { 
-                icon: Eye, 
-                title: "Tysiące wyświetleń", 
-                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek",
-                color: "from-blue-500/30 to-indigo-500/20",
-                borderColor: "border-blue-500/30"
-              },
-              { 
-                icon: Sparkles, 
-                title: "Piękne kreacje", 
-                desc: "Projektujemy grafiki i teksty zgodne z estetyką Twojego salonu",
-                color: "from-fuchsia-500/30 to-purple-500/20",
-                borderColor: "border-fuchsia-500/30"
-              },
-              { 
-                icon: BarChart3, 
-                title: "Przejrzyste raporty", 
-                desc: "Co miesiąc jasny raport: zasięgi, kliknięcia, koszty. Zero zagadek",
+                icon: TrendingUp, 
+                title: "Niski koszt pozyskania", 
+                desc: "Koszt dotarcia do jednej potencjalnej klientki to często mniej niż 1 zł. Efektywna inwestycja",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
+              },
+              { 
+                icon: Zap, 
+                title: "Szybkie efekty", 
+                desc: "Pierwsze zapytania już w ciągu kilku dni od startu kampanii. Nie czekaj miesiącami",
+                color: "from-amber-500/30 to-orange-500/20",
+                borderColor: "border-amber-500/30"
+              },
+              { 
+                icon: Shield, 
+                title: "Pełne wsparcie agencji", 
+                desc: "Zajmujemy się wszystkim: strategią, grafikami, tekstami i optymalizacją. Ty skupiasz się na klientkach",
+                color: "from-blue-500/30 to-indigo-500/20",
+                borderColor: "border-blue-500/30"
               },
             ].map((item, idx) => (
               <div key={idx} className={`bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-xl p-4 border ${item.borderColor}`}>
