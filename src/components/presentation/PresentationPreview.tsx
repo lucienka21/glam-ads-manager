@@ -659,17 +659,18 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             <Heart className="w-4 h-4 text-pink-400" />
           </div>
 
-          {/* Main headline - benefit focused */}
+          {/* Main headline - warm tone */}
           <h1 className="text-5xl font-black text-white leading-[1.2] mb-6">
-            Więcej klientek<br />
+            Facebook Ads dla<br />
             <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
-              dla {data.salonName || "Twojego salonu"}
+              Twojego salonu w {getCityInLocative(data.city)}
             </span>
           </h1>
 
           <p className="text-lg text-zinc-300 leading-relaxed mb-8 max-w-xl">
-            Prowadzisz salon w {getCityInLocative(data.city) || "swoim mieście"} i chcesz mieć pełny grafik? 
-            <span className="text-pink-300 font-medium"> Pokażę Ci, jak Facebook Ads może to zmienić.</span>
+            Codziennie dbasz o to, żeby Twoje klientki wychodziły szczęśliwe. 
+            Zabiegi, grafik, zamówienia, media społecznościowe... 
+            <span className="text-pink-300 font-medium"> A co z pozyskiwaniem nowych klientek?</span>
           </p>
 
           {/* Personal info card */}
