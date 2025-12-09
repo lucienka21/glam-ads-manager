@@ -1,128 +1,110 @@
-import { Zap, ArrowUp } from 'lucide-react';
+import { Clock, Zap } from 'lucide-react';
 
 interface FlashSaleProps {
   data: Record<string, string>;
 }
 
 export function FlashSale({ data }: FlashSaleProps) {
-  const placeholderImage = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80';
-  
   return (
     <div 
-      className="w-[540px] h-[960px] relative overflow-hidden"
+      className="w-[540px] h-[540px] relative overflow-hidden"
       style={{ 
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #121212 100%)',
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a0a10 50%, #0a0a0a 100%)',
         fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* Full background image */}
-      <div className="absolute inset-0">
-        <img 
-          src={data.image || placeholderImage} 
-          alt="" 
-          className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.5) contrast(1.1)' }}
-        />
-        {/* Gradient overlay */}
-        <div 
-          className="absolute inset-0"
-          style={{ 
-            background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 30%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.9) 100%)'
-          }}
-        />
-      </div>
-      
-      {/* Animated pink pulse effect */}
+      {/* Animated background elements */}
       <div 
-        className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full opacity-30 blur-3xl"
+        className="absolute top-10 right-10 w-72 h-72 opacity-40 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(330 100% 55%), transparent 60%)' }}
+      />
+      <div 
+        className="absolute bottom-10 left-10 w-56 h-56 opacity-30 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(340 100% 50%), transparent 60%)' }}
+      />
+      
+      {/* Geometric accents */}
+      <div 
+        className="absolute top-0 left-0 w-32 h-32"
         style={{ 
-          background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 70%)',
-          animation: 'pulse 2s ease-in-out infinite'
+          background: 'linear-gradient(135deg, hsl(330 100% 50% / 0.2) 0%, transparent 60%)'
+        }}
+      />
+      <div 
+        className="absolute bottom-0 right-0 w-48 h-48"
+        style={{ 
+          background: 'linear-gradient(315deg, hsl(330 100% 50% / 0.15) 0%, transparent 60%)'
         }}
       />
       
       {/* Content */}
-      <div className="absolute inset-0 p-10 flex flex-col">
-        {/* Top - Salon name */}
-        <div className="text-center mb-8">
-          <p 
-            className="text-xs tracking-[0.4em] uppercase font-medium"
+      <div className="absolute inset-0 p-10 flex flex-col items-center justify-center text-center">
+        {/* Flash badge */}
+        <div 
+          className="flex items-center gap-2 px-4 py-2 rounded-full mb-6"
+          style={{ 
+            background: 'hsl(330 100% 50% / 0.2)',
+            border: '1px solid hsl(330 100% 60% / 0.3)'
+          }}
+        >
+          <Zap className="w-4 h-4" style={{ color: 'hsl(330 100% 65%)' }} />
+          <span 
+            className="text-xs tracking-[0.2em] uppercase font-semibold"
             style={{ color: 'hsl(330 100% 65%)' }}
           >
-            {data.salon || 'Beauty Studio'}
-          </p>
+            Flash Sale
+          </span>
         </div>
         
-        {/* Center - Main content */}
-        <div className="flex-1 flex flex-col items-center justify-center">
-          {/* Flash icon */}
-          <div 
-            className="w-16 h-16 rounded-full flex items-center justify-center mb-6"
+        {/* Discount */}
+        <div className="mb-4">
+          <span 
+            className="text-9xl font-black"
             style={{ 
-              background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-              boxShadow: '0 0 40px hsl(330 100% 60% / 0.5)'
-            }}
-          >
-            <Zap className="w-8 h-8 text-white" fill="white" />
-          </div>
-          
-          {/* Headline */}
-          <h1 
-            className="text-5xl font-black text-white mb-4 text-center"
-            style={{ 
-              textShadow: '0 4px 30px rgba(0,0,0,0.5)',
-              letterSpacing: '-0.02em'
-            }}
-          >
-            {data.headline || 'TYLKO DZIŚ!'}
-          </h1>
-          
-          {/* Big discount */}
-          <div 
-            className="text-8xl font-black mb-6"
-            style={{ 
-              background: 'linear-gradient(135deg, hsl(330 100% 65%), hsl(340 100% 75%))',
+              background: 'linear-gradient(135deg, hsl(330 100% 70%) 0%, hsl(340 100% 60%) 50%, hsl(330 100% 70%) 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
-              filter: 'drop-shadow(0 4px 20px hsl(330 100% 60% / 0.5))'
+              textShadow: '0 0 80px hsl(330 100% 60% / 0.5)'
             }}
           >
-            {data.discount || '-50%'}
-          </div>
-          
-          {/* Service */}
-          <p className="text-xl text-white/80 text-center">
-            {data.service || 'Wszystkie zabiegi'}
-          </p>
+            -{data.discount || '50'}%
+          </span>
         </div>
         
-        {/* Bottom - CTA */}
-        <div className="text-center pb-12">
-          <button
-            className="px-10 py-4 rounded-full text-lg font-bold tracking-wide flex items-center gap-2 mx-auto"
-            style={{
-              background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-              color: 'white',
-              boxShadow: '0 4px 30px hsl(330 100% 60% / 0.5)',
-            }}
-          >
-            {data.cta || 'Zarezerwuj teraz'}
-            <ArrowUp className="w-5 h-5" />
-          </button>
+        {/* Service */}
+        <h2 className="text-2xl font-semibold text-white mb-6">
+          {data.service || 'Na wszystkie usługi'}
+        </h2>
+        
+        {/* Timer badge */}
+        <div 
+          className="flex items-center gap-3 px-6 py-3 rounded-lg mb-8"
+          style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}
+        >
+          <Clock className="w-5 h-5 text-white/60" />
+          <span className="text-white/80 font-medium">
+            {data.validity || 'Tylko dziś!'}
+          </span>
         </div>
+        
+        {/* Salon */}
+        <p 
+          className="text-xs tracking-[0.4em] uppercase"
+          style={{ color: 'hsl(330 100% 65%)' }}
+        >
+          {data.salon || 'Beauty Studio'}
+        </p>
       </div>
       
-      {/* Corner accents */}
+      {/* Border glow */}
       <div 
-        className="absolute top-0 left-0 w-40 h-40"
-        style={{
-          background: 'linear-gradient(135deg, hsl(330 100% 60% / 0.2) 0%, transparent 50%)',
-        }}
-      />
-      <div 
-        className="absolute top-0 right-0 w-40 h-40"
-        style={{
-          background: 'linear-gradient(225deg, hsl(330 100% 60% / 0.2) 0%, transparent 50%)',
+        className="absolute inset-4 rounded-2xl pointer-events-none"
+        style={{ 
+          border: '1px solid hsl(330 100% 60% / 0.2)',
+          boxShadow: 'inset 0 0 60px hsl(330 100% 60% / 0.05)'
         }}
       />
     </div>

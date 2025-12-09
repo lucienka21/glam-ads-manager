@@ -1,11 +1,11 @@
-import { Clock, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 
 interface ServiceHighlightProps {
   data: Record<string, string>;
 }
 
 export function ServiceHighlight({ data }: ServiceHighlightProps) {
-  const placeholderImage = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80';
+  const placeholderImage = 'https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?w=800&q=80';
   
   return (
     <div 
@@ -15,35 +15,34 @@ export function ServiceHighlight({ data }: ServiceHighlightProps) {
         fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* Full background image with overlay */}
+      {/* Background image */}
       <div className="absolute inset-0">
         <img 
           src={data.image || placeholderImage} 
           alt="" 
           className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.4) contrast(1.1)' }}
-        />
-        {/* Gradient overlay */}
-        <div 
-          className="absolute inset-0"
-          style={{ 
-            background: 'linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.3) 100%)'
-          }}
+          style={{ filter: 'brightness(0.35) saturate(0.8)' }}
         />
       </div>
       
-      {/* Pink accent glow */}
+      {/* Gradient overlays */}
       <div 
-        className="absolute bottom-0 left-0 right-0 h-1/2 opacity-30"
+        className="absolute inset-0"
         style={{ 
-          background: 'linear-gradient(to top, hsl(330 100% 60% / 0.2), transparent)'
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.9) 100%)'
         }}
       />
       
+      {/* Pink accent */}
+      <div 
+        className="absolute top-20 left-20 w-40 h-40 opacity-30 blur-3xl"
+        style={{ background: 'hsl(330 100% 60%)' }}
+      />
+      
       {/* Content */}
-      <div className="absolute inset-0 p-10 flex flex-col justify-between">
-        {/* Top - Salon name */}
-        <div className="flex items-center justify-between">
+      <div className="absolute inset-0 p-10 flex flex-col">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-auto">
           <p 
             className="text-xs tracking-[0.4em] uppercase font-medium"
             style={{ color: 'hsl(330 100% 65%)' }}
@@ -56,54 +55,52 @@ export function ServiceHighlight({ data }: ServiceHighlightProps) {
           />
         </div>
         
-        {/* Center - Visual focus (empty for image) */}
-        <div />
-        
-        {/* Bottom - Service info */}
-        <div>
-          {/* Service name */}
-          <h1 
-            className="text-3xl font-bold text-white mb-3"
-            style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+        {/* Main content */}
+        <div className="mt-auto">
+          <p 
+            className="text-xs tracking-[0.3em] uppercase mb-3"
+            style={{ color: 'rgba(255,255,255,0.5)' }}
           >
-            {data.service || 'Keratynowe prostowanie'}
-          </h1>
-          
-          {/* Description */}
-          <p className="text-white/70 mb-5 leading-relaxed">
-            {data.description || 'Gładkie, lśniące włosy przez 3-6 miesięcy'}
+            Polecany zabieg
           </p>
           
-          {/* Price and duration */}
-          <div className="flex items-center justify-between">
-            <div 
-              className="px-6 py-3 rounded-xl"
-              style={{ 
-                background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-                boxShadow: '0 4px 20px hsl(330 100% 60% / 0.4)'
-              }}
+          <h2 
+            className="text-4xl font-bold text-white mb-4 leading-tight"
+          >
+            {data.service || 'Luksusowy zabieg na twarz'}
+          </h2>
+          
+          {/* Decorative line */}
+          <div 
+            className="h-1 w-16 mb-6 rounded-full"
+            style={{ background: 'linear-gradient(90deg, hsl(330 100% 60%), hsl(340 100% 50%))' }}
+          />
+          
+          <p className="text-white/70 mb-8 leading-relaxed max-w-sm">
+            {data.description || 'Odkryj głęboko nawilżający zabieg, który odmieni Twoją skórę.'}
+          </p>
+          
+          {/* Price */}
+          <div className="flex items-baseline gap-3">
+            <span 
+              className="text-3xl font-bold"
+              style={{ color: 'hsl(330 100% 65%)' }}
             >
-              <span className="text-xl font-bold text-white">
-                {data.price || 'od 399 zł'}
+              {data.price || '299'} zł
+            </span>
+            {data.oldPrice && (
+              <span className="text-lg text-white/40 line-through">
+                {data.oldPrice} zł
               </span>
-            </div>
-            
-            <div className="flex items-center gap-2 text-white/60">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm">
-                {data.duration || '2-3h'}
-              </span>
-            </div>
+            )}
           </div>
         </div>
       </div>
       
-      {/* Decorative corner accent */}
+      {/* Bottom accent line */}
       <div 
-        className="absolute top-0 right-0 w-32 h-32"
-        style={{
-          background: 'linear-gradient(225deg, hsl(330 100% 60% / 0.15) 0%, transparent 50%)',
-        }}
+        className="absolute bottom-0 left-0 right-0 h-1"
+        style={{ background: 'linear-gradient(90deg, hsl(330 100% 60%), hsl(340 100% 50%), hsl(330 100% 60%))' }}
       />
     </div>
   );
