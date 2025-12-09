@@ -57,7 +57,8 @@ const ContractGenerator = () => {
     signDate: new Date().toISOString().split("T")[0],
     signCity: "",
     contractValue: "",
-    paymentType: "split" as "split" | "full", // split = 50%+50%, full = 100% z góry
+    paymentType: "split50" as "split50" | "split30" | "full",
+    paymentDueDate: "",
     agencyName: savedAgency.agencyName || "Agencja Marketingowa Aurine",
     agencyOwnerName: savedAgency.agencyOwnerName || "",
     agencyAddress: savedAgency.agencyAddress || "",
@@ -396,26 +397,45 @@ const ContractGenerator = () => {
 
               <div>
                 <Label className="text-xs">Wariant płatności</Label>
-                <div className="flex gap-2 mt-1">
+                <div className="flex gap-1.5 mt-1">
                   <Button
                     type="button"
-                    variant={formData.paymentType === "split" ? "default" : "outline"}
+                    variant={formData.paymentType === "split50" ? "default" : "outline"}
                     size="sm"
-                    className="flex-1 text-xs"
-                    onClick={() => handleInputChange("paymentType", "split")}
+                    className="flex-1 text-[10px] px-2"
+                    onClick={() => handleInputChange("paymentType", "split50")}
                   >
                     50% + 50%
                   </Button>
                   <Button
                     type="button"
+                    variant={formData.paymentType === "split30" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-[10px] px-2"
+                    onClick={() => handleInputChange("paymentType", "split30")}
+                  >
+                    30% + 70%
+                  </Button>
+                  <Button
+                    type="button"
                     variant={formData.paymentType === "full" ? "default" : "outline"}
                     size="sm"
-                    className="flex-1 text-xs"
+                    className="flex-1 text-[10px] px-2"
                     onClick={() => handleInputChange("paymentType", "full")}
                   >
-                    100% z góry
+                    100%
                   </Button>
                 </div>
+              </div>
+
+              <div>
+                <Label className="text-xs">Termin płatności (opcjonalnie)</Label>
+                <Input
+                  type="date"
+                  value={formData.paymentDueDate}
+                  onChange={(e) => handleInputChange("paymentDueDate", e.target.value)}
+                  className="h-9 mt-1"
+                />
               </div>
 
               <div className="pt-2 border-t border-border/30">
