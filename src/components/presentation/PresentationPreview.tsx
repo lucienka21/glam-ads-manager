@@ -1176,7 +1176,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         <div className="text-center mb-5">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500/20 to-orange-500/10 rounded-full border border-amber-500/30 mb-3">
             <Gift className="w-4 h-4 text-amber-400" />
-            <span className="text-amber-300 text-sm font-medium">Propozycja nie do odrzucenia</span>
+            <span className="text-amber-300 text-sm font-medium">Porozmawiajmy</span>
             <Sparkles className="w-4 h-4 text-amber-400" />
           </div>
           <h2 className="text-4xl font-black text-white mb-2">
