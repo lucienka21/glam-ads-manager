@@ -209,7 +209,7 @@ function declineByRules(name: string): string {
 }
 
 // Decline a single word to locative
-function declineSingleWord(word: string): string {
+export function declineSingleWord(word: string): string {
   if (!word) return '';
   
   // Check dictionary first
