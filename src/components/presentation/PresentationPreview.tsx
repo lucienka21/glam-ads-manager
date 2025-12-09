@@ -794,10 +794,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <TrendingUp className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Konkurencja już działa</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Klientki są w telefonie</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Inne salony w okolicy już inwestują w płatne reklamy na Facebooku i Instagramie. Klientki, które mogłyby trafić do Ciebie, 
-                  <span className="text-pink-400 font-semibold"> trafiają do konkurencji</span>, bo to jej reklamy widzą codziennie w telefonie. A Ty zostajesz w tyle.
+                  Twoje potencjalne klientki spędzają <span className="text-pink-400 font-semibold">średnio 2-3 godziny dziennie</span> scrollując Facebooka i Instagrama. 
+                  Jeśli nie widzą tam Twojego salonu, to tak jakby nie istniał. Reklama dociera do nich dokładnie wtedy, gdy szukają inspiracji na nowy zabieg.
                 </p>
               </div>
             </div>
