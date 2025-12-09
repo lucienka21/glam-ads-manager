@@ -10,6 +10,7 @@ import {
   MapPin, Sparkle, CheckCircle, AlertCircle, Quote
 } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
+import { declineSalonNameToGenitive, declineCityToGenitive } from "@/lib/polishDeclension";
 
 interface PresentationData {
   ownerName: string;
@@ -1180,7 +1181,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             <Sparkles className="w-4 h-4 text-amber-400" />
           </div>
           <h2 className="text-4xl font-black text-white mb-2">
-            Specjalnie dla <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">{data.city || "Twojego miasta"}</span>
+            Specjalnie dla <span className="bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">{data.salonName ? declineSalonNameToGenitive(data.salonName) : "Twojego salonu"}</span>
           </h2>
           <p className="text-lg text-zinc-300">
             Chcemy, żebyś mogła sprawdzić jak działamy. <span className="text-pink-300">Bez żadnego ryzyka</span>
@@ -1242,7 +1243,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               
               <h3 className="text-xl font-bold text-white mb-2">Darmowy tydzień próbny</h3>
               <p className="text-zinc-300 text-sm leading-relaxed mb-4">
-                Dla <span className="text-amber-400 font-semibold">dwóch pierwszych salonów z {data.city || "Twojego miasta"}</span> uruchamiamy 
+                Dla <span className="text-amber-400 font-semibold">dwóch pierwszych salonów z {data.city ? declineCityToGenitive(data.city) : "Twojego miasta"}</span> uruchamiamy 
                 kampanię na tydzień za darmo. <span className="text-amber-300">Zobaczysz efekty przed zapłatą.</span>
               </p>
               

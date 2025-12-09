@@ -400,6 +400,83 @@ export function declineSalonNameToGenitive(salonName: string): string {
 }
 
 /**
+ * Decline a Polish city name to genitive case (dopełniacz)
+ * Used in sentences like "z [miasta]"
+ */
+export function declineCityToGenitive(city: string): string {
+  if (!city) return '';
+  
+  const trimmed = city.trim();
+  
+  // Dictionary for common cities - genitive forms
+  const cityGenitive: Record<string, string> = {
+    'Warszawa': 'Warszawy',
+    'Kraków': 'Krakowa',
+    'Łódź': 'Łodzi',
+    'Wrocław': 'Wrocławia',
+    'Poznań': 'Poznania',
+    'Gdańsk': 'Gdańska',
+    'Szczecin': 'Szczecina',
+    'Bydgoszcz': 'Bydgoszczy',
+    'Lublin': 'Lublina',
+    'Białystok': 'Białegostoku',
+    'Katowice': 'Katowic',
+    'Gdynia': 'Gdyni',
+    'Częstochowa': 'Częstochowy',
+    'Radom': 'Radomia',
+    'Toruń': 'Torunia',
+    'Kielce': 'Kielc',
+    'Rzeszów': 'Rzeszowa',
+    'Olsztyn': 'Olsztyna',
+    'Opole': 'Opola',
+    'Płock': 'Płocka',
+    'Tarnów': 'Tarnowa',
+    'Koszalin': 'Koszalina',
+    'Kalisz': 'Kalisza',
+    'Legnica': 'Legnicy',
+    'Słupsk': 'Słupska',
+    'Brodnica': 'Brodnicy',
+    'Ostrów Mazowiecka': 'Ostrowi Mazowieckiej',
+  };
+  
+  if (cityGenitive[trimmed]) {
+    return cityGenitive[trimmed];
+  }
+  
+  // Apply grammatical rules for genitive
+  const lower = trimmed.toLowerCase();
+  
+  // Feminine -a endings -> -y or -i
+  if (lower.endsWith('a')) {
+    if (lower.endsWith('ka') || lower.endsWith('ga')) {
+      return trimmed.slice(0, -1) + 'i';
+    }
+    if (lower.endsWith('ca') || lower.endsWith('cza')) {
+      return trimmed.slice(0, -1) + 'y';
+    }
+    return trimmed.slice(0, -1) + 'y';
+  }
+  
+  // Neuter -o endings -> -a
+  if (lower.endsWith('o')) {
+    return trimmed.slice(0, -1) + 'a';
+  }
+  
+  // Neuter -e endings (plural) -> drop -e or -ø
+  if (lower.endsWith('ice') || lower.endsWith('ce')) {
+    return trimmed.slice(0, -1);
+  }
+  
+  // Masculine endings -> -a or -u
+  if (lower.endsWith('ów')) {
+    return trimmed.slice(0, -2) + 'owa';
+  }
+  
+  // Default for masculine: add -a
+  return trimmed + 'a';
+}
+
+/**
  * Format phone number for display and copying
  * Ensures proper Polish format: +48 XXX XXX XXX
  */
