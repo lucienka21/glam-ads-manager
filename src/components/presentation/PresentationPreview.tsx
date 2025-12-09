@@ -767,7 +767,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             Czy to brzmi <span className="text-pink-400">znajomo</span>?
           </h2>
           <p className="text-lg text-zinc-300">
-            W mniejszych miastach wciąż pokutuje przekonanie, że regularne dodawanie postów to marketing...
+            Wiele właścicielek salonów w mniejszych miastach zmaga się z tymi samymi problemami...
           </p>
         </div>
 
@@ -779,10 +779,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Instagram className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">"Wrzucam posty, ale nikt nie reaguje"</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Post to nie reklama</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Spędzasz godziny na zdjęciach i opisach, ale Twoje posty widzą głównie te same osoby. 
-                  Algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących — reszta nawet nie wie, że coś publikujesz.
+                  Wrzucasz piękne zdjęcia zabiegów, ale algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących. 
+                  Cała reszta nawet nie wie, że coś publikujesz.
                 </p>
               </div>
             </div>
@@ -791,13 +791,13 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
-                <Users className="w-6 h-6 text-zinc-400" />
+                <TrendingUp className="w-6 h-6 text-zinc-400 rotate-180" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">"Konkurencja ma mniej polubień, a więcej klientek"</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Organiczne zasięgi to przeszłość</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Zastanawiasz się, jak to możliwe? Odpowiedź jest prosta: <span className="text-rose-400 font-semibold">płatne reklamy</span>. 
-                  Docierają do tysięcy nowych osób w okolicy, nie tylko do tych, którzy już Cię obserwują.
+                  Kiedyś wystarczyło regularnie postować. Dziś zasięgi organiczne <span className="text-rose-400 font-semibold">spadły o 80%</span>. 
+                  Bez płatnej promocji trudno dotrzeć do nowych osób.
                 </p>
               </div>
             </div>
@@ -809,10 +809,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Clock className="w-6 h-6 text-zinc-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">"Nie mam czasu na naukę reklam"</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy technicznej</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Między zabiegami, grafikiem i zamówieniami nie ma kiedy siedzieć przy komputerze. 
-                  A kliknięcie "Promuj post" to często <span className="text-zinc-400">przepalone pieniądze</span> bez efektu.
+                  Między zabiegami, zamówieniami i grafiku nie ma czasu na naukę 
+                  Menedżera reklam. A kliknięcie "Promuj post" to często <span className="text-zinc-400">przepalone pieniądze</span>.
                 </p>
               </div>
             </div>
@@ -998,7 +998,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 avatar: "M"
               },
               {
-                name: "Karolina Ł.",
+                name: "Karolina",
                 salon: "Salon fryzjerski",
                 city: "Tarnów",
                 text: "Pełen profesjonalizm od samego początku. Cała współpraca przebiegała krok po kroku, świetny kontakt i bardzo przyjemne rozmowy z Przemkiem. Z czystym sumieniem polecam! :)",
