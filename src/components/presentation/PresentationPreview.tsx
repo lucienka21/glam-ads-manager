@@ -1079,7 +1079,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 num: "01", 
                 icon: Coffee, 
                 title: "Rozmowa", 
-                desc: "Poznajemy Twój salon, klientki i cele. Bez zobowiązań.", 
+                desc: "Poznajemy historię Twojego salonu i Twoje cele.", 
                 details: ["Analiza profilu", "Określenie grupy", "Ustalenie budżetu"],
                 color: "from-pink-500/30 to-rose-500/20"
               },
