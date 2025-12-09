@@ -759,15 +759,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="Znamy te wyzwania" />
+        <Header subtitle="Porozmawiajmy szczerze" />
 
         {/* Title */}
         <div className="mb-6">
           <h2 className="text-4xl font-black text-white mb-3">
-            Może to <span className="text-pink-400">brzmi znajomo</span>?
+            Hej, <span className="text-pink-400">musimy pogadać</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Spokojnie, nie jesteś sama. Większość właścicielek salonów wpada w te same pułapki.
+            Bo widzimy, że robisz te same rzeczy co inne salony. I tak jak one, pewnie się zastanawiasz dlaczego nie ma efektów.
           </p>
         </div>
 
