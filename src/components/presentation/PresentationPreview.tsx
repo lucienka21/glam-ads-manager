@@ -767,7 +767,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             Czy to brzmi <span className="text-pink-400">znajomo</span>?
           </h2>
           <p className="text-lg text-zinc-300">
-            W mniejszych miastach wciąż pokutuje przekonanie, że regularne dodawanie postów to marketing...
+            W mniejszych miastach wciąż pokutuje przekonanie, że <span className="text-pink-400 font-semibold">dodawanie postów na Facebooku to marketing</span>. Niestety, to tak nie działa.
           </p>
         </div>
 
@@ -779,10 +779,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Instagram className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">"Wrzucam posty, ale nikt nie reaguje"</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Post ≠ Reklama</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Spędzasz godziny na zdjęciach i opisach, ale Twoje posty widzą głównie te same osoby. 
-                  Algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących — reszta nawet nie wie, że coś publikujesz.
+                  Social media to <span className="text-pink-400 font-semibold">wizytówka</span>, nie narzędzie sprzedaży. 
+                  Algorytm pokazuje Twoje posty tylko <span className="text-pink-400 font-semibold">5-10%</span> obserwujących — reszta nawet nie wie, że coś publikujesz.
                 </p>
               </div>
             </div>
@@ -794,10 +794,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Users className="w-6 h-6 text-zinc-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">"Konkurencja ma mniej polubień, a więcej klientek"</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Bazowanie na poleceniach</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Zastanawiasz się, jak to możliwe? Odpowiedź jest prosta: <span className="text-rose-400 font-semibold">płatne reklamy</span>. 
-                  Docierają do tysięcy nowych osób w okolicy, nie tylko do tych, którzy już Cię obserwują.
+                  Liczysz, że klientki same Cię znajdą i przyjdą z polecenia? To działa, ale <span className="text-rose-400 font-semibold">bardzo wolno</span>. 
+                  A co jeśli chcesz zapełnić grafik szybciej?
                 </p>
               </div>
             </div>
@@ -806,13 +806,13 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
-                <Clock className="w-6 h-6 text-zinc-400" />
+                <TrendingUp className="w-6 h-6 text-zinc-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">"Nie mam czasu na naukę reklam"</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Brak strategii marketingowej</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Między zabiegami, grafikiem i zamówieniami nie ma kiedy siedzieć przy komputerze. 
-                  A kliknięcie "Promuj post" to często <span className="text-zinc-400">przepalone pieniądze</span> bez efektu.
+                  Postujesz "bo trzeba", ale bez planu i celu. Nie wiesz co działa, a co nie. 
+                  <span className="text-zinc-400"> Marketing to system</span>, nie pojedyncze działania.
                 </p>
               </div>
             </div>
