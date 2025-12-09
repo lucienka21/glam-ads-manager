@@ -847,15 +847,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="Dlaczego warto" />
+        <Header subtitle="Twoje korzyści" />
 
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Dlaczego warto korzystać z <span className="text-pink-400">Facebook Ads?</span>
+            Co <span className="text-pink-400">zyskujesz</span> dzięki nam?
           </h2>
           <p className="text-lg text-zinc-300">
-            Docieraj do <span className="text-pink-300">idealnych klientek</span> w Twojej okolicy
+            Ty zajmujesz się klientkami, <span className="text-pink-300">my przyprowadzamy nowe</span>
           </p>
         </div>
 
@@ -866,29 +866,29 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             {[
               { 
                 icon: Target, 
-                title: "Precyzyjne dotarcie", 
-                desc: "Reklamy trafiają do kobiet 25-45 lat, zainteresowanych urodą, w promieniu 15 km od Ciebie",
+                title: "Klientki z okolicy", 
+                desc: "Docieramy do kobiet w Twoim mieście, które szukają usług beauty",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
               { 
                 icon: Eye, 
-                title: "Tysiące wyświetleń", 
-                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek",
+                title: "Widoczność", 
+                desc: "Twój salon zobaczy nawet kilka tysięcy osób miesięcznie",
                 color: "from-blue-500/30 to-indigo-500/20",
                 borderColor: "border-blue-500/30"
               },
               { 
                 icon: Sparkles, 
-                title: "Piękne kreacje", 
-                desc: "Projektujemy grafiki i teksty zgodne z estetyką Twojego salonu",
+                title: "Gotowe materiały", 
+                desc: "Przygotowujemy grafiki i teksty dopasowane do Twojego stylu",
                 color: "from-fuchsia-500/30 to-purple-500/20",
                 borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
-                title: "Przejrzyste raporty", 
-                desc: "Co miesiąc jasny raport: zasięgi, kliknięcia, koszty. Zero zagadek",
+                title: "Pełna kontrola", 
+                desc: "Wiesz dokładnie ile wydajesz i co z tego masz",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
               },
