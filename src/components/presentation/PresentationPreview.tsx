@@ -866,29 +866,29 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             {[
               { 
                 icon: Target, 
-                title: "Nowe klientki co tydzień", 
-                desc: "Stały napływ nowych twarzy bez polegania na poleceniach. Reklamy trafiają do kobiet w Twojej okolicy, które właśnie szukają usług beauty",
+                title: "Klientki z okolicy", 
+                desc: "Docieramy do kobiet w Twoim mieście, które szukają usług beauty",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
               { 
                 icon: Eye, 
-                title: "Rezerwacje bez wysiłku", 
-                desc: "Klientki same piszą i umawiają się na wizyty. Ty skupiasz się na tym, co robisz najlepiej - usługach",
+                title: "Widoczność", 
+                desc: "Twój salon zobaczy nawet kilka tysięcy osób miesięcznie",
                 color: "from-blue-500/30 to-indigo-500/20",
                 borderColor: "border-blue-500/30"
               },
               { 
                 icon: Sparkles, 
-                title: "Zero pracy z Twojej strony", 
-                desc: "My tworzymy reklamy, grafiki i teksty dopasowane do Twojego salonu. Ty tylko akceptujesz i zbierasz efekty",
+                title: "Gotowe materiały", 
+                desc: "Przygotowujemy grafiki i teksty dopasowane do Twojego stylu",
                 color: "from-fuchsia-500/30 to-purple-500/20",
                 borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
-                title: "Wiesz na co idą pieniądze", 
-                desc: "Przejrzysty raport co miesiąc: ile osób zobaczyło reklamę, ile napisało, ile kosztowała każda nowa klientka",
+                title: "Pełna kontrola", 
+                desc: "Wiesz dokładnie ile wydajesz i co z tego masz",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
               },
