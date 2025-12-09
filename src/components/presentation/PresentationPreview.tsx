@@ -851,7 +851,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Reklamy, które <span className="text-pink-400">naprawdę działają</span>
+            Jest <span className="text-pink-400">lepszy sposób</span>
           </h2>
           <p className="text-lg text-zinc-300">
             Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
