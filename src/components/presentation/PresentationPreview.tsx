@@ -602,7 +602,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Co z nami <span className="text-pink-400">zyskujesz?</span>
+            Reklamy, które <span className="text-pink-400">naprawdę działają</span>
           </h2>
           <p className="text-lg text-zinc-300">
             Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
@@ -616,29 +616,29 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             {[
               { 
                 icon: Target, 
-                title: "Klientki z okolicy", 
-                desc: "Docieramy do kobiet w Twoim mieście, które szukają usług beauty",
+                title: "Precyzyjne dotarcie", 
+                desc: "Reklamy trafiają do kobiet 25-45 lat, zainteresowanych urodą, w promieniu 15 km od Ciebie",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
               { 
                 icon: Eye, 
-                title: "Widoczność", 
-                desc: "Twój salon zobaczy nawet kilka tysięcy osób miesięcznie",
+                title: "Tysiące wyświetleń", 
+                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek",
                 color: "from-blue-500/30 to-indigo-500/20",
                 borderColor: "border-blue-500/30"
               },
               { 
                 icon: Sparkles, 
-                title: "Gotowe materiały", 
-                desc: "Przygotowujemy grafiki i teksty dopasowane do Twojego stylu",
+                title: "Piękne kreacje", 
+                desc: "Projektujemy grafiki i teksty zgodne z estetyką Twojego salonu",
                 color: "from-fuchsia-500/30 to-purple-500/20",
                 borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
-                title: "Pełna kontrola", 
-                desc: "Wiesz dokładnie ile wydajesz i co z tego masz",
+                title: "Przejrzyste raporty", 
+                desc: "Co miesiąc jasny raport: zasięgi, kliknięcia, koszty. Zero zagadek",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
               },
@@ -742,25 +742,25 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             
             {[
               {
-                name: "Magdalena W.",
-                salon: "Gabinet kosmetyczny",
-                city: "Marki",
-                text: "Serdecznie polecam. Pan Przemek ma super podejście, nawet trudne rzeczy wyjaśniał w prosty sposób.",
+                name: "Magda",
+                salon: "Studio Urody Magda",
+                city: "Nowy Sącz",
+                text: "Po 2 miesiącach współpracy mam pełny grafik! Polecam każdej właścicielce salonu.",
                 avatar: "M"
               },
               {
                 name: "Karolina",
-                salon: "Salon fryzjerski",
+                salon: "Beauty by Karo",
                 city: "Tarnów",
-                text: "Pełen profesjonalizm od samego początku. Cała współpraca przebiegała krok po kroku, świetny kontakt i bardzo przyjemne rozmowy z Przemkiem. Z czystym sumieniem polecam! :)",
+                text: "Wreszcie ktoś, kto rozumie branżę beauty. Reklamy są piękne i skuteczne!",
                 avatar: "K"
               },
               {
-                name: "Joanna B.",
-                salon: "Studio stylizacji",
-                city: "Kobyłka",
-                text: "Współpracuję z Aurine już od kilku miesięcy i z pełnym przekonaniem mogę polecić Przemka i cały zespół. Naprawdę wiedzą, jak robić marketing lokalny i przyciągać klientów. Chętnie dzielą się wiedzą, tłumaczą wszystko krok po kroku i cierpliwie pomagają.",
-                avatar: "J"
+                name: "Anna",
+                salon: "Salon Piękności Anna",
+                city: "Gorlice",
+                text: "Bałam się płatnych reklam, ale ekipa Aurine wszystko wytłumaczyła. Teraz co tydzień mam nowe klientki.",
+                avatar: "A"
               }
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/15">
