@@ -1139,8 +1139,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         <div className="mt-4 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 rounded-xl p-4 border border-emerald-500/25">
           <p className="text-base text-center text-zinc-200 flex items-center justify-center gap-3">
             <Shield className="w-5 h-5 text-emerald-400" />
-            <span className="text-white font-medium">
-              Współpracujemy tak długo, jak jesteś zadowolona z efektów.
+            <span>
+              <span className="text-emerald-400 font-bold">Bez umów na rok.</span> Współpracujemy miesiąc do miesiąca. 
+              <span className="text-white font-medium"> Możesz zrezygnować kiedy chcesz.</span>
             </span>
           </p>
         </div>
