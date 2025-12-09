@@ -661,9 +661,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
           {/* Main headline - warm tone */}
           <h1 className="text-5xl font-black text-white leading-[1.2] mb-6">
-            Nowe klientki dla<br />
+            Facebook Ads dla<br />
             <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
-              {data.salonName || "Twojego salonu"}
+              Twojego salonu w {getCityInLocative(data.city)}
             </span>
           </h1>
 
