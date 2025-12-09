@@ -184,8 +184,8 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
           {/* §1 Przedmiot umowy */}
           <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
             <p className="text-[10px] text-pink-400 font-semibold mb-1">§1 Przedmiot umowy</p>
-            <p className="text-[9px] text-zinc-400 leading-relaxed">
-              Świadczenie usług marketingowych online: kampanie Facebook Ads, materiały reklamowe, optymalizacja, raportowanie i doradztwo marketingowe.
+            <p className="text-[8px] text-zinc-400 leading-relaxed">
+              Świadczenie usług marketingowych online: tworzenie i prowadzenie kampanii Facebook Ads, przygotowanie materiałów reklamowych (grafiki, treści, wideo), bieżąca optymalizacja i monitorowanie wyników, sporządzanie raportów oraz doradztwo marketingowe. Wykonawca realizuje zadania z należytą starannością, zgodnie z najlepszą praktyką marketingową.
             </p>
           </div>
 
@@ -194,19 +194,22 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
               <p className="text-[10px] text-pink-400 font-semibold mb-1">§2 Obowiązki Wykonawcy</p>
               <ul className="text-[8px] text-zinc-400 leading-relaxed space-y-0.5">
-                <li>• Prowadzenie kampanii zgodnie z celami</li>
-                <li>• Kreacje reklamowe i optymalizacja</li>
-                <li>• Raporty do 7. dnia miesiąca</li>
-                <li>• Zachowanie poufności</li>
+                <li>• Prowadzenie kampanii zgodnie z celami ustalonymi ze Zleceniodawcą</li>
+                <li>• Przygotowywanie propozycji kreacji reklamowych</li>
+                <li>• Bieżąca optymalizacja ustawień kampanii</li>
+                <li>• Raporty z wyników do 7. dnia roboczego następnego miesiąca</li>
+                <li>• Konsultacje i rekomendacje marketingowe</li>
+                <li>• Zachowanie poufności informacji</li>
               </ul>
             </div>
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
               <p className="text-[10px] text-pink-400 font-semibold mb-1">§3 Obowiązki Zleceniodawcy</p>
               <ul className="text-[8px] text-zinc-400 leading-relaxed space-y-0.5">
-                <li>• Dostęp do fanpage i konta Meta Ads</li>
-                <li>• Materiały (zdjęcia, opisy, logo)</li>
-                <li>• Akceptacja kreacji w 3 dni robocze</li>
-                <li>• Terminowe płatności</li>
+                <li>• Udostępnienie dostępu do fanpage i konta Meta Ads Manager</li>
+                <li>• Przekazanie materiałów (zdjęcia, opisy, logo)</li>
+                <li>• Akceptacja/odrzucenie kreacji w 3 dni robocze (brak odpowiedzi = akceptacja)</li>
+                <li>• Informowanie o zmianach w ofercie</li>
+                <li>• Terminowe uiszczanie wynagrodzenia</li>
               </ul>
             </div>
           </div>
@@ -215,7 +218,7 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
           <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
             <p className="text-[10px] text-pink-400 font-semibold mb-1">§4 Wynagrodzenie</p>
             <p className="text-[8px] text-zinc-400 leading-relaxed">
-              <span className="text-pink-300">Zaliczka 50%</span> w ciągu 3 dni od otrzymania umowy. <span className="text-pink-300">Pozostałe 50%</span> w 7 dni od zakończenia miesiąca. Budżet reklamowy finansowany przez Zleceniodawcę.
+              <span className="text-pink-300">Zaliczka 50%</span> wynagrodzenia płatna w ciągu 3 dni od otrzymania umowy. <span className="text-pink-300">Pozostałe 50%</span> płatne w terminie 7 dni od zakończenia miesiąca. Opóźnienie w płatności uprawnia Wykonawcę do wstrzymania usług. Budżet reklamowy Meta Ads finansowany jest w całości przez Zleceniodawcę i nie stanowi części wynagrodzenia.
             </p>
           </div>
 
@@ -224,13 +227,13 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
               <p className="text-[10px] text-pink-400 font-semibold mb-1">§5 Prawa autorskie</p>
               <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Materiały chronione prawem autorskim. Licencja niewyłączna po uregulowaniu płatności. Wykonawca może używać w portfolio.
+                Materiały reklamowe podlegają ochronie prawnoautorskiej. Po uregulowaniu wynagrodzenia Wykonawca udziela niewyłącznej, bezterminowej licencji. Wykonawca zachowuje prawo do wykorzystania w portfolio.
               </p>
             </div>
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
               <p className="text-[10px] text-pink-400 font-semibold mb-1">§6 Okres obowiązywania</p>
               <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Umowa obowiązuje od dnia wpłaty zaliczki. Przedłużenie za zgodą obu stron. Możliwość natychmiastowego rozwiązania przy naruszeniach.
+                Umowa obowiązuje od dnia wpłaty zaliczki. Przedłużenie wymaga zgody obu stron (aneks lub mail). Rażące naruszenie umożliwia natychmiastowe rozwiązanie.
               </p>
             </div>
           </div>
@@ -240,13 +243,13 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
               <p className="text-[10px] text-pink-400 font-semibold mb-1">§7 Rozwiązanie umowy</p>
               <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Natychmiastowe rozwiązanie przy: opóźnieniu płatności &gt;14 dni, braku materiałów, naruszeniu obowiązków. Forma pisemna lub elektroniczna.
+                Wykonawca może rozwiązać natychmiast przy: opóźnieniu płatności &gt;14 dni, braku materiałów, naruszeniu §3. Zleceniodawca może rozwiązać przy rażącym naruszeniu §2. Forma pisemna lub elektroniczna (e-mail).
               </p>
             </div>
             <div className="bg-zinc-800/30 border border-zinc-700/50 rounded-lg p-2.5">
               <p className="text-[10px] text-pink-400 font-semibold mb-1">§8 Postanowienia końcowe</p>
               <p className="text-[8px] text-zinc-400 leading-relaxed">
-                Zastosowanie Kodeksu cywilnego. Forma elektroniczna wystarczająca. Przystąpienie do realizacji = akceptacja umowy.
+                W sprawach nieuregulowanych stosuje się Kodeks cywilny. Forma elektroniczna (PDF) jest wystarczająca. Przystąpienie do realizacji = akceptacja umowy bez podpisu.
               </p>
             </div>
           </div>
