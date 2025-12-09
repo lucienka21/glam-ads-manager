@@ -851,7 +851,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Korzyści z <span className="text-pink-400">reklam na Facebooku</span>
+            Dlaczego warto korzystać z <span className="text-pink-400">Facebook Ads?</span>
           </h2>
           <p className="text-lg text-zinc-300">
             Docieraj do <span className="text-pink-300">idealnych klientek</span> w Twojej okolicy
