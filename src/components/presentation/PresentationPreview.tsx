@@ -794,10 +794,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <TrendingUp className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Polecenia to za mało</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Polecenia i Google to za mało</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Wiele salonów liczy tylko na polecenia od zadowolonych klientek. Problem w tym, że polecenia są <span className="text-pink-400 font-semibold">nieprzewidywalne</span> i nie da się ich skalować.
-                  Gdy konkurencja zacznie się reklamować, Twoje stałe klientki zobaczą inne oferty i mogą się skusić.
+                  Liczysz na polecenia i że klientki same Cię znajdą w Google? Problem w tym, że w Google widzą <span className="text-pink-400 font-semibold">całą Twoją konkurencję</span> obok.
+                  Z reklam na Facebooku wciąż korzysta niewiele salonów — te, które zaczną pierwsze, zdominują lokalny rynek.
                 </p>
               </div>
             </div>
