@@ -779,10 +779,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Instagram className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Post to nie reklama</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Posty organiczne to mit</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Wrzucasz piękne zdjęcia zabiegów, ale algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących. 
-                  Cała reszta nawet nie wie, że coś publikujesz.
+                  Niestety w małych miastach wciąż panuje przekonanie, że dodawanie postów na Facebooka czy Instagrama to marketing, który zapewni klientki. 
+                  <span className="text-pink-400 font-semibold"> To mit.</span> Posty organiczne widzi tylko <span className="text-pink-400 font-semibold">5-10%</span> losowych obserwujących — stąd pod postami jest tylko kilka reakcji.
                 </p>
               </div>
             </div>
