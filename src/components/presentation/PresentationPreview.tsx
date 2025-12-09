@@ -605,7 +605,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             Co z nami <span className="text-pink-400">zyskujesz?</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Ty zajmujesz się klientkami, <span className="text-pink-300">my przyprowadzamy nowe</span>
+            Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
           </p>
         </div>
 
