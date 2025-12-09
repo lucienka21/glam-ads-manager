@@ -759,15 +759,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="Dlaczego większość salonów nie rośnie" />
+        <Header subtitle="Znamy te wyzwania" />
 
         {/* Title */}
         <div className="mb-6">
           <h2 className="text-4xl font-black text-white mb-3">
-            Te błędy popełnia <span className="text-pink-400">90% salonów</span>
+            Może to <span className="text-pink-400">brzmi znajomo</span>?
           </h2>
           <p className="text-lg text-zinc-300">
-            Sprawdź, czy Ty też wpadasz w te pułapki marketingowe
+            Spokojnie, nie jesteś sama. Większość właścicielek salonów wpada w te same pułapki.
           </p>
         </div>
 
