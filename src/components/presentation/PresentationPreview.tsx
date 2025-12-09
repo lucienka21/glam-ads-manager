@@ -759,15 +759,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="O czym nikt Ci nie mówi" />
+        <Header subtitle="Rozumiemy Twoje wyzwania" />
 
         {/* Title */}
         <div className="mb-6">
           <h2 className="text-4xl font-black text-white mb-3">
-            Dlaczego <span className="text-pink-400">posty nie działają</span>?
+            Czy to brzmi <span className="text-pink-400">znajomo</span>?
           </h2>
           <p className="text-lg text-zinc-300">
-            Wrzucasz zdjęcia, starasz się, a efektów brak. To nie Twoja wina.
+            Wiele właścicielek salonów w mniejszych miastach zmaga się z tymi samymi problemami...
           </p>
         </div>
 
