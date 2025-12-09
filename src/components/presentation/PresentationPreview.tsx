@@ -779,7 +779,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Instagram className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Post to nie reklama</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Post <span className="text-pink-400">≠</span> reklama</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
                   Niestety w małych miastach wciąż panuje przekonanie, że dodawanie postów na Facebooka czy Instagrama to marketing, który zapewni klientki. 
                   <span className="text-pink-400 font-semibold"> To mit.</span> Posty organiczne widzi tylko <span className="text-pink-400 font-semibold">5-10%</span> losowych obserwujących, stąd pod postami jest tylko kilka reakcji.
@@ -788,31 +788,31 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-zinc-700/40">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-pink-500/25">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-zinc-400 rotate-180" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Konkurencja nie śpi</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Konkurencja już działa</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Inne salony w okolicy już inwestują w reklamę. Klientki, które mogłyby trafić do Ciebie, 
-                  <span className="text-rose-400 font-semibold"> trafiają do konkurencji</span>, bo to jej reklamy widzą w telefonie.
+                  Inne salony w okolicy już inwestują w płatne reklamy na Facebooku i Instagramie. Klientki, które mogłyby trafić do Ciebie, 
+                  <span className="text-pink-400 font-semibold"> trafiają do konkurencji</span>, bo to jej reklamy widzą codziennie w telefonie. A Ty zostajesz w tyle.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-zinc-700/40">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-pink-500/25">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
-                <Clock className="w-6 h-6 text-zinc-400" />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
+                <Clock className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy technicznej</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Między zabiegami, zamówieniami i grafikiem nie ma czasu na naukę 
-                  Menedżera reklam. A kliknięcie "Promuj post" to często <span className="text-zinc-400">przepalone pieniądze</span>.
+                  Między zabiegami, zamówieniami i grafikiem nie ma czasu na naukę Menedżera reklam. A kliknięcie <span className="text-pink-400 font-semibold">"Promuj post"</span> to często przepalone pieniądze, 
+                  bo bez strategii i targetowania reklama trafia do przypadkowych osób.
                 </p>
               </div>
             </div>
