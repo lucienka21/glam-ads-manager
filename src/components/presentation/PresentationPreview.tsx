@@ -851,10 +851,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Jest <span className="text-pink-400">lepszy sposób</span>
+            Ty robisz to, co kochasz.<br/><span className="text-pink-400">My przyprowadzamy klientki.</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
+            Zajmujemy się Twoimi reklamami od A do Z, żebyś mogła <span className="text-pink-300">skupić się na swojej pasji</span>
           </p>
         </div>
 
