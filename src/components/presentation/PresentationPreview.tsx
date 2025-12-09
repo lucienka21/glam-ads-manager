@@ -661,15 +661,16 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
           {/* Main headline - warm tone */}
           <h1 className="text-5xl font-black text-white leading-[1.2] mb-6">
-            Więcej klientek dzięki<br />
+            Wiemy, że prowadzenie<br />
             <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
-              reklamom na Facebooku
+              salonu to prawdziwe wyzwanie
             </span>
           </h1>
 
           <p className="text-lg text-zinc-300 leading-relaxed mb-8 max-w-xl">
-            Prowadzimy kampanie <span className="text-pink-300 font-semibold">Facebook Ads</span> dla salonów beauty.
-            Ty zajmujesz się klientkami - <span className="text-pink-300 font-medium">my przyprowadzamy nowe.</span>
+            Codziennie dbasz o to, żeby Twoje klientki wychodziły szczęśliwe. 
+            Zabiegi, grafik, zamówienia, media społecznościowe... 
+            <span className="text-pink-300 font-medium"> A co z pozyskiwaniem nowych klientek?</span>
           </p>
 
           {/* Personal info card */}
@@ -794,9 +795,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <TrendingUp className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Polecenia i Google to <span className="text-pink-400">za mało</span></h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Polecenia i Google to za mało</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Poleganie na poleceniach i wyszukiwarce działa - ale wolno i nieprzewidywalnie. W tym czasie Twoja konkurencja zgarnia klientki <span className="text-pink-400 font-semibold">reklamami na Facebooku</span>.
+                  Liczysz na polecenia i że klientki same Cię znajdą w Google? Problem w tym, że w Google widzą <span className="text-pink-400 font-semibold">całą Twoją konkurencję</span> obok.
+                  Z reklam na Facebooku wciąż korzysta niewiele salonów, te które zaczną pierwsze, zdominują lokalny rynek.
                 </p>
               </div>
             </div>
@@ -850,10 +852,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Co zyskujesz z <span className="text-pink-400">Facebook Ads?</span>
+            Co z nami <span className="text-pink-400">zyskujesz?</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Ty zajmujesz się klientkami, <span className="text-pink-300">reklamy przyprowadzają nowe</span>
+            Ty zajmujesz się klientkami, <span className="text-pink-300">my przyprowadzamy nowe</span>
           </p>
         </div>
 
@@ -864,29 +866,29 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             {[
               { 
                 icon: Target, 
-                title: "Reklamy trafiają do klientek", 
-                desc: "Facebook Ads pokazują Twój salon kobietom w okolicy, które szukają usług beauty",
+                title: "Klientki z okolicy", 
+                desc: "Docieramy do kobiet w Twoim mieście, które szukają usług beauty",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
               { 
                 icon: Eye, 
-                title: "Tysiące wyświetleń", 
-                desc: "Twój salon zobaczy nawet kilka tysięcy osób miesięcznie - nie 5% obserwujących",
+                title: "Widoczność", 
+                desc: "Twój salon zobaczy nawet kilka tysięcy osób miesięcznie",
                 color: "from-blue-500/30 to-indigo-500/20",
                 borderColor: "border-blue-500/30"
               },
               { 
                 icon: Sparkles, 
-                title: "Gotowe kreacje reklamowe", 
-                desc: "Przygotowujemy grafiki i teksty do reklam - Ty tylko akceptujesz",
+                title: "Gotowe materiały", 
+                desc: "Przygotowujemy grafiki i teksty dopasowane do Twojego stylu",
                 color: "from-fuchsia-500/30 to-purple-500/20",
                 borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
-                title: "Wiesz co działa", 
-                desc: "Ile osób zobaczyło reklamę, ile kliknęło, ile napisało - wszystko jak na dłoni",
+                title: "Pełna kontrola", 
+                desc: "Wiesz dokładnie ile wydajesz i co z tego masz",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
               },
