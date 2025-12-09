@@ -771,46 +771,40 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           </p>
         </div>
 
-        {/* Problems - friendly, relatable style */}
-        <div className="flex-1 max-w-[65%] grid grid-cols-1 gap-4">
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-pink-500/25">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
-                <Instagram className="w-6 h-6 text-pink-400" />
+        {/* Problems - compact cards */}
+        <div className="flex-1 max-w-[55%] grid grid-cols-1 gap-3">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-xl p-4 border border-pink-500/30">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
+                <Eye className="w-5 h-5 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Posty organiczne prawie nikt nie widzi</h3>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                  Algorytm pokazuje Twoje posty tylko <span className="text-pink-400 font-semibold">5-10% losowych obserwujących</span>. Stąd pod postami jest tylko kilka reakcji od tych samych osób. Reszta nawet nie wie, że coś publikujesz.
-                </p>
+                <h3 className="text-base font-bold text-white mb-1">Posty widzi tylko 5-10% obserwujących</h3>
+                <p className="text-zinc-400 text-sm">Algorytm losowo wybiera komu pokazać Twój post. Reszta nawet nie wie, że coś publikujesz.</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
-                <Users className="w-6 h-6 text-zinc-400" />
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-xl p-4 border border-pink-500/30">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
+                <Users className="w-5 h-5 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Liczenie na polecenia i że klientki same przyjdą</h3>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                  Polecenia są super, ale to <span className="text-pink-300">długa droga</span>. A nowe klientki nie spadają z nieba — trzeba do nich aktywnie dotrzeć, zanim zrobi to konkurencja.
-                </p>
+                <h3 className="text-base font-bold text-white mb-1">Czekanie na polecenia to długa droga</h3>
+                <p className="text-zinc-400 text-sm">Nowe klientki nie spadają z nieba — trzeba do nich aktywnie dotrzeć.</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-6 h-6 text-zinc-400" />
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-xl p-4 border border-pink-500/30">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-5 h-5 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Social media to wizytówka, nie reklama</h3>
-                <p className="text-zinc-300 text-sm leading-relaxed">
-                  Profil na Instagramie czy Facebooku to jak <span className="text-pink-300">ładna witryna sklepowa</span> — ale sama witryna nie przyciągnie klientek z drugiego końca miasta. Do tego potrzebna jest reklama.
-                </p>
+                <h3 className="text-base font-bold text-white mb-1">Postowanie bez strategii i celu</h3>
+                <p className="text-zinc-400 text-sm">Dodajesz posty "bo trzeba", ale nie wiesz co działa, a grafik wciąż świeci pustkami.</p>
               </div>
             </div>
           </div>
