@@ -21,13 +21,6 @@ interface ClientOption {
   owner_name?: string;
 }
 
-interface LeadOption {
-  id: string;
-  salon_name: string;
-  city?: string;
-  owner_name?: string;
-}
-
 const ContractGenerator = () => {
   const navigate = useNavigate();
   const { saveDocument, updateThumbnail } = useCloudDocumentHistory();
@@ -35,12 +28,25 @@ const ContractGenerator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentDocId, setCurrentDocId] = useState<string | null>(null);
   const [clients, setClients] = useState<ClientOption[]>([]);
-  const [leads, setLeads] = useState<LeadOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string>("");
-  const [selectedLeadId, setSelectedLeadId] = useState<string>("");
   const [previewScale, setPreviewScale] = useState(0.5);
   const previewContainerRef = useRef<HTMLDivElement>(null);
   
+  // Load agency data from localStorage
+  const loadAgencyData = () => {
+    const saved = localStorage.getItem("contractAgencyData");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
+  };
+
+  const savedAgency = loadAgencyData();
+
   const [formData, setFormData] = useState({
     clientName: "",
     clientOwnerName: "",
@@ -51,24 +57,33 @@ const ContractGenerator = () => {
     signDate: new Date().toISOString().split("T")[0],
     signCity: "",
     contractValue: "",
-    agencyName: "Agencja Marketingowa Aurine",
-    agencyOwnerName: "",
-    agencyAddress: "",
-    agencyPhone: "",
-    agencyEmail: "kontakt@aurine.pl",
-    agencyNip: "",
+    agencyName: savedAgency.agencyName || "Agencja Marketingowa Aurine",
+    agencyOwnerName: savedAgency.agencyOwnerName || "",
+    agencyAddress: savedAgency.agencyAddress || "",
+    agencyPhone: savedAgency.agencyPhone || "",
+    agencyEmail: savedAgency.agencyEmail || "kontakt@aurine.pl",
+    agencyNip: savedAgency.agencyNip || "",
   });
 
+  // Save agency data to localStorage whenever it changes
   useEffect(() => {
-    const fetchData = async () => {
-      const [clientsRes, leadsRes] = await Promise.all([
-        supabase.from('clients').select('id, salon_name, city, owner_name').order('salon_name'),
-        supabase.from('leads').select('id, salon_name, city, owner_name').not('status', 'in', '("converted","lost")').order('salon_name')
-      ]);
-      setClients(clientsRes.data || []);
-      setLeads(leadsRes.data || []);
+    const agencyData = {
+      agencyName: formData.agencyName,
+      agencyOwnerName: formData.agencyOwnerName,
+      agencyAddress: formData.agencyAddress,
+      agencyPhone: formData.agencyPhone,
+      agencyEmail: formData.agencyEmail,
+      agencyNip: formData.agencyNip,
     };
-    fetchData();
+    localStorage.setItem("contractAgencyData", JSON.stringify(agencyData));
+  }, [formData.agencyName, formData.agencyOwnerName, formData.agencyAddress, formData.agencyPhone, formData.agencyEmail, formData.agencyNip]);
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      const { data } = await supabase.from('clients').select('id, salon_name, city, owner_name').order('salon_name');
+      setClients(data || []);
+    };
+    fetchClients();
   }, []);
 
   useEffect(() => {
@@ -104,7 +119,6 @@ const ContractGenerator = () => {
 
   const handleClientSelect = (clientId: string) => {
     setSelectedClientId(clientId);
-    setSelectedLeadId("");
     
     if (clientId) {
       const client = clients.find(c => c.id === clientId);
@@ -113,22 +127,6 @@ const ContractGenerator = () => {
           ...prev,
           clientName: client.salon_name,
           signCity: client.city || prev.signCity,
-        }));
-      }
-    }
-  };
-
-  const handleLeadSelect = (leadId: string) => {
-    setSelectedLeadId(leadId);
-    setSelectedClientId("");
-    
-    if (leadId) {
-      const lead = leads.find(l => l.id === leadId);
-      if (lead) {
-        setFormData(prev => ({
-          ...prev,
-          clientName: lead.salon_name,
-          signCity: lead.city || prev.signCity,
         }));
       }
     }
@@ -149,7 +147,7 @@ const ContractGenerator = () => {
       formData,
       undefined,
       selectedClientId || undefined,
-      selectedLeadId || undefined
+      undefined
     );
     setCurrentDocId(docId);
     toast.success("Umowa zapisana!");
@@ -193,7 +191,7 @@ const ContractGenerator = () => {
           formData,
           undefined,
           selectedClientId || undefined,
-          selectedLeadId || undefined
+          undefined
         );
         setCurrentDocId(docId);
         
@@ -288,18 +286,6 @@ const ContractGenerator = () => {
                     value={selectedClientId}
                     onValueChange={handleClientSelect}
                     placeholder="Wybierz klienta..."
-                  />
-                </div>
-                <div>
-                  <Label className="text-xs flex items-center gap-1">
-                    <User className="w-3 h-3 text-primary" />
-                    Lead
-                  </Label>
-                  <SearchableSelect
-                    options={leads.map(l => ({ value: l.id, label: l.salon_name, description: l.city || "" }))}
-                    value={selectedLeadId}
-                    onValueChange={handleLeadSelect}
-                    placeholder="Wybierz leada..."
                   />
                 </div>
               </div>
