@@ -852,7 +852,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Co <span className="text-pink-400">zyskujesz</span> dzięki nam?
+            Co z nami <span className="text-pink-400">zyskujesz?</span>
           </h2>
           <p className="text-lg text-zinc-300">
             Ty zajmujesz się klientkami, <span className="text-pink-300">my przyprowadzamy nowe</span>
