@@ -772,38 +772,38 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         </div>
 
         {/* Problems - left side, more human */}
-        <div className="flex-1 max-w-[55%] grid grid-cols-1 gap-4">
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-pink-500/25">
+        <div className="flex-1 max-w-[55%] grid grid-cols-1 gap-3">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-pink-500/25">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
                 <Instagram className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Posty organiczne to mit</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Post to nie reklama</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
                   Niestety w małych miastach wciąż panuje przekonanie, że dodawanie postów na Facebooka czy Instagrama to marketing, który zapewni klientki. 
-                  <span className="text-pink-400 font-semibold"> To mit.</span> Posty organiczne widzi tylko <span className="text-pink-400 font-semibold">5-10%</span> losowych obserwujących — stąd pod postami jest tylko kilka reakcji.
+                  <span className="text-pink-400 font-semibold"> To mit.</span> Posty organiczne widzi tylko <span className="text-pink-400 font-semibold">5-10%</span> losowych obserwujących, stąd pod postami jest tylko kilka reakcji.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-zinc-700/40">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
                 <TrendingUp className="w-6 h-6 text-zinc-400 rotate-180" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Organiczne zasięgi to przeszłość</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Konkurencja nie śpi</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Kiedyś wystarczyło regularnie postować. Dziś zasięgi organiczne <span className="text-rose-400 font-semibold">spadły o 80%</span>. 
-                  Bez płatnej promocji trudno dotrzeć do nowych osób.
+                  Inne salony w okolicy już inwestują w reklamę. Klientki, które mogłyby trafić do Ciebie, 
+                  <span className="text-rose-400 font-semibold"> trafiają do konkurencji</span>, bo to jej reklamy widzą w telefonie.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-zinc-700/40">
+          <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-zinc-700/40">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center flex-shrink-0">
                 <Clock className="w-6 h-6 text-zinc-400" />
@@ -811,7 +811,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               <div>
                 <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy technicznej</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Między zabiegami, zamówieniami i grafiku nie ma czasu na naukę 
+                  Między zabiegami, zamówieniami i grafikiem nie ma czasu na naukę 
                   Menedżera reklam. A kliknięcie "Promuj post" to często <span className="text-zinc-400">przepalone pieniądze</span>.
                 </p>
               </div>
