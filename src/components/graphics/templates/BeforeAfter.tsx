@@ -1,59 +1,41 @@
-import { ArrowRight, Sparkles } from 'lucide-react';
-
 interface BeforeAfterProps {
   data: Record<string, string>;
 }
 
 export function BeforeAfter({ data }: BeforeAfterProps) {
-  const placeholderBefore = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=600&q=80';
-  const placeholderAfter = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=600&q=80';
+  const placeholderBefore = 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80';
+  const placeholderAfter = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80';
   
   return (
     <div 
-      className="w-[540px] h-[675px] relative overflow-hidden"
+      className="w-[540px] h-[540px] relative overflow-hidden"
       style={{ 
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #121212 100%)',
+        background: '#0a0a0a',
         fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* Top - Salon branding */}
-      <div className="absolute top-0 left-0 right-0 z-20 p-6 text-center">
-        <p 
-          className="text-xs tracking-[0.4em] uppercase font-medium mb-1"
-          style={{ color: 'hsl(330 100% 65%)' }}
-        >
-          {data.salon || 'Beauty Studio'}
-        </p>
-        <div 
-          className="h-px w-16 mx-auto"
-          style={{ background: 'linear-gradient(90deg, transparent, hsl(330 100% 60%), transparent)' }}
-        />
-      </div>
-      
-      {/* Images container */}
-      <div className="absolute top-16 left-6 right-6 bottom-24 flex gap-3">
-        {/* Before */}
-        <div className="flex-1 relative rounded-2xl overflow-hidden">
+      {/* Split images */}
+      <div className="absolute inset-0 flex">
+        {/* Before side */}
+        <div className="relative w-1/2 h-full overflow-hidden">
           <img 
-            src={data.imageBefore || placeholderBefore} 
-            alt="Przed" 
+            src={data.beforeImage || placeholderBefore} 
+            alt="Before" 
             className="w-full h-full object-cover"
-            style={{ filter: 'brightness(0.95)' }}
+            style={{ filter: 'brightness(0.85) saturate(0.9)' }}
           />
-          {/* Gradient overlay */}
           <div 
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7))' }}
+            style={{ background: 'linear-gradient(90deg, rgba(0,0,0,0.3) 0%, transparent 100%)' }}
           />
-          {/* Label */}
-          <div className="absolute bottom-4 left-4">
+          {/* Before label */}
+          <div className="absolute bottom-8 left-6">
             <span 
-              className="px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide"
+              className="text-xs tracking-[0.3em] uppercase px-4 py-2 rounded-full"
               style={{ 
-                background: 'rgba(255,255,255,0.15)',
-                backdropFilter: 'blur(8px)',
-                color: 'white',
-                border: '1px solid rgba(255,255,255,0.2)'
+                background: 'rgba(0,0,0,0.7)',
+                color: 'rgba(255,255,255,0.8)',
+                backdropFilter: 'blur(10px)'
               }}
             >
               Przed
@@ -61,74 +43,76 @@ export function BeforeAfter({ data }: BeforeAfterProps) {
           </div>
         </div>
         
-        {/* Divider with arrow */}
-        <div className="flex flex-col items-center justify-center w-10 relative">
-          <div 
-            className="absolute inset-y-8 w-px"
-            style={{ background: 'linear-gradient(to bottom, transparent, hsl(330 100% 60%), transparent)' }}
-          />
-          <div 
-            className="relative z-10 w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ 
-              background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-              boxShadow: '0 0 20px hsl(330 100% 60% / 0.5)'
-            }}
-          >
-            <ArrowRight className="w-4 h-4 text-white" />
-          </div>
-        </div>
-        
-        {/* After */}
-        <div className="flex-1 relative rounded-2xl overflow-hidden">
+        {/* After side */}
+        <div className="relative w-1/2 h-full overflow-hidden">
           <img 
-            src={data.imageAfter || placeholderAfter} 
-            alt="Po" 
+            src={data.afterImage || placeholderAfter} 
+            alt="After" 
             className="w-full h-full object-cover"
-            style={{ filter: 'brightness(1.05) contrast(1.05) saturate(1.1)' }}
+            style={{ filter: 'brightness(0.95) saturate(1.1)' }}
           />
-          {/* Gradient overlay */}
           <div 
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(to bottom, transparent 60%, rgba(0,0,0,0.7))' }}
+            style={{ background: 'linear-gradient(270deg, rgba(0,0,0,0.3) 0%, transparent 100%)' }}
           />
-          {/* Label */}
-          <div className="absolute bottom-4 right-4">
+          {/* After label */}
+          <div className="absolute bottom-8 right-6">
             <span 
-              className="px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wide"
+              className="text-xs tracking-[0.3em] uppercase px-4 py-2 rounded-full"
               style={{ 
-                background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
+                background: 'linear-gradient(135deg, hsl(330 100% 50%), hsl(340 100% 45%))',
                 color: 'white',
-                boxShadow: '0 0 15px hsl(330 100% 60% / 0.4)'
+                boxShadow: '0 4px 16px hsl(330 100% 50% / 0.3)'
               }}
             >
               Po
             </span>
           </div>
-          {/* Sparkles decoration */}
-          <Sparkles 
-            className="absolute top-4 right-4 w-5 h-5"
-            style={{ color: 'hsl(330 100% 70%)', filter: 'drop-shadow(0 0 6px hsl(330 100% 60% / 0.6))' }}
-          />
         </div>
       </div>
       
-      {/* Bottom - Service name */}
-      <div className="absolute bottom-0 left-0 right-0 p-6 text-center">
-        <p 
-          className="text-lg font-semibold text-white mb-1"
-        >
-          {data.service || 'Stylizacja włosów'}
-        </p>
-        <p className="text-xs text-white/50 uppercase tracking-wider">
-          Metamorfoza
-        </p>
+      {/* Center divider */}
+      <div 
+        className="absolute left-1/2 top-0 bottom-0 w-px -translate-x-1/2"
+        style={{ background: 'linear-gradient(180deg, transparent, hsl(330 100% 60%), hsl(330 100% 60%), transparent)' }}
+      />
+      <div 
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center"
+        style={{ 
+          background: 'linear-gradient(135deg, hsl(330 100% 50%), hsl(340 100% 45%))',
+          boxShadow: '0 0 30px hsl(330 100% 50% / 0.5)'
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+          <path d="M18 8l4 4-4 4M6 16l-4-4 4-4" />
+        </svg>
       </div>
       
-      {/* Pink glow effects */}
+      {/* Top overlay */}
       <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ background: 'hsl(330 100% 60%)' }}
-      />
+        className="absolute top-0 left-0 right-0 p-8"
+        style={{ background: 'linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%)' }}
+      >
+        <p 
+          className="text-xs tracking-[0.4em] uppercase font-medium mb-2"
+          style={{ color: 'hsl(330 100% 65%)' }}
+        >
+          {data.salon || 'Beauty Studio'}
+        </p>
+        <h2 className="text-xl font-semibold text-white">
+          {data.service || 'Metamorfoza'}
+        </h2>
+      </div>
+      
+      {/* Bottom overlay */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 p-6 text-center"
+        style={{ background: 'linear-gradient(0deg, rgba(0,0,0,0.9) 0%, transparent 100%)' }}
+      >
+        <p className="text-sm text-white/60 pt-8">
+          {data.description || 'Efekty mówią same za siebie'}
+        </p>
+      </div>
     </div>
   );
 }

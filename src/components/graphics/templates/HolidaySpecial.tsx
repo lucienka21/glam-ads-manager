@@ -1,157 +1,123 @@
-import { Snowflake, Star, Gift, Sparkles } from 'lucide-react';
+import { Gift, Sparkles } from 'lucide-react';
 
 interface HolidaySpecialProps {
   data: Record<string, string>;
 }
 
 export function HolidaySpecial({ data }: HolidaySpecialProps) {
-  const placeholderImage = 'https://images.unsplash.com/photo-1560066984-138dadb4c035?w=800&q=80';
-  
   return (
     <div 
-      className="w-[540px] h-[675px] relative overflow-hidden"
+      className="w-[540px] h-[540px] relative overflow-hidden"
       style={{ 
-        background: 'linear-gradient(160deg, #0a0810 0%, #150a14 50%, #0d0508 100%)',
+        background: 'linear-gradient(135deg, #0a0808 0%, #1a0a10 50%, #0a0808 100%)',
         fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* Festive gold/pink gradient overlays */}
+      {/* Festive gradient orbs */}
       <div 
-        className="absolute top-0 right-0 w-80 h-80 opacity-20 blur-3xl"
-        style={{ background: 'radial-gradient(circle, hsl(45 90% 55%), transparent 70%)' }}
+        className="absolute top-0 right-0 w-80 h-80 opacity-30 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(330 100% 55%), transparent 60%)' }}
       />
       <div 
         className="absolute bottom-0 left-0 w-64 h-64 opacity-25 blur-3xl"
-        style={{ background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, hsl(45 100% 50%), transparent 60%)' }}
+      />
+      <div 
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 opacity-10 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 50%)' }}
       />
       
-      {/* Snowflakes */}
-      {[...Array(15)].map((_, i) => (
-        <Snowflake
-          key={i}
-          className="absolute opacity-20"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${12 + Math.random() * 8}px`,
-            height: `${12 + Math.random() * 8}px`,
-            color: i % 2 === 0 ? 'hsl(45 90% 55%)' : 'hsl(330 100% 65%)',
-            transform: `rotate(${Math.random() * 360}deg)`,
-          }}
-        />
-      ))}
-      
-      {/* Image with circular frame */}
-      <div className="absolute top-16 left-1/2 -translate-x-1/2">
-        <div 
-          className="relative w-56 h-56 rounded-full p-1"
-          style={{ 
-            background: 'linear-gradient(135deg, hsl(45 90% 55%), hsl(330 100% 60%), hsl(45 90% 55%))',
-            boxShadow: '0 0 40px hsl(330 100% 60% / 0.3), 0 0 60px hsl(45 90% 55% / 0.2)'
-          }}
-        >
-          <div className="w-full h-full rounded-full overflow-hidden">
-            <img 
-              src={data.image || placeholderImage} 
-              alt="" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-        
-        {/* Decorative stars around frame */}
-        <Star 
-          className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-6"
-          style={{ color: 'hsl(45 90% 55%)', fill: 'hsl(45 90% 55%)', filter: 'drop-shadow(0 0 6px hsl(45 90% 55%))' }}
-        />
-        <Gift 
-          className="absolute top-1/2 -left-4 -translate-y-1/2 w-5 h-5 opacity-70"
-          style={{ color: 'hsl(330 100% 65%)' }}
-        />
-        <Sparkles 
-          className="absolute top-1/2 -right-4 -translate-y-1/2 w-5 h-5 opacity-70"
-          style={{ color: 'hsl(330 100% 65%)' }}
-        />
-      </div>
+      {/* Decorative sparkles */}
+      <Sparkles 
+        className="absolute top-16 right-16 w-6 h-6 opacity-40"
+        style={{ color: 'hsl(45 100% 60%)' }}
+      />
+      <Sparkles 
+        className="absolute bottom-20 left-20 w-4 h-4 opacity-30"
+        style={{ color: 'hsl(330 100% 65%)' }}
+      />
+      <Sparkles 
+        className="absolute top-1/3 left-16 w-5 h-5 opacity-25"
+        style={{ color: 'hsl(45 100% 55%)' }}
+      />
       
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-10 text-center">
-        {/* Salon name */}
-        <p 
-          className="text-xs tracking-[0.4em] uppercase font-medium mb-4"
-          style={{ color: 'hsl(45 90% 55%)' }}
-        >
-          {data.salon || 'Beauty Studio'}
-        </p>
-        
-        {/* Headline */}
-        <h1 
-          className="text-4xl font-bold mb-3"
-          style={{ 
-            background: 'linear-gradient(135deg, #fff, hsl(45 90% 75%), hsl(330 100% 75%))',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            textShadow: '0 4px 30px rgba(0,0,0,0.3)'
-          }}
-        >
-          {data.headline || 'Świąteczna Magia'}
-        </h1>
-        
-        {/* Subheadline */}
-        <p className="text-white/70 mb-6">
-          {data.subheadline || 'Przygotuj się na święta!'}
-        </p>
-        
-        {/* Discount badge */}
+      <div className="absolute inset-0 p-10 flex flex-col items-center justify-center text-center">
+        {/* Icon */}
         <div 
-          className="inline-block px-8 py-3 rounded-full mb-6"
+          className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
           style={{ 
-            background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-            boxShadow: '0 4px 30px hsl(330 100% 60% / 0.5)'
+            background: 'linear-gradient(135deg, hsl(330 100% 50%), hsl(340 100% 45%))',
+            boxShadow: '0 8px 32px hsl(330 100% 50% / 0.3)'
           }}
         >
-          <span className="text-2xl font-bold text-white">
-            {data.discount || '-25%'}
+          <Gift className="w-8 h-8 text-white" />
+        </div>
+        
+        {/* Holiday label */}
+        <p 
+          className="text-xs tracking-[0.4em] uppercase mb-4"
+          style={{ color: 'hsl(45 100% 60%)' }}
+        >
+          {data.occasion || 'Świąteczna Promocja'}
+        </p>
+        
+        {/* Main title */}
+        <h2 
+          className="text-4xl font-bold text-white mb-4"
+          style={{ textShadow: '0 4px 20px rgba(0,0,0,0.5)' }}
+        >
+          {data.title || 'Magiczne Święta'}
+        </h2>
+        
+        {/* Discount */}
+        <div className="mb-6">
+          <span 
+            className="text-7xl font-black"
+            style={{ 
+              background: 'linear-gradient(135deg, hsl(330 100% 65%) 0%, hsl(45 100% 60%) 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}
+          >
+            -{data.discount || '25'}%
           </span>
         </div>
         
-        {/* CTA */}
-        <div>
-          <button
-            className="px-8 py-3 rounded-full text-sm font-semibold tracking-wide"
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              color: 'white',
-              border: '1px solid rgba(255,255,255,0.2)',
-            }}
-          >
-            {data.cta || 'Zarezerwuj'}
-          </button>
+        {/* Description */}
+        <p className="text-white/70 mb-8 max-w-xs">
+          {data.description || 'Na wszystkie vouchery prezentowe'}
+        </p>
+        
+        {/* Validity */}
+        <div 
+          className="px-6 py-2 rounded-full"
+          style={{ 
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid rgba(255,255,255,0.1)'
+          }}
+        >
+          <span className="text-sm text-white/60">
+            {data.validity || 'Ważne do 31.12.2024'}
+          </span>
         </div>
+        
+        {/* Salon */}
+        <p 
+          className="absolute bottom-8 text-xs tracking-[0.4em] uppercase"
+          style={{ color: 'hsl(330 100% 65%)' }}
+        >
+          {data.salon || 'Beauty Studio'}
+        </p>
       </div>
       
-      {/* Corner ornaments */}
-      <div className="absolute top-4 left-4">
-        <div 
-          className="w-16 h-16"
-          style={{
-            borderTop: '2px solid hsl(45 90% 55% / 0.4)',
-            borderLeft: '2px solid hsl(45 90% 55% / 0.4)',
-            borderTopLeftRadius: '8px'
-          }}
-        />
-      </div>
-      <div className="absolute top-4 right-4">
-        <div 
-          className="w-16 h-16"
-          style={{
-            borderTop: '2px solid hsl(45 90% 55% / 0.4)',
-            borderRight: '2px solid hsl(45 90% 55% / 0.4)',
-            borderTopRightRadius: '8px'
-          }}
-        />
-      </div>
+      {/* Border decoration */}
+      <div 
+        className="absolute inset-6 rounded-2xl pointer-events-none"
+        style={{ 
+          border: '1px solid rgba(255,255,255,0.08)'
+        }}
+      />
     </div>
   );
 }

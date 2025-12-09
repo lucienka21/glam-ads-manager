@@ -1,5 +1,3 @@
-import { Sparkles, Star } from 'lucide-react';
-
 interface NewLookProps {
   data: Record<string, string>;
 }
@@ -11,123 +9,100 @@ export function NewLook({ data }: NewLookProps) {
     <div 
       className="w-[540px] h-[675px] relative overflow-hidden"
       style={{ 
-        background: 'linear-gradient(180deg, #0a0a0a 0%, #151515 100%)',
+        background: '#0a0a0a',
         fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* Full background image with artistic treatment */}
+      {/* Main image */}
       <div className="absolute inset-0">
         <img 
           src={data.image || placeholderImage} 
           alt="" 
           className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.8) contrast(1.1) saturate(1.1)' }}
-        />
-        {/* Complex gradient overlay */}
-        <div 
-          className="absolute inset-0"
-          style={{ 
-            background: `
-              linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 25%, transparent 50%, rgba(0,0,0,0.8) 100%),
-              linear-gradient(90deg, rgba(0,0,0,0.5) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.5) 100%)
-            `
-          }}
+          style={{ filter: 'brightness(0.9) contrast(1.05)' }}
         />
       </div>
       
-      {/* Pink accent glows */}
+      {/* Gradient overlays */}
       <div 
-        className="absolute top-10 left-10 w-32 h-32 opacity-40 blur-3xl"
-        style={{ background: 'hsl(330 100% 60%)' }}
+        className="absolute inset-0"
+        style={{ 
+          background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 30%, transparent 60%, rgba(0,0,0,0.9) 100%)'
+        }}
       />
+      
+      {/* Side accent */}
       <div 
-        className="absolute bottom-20 right-10 w-40 h-40 opacity-30 blur-3xl"
-        style={{ background: 'hsl(330 100% 60%)' }}
+        className="absolute top-0 left-0 bottom-0 w-1"
+        style={{ background: 'linear-gradient(180deg, transparent, hsl(330 100% 60%), hsl(330 100% 60%), transparent)' }}
       />
       
       {/* Content */}
-      <div className="absolute inset-0 p-10 flex flex-col">
-        {/* Top - Salon name */}
-        <div className="flex items-center justify-between">
-          <p 
-            className="text-xs tracking-[0.4em] uppercase font-medium"
-            style={{ color: 'hsl(330 100% 65%)' }}
+      <div className="absolute inset-0 p-8 flex flex-col">
+        {/* Top */}
+        <div className="flex items-start justify-between">
+          <div>
+            <p 
+              className="text-xs tracking-[0.4em] uppercase font-medium mb-1"
+              style={{ color: 'hsl(330 100% 65%)' }}
+            >
+              {data.salon || 'Beauty Studio'}
+            </p>
+            <p className="text-xs text-white/40 tracking-wide">
+              Metamorfoza
+            </p>
+          </div>
+          
+          {/* New badge */}
+          <div 
+            className="px-4 py-2 rounded-full"
+            style={{ 
+              background: 'linear-gradient(135deg, hsl(330 100% 50%), hsl(340 100% 45%))',
+              boxShadow: '0 4px 20px hsl(330 100% 50% / 0.4)'
+            }}
           >
-            {data.salon || 'Beauty Studio'}
-          </p>
-          <div className="flex gap-2">
-            <Star className="w-4 h-4" style={{ color: 'hsl(330 100% 65%)', fill: 'hsl(330 100% 65%)' }} />
-            <Sparkles className="w-4 h-4" style={{ color: 'hsl(330 100% 65%)' }} />
+            <span className="text-xs font-bold text-white tracking-wider uppercase">
+              New Look
+            </span>
           </div>
         </div>
         
-        {/* Spacer */}
-        <div className="flex-1" />
-        
-        {/* Bottom - Content */}
-        <div>
-          {/* Badge */}
-          <div 
-            className="inline-block px-4 py-1.5 rounded-full mb-4"
-            style={{ 
-              background: 'rgba(255,255,255,0.1)',
-              backdropFilter: 'blur(10px)',
-              border: '1px solid rgba(255,255,255,0.2)'
-            }}
-          >
-            <span className="text-xs font-medium text-white uppercase tracking-wider">
-              Metamorfoza
-            </span>
-          </div>
+        {/* Bottom content */}
+        <div className="mt-auto">
+          <h2 className="text-3xl font-bold text-white mb-3 leading-tight">
+            {data.title || 'Nowy wymiar piękna'}
+          </h2>
           
-          {/* Headline */}
-          <h1 
-            className="text-5xl font-bold text-white mb-3"
-            style={{ 
-              textShadow: '0 4px 30px rgba(0,0,0,0.5)',
-              lineHeight: '1.1'
-            }}
-          >
-            {data.headline || 'Nowy Wygląd'}
-          </h1>
-          
-          {/* Subheadline */}
-          <p className="text-lg text-white/70 mb-6">
-            {data.subheadline || 'Twoja metamorfoza zaczyna się tutaj'}
+          <p className="text-white/60 mb-6 max-w-xs leading-relaxed">
+            {data.description || 'Odkryj swoją najlepszą wersję z naszymi specjalistami'}
           </p>
           
           {/* Service tag */}
           <div 
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full"
             style={{ 
-              background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-              boxShadow: '0 4px 20px hsl(330 100% 60% / 0.4)'
+              background: 'rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(10px)'
             }}
           >
-            <Sparkles className="w-4 h-4 text-white" />
-            <span className="text-sm font-semibold text-white">
-              {data.service || 'Koloryzacja + stylizacja'}
+            <div 
+              className="w-2 h-2 rounded-full"
+              style={{ background: 'hsl(330 100% 60%)' }}
+            />
+            <span className="text-sm text-white/80">
+              {data.service || 'Fryzura & Stylizacja'}
             </span>
           </div>
         </div>
       </div>
       
-      {/* Decorative frame corners */}
+      {/* Decorative elements */}
       <div 
-        className="absolute top-6 left-6 w-12 h-12 border-t-2 border-l-2 rounded-tl-lg"
-        style={{ borderColor: 'hsl(330 100% 60% / 0.5)' }}
-      />
-      <div 
-        className="absolute top-6 right-6 w-12 h-12 border-t-2 border-r-2 rounded-tr-lg"
-        style={{ borderColor: 'hsl(330 100% 60% / 0.5)' }}
-      />
-      <div 
-        className="absolute bottom-6 left-6 w-12 h-12 border-b-2 border-l-2 rounded-bl-lg"
-        style={{ borderColor: 'hsl(330 100% 60% / 0.5)' }}
-      />
-      <div 
-        className="absolute bottom-6 right-6 w-12 h-12 border-b-2 border-r-2 rounded-br-lg"
-        style={{ borderColor: 'hsl(330 100% 60% / 0.5)' }}
+        className="absolute top-8 right-8 w-16 h-16"
+        style={{ 
+          borderRight: '1px solid rgba(255,255,255,0.15)',
+          borderTop: '1px solid rgba(255,255,255,0.15)'
+        }}
       />
     </div>
   );

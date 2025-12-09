@@ -1,5 +1,3 @@
-import { Star } from 'lucide-react';
-
 interface ElegantPromoProps {
   data: Record<string, string>;
 }
@@ -11,116 +9,120 @@ export function ElegantPromo({ data }: ElegantPromoProps) {
     <div 
       className="w-[540px] h-[540px] relative overflow-hidden"
       style={{ 
-        background: 'linear-gradient(145deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)',
+        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0f0f0f 100%)',
         fontFamily: "'Inter', sans-serif"
       }}
     >
-      {/* Subtle grid pattern */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)',
-          backgroundSize: '20px 20px',
-        }}
-      />
-      
-      {/* Pink glow accent */}
-      <div 
-        className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-30 blur-3xl"
-        style={{ background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 70%)' }}
-      />
-      
-      {/* Main image with diagonal clip */}
-      <div 
-        className="absolute right-0 top-0 w-[60%] h-full"
-        style={{ clipPath: 'polygon(20% 0, 100% 0, 100% 100%, 0% 100%)' }}
-      >
+      {/* Background image with overlay */}
+      <div className="absolute inset-0">
         <img 
           src={data.image || placeholderImage} 
           alt="" 
           className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.9) contrast(1.1)' }}
+          style={{ filter: 'brightness(0.4) saturate(0.9)' }}
         />
-        {/* Overlay */}
         <div 
           className="absolute inset-0"
-          style={{ background: 'linear-gradient(135deg, rgba(0,0,0,0.4) 0%, transparent 50%)' }}
+          style={{ 
+            background: 'linear-gradient(180deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.8) 100%)'
+          }}
         />
       </div>
       
+      {/* Pink accent glow */}
+      <div 
+        className="absolute top-0 right-0 w-64 h-64 opacity-30 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 70%)' }}
+      />
+      <div 
+        className="absolute bottom-0 left-0 w-48 h-48 opacity-20 blur-3xl"
+        style={{ background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 70%)' }}
+      />
+      
       {/* Content */}
-      <div className="absolute inset-0 p-12 flex flex-col justify-between">
+      <div className="absolute inset-0 p-10 flex flex-col justify-between">
         {/* Top - Salon name */}
         <div>
           <p 
-            className="text-xs tracking-[0.3em] uppercase font-medium"
+            className="text-xs tracking-[0.4em] uppercase font-medium"
             style={{ color: 'hsl(330 100% 65%)' }}
           >
             {data.salon || 'Beauty Studio'}
           </p>
         </div>
         
-        {/* Center - Discount badge */}
-        <div className="relative z-10">
+        {/* Center - Main content */}
+        <div className="text-center">
+          <p 
+            className="text-sm tracking-[0.3em] uppercase mb-4"
+            style={{ color: 'rgba(255,255,255,0.6)' }}
+          >
+            Oferta specjalna
+          </p>
+          
+          {/* Discount */}
+          <div className="relative inline-block mb-6">
+            <span 
+              className="text-8xl font-bold"
+              style={{ 
+                background: 'linear-gradient(135deg, hsl(330 100% 65%) 0%, hsl(340 100% 70%) 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent'
+              }}
+            >
+              -{data.discount || '30'}%
+            </span>
+          </div>
+          
+          {/* Service name */}
+          <h2 
+            className="text-2xl font-semibold text-white mb-2"
+            style={{ letterSpacing: '0.05em' }}
+          >
+            {data.service || 'Wszystkie zabiegi'}
+          </h2>
+          
+          {/* Decorative line */}
           <div 
-            className="inline-block px-6 py-2 rounded-full mb-4"
-            style={{ 
-              background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-              boxShadow: '0 4px 20px hsl(330 100% 60% / 0.4)'
-            }}
-          >
-            <span className="text-2xl font-bold text-white">
-              {data.discount || '-30%'}
-            </span>
-          </div>
+            className="h-px w-24 mx-auto my-6"
+            style={{ background: 'linear-gradient(90deg, transparent, hsl(330 100% 60%), transparent)' }}
+          />
           
-          <h1 
-            className="text-4xl font-bold text-white mb-3 leading-tight"
-            style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}
-          >
-            {data.headline || 'Wyjątkowa Promocja'}
-          </h1>
-          
-          {/* Prices */}
-          <div className="flex items-center gap-4 mb-6">
-            <span 
-              className="text-xl line-through opacity-50"
-              style={{ color: 'rgba(255,255,255,0.6)' }}
-            >
-              {data.oldPrice || '299 zł'}
-            </span>
-            <span 
-              className="text-3xl font-bold"
-              style={{ color: 'hsl(330 100% 65%)' }}
-            >
-              {data.newPrice || '199 zł'}
-            </span>
-          </div>
+          <p className="text-sm text-white/50">
+            {data.validity || 'Oferta ważna do końca miesiąca'}
+          </p>
         </div>
         
         {/* Bottom - CTA */}
-        <div>
-          <button
-            className="px-8 py-3 rounded-full text-sm font-semibold tracking-wide uppercase"
-            style={{
-              background: 'linear-gradient(135deg, hsl(330 100% 60%), hsl(340 100% 65%))',
-              color: 'white',
-              boxShadow: '0 4px 20px hsl(330 100% 60% / 0.4)',
+        <div className="text-center">
+          <div 
+            className="inline-block px-8 py-3 rounded-full"
+            style={{ 
+              background: 'linear-gradient(135deg, hsl(330 100% 50%), hsl(340 100% 45%))',
+              boxShadow: '0 8px 32px hsl(330 100% 50% / 0.3)'
             }}
           >
-            {data.cta || 'Rezerwuj'}
-          </button>
+            <span className="text-white font-semibold tracking-wide">
+              Umów wizytę
+            </span>
+          </div>
         </div>
       </div>
       
-      {/* Decorative stars */}
-      <Star 
-        className="absolute top-8 right-8 w-4 h-4 opacity-40"
-        style={{ color: 'hsl(330 100% 65%)', fill: 'hsl(330 100% 65%)' }}
+      {/* Corner accents */}
+      <div 
+        className="absolute top-6 left-6 w-12 h-12"
+        style={{ 
+          borderLeft: '1px solid rgba(255,255,255,0.2)',
+          borderTop: '1px solid rgba(255,255,255,0.2)'
+        }}
       />
-      <Star 
-        className="absolute bottom-16 right-16 w-3 h-3 opacity-30"
-        style={{ color: 'hsl(330 100% 65%)', fill: 'hsl(330 100% 65%)' }}
+      <div 
+        className="absolute bottom-6 right-6 w-12 h-12"
+        style={{ 
+          borderRight: '1px solid rgba(255,255,255,0.2)',
+          borderBottom: '1px solid rgba(255,255,255,0.2)'
+        }}
       />
     </div>
   );
