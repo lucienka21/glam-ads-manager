@@ -661,9 +661,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
 
           {/* Main headline - warm tone */}
           <h1 className="text-5xl font-black text-white leading-[1.2] mb-6">
-            Wiemy, że prowadzenie<br />
-            <span className="bg-gradient-to-r from-pink-400 via-fuchsia-400 to-rose-400 bg-clip-text text-transparent">
-              salonu to prawdziwe wyzwanie
+            Więcej klientek dzięki<br />
+            <span className="bg-gradient-to-r from-blue-400 via-pink-400 to-rose-400 bg-clip-text text-transparent">
+              reklamom Facebook Ads
             </span>
           </h1>
 
