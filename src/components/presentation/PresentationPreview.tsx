@@ -851,10 +851,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Reklamy na Facebooku,<br/><span className="text-pink-400">które wypełnią Twój kalendarz</span>
+            Facebook Ads? <span className="text-pink-400">Ogarniamy.</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Zajmujemy się Twoimi kampaniami od A do Z. Ty <span className="text-pink-300">robisz to, co kochasz</span>
+            Ty prowadzisz salon. My <span className="text-pink-300">wypełniamy kalendarz</span>
           </p>
         </div>
 
