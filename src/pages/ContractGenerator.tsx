@@ -57,6 +57,7 @@ const ContractGenerator = () => {
     signDate: new Date().toISOString().split("T")[0],
     signCity: "",
     contractValue: "",
+    paymentType: "split" as "split" | "full", // split = 50%+50%, full = 100% z góry
     agencyName: savedAgency.agencyName || "Agencja Marketingowa Aurine",
     agencyOwnerName: savedAgency.agencyOwnerName || "",
     agencyAddress: savedAgency.agencyAddress || "",
@@ -391,6 +392,30 @@ const ContractGenerator = () => {
                   placeholder="1500"
                   className="h-9 mt-1"
                 />
+              </div>
+
+              <div>
+                <Label className="text-xs">Wariant płatności</Label>
+                <div className="flex gap-2 mt-1">
+                  <Button
+                    type="button"
+                    variant={formData.paymentType === "split" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => handleInputChange("paymentType", "split")}
+                  >
+                    50% + 50%
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={formData.paymentType === "full" ? "default" : "outline"}
+                    size="sm"
+                    className="flex-1 text-xs"
+                    onClick={() => handleInputChange("paymentType", "full")}
+                  >
+                    100% z góry
+                  </Button>
+                </div>
               </div>
 
               <div className="pt-2 border-t border-border/30">
