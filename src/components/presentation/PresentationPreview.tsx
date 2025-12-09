@@ -631,14 +631,14 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               { 
                 icon: Sparkles, 
                 title: "Piękne kreacje", 
-                desc: "Projektujemy grafiki i teksty zgodne z estetyką Twojego salonu",
+                desc: "Projektujemy profesjonalne grafiki reklamowe i piszemy teksty, które przyciągają uwagę. Wszystko dopasowane do stylu Twojego salonu.",
                 color: "from-fuchsia-500/30 to-purple-500/20",
                 borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
                 title: "Przejrzyste raporty", 
-                desc: "Co miesiąc jasny raport: zasięgi, kliknięcia, koszty. Zero zagadek",
+                desc: "Co miesiąc otrzymujesz czytelny raport z wynikami kampanii. Wiesz dokładnie ile wydajesz, ile osób zobaczyło reklamy i ile klientek się zgłosiło.",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
               },
