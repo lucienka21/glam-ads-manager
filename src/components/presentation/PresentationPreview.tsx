@@ -761,28 +761,27 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
         <Header subtitle="Rozumiemy Twoje wyzwania" />
 
-        {/* Title */}
+        {/* Main message */}
         <div className="mb-6">
-          <h2 className="text-4xl font-black text-white mb-3">
+          <h2 className="text-4xl font-black text-white mb-4">
             Czy to brzmi <span className="text-pink-400">znajomo</span>?
           </h2>
-          <p className="text-lg text-zinc-300">
-            W mniejszych miastach wciąż pokutuje przekonanie, że <span className="text-pink-400 font-semibold">dodawanie postów na Facebooku to marketing</span>. Niestety, to tak nie działa.
+          <p className="text-xl text-zinc-200 leading-relaxed max-w-[75%]">
+            Niestety w małych miastach wciąż panuje przekonanie, że <span className="text-pink-400 font-semibold">dodawanie postów na Facebooka czy Instagrama to marketing</span>, który zapewni klientki. <span className="text-zinc-400">To mit.</span>
           </p>
         </div>
 
-        {/* Problems - left side, more human */}
-        <div className="flex-1 max-w-[55%] grid grid-cols-1 gap-4">
+        {/* Problems - friendly, relatable style */}
+        <div className="flex-1 max-w-[65%] grid grid-cols-1 gap-4">
           <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl p-5 border border-pink-500/25">
             <div className="flex items-start gap-4">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500/30 to-rose-500/20 border border-pink-500/40 flex items-center justify-center flex-shrink-0">
                 <Instagram className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Post ≠ Reklama</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Posty organiczne prawie nikt nie widzi</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Social media to <span className="text-pink-400 font-semibold">wizytówka</span>, nie narzędzie sprzedaży. 
-                  Algorytm pokazuje Twoje posty tylko <span className="text-pink-400 font-semibold">5-10%</span> obserwujących — reszta nawet nie wie, że coś publikujesz.
+                  Algorytm pokazuje Twoje posty tylko <span className="text-pink-400 font-semibold">5-10% losowych obserwujących</span>. Stąd pod postami jest tylko kilka reakcji od tych samych osób. Reszta nawet nie wie, że coś publikujesz.
                 </p>
               </div>
             </div>
@@ -794,10 +793,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Users className="w-6 h-6 text-zinc-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Bazowanie na poleceniach</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Liczenie na polecenia i że klientki same przyjdą</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Liczysz, że klientki same Cię znajdą i przyjdą z polecenia? To działa, ale <span className="text-rose-400 font-semibold">bardzo wolno</span>. 
-                  A co jeśli chcesz zapełnić grafik szybciej?
+                  Polecenia są super, ale to <span className="text-pink-300">długa droga</span>. A nowe klientki nie spadają z nieba — trzeba do nich aktywnie dotrzeć, zanim zrobi to konkurencja.
                 </p>
               </div>
             </div>
@@ -809,10 +807,9 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <TrendingUp className="w-6 h-6 text-zinc-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Brak strategii marketingowej</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Social media to wizytówka, nie reklama</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Postujesz "bo trzeba", ale bez planu i celu. Nie wiesz co działa, a co nie. 
-                  <span className="text-zinc-400"> Marketing to system</span>, nie pojedyncze działania.
+                  Profil na Instagramie czy Facebooku to jak <span className="text-pink-300">ładna witryna sklepowa</span> — ale sama witryna nie przyciągnie klientek z drugiego końca miasta. Do tego potrzebna jest reklama.
                 </p>
               </div>
             </div>
