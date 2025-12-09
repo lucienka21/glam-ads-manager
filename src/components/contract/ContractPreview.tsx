@@ -231,9 +231,11 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             "udzielania konsultacji i rekomendacji dotyczących działań marketingowych online",
             "zachowania w poufności wszelkich informacji uzyskanych od Zleceniodawcy"
           ]} />
-          <p className="text-[7.5px] text-zinc-500 mt-1 italic">
-            Wykonawca ma prawo korzystać z podwykonawców, ponosząc pełną odpowiedzialność za ich działania.
-          </p>
+          <div className="bg-zinc-700/30 border border-zinc-600/30 rounded p-1.5 mt-1">
+            <p className="text-[7.5px] text-zinc-300">
+              <strong>Ważne:</strong> Wykonawca realizuje działania marketingowe z należytą starannością, zgodnie z aktualną wiedzą i praktyką rynkową, przy czym <strong>nie gwarantuje osiągnięcia określonych wyników finansowych, sprzedażowych czy frekwencyjnych</strong>, ponieważ zależą one od czynników zewnętrznych, niezależnych od Wykonawcy.
+            </p>
+          </div>
         </Section>
 
         {/* §3 Obowiązki Zleceniodawcy */}
@@ -310,11 +312,11 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
           </p>
         </Section>
 
-        {/* §8 Odpowiedzialność */}
-        <Section title="§8 Odpowiedzialność i gwarancje">
+        {/* §8 Dane osobowe */}
+        <Section title="§8 Ochrona danych osobowych">
           <div className="bg-pink-500/10 border border-pink-500/20 rounded p-1.5 mb-1">
             <p className="text-[7.5px] text-pink-300">
-              <strong>Ważne:</strong> Wykonawca realizuje działania marketingowe z należytą starannością, zgodnie z aktualną wiedzą i praktyką rynkową, przy czym <strong>nie gwarantuje osiągnięcia określonych wyników finansowych, sprzedażowych czy frekwencyjnych</strong>, ponieważ zależą one od czynników zewnętrznych, niezależnych od Wykonawcy.
+              <strong>RODO:</strong> Strony zobowiązują się do przetwarzania danych osobowych zgodnie z przepisami Rozporządzenia Parlamentu Europejskiego i Rady (UE) 2016/679 (RODO). Dane osobowe będą przetwarzane wyłącznie w zakresie niezbędnym do realizacji niniejszej umowy.
             </p>
           </div>
         </Section>
