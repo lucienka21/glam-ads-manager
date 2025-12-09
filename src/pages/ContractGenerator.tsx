@@ -58,7 +58,6 @@ const ContractGenerator = () => {
     signCity: "",
     contractValue: "",
     paymentType: "split50" as "split50" | "split30" | "full",
-    paymentDueDate: "",
     agencyName: savedAgency.agencyName || "Agencja Marketingowa Aurine",
     agencyOwnerName: savedAgency.agencyOwnerName || "",
     agencyAddress: savedAgency.agencyAddress || "",
@@ -428,15 +427,6 @@ const ContractGenerator = () => {
                 </div>
               </div>
 
-              <div>
-                <Label className="text-xs">Termin płatności (opcjonalnie)</Label>
-                <Input
-                  type="date"
-                  value={formData.paymentDueDate}
-                  onChange={(e) => handleInputChange("paymentDueDate", e.target.value)}
-                  className="h-9 mt-1"
-                />
-              </div>
 
               <div className="pt-2 border-t border-border/30">
                 <p className="text-xs text-muted-foreground mb-2">Dane Wykonawcy (Aurine)</p>
