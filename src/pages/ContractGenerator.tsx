@@ -211,19 +211,29 @@ const ContractGenerator = () => {
       const A4_WIDTH = 595.28;
       const A4_HEIGHT = 841.89;
 
-      const canvas = await toJpeg(element, { 
-        cacheBust: true, 
-        pixelRatio: 2, 
-        backgroundColor: "#09090b", 
-        quality: 0.95 
-      });
+      // Get all pages (children of contract-preview)
+      const pages = element.querySelectorAll(':scope > div');
       const pdf = new jsPDF({ 
         orientation: "portrait", 
         unit: "pt", 
         format: "a4",
         compress: true 
       });
-      pdf.addImage(canvas, "JPEG", 0, 0, A4_WIDTH, A4_HEIGHT);
+
+      for (let i = 0; i < pages.length; i++) {
+        const page = pages[i] as HTMLElement;
+        const canvas = await toJpeg(page, { 
+          cacheBust: true, 
+          pixelRatio: 2, 
+          backgroundColor: "#09090b", 
+          quality: 0.95 
+        });
+        
+        if (i > 0) {
+          pdf.addPage();
+        }
+        pdf.addImage(canvas, "JPEG", 0, 0, A4_WIDTH, A4_HEIGHT);
+      }
       
       const fileName = `Umowa_${formData.clientName.replace(/\s+/g, "_")}.pdf`;
       pdf.save(fileName);
@@ -468,27 +478,17 @@ const ContractGenerator = () => {
         {/* Right Panel - Live Preview */}
         <div ref={previewContainerRef} className="flex-1 overflow-auto bg-muted/30 p-4 lg:p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo</h2>
+            <h2 className="text-sm font-medium text-muted-foreground">Podgląd na żywo (2 strony)</h2>
           </div>
           
           <div className="flex justify-center">
             <div 
-              className="rounded-xl shadow-2xl overflow-hidden ring-1 ring-border/20"
               style={{ 
-                width: `${595 * previewScale}px`,
-                height: `${842 * previewScale}px`,
+                transform: `scale(${previewScale})`,
+                transformOrigin: 'top center',
               }}
             >
-              <div 
-                style={{ 
-                  transform: `scale(${previewScale})`,
-                  transformOrigin: 'top left',
-                  width: '595px',
-                  height: '842px',
-                }}
-              >
-                <ContractPreview data={formData} />
-              </div>
+              <ContractPreview data={formData} />
             </div>
           </div>
         </div>
