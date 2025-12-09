@@ -759,15 +759,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="Rozumiemy Twoje wyzwania" />
+        <Header subtitle="Dlaczego większość salonów nie rośnie" />
 
         {/* Title */}
         <div className="mb-6">
           <h2 className="text-4xl font-black text-white mb-3">
-            Czy to brzmi <span className="text-pink-400">znajomo</span>?
+            Te błędy popełnia <span className="text-pink-400">90% salonów</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Wiele właścicielek salonów w mniejszych miastach zmaga się z tymi samymi problemami...
+            Sprawdź, czy Ty też wpadasz w te pułapki marketingowe
           </p>
         </div>
 
@@ -797,7 +797,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <h3 className="text-lg font-bold text-white mb-1.5">Polecenia i Google to za mało</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
                   Liczysz na polecenia i że klientki same Cię znajdą w Google? Problem w tym, że w Google widzą <span className="text-pink-400 font-semibold">całą Twoją konkurencję</span> obok.
-                  Z reklam na Facebooku wciąż korzysta niewiele salonów — te, które zaczną pierwsze, zdominują lokalny rynek.
+                  Z reklam na Facebooku wciąż korzysta niewiele salonów, te które zaczną pierwsze, zdominują lokalny rynek.
                 </p>
               </div>
             </div>
