@@ -617,7 +617,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               { 
                 icon: Target, 
                 title: "Precyzyjne dotarcie", 
-                desc: "Reklamy trafiają do kobiet 25-45 lat, zainteresowanych urodą, w promieniu 15 km od Ciebie",
+                desc: "Tworzymy profesjonalne kampanie reklamowe na Facebooku i Instagramie. Reklamy trafiają do kobiet w Twojej okolicy, które szukają usług beauty i zamieniają się w nowe klientki.",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
