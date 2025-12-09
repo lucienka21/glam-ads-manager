@@ -624,7 +624,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               { 
                 icon: Eye, 
                 title: "Tysiące wyświetleń", 
-                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek",
+                desc: "Twoje posty na Instagramie docierają do 50-100 osób. Dzięki reklamom Twoją ofertę zobaczy nawet kilka tysięcy potencjalnych klientek z Twojej okolicy.",
                 color: "from-blue-500/30 to-indigo-500/20",
                 borderColor: "border-blue-500/30"
               },
