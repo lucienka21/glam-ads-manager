@@ -2,12 +2,20 @@ import agencyLogo from "@/assets/agency-logo.png";
 
 interface ContractData {
   clientName: string;
+  clientOwnerName: string;
   clientAddress: string;
+  clientPhone: string;
+  clientEmail: string;
+  clientNip: string;
   signDate: string;
   signCity: string;
   contractValue: string;
-  agencyEmail: string;
+  agencyName: string;
+  agencyOwnerName: string;
   agencyAddress: string;
+  agencyPhone: string;
+  agencyEmail: string;
+  agencyNip: string;
 }
 
 interface ContractPreviewProps {
@@ -133,15 +141,26 @@ export const ContractPreview = ({ data }: ContractPreviewProps) => {
             <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500/50 to-fuchsia-500/50 rounded-lg blur-sm opacity-30" />
             <div className="relative bg-zinc-900 border border-pink-500/30 rounded-lg p-3">
               <p className="text-[10px] text-pink-400 uppercase tracking-wider font-semibold mb-2">Wykonawca</p>
-              <p className="text-sm font-bold text-white">Agencja Marketingowa Aurine</p>
-              {data.agencyAddress && <p className="text-xs text-zinc-500 mt-1">{data.agencyAddress}</p>}
-              <p className="text-xs text-zinc-500 mt-0.5">{data.agencyEmail || "kontakt@aurine.pl"}</p>
+              <p className="text-sm font-bold text-white">{data.agencyName || "Agencja Marketingowa Aurine"}</p>
+              {data.agencyOwnerName && <p className="text-[10px] text-zinc-400 mt-0.5">{data.agencyOwnerName}</p>}
+              {data.agencyAddress && <p className="text-[10px] text-zinc-500 mt-0.5">{data.agencyAddress}</p>}
+              <div className="mt-1 space-y-0.5">
+                {data.agencyPhone && <p className="text-[10px] text-zinc-500">Tel: {data.agencyPhone}</p>}
+                <p className="text-[10px] text-zinc-500">{data.agencyEmail || "kontakt@aurine.pl"}</p>
+                {data.agencyNip && <p className="text-[10px] text-zinc-500">NIP: {data.agencyNip}</p>}
+              </div>
             </div>
           </div>
           <div className="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-3">
             <p className="text-[10px] text-zinc-500 uppercase tracking-wider font-semibold mb-2">Zleceniodawca</p>
             <p className="text-sm font-bold text-white">{data.clientName || "—"}</p>
-            {data.clientAddress && <p className="text-xs text-zinc-500 mt-1">{data.clientAddress}</p>}
+            {data.clientOwnerName && <p className="text-[10px] text-zinc-400 mt-0.5">{data.clientOwnerName}</p>}
+            {data.clientAddress && <p className="text-[10px] text-zinc-500 mt-0.5">{data.clientAddress}</p>}
+            <div className="mt-1 space-y-0.5">
+              {data.clientPhone && <p className="text-[10px] text-zinc-500">Tel: {data.clientPhone}</p>}
+              {data.clientEmail && <p className="text-[10px] text-zinc-500">{data.clientEmail}</p>}
+              {data.clientNip && <p className="text-[10px] text-zinc-500">NIP: {data.clientNip}</p>}
+            </div>
           </div>
         </div>
 

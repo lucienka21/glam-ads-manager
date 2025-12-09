@@ -43,12 +43,20 @@ const ContractGenerator = () => {
   
   const [formData, setFormData] = useState({
     clientName: "",
+    clientOwnerName: "",
     clientAddress: "",
+    clientPhone: "",
+    clientEmail: "",
+    clientNip: "",
     signDate: new Date().toISOString().split("T")[0],
     signCity: "",
     contractValue: "",
-    agencyEmail: "kontakt@aurine.pl",
+    agencyName: "Agencja Marketingowa Aurine",
+    agencyOwnerName: "",
     agencyAddress: "",
+    agencyPhone: "",
+    agencyEmail: "kontakt@aurine.pl",
+    agencyNip: "",
   });
 
   useEffect(() => {
@@ -307,11 +315,52 @@ const ContractGenerator = () => {
               </div>
 
               <div>
+                <Label className="text-xs">Imię i nazwisko właściciela</Label>
+                <Input
+                  value={formData.clientOwnerName}
+                  onChange={(e) => handleInputChange("clientOwnerName", e.target.value)}
+                  placeholder="Jan Kowalski"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div>
                 <Label className="text-xs">Adres Zleceniodawcy</Label>
                 <Input
                   value={formData.clientAddress}
                   onChange={(e) => handleInputChange("clientAddress", e.target.value)}
                   placeholder="ul. Przykładowa 123, 00-000 Warszawa"
+                  className="h-9 mt-1"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">Telefon</Label>
+                  <Input
+                    value={formData.clientPhone}
+                    onChange={(e) => handleInputChange("clientPhone", e.target.value)}
+                    placeholder="+48 123 456 789"
+                    className="h-9 mt-1"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">E-mail</Label>
+                  <Input
+                    value={formData.clientEmail}
+                    onChange={(e) => handleInputChange("clientEmail", e.target.value)}
+                    placeholder="kontakt@salon.pl"
+                    className="h-9 mt-1"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label className="text-xs">NIP</Label>
+                <Input
+                  value={formData.clientNip}
+                  onChange={(e) => handleInputChange("clientNip", e.target.value)}
+                  placeholder="123-456-78-90"
                   className="h-9 mt-1"
                 />
               </div>
@@ -352,20 +401,58 @@ const ContractGenerator = () => {
                 <p className="text-xs text-muted-foreground mb-2">Dane Wykonawcy (Aurine)</p>
                 <div className="space-y-2">
                   <div>
-                    <Label className="text-xs">E-mail</Label>
+                    <Label className="text-xs">Nazwa firmy</Label>
                     <Input
-                      value={formData.agencyEmail}
-                      onChange={(e) => handleInputChange("agencyEmail", e.target.value)}
-                      placeholder="kontakt@aurine.pl"
+                      value={formData.agencyName}
+                      onChange={(e) => handleInputChange("agencyName", e.target.value)}
+                      placeholder="Agencja Marketingowa Aurine"
                       className="h-9 mt-1"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs">Adres do korespondencji</Label>
+                    <Label className="text-xs">Imię i nazwisko właściciela</Label>
+                    <Input
+                      value={formData.agencyOwnerName}
+                      onChange={(e) => handleInputChange("agencyOwnerName", e.target.value)}
+                      placeholder="Anna Nowak"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Adres</Label>
                     <Input
                       value={formData.agencyAddress}
                       onChange={(e) => handleInputChange("agencyAddress", e.target.value)}
-                      placeholder="Adres agencji..."
+                      placeholder="ul. Agencyjna 1, 00-000 Warszawa"
+                      className="h-9 mt-1"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Telefon</Label>
+                      <Input
+                        value={formData.agencyPhone}
+                        onChange={(e) => handleInputChange("agencyPhone", e.target.value)}
+                        placeholder="+48 123 456 789"
+                        className="h-9 mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">E-mail</Label>
+                      <Input
+                        value={formData.agencyEmail}
+                        onChange={(e) => handleInputChange("agencyEmail", e.target.value)}
+                        placeholder="kontakt@aurine.pl"
+                        className="h-9 mt-1"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">NIP</Label>
+                    <Input
+                      value={formData.agencyNip}
+                      onChange={(e) => handleInputChange("agencyNip", e.target.value)}
+                      placeholder="123-456-78-90"
                       className="h-9 mt-1"
                     />
                   </div>
