@@ -800,17 +800,48 @@ export default function GraphicsCreator() {
             </div>
           </div>
 
-          {/* Preview canvas */}
-          <div className="flex-1 overflow-auto p-8 flex items-center justify-center">
+          {/* Preview canvas - elegant gradient background */}
+          <div 
+            className="flex-1 overflow-auto p-8 flex items-center justify-center relative"
+            style={{
+              background: 'linear-gradient(135deg, hsl(0 0% 4%) 0%, hsl(330 30% 8%) 50%, hsl(0 0% 6%) 100%)',
+            }}
+          >
+            {/* Decorative grid pattern */}
             <div 
-              className="transition-transform duration-200"
+              className="absolute inset-0 opacity-[0.03]"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)
+                `,
+                backgroundSize: '40px 40px',
+              }}
+            />
+            
+            {/* Pink/gold glow spots */}
+            <div 
+              className="absolute top-20 left-20 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, hsl(330 100% 60%), transparent 70%)' }}
+            />
+            <div 
+              className="absolute bottom-20 right-20 w-80 h-80 rounded-full opacity-15 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, hsl(45 90% 55%), transparent 70%)' }}
+            />
+            <div 
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full opacity-10 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(circle, hsl(330 80% 50%), transparent 60%)' }}
+            />
+
+            <div 
+              className="relative transition-transform duration-200"
               style={{ transform: `scale(${previewScale})` }}
             >
               <div 
                 ref={previewRef}
                 className="shadow-2xl rounded-lg overflow-hidden"
                 style={{ 
-                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.3)'
+                  boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), 0 0 80px hsl(330 100% 60% / 0.15)'
                 }}
               >
                 {renderTemplate()}
