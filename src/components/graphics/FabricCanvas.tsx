@@ -1,5 +1,5 @@
 import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Canvas as FabricCanvas, Rect, Textbox, FabricImage, Gradient, Circle } from 'fabric';
+import { Canvas as FabricCanvas, Rect, Textbox, FabricImage, Gradient, Circle, FabricObject } from 'fabric';
 
 export interface TemplateData {
   id: string;
@@ -23,6 +23,34 @@ interface FabricCanvasProps {
   template: TemplateData;
   formData: Record<string, string>;
 }
+
+interface ImagePlaceholder {
+  type: 'image-placeholder';
+  name: string;
+  props: {
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  };
+}
+
+type OrderedItem = FabricObject | ImagePlaceholder;
+
+// Helper to load image as promise
+const loadImage = (url: string): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = url;
+  });
+};
+
+const isImagePlaceholder = (item: OrderedItem): item is ImagePlaceholder => {
+  return 'type' in item && item.type === 'image-placeholder';
+};
 
 const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
   ({ template, formData }, ref) => {
@@ -59,13 +87,11 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
 
       fabricRef.current = canvas;
 
-      // Track image placeholders for loading
-      const imagePlaceholders: Map<string, { left: number; top: number; width: number; height: number; index: number }> = new Map();
+      // Store objects with their intended order
+      const orderedObjects: OrderedItem[] = [];
 
-      // Build template elements
-      template.elements.forEach((el, index) => {
-        let fabricObj: any = null;
-
+      // Build template elements - collect all objects first
+      template.elements.forEach((el) => {
         switch (el.type) {
           case 'gradient-rect': {
             const { gradientColors, gradientDirection, ...rectProps } = el.props;
@@ -88,96 +114,117 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
               })),
             });
             rect.set('fill', gradient);
-            fabricObj = rect;
+            orderedObjects.push(rect);
             break;
           }
           case 'rect': {
-            fabricObj = new Rect({
+            const rect = new Rect({
               ...el.props,
               selectable: false,
               evented: false,
             });
+            orderedObjects.push(rect);
             break;
           }
           case 'circle': {
-            fabricObj = new Circle({
+            const circle = new Circle({
               ...el.props,
               selectable: false,
               evented: false,
             });
+            orderedObjects.push(circle);
             break;
           }
           case 'text': {
             const textValue = el.props.name && formData[el.props.name] 
               ? formData[el.props.name] 
               : el.props.text || '';
-            fabricObj = new Textbox(textValue, {
+            const textbox = new Textbox(textValue, {
               ...el.props,
               text: textValue,
               selectable: false,
               editable: false,
               evented: false,
             });
+            orderedObjects.push(textbox);
             break;
           }
           case 'image': {
-            // Store placeholder info
-            imagePlaceholders.set(el.props.name, {
-              left: el.props.left,
-              top: el.props.top,
-              width: el.props.width,
-              height: el.props.height,
-              index,
-            });
-            // Create dark placeholder rect
-            fabricObj = new Rect({
-              left: el.props.left,
-              top: el.props.top,
-              width: el.props.width,
-              height: el.props.height,
-              fill: '#1a1a1a',
-              selectable: false,
-              evented: false,
+            // Mark as image placeholder - will be replaced with actual image or placeholder rect
+            orderedObjects.push({ 
+              type: 'image-placeholder', 
+              name: el.props.name, 
+              props: {
+                left: el.props.left,
+                top: el.props.top,
+                width: el.props.width,
+                height: el.props.height,
+              }
             });
             break;
           }
         }
-
-        if (fabricObj) {
-          canvas.add(fabricObj);
-        }
       });
 
-      canvas.renderAll();
+      // Process all objects - load images where needed
+      const processObjects = async () => {
+        for (const item of orderedObjects) {
+          if (isImagePlaceholder(item)) {
+            const imageUrl = formData[item.name];
+            
+            if (imageUrl) {
+              try {
+                const imgElement = await loadImage(imageUrl);
+                const fabricImg = new FabricImage(imgElement, {
+                  left: item.props.left,
+                  top: item.props.top,
+                  selectable: false,
+                  evented: false,
+                });
 
-      // Now load images if we have them in formData
-      imagePlaceholders.forEach((placeholder, name) => {
-        const imageUrl = formData[name];
-        if (imageUrl) {
-          // Load image
-          const imgElement = document.createElement('img');
-          imgElement.crossOrigin = 'anonymous';
-          imgElement.onload = () => {
-            const fabricImg = new FabricImage(imgElement, {
-              left: placeholder.left,
-              top: placeholder.top,
-              selectable: false,
-              evented: false,
-            });
+                // Scale to fit placeholder dimensions
+                const scaleX = item.props.width / (fabricImg.width || 1);
+                const scaleY = item.props.height / (fabricImg.height || 1);
+                fabricImg.set({ scaleX, scaleY });
 
-            // Scale to fit placeholder
-            const scaleX = placeholder.width / (fabricImg.width || 1);
-            const scaleY = placeholder.height / (fabricImg.height || 1);
-            fabricImg.set({ scaleX, scaleY });
-
-            canvas.add(fabricImg);
-            // Move to correct z-index (back, under other elements)
-            canvas.sendObjectToBack(fabricImg);
-            canvas.renderAll();
-          };
-          imgElement.src = imageUrl;
+                canvas.add(fabricImg);
+              } catch (error) {
+                console.error('Failed to load image:', error);
+                // Add placeholder rect on error
+                const placeholder = new Rect({
+                  left: item.props.left,
+                  top: item.props.top,
+                  width: item.props.width,
+                  height: item.props.height,
+                  fill: '#1a1a1a',
+                  selectable: false,
+                  evented: false,
+                });
+                canvas.add(placeholder);
+              }
+            } else {
+              // No image URL - add placeholder rect
+              const placeholder = new Rect({
+                left: item.props.left,
+                top: item.props.top,
+                width: item.props.width,
+                height: item.props.height,
+                fill: '#1a1a1a',
+                selectable: false,
+                evented: false,
+              });
+              canvas.add(placeholder);
+            }
+          } else {
+            // Regular fabric object
+            canvas.add(item);
+          }
         }
-      });
+        
+        canvas.renderAll();
+      };
+
+      processObjects();
 
       return () => {
         canvas.dispose();
