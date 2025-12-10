@@ -1,43 +1,31 @@
 import { TemplateData } from './FabricCanvas';
 
 export const fabricTemplates: TemplateData[] = [
-  // 1. PRZED I PO - Luksusowe porównanie
+  // 1. PRZED I PO - Minimalistyczne porównanie
   {
     id: 'before-after',
     name: 'Przed i Po',
     width: 1080,
     height: 1080,
     elements: [
-      // Ciemne tło z subtelnymi gradientami
-      { type: 'gradient-rect', props: { left: 0, top: 0, width: 1080, height: 1080, gradientColors: ['#0d0d0d', '#000000', '#0d0d0d'], gradientDirection: 'diagonal' } },
-      // Zdjęcie PRZED - lewa strona z padingiem
-      { type: 'image', props: { name: 'beforeImage', left: 40, top: 140, width: 480, height: 800 } },
-      // Zdjęcie PO - prawa strona z padingiem
-      { type: 'image', props: { name: 'afterImage', left: 560, top: 140, width: 480, height: 800 } },
-      // Elegancka złota linia środkowa
-      { type: 'rect', props: { left: 536, top: 120, width: 8, height: 840, fill: '#D4AF37' } },
-      // Górny pasek z gradientem
-      { type: 'gradient-rect', props: { left: 0, top: 0, width: 1080, height: 120, gradientColors: ['rgba(212,175,55,0.15)', 'rgba(0,0,0,0)'], gradientDirection: 'vertical' } },
-      // Nagłówek METAMORFOZA
-      { type: 'text', props: { text: 'M E T A M O R F O Z A', left: 0, top: 35, width: 1080, fontSize: 28, fontFamily: 'Georgia', fontWeight: 'bold', fill: '#D4AF37', textAlign: 'center', letterSpacing: 8 } },
-      // Dekoracyjne linie pod nagłówkiem
-      { type: 'rect', props: { left: 380, top: 80, width: 120, height: 1, fill: '#D4AF37' } },
-      { type: 'rect', props: { left: 580, top: 80, width: 120, height: 1, fill: '#D4AF37' } },
-      { type: 'circle', props: { left: 530, top: 73, radius: 8, fill: 'transparent', stroke: '#D4AF37', strokeWidth: 1 } },
-      // Label PRZED - elegancki styl
-      { type: 'rect', props: { left: 40, top: 140, width: 130, height: 48, fill: 'rgba(0,0,0,0.85)' } },
-      { type: 'rect', props: { left: 40, top: 140, width: 130, height: 48, fill: 'transparent', stroke: '#D4AF37', strokeWidth: 1 } },
-      { type: 'text', props: { text: 'PRZED', left: 45, top: 152, width: 120, fontSize: 20, fontFamily: 'Georgia', fontWeight: 'bold', fill: '#D4AF37', textAlign: 'center', letterSpacing: 4 } },
-      // Label PO - elegancki styl  
-      { type: 'rect', props: { left: 910, top: 140, width: 130, height: 48, fill: '#D4AF37' } },
-      { type: 'text', props: { text: 'PO', left: 915, top: 152, width: 120, fontSize: 20, fontFamily: 'Georgia', fontWeight: 'bold', fill: '#000000', textAlign: 'center', letterSpacing: 4 } },
-      // Dolny pasek z gradientem
-      { type: 'gradient-rect', props: { left: 0, top: 960, width: 1080, height: 120, gradientColors: ['rgba(0,0,0,0)', 'rgba(212,175,55,0.15)'], gradientDirection: 'vertical' } },
-      // Nazwa zabiegu
-      { type: 'text', props: { name: 'treatmentName', text: 'LIFTING TWARZY', left: 40, top: 990, width: 700, fontSize: 32, fontFamily: 'Georgia', fontWeight: 'bold', fill: '#ffffff', letterSpacing: 3 } },
-      // Salon z dekoracją
-      { type: 'rect', props: { left: 820, top: 1005, width: 40, height: 1, fill: '#D4AF37' } },
-      { type: 'text', props: { name: 'salonName', text: '@beautystudio', left: 870, top: 993, width: 180, fontSize: 20, fontFamily: 'Georgia', fill: '#D4AF37', textAlign: 'right', fontStyle: 'italic' } },
+      // Czarne tło
+      { type: 'rect', props: { left: 0, top: 0, width: 1080, height: 1080, fill: '#000000' } },
+      // Zdjęcie PRZED - lewa strona
+      { type: 'image', props: { name: 'beforeImage', left: 0, top: 0, width: 535, height: 1080 } },
+      // Zdjęcie PO - prawa strona  
+      { type: 'image', props: { name: 'afterImage', left: 545, top: 0, width: 535, height: 1080 } },
+      // Złota linia środkowa
+      { type: 'rect', props: { left: 537, top: 0, width: 6, height: 1080, fill: '#D4AF37' } },
+      // Label PRZED
+      { type: 'rect', props: { left: 30, top: 30, width: 120, height: 44, fill: '#000000' } },
+      { type: 'text', props: { text: 'PRZED', left: 35, top: 38, width: 110, fontSize: 22, fontFamily: 'Arial', fontWeight: 'bold', fill: '#ffffff', textAlign: 'center' } },
+      // Label PO
+      { type: 'rect', props: { left: 930, top: 30, width: 120, height: 44, fill: '#D4AF37' } },
+      { type: 'text', props: { text: 'PO', left: 935, top: 38, width: 110, fontSize: 22, fontFamily: 'Arial', fontWeight: 'bold', fill: '#000000', textAlign: 'center' } },
+      // Nazwa zabiegu - dolny pasek
+      { type: 'rect', props: { left: 0, top: 980, width: 1080, height: 100, fill: 'rgba(0,0,0,0.85)' } },
+      { type: 'text', props: { name: 'treatmentName', text: 'LIFTING TWARZY', left: 40, top: 1005, width: 800, fontSize: 36, fontFamily: 'Arial', fontWeight: 'bold', fill: '#ffffff' } },
+      { type: 'text', props: { name: 'salonName', text: '@beautystudio', left: 860, top: 1010, width: 200, fontSize: 24, fontFamily: 'Arial', fill: '#D4AF37', textAlign: 'right' } },
     ],
   },
 
