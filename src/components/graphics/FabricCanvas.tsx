@@ -87,167 +87,140 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
 
       fabricRef.current = canvas;
 
-      // Store objects with their intended order
-      const orderedObjects: OrderedItem[] = [];
+      // Process all elements in order, handling images asynchronously
+      const buildCanvas = async () => {
+        for (const el of template.elements) {
+          switch (el.type) {
+            case 'gradient-rect': {
+              const { gradientColors, gradientDirection, ...rectProps } = el.props;
+              const rect = new Rect({
+                ...rectProps,
+                selectable: false,
+                evented: false,
+              });
+              
+              const gradient = new Gradient({
+                type: 'linear',
+                coords: gradientDirection === 'horizontal' 
+                  ? { x1: 0, y1: 0, x2: rectProps.width, y2: 0 }
+                  : gradientDirection === 'diagonal'
+                  ? { x1: 0, y1: 0, x2: rectProps.width, y2: rectProps.height }
+                  : { x1: 0, y1: 0, x2: 0, y2: rectProps.height },
+                colorStops: gradientColors.map((color: string, i: number) => ({
+                  offset: i / (gradientColors.length - 1),
+                  color,
+                })),
+              });
+              rect.set('fill', gradient);
+              canvas.add(rect);
+              break;
+            }
+            case 'rect': {
+              const rect = new Rect({
+                ...el.props,
+                selectable: false,
+                evented: false,
+              });
+              canvas.add(rect);
+              break;
+            }
+            case 'circle': {
+              const circle = new Circle({
+                ...el.props,
+                selectable: false,
+                evented: false,
+              });
+              canvas.add(circle);
+              break;
+            }
+            case 'text': {
+              const textValue = el.props.name && formData[el.props.name] 
+                ? formData[el.props.name] 
+                : el.props.text || '';
+              const textbox = new Textbox(textValue, {
+                ...el.props,
+                text: textValue,
+                selectable: false,
+                editable: false,
+                evented: false,
+              });
+              canvas.add(textbox);
+              break;
+            }
+            case 'image': {
+              const imageUrl = formData[el.props.name];
+              
+              if (imageUrl) {
+                try {
+                  const imgElement = await loadImage(imageUrl);
+                  const imgWidth = imgElement.width || 1;
+                  const imgHeight = imgElement.height || 1;
+                  const placeholderWidth = el.props.width;
+                  const placeholderHeight = el.props.height;
 
-      // Build template elements - collect all objects first
-      template.elements.forEach((el) => {
-        switch (el.type) {
-          case 'gradient-rect': {
-            const { gradientColors, gradientDirection, ...rectProps } = el.props;
-            const rect = new Rect({
-              ...rectProps,
-              selectable: false,
-              evented: false,
-            });
-            
-            const gradient = new Gradient({
-              type: 'linear',
-              coords: gradientDirection === 'horizontal' 
-                ? { x1: 0, y1: 0, x2: rectProps.width, y2: 0 }
-                : gradientDirection === 'diagonal'
-                ? { x1: 0, y1: 0, x2: rectProps.width, y2: rectProps.height }
-                : { x1: 0, y1: 0, x2: 0, y2: rectProps.height },
-              colorStops: gradientColors.map((color: string, i: number) => ({
-                offset: i / (gradientColors.length - 1),
-                color,
-              })),
-            });
-            rect.set('fill', gradient);
-            orderedObjects.push(rect);
-            break;
-          }
-          case 'rect': {
-            const rect = new Rect({
-              ...el.props,
-              selectable: false,
-              evented: false,
-            });
-            orderedObjects.push(rect);
-            break;
-          }
-          case 'circle': {
-            const circle = new Circle({
-              ...el.props,
-              selectable: false,
-              evented: false,
-            });
-            orderedObjects.push(circle);
-            break;
-          }
-          case 'text': {
-            const textValue = el.props.name && formData[el.props.name] 
-              ? formData[el.props.name] 
-              : el.props.text || '';
-            const textbox = new Textbox(textValue, {
-              ...el.props,
-              text: textValue,
-              selectable: false,
-              editable: false,
-              evented: false,
-            });
-            orderedObjects.push(textbox);
-            break;
-          }
-          case 'image': {
-            // Mark as image placeholder - will be replaced with actual image or placeholder rect
-            orderedObjects.push({ 
-              type: 'image-placeholder', 
-              name: el.props.name, 
-              props: {
-                left: el.props.left,
-                top: el.props.top,
-                width: el.props.width,
-                height: el.props.height,
-              }
-            });
-            break;
-          }
-        }
-      });
+                  // Use "cover" scaling
+                  const scaleX = placeholderWidth / imgWidth;
+                  const scaleY = placeholderHeight / imgHeight;
+                  const scale = Math.max(scaleX, scaleY);
 
-      // Process all objects - load images where needed
-      const processObjects = async () => {
-        for (const item of orderedObjects) {
-          if (isImagePlaceholder(item)) {
-            const imageUrl = formData[item.name];
-            
-            if (imageUrl) {
-              try {
-                const imgElement = await loadImage(imageUrl);
-                const imgWidth = imgElement.width || 1;
-                const imgHeight = imgElement.height || 1;
-                const placeholderWidth = item.props.width;
-                const placeholderHeight = item.props.height;
+                  const scaledWidth = imgWidth * scale;
+                  const scaledHeight = imgHeight * scale;
+                  const offsetX = (placeholderWidth - scaledWidth) / 2;
+                  const offsetY = (placeholderHeight - scaledHeight) / 2;
 
-                // Use "cover" scaling - maintain aspect ratio and cover entire area
-                const scaleX = placeholderWidth / imgWidth;
-                const scaleY = placeholderHeight / imgHeight;
-                const scale = Math.max(scaleX, scaleY);
+                  const clipRect = new Rect({
+                    left: el.props.left,
+                    top: el.props.top,
+                    width: placeholderWidth,
+                    height: placeholderHeight,
+                    absolutePositioned: true,
+                  });
 
-                // Calculate centered position
-                const scaledWidth = imgWidth * scale;
-                const scaledHeight = imgHeight * scale;
-                const offsetX = (placeholderWidth - scaledWidth) / 2;
-                const offsetY = (placeholderHeight - scaledHeight) / 2;
+                  const fabricImg = new FabricImage(imgElement, {
+                    left: el.props.left + offsetX,
+                    top: el.props.top + offsetY,
+                    scaleX: scale,
+                    scaleY: scale,
+                    selectable: false,
+                    evented: false,
+                    clipPath: clipRect,
+                  });
 
-                // Create clip path for the placeholder area
-                const clipRect = new Rect({
-                  left: item.props.left,
-                  top: item.props.top,
-                  width: placeholderWidth,
-                  height: placeholderHeight,
-                  absolutePositioned: true,
-                });
-
-                const fabricImg = new FabricImage(imgElement, {
-                  left: item.props.left + offsetX,
-                  top: item.props.top + offsetY,
-                  scaleX: scale,
-                  scaleY: scale,
-                  selectable: false,
-                  evented: false,
-                  clipPath: clipRect,
-                });
-
-                canvas.add(fabricImg);
-              } catch (error) {
-                console.error('Failed to load image:', error);
-                // Add placeholder rect on error
+                  canvas.add(fabricImg);
+                } catch (error) {
+                  console.error('Failed to load image:', error);
+                  const placeholder = new Rect({
+                    left: el.props.left,
+                    top: el.props.top,
+                    width: el.props.width,
+                    height: el.props.height,
+                    fill: '#1a1a1a',
+                    selectable: false,
+                    evented: false,
+                  });
+                  canvas.add(placeholder);
+                }
+              } else {
                 const placeholder = new Rect({
-                  left: item.props.left,
-                  top: item.props.top,
-                  width: item.props.width,
-                  height: item.props.height,
+                  left: el.props.left,
+                  top: el.props.top,
+                  width: el.props.width,
+                  height: el.props.height,
                   fill: '#1a1a1a',
                   selectable: false,
                   evented: false,
                 });
                 canvas.add(placeholder);
               }
-            } else {
-              // No image URL - add placeholder rect
-              const placeholder = new Rect({
-                left: item.props.left,
-                top: item.props.top,
-                width: item.props.width,
-                height: item.props.height,
-                fill: '#1a1a1a',
-                selectable: false,
-                evented: false,
-              });
-              canvas.add(placeholder);
+              break;
             }
-          } else {
-            // Regular fabric object
-            canvas.add(item);
           }
         }
         
         canvas.renderAll();
       };
 
-      processObjects();
+      buildCanvas();
 
       return () => {
         canvas.dispose();
