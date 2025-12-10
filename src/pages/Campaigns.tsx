@@ -277,7 +277,7 @@ export default function Campaigns() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 animate-fade-in w-full max-w-full overflow-hidden">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
           <div>
