@@ -147,10 +147,10 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
         {/* Header with greeting */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
               Cześć{user?.email ? `, ${user.email.split('@')[0]}` : ''}! 👋
             </h1>
@@ -212,7 +212,7 @@ export default function Dashboard() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 overflow-x-hidden">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 w-full">
           <StatsCard 
             title="Aktywne leady" 
             value={stats.activeLeads} 
@@ -260,7 +260,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-12 gap-4 sm:gap-6 overflow-x-hidden">
+        <div className="grid lg:grid-cols-12 gap-4 sm:gap-6 w-full">
           {/* Left Column - Charts */}
           <div className="lg:col-span-8 space-y-6">
             {/* Performance Chart */}

@@ -138,7 +138,7 @@ export default function Notifications() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 px-4">
+      <div className="container mx-auto py-6 sm:py-8 px-3 sm:px-4 w-full max-w-full overflow-hidden">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Powiadomienia</h1>
