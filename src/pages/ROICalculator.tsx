@@ -85,7 +85,7 @@ export default function ROICalculator() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 animate-fade-in max-w-6xl mx-auto">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 animate-fade-in max-w-6xl mx-auto w-full overflow-hidden">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-sm mb-4">

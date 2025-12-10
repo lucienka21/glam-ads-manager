@@ -24,22 +24,24 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-background w-screen max-w-[100vw] overflow-x-hidden">
+    <div className="min-h-screen min-h-[100dvh] bg-background flex w-full">
       {/* Desktop sidebar - fixed position */}
-      <div className="hidden lg:block">
-        <AppSidebar />
-      </div>
+      <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:z-50">
+        <div className="flex flex-col flex-1 overflow-y-auto border-r border-sidebar-border bg-sidebar">
+          <SidebarNav />
+        </div>
+      </aside>
 
       {/* Mobile header */}
       <header className="lg:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-2 px-3 h-14 border-b border-border/30 bg-background/95 backdrop-blur-xl safe-area-top">
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-[280px] max-w-[85vw] p-0 bg-sidebar border-sidebar-border safe-area-left">
+            <SheetContent side="left" className="w-[280px] max-w-[80vw] p-0 bg-sidebar border-sidebar-border">
               <SidebarNav 
                 onNavigate={() => setMobileMenuOpen(false)} 
                 showCloseButton 
@@ -58,8 +60,8 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         </div>
       </header>
 
-      {/* Main content area - offset by sidebar width on desktop */}
-      <main className="lg:ml-64 min-h-screen min-h-[100dvh] w-full max-w-[100vw] lg:max-w-[calc(100vw-16rem)] overflow-x-hidden">
+      {/* Main content area */}
+      <div className="flex-1 flex flex-col lg:pl-64 w-full min-w-0">
         {/* Desktop header with search and notifications */}
         <div className="hidden lg:flex justify-end items-center gap-3 p-4 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/20">
           <GlobalSearch />
@@ -67,13 +69,13 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         </div>
 
         {/* Mobile spacer for fixed header */}
-        <div className="lg:hidden h-14" />
+        <div className="lg:hidden h-14 shrink-0" />
         
-        {/* Page content */}
-        <div className="min-h-[calc(100vh-64px)] min-h-[calc(100dvh-64px)] w-full max-w-full overflow-x-hidden">
+        {/* Page content - CRITICAL: overflow-hidden prevents horizontal scroll */}
+        <main className="flex-1 w-full min-w-0 overflow-x-hidden">
           {children}
-        </div>
-      </main>
+        </main>
+      </div>
       
       {/* Team Chat - hidden on mobile */}
       <div className="hidden lg:block">

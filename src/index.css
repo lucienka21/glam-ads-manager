@@ -112,42 +112,50 @@
   }
 }
 
+/* CRITICAL: Prevent ALL horizontal overflow */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: hsl(0 0% 4%);
+  color: hsl(0 0% 98%);
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Force all elements to respect container width */
+* {
+  box-sizing: border-box;
+}
+
+/* Dark theme always */
+html {
+  color-scheme: dark;
+}
+
 @layer base {
   * {
     @apply border-border;
-    box-sizing: border-box;
-    max-width: 100%;
-  }
-
-  html {
-    font-family: 'Inter', system-ui, sans-serif;
-    -webkit-tap-highlight-color: transparent;
-    overflow-x: hidden !important;
-    width: 100vw;
-    max-width: 100vw;
-  }
-
-  body {
-    @apply bg-background text-foreground antialiased;
-    min-height: 100vh;
-    min-height: 100dvh;
-    overscroll-behavior-x: none;
-    overflow-x: hidden !important;
-    width: 100vw;
-    max-width: 100vw;
-  }
-  
-  #root {
-    overflow-x: hidden !important;
-    width: 100vw;
-    max-width: 100vw;
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-
-  /* Always dark theme */
-  html {
-    @apply dark;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -155,7 +163,7 @@
     font-weight: 600;
   }
 
-  /* Mobile touch optimizations */
+  /* Prevent iOS zoom on inputs */
   @media (max-width: 768px) {
     input, select, textarea {
       font-size: 16px !important;
@@ -164,6 +172,29 @@
 }
 
 @layer components {
+  /* Mobile page container - CRITICAL for preventing overflow */
+  .mobile-page {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  @media (min-width: 640px) {
+    .mobile-page {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    .mobile-page {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
   /* Glass morphism cards */
   .glass-card {
     @apply bg-card/80 backdrop-blur-xl border border-border/50 rounded-xl;
@@ -252,15 +283,6 @@
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-primary/50;
-  }
-
-  /* Prevent scroll jump on focus */
-  .custom-scrollbar:focus-within {
-    scroll-behavior: auto;
-  }
-  .custom-scrollbar a:focus,
-  .custom-scrollbar button:focus {
-    scroll-margin: 0;
   }
 
   /* Mobile-optimized scrolling */

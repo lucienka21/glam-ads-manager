@@ -81,7 +81,7 @@ export function LeadsKanban({ leads, onLeadClick, onRefresh }: LeadsKanbanProps)
   };
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
+    <div className="flex gap-3 overflow-x-auto pb-4 min-h-[600px] -mx-3 px-3 sm:-mx-0 sm:px-0">
       {statusColumns.map(column => (
         <div
           key={column.id}
