@@ -113,21 +113,23 @@
 }
 
 /* CRITICAL: Prevent ALL horizontal overflow */
-html, body, #root {
+html {
   margin: 0;
   padding: 0;
   width: 100%;
-  max-width: 100%;
+  max-width: 100vw;
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
-}
-
-html {
   font-family: 'Inter', system-ui, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
   background: hsl(0 0% 4%);
   color: hsl(0 0% 98%);
   min-height: 100vh;
@@ -137,6 +139,11 @@ body {
 }
 
 #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden !important;
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -144,8 +151,9 @@ body {
 }
 
 /* Force all elements to respect container width */
-* {
+*, *::before, *::after {
   box-sizing: border-box;
+  max-width: 100%;
 }
 
 /* Dark theme always */
@@ -176,22 +184,24 @@ html {
   .mobile-page {
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
-    padding-left: 1rem;
-    padding-right: 1rem;
+    min-width: 0;
+    overflow-x: hidden !important;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    box-sizing: border-box;
   }
   
   @media (min-width: 640px) {
     .mobile-page {
-      padding-left: 1.5rem;
-      padding-right: 1.5rem;
+      padding-left: 1rem;
+      padding-right: 1rem;
     }
   }
   
   @media (min-width: 1024px) {
     .mobile-page {
-      padding-left: 2rem;
-      padding-right: 2rem;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
     }
   }
 

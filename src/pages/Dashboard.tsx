@@ -147,7 +147,7 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full max-w-full overflow-hidden">
+      <div className="mobile-page py-4 space-y-4 sm:space-y-6 w-full max-w-full overflow-x-hidden box-border">
         {/* Header with greeting */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="min-w-0 flex-1">

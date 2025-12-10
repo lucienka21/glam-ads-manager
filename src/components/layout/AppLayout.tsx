@@ -24,7 +24,7 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-background flex w-full">
+    <div className="min-h-screen min-h-[100dvh] bg-background flex w-full max-w-[100vw] overflow-x-hidden">
       {/* Desktop sidebar - fixed position */}
       <aside className="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0 lg:z-50">
         <div className="flex flex-col flex-1 overflow-y-auto border-r border-sidebar-border bg-sidebar">
@@ -60,8 +60,8 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         </div>
       </header>
 
-      {/* Main content area */}
-      <div className="flex-1 flex flex-col lg:pl-64 w-full min-w-0">
+      {/* Main content area - CRITICAL: prevent overflow */}
+      <div className="flex-1 flex flex-col lg:pl-64 w-full min-w-0 max-w-[100vw] overflow-x-hidden">
         {/* Desktop header with search and notifications */}
         <div className="hidden lg:flex justify-end items-center gap-3 p-4 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/20">
           <GlobalSearch />
@@ -72,7 +72,7 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         <div className="lg:hidden h-14 shrink-0" />
         
         {/* Page content - CRITICAL: overflow-hidden prevents horizontal scroll */}
-        <main className="flex-1 w-full min-w-0 overflow-x-hidden">
+        <main className="flex-1 w-full min-w-0 max-w-[100vw] overflow-x-hidden">
           {children}
         </main>
       </div>
