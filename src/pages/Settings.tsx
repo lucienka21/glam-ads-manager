@@ -59,16 +59,16 @@ export default function Settings() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <SettingsIcon className="w-6 h-6 text-pink-400" />
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground flex items-center gap-2">
+            <SettingsIcon className="w-5 h-5 sm:w-6 sm:h-6 text-pink-400" />
             Ustawienia
           </h1>
-          <p className="text-muted-foreground mt-1">Dostosuj aplikację do swoich preferencji</p>
+          <p className="text-muted-foreground mt-1 text-sm">Dostosuj aplikację do swoich preferencji</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
           {/* Notification Settings */}
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>

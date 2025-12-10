@@ -24,7 +24,7 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-background">
+    <div className="min-h-screen min-h-[100dvh] bg-background w-full overflow-x-hidden">
       {/* Desktop sidebar - fixed position */}
       <div className="hidden lg:block">
         <AppSidebar />
@@ -35,7 +35,7 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         <div className="flex items-center gap-2">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10">
+              <Button variant="ghost" size="icon" className="h-10 w-10 shrink-0">
                 <Menu className="w-5 h-5" />
               </Button>
             </SheetTrigger>
@@ -52,14 +52,14 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
             <span className="text-sm font-bold text-foreground">Aurine</span>
           </div>
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0">
           <GlobalSearch />
           <NotificationBell />
         </div>
       </header>
 
       {/* Main content area - offset by sidebar width on desktop */}
-      <main className="lg:ml-64 min-h-screen min-h-[100dvh]">
+      <main className="lg:ml-64 min-h-screen min-h-[100dvh] w-full overflow-x-hidden">
         {/* Desktop header with search and notifications */}
         <div className="hidden lg:flex justify-end items-center gap-3 p-4 sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/20">
           <GlobalSearch />
@@ -70,7 +70,7 @@ export function AppLayout({ children, fullScreen = false }: AppLayoutProps) {
         <div className="lg:hidden h-14" />
         
         {/* Page content */}
-        <div className="min-h-[calc(100vh-64px)] min-h-[calc(100dvh-64px)]">
+        <div className="min-h-[calc(100vh-64px)] min-h-[calc(100dvh-64px)] w-full overflow-x-hidden">
           {children}
         </div>
       </main>

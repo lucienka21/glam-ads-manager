@@ -302,37 +302,37 @@ export default function Team() {
 
   return (
     <AppLayout>
-      <div className="container mx-auto py-8 px-4 space-y-8 animate-fade-in">
+      <div className="px-3 sm:px-4 lg:container lg:mx-auto py-4 sm:py-8 space-y-4 sm:space-y-8 animate-fade-in max-w-full overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 bg-clip-text text-transparent">
+        <div className="flex flex-col gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-pink-400 via-rose-400 to-pink-500 bg-clip-text text-transparent">
               Zespół
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Zarządzaj zespołem i śledź aktywność w czasie rzeczywistym
+            <p className="text-muted-foreground mt-1 text-sm">
+              Zarządzaj zespołem i śledź aktywność
             </p>
           </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <Badge variant="outline" className="gap-2 px-3 py-1.5 border-emerald-500/30 bg-emerald-500/10">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <Badge variant="outline" className="gap-1.5 px-2 py-1 border-emerald-500/30 bg-emerald-500/10 text-xs">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span className="text-emerald-400">{onlineCount} online</span>
             </Badge>
             {awayCount > 0 && (
-              <Badge variant="outline" className="gap-2 px-3 py-1.5 border-amber-500/30 bg-amber-500/10">
-                <div className="w-2 h-2 rounded-full bg-amber-500" />
+              <Badge variant="outline" className="gap-1.5 px-2 py-1 border-amber-500/30 bg-amber-500/10 text-xs">
+                <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                 <span className="text-amber-400">{awayCount} away</span>
               </Badge>
             )}
-            <Badge variant="secondary" className="gap-2 px-3 py-1.5">
-              <Users className="w-4 h-4" />
-              {profiles.length} członków
+            <Badge variant="secondary" className="gap-1.5 px-2 py-1 text-xs">
+              <Users className="w-3 h-3" />
+              {profiles.length}
             </Badge>
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 overflow-x-hidden">
           <Card className="bg-gradient-to-br from-pink-500/10 to-rose-500/5 border-pink-500/20 hover:border-pink-500/40 transition-colors">
             <CardContent className="pt-5 pb-4">
               <div className="flex items-center gap-3">

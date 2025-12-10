@@ -253,26 +253,29 @@ export default function Calendar() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in max-w-full overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
-                <CalendarIcon className="w-5 h-5 text-white" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shrink-0">
+                <CalendarIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               Kalendarz
             </h1>
-            <p className="text-muted-foreground mt-1">Planuj spotkania i zarządzaj czasem</p>
+            <p className="text-muted-foreground mt-1 text-sm">Planuj spotkania i zarządzaj czasem</p>
           </div>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0">
+              <Button className="bg-gradient-to-r from-pink-500 to-rose-600 hover:from-pink-600 hover:to-rose-700 text-white border-0 w-full sm:w-auto">
                 <Plus className="w-4 h-4 mr-2" />
                 Nowe wydarzenie
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Nowe wydarzenie</DialogTitle>
+              </DialogHeader>
               <DialogHeader>
                 <DialogTitle>Nowe wydarzenie</DialogTitle>
               </DialogHeader>
@@ -394,9 +397,9 @@ export default function Calendar() {
           </Card>
         )}
 
-        <div className="grid lg:grid-cols-4 gap-6">
+        <div className="grid lg:grid-cols-4 gap-4 sm:gap-6 overflow-x-hidden">
           {/* Calendar Grid */}
-          <Card className="lg:col-span-3 border-border/50 bg-card/80">
+          <Card className="lg:col-span-3 border-border/50 bg-card/80 overflow-hidden">
             <CardHeader className="pb-4 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <Button variant="ghost" size="icon" onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}>

@@ -147,20 +147,20 @@ export default function Dashboard() {
 
   return (
     <AppLayout>
-      <div className="p-4 lg:p-6 space-y-6 max-w-[1800px] mx-auto">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 max-w-full overflow-x-hidden">
         {/* Header with greeting */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">
               Cześć{user?.email ? `, ${user.email.split('@')[0]}` : ''}! 👋
             </h1>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
               {format(new Date(), "EEEE, d MMMM yyyy", { locale: pl })}
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate("/calendar")} className="gap-2">
+          <Button variant="outline" onClick={() => navigate("/calendar")} className="gap-2 shrink-0 w-full sm:w-auto">
             <Calendar className="w-4 h-4" />
-            Kalendarz
+            <span className="sm:inline">Kalendarz</span>
           </Button>
         </div>
 
@@ -212,7 +212,7 @@ export default function Dashboard() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 overflow-x-hidden">
           <StatsCard 
             title="Aktywne leady" 
             value={stats.activeLeads} 
@@ -260,7 +260,7 @@ export default function Dashboard() {
         </div>
 
         {/* Main Grid */}
-        <div className="grid lg:grid-cols-12 gap-6">
+        <div className="grid lg:grid-cols-12 gap-4 sm:gap-6 overflow-x-hidden">
           {/* Left Column - Charts */}
           <div className="lg:col-span-8 space-y-6">
             {/* Performance Chart */}

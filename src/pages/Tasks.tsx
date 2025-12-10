@@ -533,14 +533,14 @@ export default function Tasks() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in max-w-full overflow-x-hidden">
         {/* Header */}
-        <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Zadania</h1>
-            <p className="text-muted-foreground">Zarządzaj zadaniami swoimi i zespołu</p>
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Zadania</h1>
+            <p className="text-muted-foreground text-sm">Zarządzaj zadaniami swoimi i zespołu</p>
           </div>
-          <Button className="bg-primary hover:bg-primary/90" onClick={openNewTaskDialog}>
+          <Button className="bg-primary hover:bg-primary/90 w-full sm:w-auto" onClick={openNewTaskDialog}>
             <Plus className="w-4 h-4 mr-2" />
             Nowe zadanie
           </Button>
@@ -551,35 +551,37 @@ export default function Tasks() {
 
         {/* Tabs & Controls */}
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
-            <TabsList className="bg-zinc-900/50 border border-zinc-700/50">
-              <TabsTrigger value="my" className="gap-2 data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
-                <User className="w-4 h-4" />
-                Moje ({myTasks.length})
-              </TabsTrigger>
-              <TabsTrigger value="agency" className="gap-2 data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
-                <Users className="w-4 h-4" />
-                Agencyjne ({agencyTasks.length})
-              </TabsTrigger>
-              {isSzef && (
-                <TabsTrigger value="team" className="gap-2 data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
-                  <Users className="w-4 h-4" />
-                  Zespół ({activeTasks.length})
+          <div className="flex flex-col gap-3 sm:gap-4 mb-4">
+            <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+              <TabsList className="bg-zinc-900/50 border border-zinc-700/50 w-max sm:w-auto">
+                <TabsTrigger value="my" className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
+                  <User className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Moje</span> ({myTasks.length})
                 </TabsTrigger>
-              )}
-              <TabsTrigger value="history" className="gap-2 data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
-                <History className="w-4 h-4" />
-                Historia ({completedTasks.length})
-              </TabsTrigger>
-            </TabsList>
+                <TabsTrigger value="agency" className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
+                  <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Agencyjne</span> ({agencyTasks.length})
+                </TabsTrigger>
+                {isSzef && (
+                  <TabsTrigger value="team" className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
+                    <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Zespół</span> ({activeTasks.length})
+                  </TabsTrigger>
+                )}
+                <TabsTrigger value="history" className="gap-1.5 text-xs sm:text-sm data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400">
+                  <History className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Historia</span> ({completedTasks.length})
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
               {/* User filter */}
               {(activeTab === 'history' || (activeTab === 'team' && isSzef)) && (
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm text-muted-foreground whitespace-nowrap">Filtruj:</Label>
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <Label className="text-sm text-muted-foreground whitespace-nowrap hidden sm:block">Filtruj:</Label>
                   <Select value={userFilter} onValueChange={setUserFilter}>
-                    <SelectTrigger className="w-48 bg-zinc-900 border-zinc-700">
+                    <SelectTrigger className="w-full sm:w-48 bg-zinc-900 border-zinc-700">
                       <SelectValue placeholder="Wszyscy" />
                     </SelectTrigger>
                     <SelectContent>
@@ -596,7 +598,7 @@ export default function Tasks() {
 
               {/* View toggle */}
               {activeTab !== 'history' && (
-                <div className="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg p-1">
+                <div className="flex items-center bg-zinc-900 border border-zinc-700 rounded-lg p-1 shrink-0">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -619,7 +621,7 @@ export default function Tasks() {
           </div>
 
           {/* Content */}
-          <TabsContent value="my" className="mt-0">
+          <TabsContent value="my" className="mt-0 overflow-x-hidden">
             {viewMode === 'kanban' ? (
               <TaskKanbanBoard
                 tasks={myTasks}
