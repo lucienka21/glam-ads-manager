@@ -735,7 +735,7 @@ export default function Leads() {
 
   return (
     <AppLayout>
-      <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 animate-fade-in w-full max-w-full overflow-hidden">
+      <div className="mobile-page py-4 space-y-4 lg:space-y-6 animate-fade-in w-full max-w-full overflow-x-hidden box-border">
         {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div>

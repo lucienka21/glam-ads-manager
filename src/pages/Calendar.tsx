@@ -253,7 +253,7 @@ export default function Calendar() {
 
   return (
     <AppLayout>
-      <div className="p-3 sm:p-6 space-y-4 sm:space-y-6 animate-fade-in max-w-full overflow-x-hidden">
+      <div className="mobile-page py-4 space-y-4 sm:space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div className="min-w-0">

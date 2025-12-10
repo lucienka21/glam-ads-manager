@@ -100,9 +100,9 @@ export default function GraphicsCreator() {
 
   return (
     <AppLayout>
-      <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row">
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row w-full max-w-full overflow-x-hidden">
         {/* Sidebar - Mobile: collapsible, Desktop: fixed */}
-        <div className="w-full lg:w-[360px] border-b lg:border-b-0 lg:border-r border-border bg-card/50 flex flex-col max-h-[40vh] lg:max-h-none overflow-hidden">
+        <div className="w-full lg:w-[360px] border-b lg:border-b-0 lg:border-r border-border bg-card/50 flex flex-col max-h-[35vh] lg:max-h-none lg:h-[calc(100vh-4rem)] overflow-y-auto">
           <div className="p-3 lg:p-4 border-b border-border flex items-center justify-between">
             <h1 className="text-base lg:text-lg font-semibold">Kreator Grafik</h1>
             {/* Mobile: Action buttons in header */}

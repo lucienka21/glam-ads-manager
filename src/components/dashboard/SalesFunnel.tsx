@@ -98,20 +98,20 @@ export function SalesFunnel() {
 
   return (
     <div 
-      className="bg-secondary/30 border border-border/50 rounded-xl p-6 cursor-pointer hover:border-primary/30 transition-colors"
+      className="bg-secondary/30 border border-border/50 rounded-xl p-3 sm:p-4 cursor-pointer hover:border-primary/30 transition-colors w-full max-w-full overflow-hidden"
       onClick={() => navigate('/funnel')}
     >
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <TrendingDown className="w-5 h-5 text-pink-400" />
-          <h3 className="font-semibold text-foreground">Lejek sprzedażowy</h3>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <TrendingDown className="w-4 h-4 sm:w-5 sm:h-5 text-pink-400 shrink-0" />
+          <h3 className="font-semibold text-foreground text-sm sm:text-base truncate">Lejek sprzedażowy</h3>
         </div>
-        <span className="text-sm text-muted-foreground">
-          {total} aktywnych • kliknij po szczegóły
+        <span className="text-xs sm:text-sm text-muted-foreground shrink-0">
+          {total} aktywnych
         </span>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-2 w-full max-w-full overflow-hidden">
         {stages.map((stage, index) => {
           const count = data[stage.key as keyof FunnelData];
           const percentage = maxCount > 0 ? (count / maxCount) * 100 : 0;

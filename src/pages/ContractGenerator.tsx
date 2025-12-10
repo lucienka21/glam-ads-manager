@@ -268,9 +268,9 @@ const ContractGenerator = () => {
 
   return (
     <AppLayout>
-      <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row overflow-hidden">
+      <div className="min-h-[calc(100vh-4rem)] flex flex-col lg:flex-row w-full max-w-full overflow-x-hidden">
         {/* Left Panel - Form */}
-        <div className="w-full lg:w-[360px] xl:w-[400px] flex-shrink-0 border-r border-border/50 overflow-y-auto bg-card/30">
+        <div className="w-full lg:w-[360px] xl:w-[400px] flex-shrink-0 lg:border-r border-border/50 overflow-y-auto bg-card/30 max-h-[50vh] lg:max-h-none lg:h-[calc(100vh-4rem)]">
           <div className="p-4 border-b border-border/50 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
             <div className="flex items-center justify-between">
               <div>
