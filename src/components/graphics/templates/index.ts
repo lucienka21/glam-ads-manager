@@ -156,6 +156,21 @@ export const templates: Template[] = [
       { name: 'tagline', label: 'Hasło', type: 'text', placeholder: 'Twoja metamorfoza' },
     ],
   },
+  {
+    id: 'photo-ad',
+    name: 'Zdjęcie + Tekst',
+    category: 'promo',
+    aspectRatio: '1:1',
+    width: 1080,
+    height: 1080,
+    fields: [
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'headline', label: 'Nagłówek', type: 'text', placeholder: 'UWAGA KOBIETO' },
+      { name: 'subheadline', label: 'Podtytuł', type: 'text', placeholder: 'Odbierz spersonalizowany plan!' },
+      { name: 'tagline', label: 'Hasło', type: 'text', placeholder: 'Twój wizerunek' },
+      { name: 'logoText', label: 'Logo/Nazwa', type: 'text', placeholder: 'Beauty Studio' },
+    ],
+  },
 ];
 
 export { ServicePromo } from './ServicePromo';
@@ -168,3 +183,4 @@ export { Treatment } from './Treatment';
 export { Booking } from './Booking';
 export { Seasonal } from './Seasonal';
 export { Brand } from './Brand';
+export { default as PhotoAd } from './PhotoAd';
