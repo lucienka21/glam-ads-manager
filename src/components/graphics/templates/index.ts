@@ -166,8 +166,9 @@ export const templates: Template[] = [
     fields: [
       { name: 'image', label: 'Zdjęcie', type: 'image' },
       { name: 'headline', label: 'Nagłówek', type: 'text', placeholder: 'UWAGA KOBIETO' },
-      { name: 'subheadline', label: 'Podtytuł', type: 'text', placeholder: 'Odbierz spersonalizowany plan!' },
-      { name: 'tagline', label: 'Hasło', type: 'text', placeholder: 'Twój wizerunek' },
+      { name: 'subheadline', label: 'Podtytuł', type: 'text', placeholder: 'Odbierz hair plan, czyli spersonalizowany plan pielęgnacyjny włosów!' },
+      { name: 'tagline', label: 'Hasło (biały)', type: 'text', placeholder: 'Twój wizerunek' },
+      { name: 'taglineAccent', label: 'Hasło (złoty)', type: 'text', placeholder: 'zaczyna się od fryzury!' },
       { name: 'logoText', label: 'Logo/Nazwa', type: 'text', placeholder: 'Beauty Studio' },
     ],
   },
