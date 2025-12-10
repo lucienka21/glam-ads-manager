@@ -175,17 +175,40 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
             if (imageUrl) {
               try {
                 const imgElement = await loadImage(imageUrl);
-                const fabricImg = new FabricImage(imgElement, {
+                const imgWidth = imgElement.width || 1;
+                const imgHeight = imgElement.height || 1;
+                const placeholderWidth = item.props.width;
+                const placeholderHeight = item.props.height;
+
+                // Use "cover" scaling - maintain aspect ratio and cover entire area
+                const scaleX = placeholderWidth / imgWidth;
+                const scaleY = placeholderHeight / imgHeight;
+                const scale = Math.max(scaleX, scaleY);
+
+                // Calculate centered position
+                const scaledWidth = imgWidth * scale;
+                const scaledHeight = imgHeight * scale;
+                const offsetX = (placeholderWidth - scaledWidth) / 2;
+                const offsetY = (placeholderHeight - scaledHeight) / 2;
+
+                // Create clip path for the placeholder area
+                const clipRect = new Rect({
                   left: item.props.left,
                   top: item.props.top,
-                  selectable: false,
-                  evented: false,
+                  width: placeholderWidth,
+                  height: placeholderHeight,
+                  absolutePositioned: true,
                 });
 
-                // Scale to fit placeholder dimensions
-                const scaleX = item.props.width / (fabricImg.width || 1);
-                const scaleY = item.props.height / (fabricImg.height || 1);
-                fabricImg.set({ scaleX, scaleY });
+                const fabricImg = new FabricImage(imgElement, {
+                  left: item.props.left + offsetX,
+                  top: item.props.top + offsetY,
+                  scaleX: scale,
+                  scaleY: scale,
+                  selectable: false,
+                  evented: false,
+                  clipPath: clipRect,
+                });
 
                 canvas.add(fabricImg);
               } catch (error) {
