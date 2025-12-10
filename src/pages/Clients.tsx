@@ -300,7 +300,7 @@ export default function Clients() {
 
   return (
     <AppLayout>
-      <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 animate-fade-in">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 animate-fade-in w-full max-w-full overflow-hidden">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>

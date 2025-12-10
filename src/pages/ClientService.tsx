@@ -356,7 +356,7 @@ export default function ClientService() {
 
   return (
     <AppLayout>
-      <div className="min-h-[calc(100vh-4rem)]">
+      <div className="min-h-[calc(100vh-4rem)] w-full max-w-full overflow-hidden">
         {/* Header */}
         <div className="relative overflow-hidden border-b border-border/50 bg-gradient-to-br from-primary/10 via-card to-card">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(236,72,153,0.15),transparent_50%)]" />
