@@ -1,5 +1,5 @@
-import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { Canvas as FabricCanvas, Rect, Textbox, Image as FabricImage, Gradient, Circle } from 'fabric';
+import { useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { Canvas as FabricCanvas, Rect, Textbox, FabricImage, Gradient, Circle } from 'fabric';
 
 export interface TemplateData {
   id: string;
@@ -17,20 +17,69 @@ export interface TemplateElement {
 export interface FabricCanvasRef {
   canvas: FabricCanvas | null;
   exportImage: () => Promise<string | null>;
-  updateText: (name: string, value: string) => void;
-  updateImage: (name: string, imageUrl: string) => void;
+  loadImage: (name: string, imageUrl: string) => Promise<void>;
 }
 
 interface FabricCanvasProps {
   template: TemplateData;
-  scale?: number;
+  formData: Record<string, string>;
 }
 
 const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
-  ({ template, scale = 1 }, ref) => {
+  ({ template, formData }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricRef = useRef<FabricCanvas | null>(null);
-    const elementsMapRef = useRef<Map<string, any>>(new Map());
+    const placeholdersRef = useRef<Map<string, { left: number; top: number; width: number; height: number }>>(new Map());
+    const loadedImagesRef = useRef<Map<string, FabricImage>>(new Map());
+
+    const loadImage = useCallback(async (name: string, imageUrl: string) => {
+      const canvas = fabricRef.current;
+      const placeholder = placeholdersRef.current.get(name);
+      if (!canvas || !placeholder) {
+        console.error('Canvas or placeholder not found for:', name);
+        return;
+      }
+
+      try {
+        // Remove old image if exists
+        const oldImg = loadedImagesRef.current.get(name);
+        if (oldImg) {
+          canvas.remove(oldImg);
+        }
+
+        // Create HTML image element first
+        const imgElement = document.createElement('img');
+        imgElement.crossOrigin = 'anonymous';
+        
+        await new Promise<void>((resolve, reject) => {
+          imgElement.onload = () => resolve();
+          imgElement.onerror = () => reject(new Error('Failed to load image'));
+          imgElement.src = imageUrl;
+        });
+
+        // Create fabric image from the loaded element
+        const fabricImg = new FabricImage(imgElement, {
+          left: placeholder.left,
+          top: placeholder.top,
+          selectable: false,
+          evented: false,
+        });
+
+        // Scale to fit placeholder
+        const scaleX = placeholder.width / (fabricImg.width || 1);
+        const scaleY = placeholder.height / (fabricImg.height || 1);
+        fabricImg.set({ scaleX, scaleY });
+
+        canvas.add(fabricImg);
+        canvas.sendObjectToBack(fabricImg);
+        loadedImagesRef.current.set(name, fabricImg);
+        canvas.renderAll();
+        
+        console.log('Image loaded successfully:', name);
+      } catch (e) {
+        console.error('Failed to load image:', name, e);
+      }
+    }, []);
 
     useImperativeHandle(ref, () => ({
       canvas: fabricRef.current,
@@ -42,38 +91,10 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
           multiplier: 2,
         });
       },
-      updateText: (name: string, value: string) => {
-        const element = elementsMapRef.current.get(name);
-        if (element && element.type === 'textbox') {
-          element.set('text', value);
-          fabricRef.current?.renderAll();
-        }
-      },
-      updateImage: async (name: string, imageUrl: string) => {
-        const element = elementsMapRef.current.get(name);
-        if (element) {
-          try {
-            const img = await FabricImage.fromURL(imageUrl, { crossOrigin: 'anonymous' });
-            img.set({
-              left: element.left,
-              top: element.top,
-              scaleX: element.width / (img.width || 1),
-              scaleY: element.height / (img.height || 1),
-              selectable: false,
-              name: name,
-            });
-            fabricRef.current?.remove(element);
-            fabricRef.current?.add(img);
-            fabricRef.current?.sendObjectToBack(img);
-            elementsMapRef.current.set(name, img);
-            fabricRef.current?.renderAll();
-          } catch (e) {
-            console.error('Failed to load image:', e);
-          }
-        }
-      },
+      loadImage,
     }));
 
+    // Build canvas when template changes
     useEffect(() => {
       if (!canvasRef.current) return;
 
@@ -85,7 +106,8 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
       });
 
       fabricRef.current = canvas;
-      elementsMapRef.current.clear();
+      placeholdersRef.current.clear();
+      loadedImagesRef.current.clear();
 
       // Build template elements
       template.elements.forEach((el) => {
@@ -97,6 +119,7 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
             const rect = new Rect({
               ...rectProps,
               selectable: false,
+              evented: false,
             });
             
             const gradient = new Gradient({
@@ -119,6 +142,7 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
             fabricObj = new Rect({
               ...el.props,
               selectable: false,
+              evented: false,
             });
             break;
           }
@@ -126,20 +150,32 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
             fabricObj = new Circle({
               ...el.props,
               selectable: false,
+              evented: false,
             });
             break;
           }
           case 'text': {
-            fabricObj = new Textbox(el.props.text || '', {
+            const textValue = el.props.name && formData[el.props.name] 
+              ? formData[el.props.name] 
+              : el.props.text || '';
+            fabricObj = new Textbox(textValue, {
               ...el.props,
-              selectable: true,
-              editable: true,
-              splitByGrapheme: false,
+              text: textValue,
+              selectable: false,
+              editable: false,
+              evented: false,
             });
             break;
           }
           case 'image': {
-            // Create placeholder rect for image
+            // Store placeholder info for later image loading
+            placeholdersRef.current.set(el.props.name, {
+              left: el.props.left,
+              top: el.props.top,
+              width: el.props.width,
+              height: el.props.height,
+            });
+            // Create dark placeholder rect
             fabricObj = new Rect({
               left: el.props.left,
               top: el.props.top,
@@ -147,7 +183,7 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
               height: el.props.height,
               fill: '#1a1a1a',
               selectable: false,
-              name: el.props.name,
+              evented: false,
             });
             break;
           }
@@ -155,9 +191,6 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
 
         if (fabricObj) {
           canvas.add(fabricObj);
-          if (el.props.name) {
-            elementsMapRef.current.set(el.props.name, fabricObj);
-          }
         }
       });
 
@@ -166,17 +199,23 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
       return () => {
         canvas.dispose();
       };
-    }, [template]);
+    }, [template, formData]);
+
+    // Load images when formData changes
+    useEffect(() => {
+      if (!fabricRef.current) return;
+
+      const imageNames = Array.from(placeholdersRef.current.keys());
+      imageNames.forEach(name => {
+        const imageUrl = formData[name];
+        if (imageUrl) {
+          loadImage(name, imageUrl);
+        }
+      });
+    }, [formData, loadImage]);
 
     return (
-      <div 
-        style={{ 
-          transform: `scale(${scale})`, 
-          transformOrigin: 'top left',
-          width: template.width,
-          height: template.height,
-        }}
-      >
+      <div style={{ width: template.width, height: template.height }}>
         <canvas ref={canvasRef} />
       </div>
     );

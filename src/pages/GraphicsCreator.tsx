@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,9 +22,7 @@ export default function GraphicsCreator() {
   // Get image fields from template
   const imageFields = currentTemplate?.elements
     .filter(el => el.type === 'image' && el.props.name)
-    .map(el => ({
-      name: el.props.name as string,
-    })) || [];
+    .map(el => ({ name: el.props.name as string })) || [];
 
   // Get text fields from template
   const textFields = currentTemplate?.elements
@@ -33,19 +31,6 @@ export default function GraphicsCreator() {
       name: el.props.name as string,
       defaultValue: el.props.text as string,
     })) || [];
-
-  // Update canvas when form data changes
-  useEffect(() => {
-    if (!canvasRef.current) return;
-    
-    Object.entries(formData).forEach(([key, value]) => {
-      if (imageFields.some(f => f.name === key)) {
-        canvasRef.current?.updateImage(key, value);
-      } else {
-        canvasRef.current?.updateText(key, value);
-      }
-    });
-  }, [formData, imageFields]);
 
   const handleImageUpload = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -155,15 +140,14 @@ export default function GraphicsCreator() {
                         {getFieldLabel(field.name)}
                       </label>
                       <div className={cn(
-                        "relative h-24 rounded-lg border-2 border-dashed overflow-hidden cursor-pointer",
+                        "relative h-24 rounded-lg border-2 border-dashed overflow-hidden",
                         formData[field.name] ? "border-primary/50" : "border-border hover:border-primary/30"
                       )}>
                         {formData[field.name] ? (
                           <>
                             <img src={formData[field.name]} alt="" className="w-full h-full object-cover" />
                             <button
-                              onClick={(e) => {
-                                e.stopPropagation();
+                              onClick={() => {
                                 setFormData(prev => {
                                   const n = { ...prev };
                                   delete n[field.name];
@@ -246,9 +230,10 @@ export default function GraphicsCreator() {
             {currentTemplate && (
               <div style={{ transform: `scale(${previewScale})`, transformOrigin: 'top center' }}>
                 <FabricCanvasComponent
-                  key={selectedTemplateId}
+                  key={`${selectedTemplateId}-${JSON.stringify(formData)}`}
                   ref={canvasRef}
                   template={currentTemplate}
+                  formData={formData}
                 />
               </div>
             )}
