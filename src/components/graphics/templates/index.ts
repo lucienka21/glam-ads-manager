@@ -1,237 +1,187 @@
-// Graphics Creator Templates Registry
+export interface TemplateField {
+  name: string;
+  label: string;
+  type: 'text' | 'image' | 'price' | 'percentage';
+  placeholder?: string;
+}
 
-export type TemplateCategory = 
-  | 'promotion' 
-  | 'metamorphosis' 
-  | 'testimonial' 
-  | 'service' 
-  | 'seasonal';
-
-export type AspectRatio = '1:1' | '4:5' | '9:16';
-
-export interface TemplateConfig {
+export interface Template {
   id: string;
   name: string;
   description: string;
-  category: TemplateCategory;
-  aspectRatio: AspectRatio;
+  category: 'promo' | 'result' | 'price' | 'seasonal' | 'brand';
+  aspectRatio: '1:1' | '4:5';
   width: number;
   height: number;
   fields: TemplateField[];
 }
 
-export interface TemplateField {
-  id: string;
-  label: string;
-  type: 'text' | 'image' | 'price' | 'percentage';
-  defaultValue?: string;
-  placeholder?: string;
-  required?: boolean;
-}
-
-// Template dimensions based on aspect ratio
-export const DIMENSIONS: Record<AspectRatio, { width: number; height: number }> = {
-  '1:1': { width: 1080, height: 1080 },
-  '4:5': { width: 1080, height: 1350 },
-  '9:16': { width: 1080, height: 1920 },
-};
-
-// Category labels
-export const CATEGORY_LABELS: Record<TemplateCategory, string> = {
-  promotion: 'Promocje',
-  metamorphosis: 'Metamorfozy',
-  testimonial: 'Opinie',
-  service: 'Usługi',
-  seasonal: 'Sezonowe',
-};
-
-// All template configurations
-export const TEMPLATES: TemplateConfig[] = [
-  // 1. Elegant Promotion (1:1)
+export const templates: Template[] = [
   {
     id: 'elegant-promo',
-    name: 'Elegancka Promocja',
-    description: 'Minimalistyczna promocja z akcentem różowym',
-    category: 'promotion',
+    name: 'Promo',
+    description: 'Minimalistyczna promocja',
+    category: 'promo',
     aspectRatio: '1:1',
-    width: 1080,
-    height: 1080,
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'headline', label: 'Nagłówek', type: 'text', defaultValue: 'Wyjątkowa Promocja' },
-      { id: 'discount', label: 'Rabat', type: 'percentage', defaultValue: '-30%' },
-      { id: 'oldPrice', label: 'Stara cena', type: 'price', defaultValue: '299 zł' },
-      { id: 'newPrice', label: 'Nowa cena', type: 'price', defaultValue: '199 zł' },
-      { id: 'cta', label: 'Przycisk', type: 'text', defaultValue: 'Rezerwuj' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Twoja metamorfoza' },
+      { name: 'subtitle', label: 'Podtytuł', type: 'text', placeholder: 'Umów wizytę już dziś' },
     ],
   },
-  // 2. Before/After (4:5)
   {
     id: 'before-after',
-    name: 'Przed i Po',
-    description: 'Efektowne porównanie metamorfozy',
-    category: 'metamorphosis',
-    aspectRatio: '4:5',
-    width: 1080,
-    height: 1350,
-    fields: [
-      { id: 'imageBefore', label: 'Zdjęcie PRZED', type: 'image', required: true },
-      { id: 'imageAfter', label: 'Zdjęcie PO', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'service', label: 'Nazwa usługi', type: 'text', defaultValue: 'Stylizacja włosów' },
-    ],
-  },
-  // 3. Testimonial Card (1:1)
-  {
-    id: 'testimonial-card',
-    name: 'Opinia Klientki',
-    description: 'Elegancka karta z opinią',
-    category: 'testimonial',
+    name: 'Przed / Po',
+    description: 'Porównanie efektów',
+    category: 'result',
     aspectRatio: '1:1',
-    width: 1080,
-    height: 1080,
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie klientki', type: 'image' },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'quote', label: 'Treść opinii', type: 'text', defaultValue: 'Najlepszy salon w mieście! Profesjonalna obsługa i niesamowite efekty.' },
-      { id: 'author', label: 'Imię klientki', type: 'text', defaultValue: 'Anna K.' },
-      { id: 'rating', label: 'Ocena (1-5)', type: 'text', defaultValue: '5' },
+      { name: 'beforeImage', label: 'Zdjęcie przed', type: 'image' },
+      { name: 'afterImage', label: 'Zdjęcie po', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Nazwa zabiegu', type: 'text', placeholder: 'Profesjonalna metamorfoza' },
     ],
   },
-  // 4. Service Highlight (1:1)
   {
     id: 'service-highlight',
-    name: 'Usługa Premium',
-    description: 'Prezentacja pojedynczej usługi',
-    category: 'service',
+    name: 'Usługa',
+    description: 'Prezentacja zabiegu z ceną',
+    category: 'promo',
     aspectRatio: '1:1',
-    width: 1080,
-    height: 1080,
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'service', label: 'Nazwa usługi', type: 'text', defaultValue: 'Keratynowe prostowanie' },
-      { id: 'description', label: 'Opis', type: 'text', defaultValue: 'Gładkie, lśniące włosy przez 3-6 miesięcy' },
-      { id: 'price', label: 'Cena', type: 'price', defaultValue: 'od 399 zł' },
-      { id: 'duration', label: 'Czas zabiegu', type: 'text', defaultValue: '2-3h' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Nazwa usługi', type: 'text', placeholder: 'Luksusowy zabieg na twarz' },
+      { name: 'price', label: 'Cena', type: 'price', placeholder: '299' },
     ],
   },
-  // 5. Flash Sale Story (9:16)
   {
     id: 'flash-sale',
-    name: 'Błyskawiczna Wyprzedaż',
-    description: 'Story z pilną promocją',
-    category: 'promotion',
-    aspectRatio: '9:16',
-    width: 1080,
-    height: 1920,
+    name: 'Rabat',
+    description: 'Promocja procentowa',
+    category: 'promo',
+    aspectRatio: '1:1',
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'headline', label: 'Nagłówek', type: 'text', defaultValue: 'TYLKO DZIŚ!' },
-      { id: 'discount', label: 'Rabat', type: 'percentage', defaultValue: '-50%' },
-      { id: 'service', label: 'Usługa', type: 'text', defaultValue: 'Wszystkie zabiegi' },
-      { id: 'cta', label: 'CTA', type: 'text', defaultValue: 'Zarezerwuj teraz ⬆️' },
+      { name: 'image', label: 'Zdjęcie tła', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'discount', label: 'Rabat (%)', type: 'percentage', placeholder: '30' },
+      { name: 'service', label: 'Na co', type: 'text', placeholder: 'Na wszystkie zabiegi' },
+      { name: 'validUntil', label: 'Ważność', type: 'text', placeholder: 'Tylko do końca tygodnia' },
     ],
   },
-  // 6. New Look Reveal (4:5)
   {
     id: 'new-look',
-    name: 'Nowy Wygląd',
-    description: 'Efektowna prezentacja metamorfozy',
-    category: 'metamorphosis',
+    name: 'Efekt',
+    description: 'Prezentacja metamorfozy',
+    category: 'result',
     aspectRatio: '4:5',
-    width: 1080,
-    height: 1350,
+    width: 540,
+    height: 675,
     fields: [
-      { id: 'image', label: 'Zdjęcie efektu', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'headline', label: 'Nagłówek', type: 'text', defaultValue: 'Nowy Wygląd' },
-      { id: 'subheadline', label: 'Podtytuł', type: 'text', defaultValue: 'Twoja metamorfoza zaczyna się tutaj' },
-      { id: 'service', label: 'Usługa', type: 'text', defaultValue: 'Koloryzacja + stylizacja' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Nowy wymiar piękna' },
+      { name: 'service', label: 'Usługa', type: 'text', placeholder: 'Profesjonalna stylizacja' },
     ],
   },
-  // 7. Price List Mini (1:1)
   {
     id: 'price-list',
-    name: 'Mini Cennik',
-    description: 'Prezentacja kilku usług z cenami',
-    category: 'service',
+    name: 'Cennik',
+    description: 'Lista usług z cenami',
+    category: 'price',
     aspectRatio: '1:1',
-    width: 1080,
-    height: 1080,
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie tła', type: 'image' },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'title', label: 'Tytuł', type: 'text', defaultValue: 'Nasze Usługi' },
-      { id: 'service1', label: 'Usługa 1', type: 'text', defaultValue: 'Strzyżenie damskie' },
-      { id: 'price1', label: 'Cena 1', type: 'price', defaultValue: '89 zł' },
-      { id: 'service2', label: 'Usługa 2', type: 'text', defaultValue: 'Koloryzacja' },
-      { id: 'price2', label: 'Cena 2', type: 'price', defaultValue: '249 zł' },
-      { id: 'service3', label: 'Usługa 3', type: 'text', defaultValue: 'Keratyna' },
-      { id: 'price3', label: 'Cena 3', type: 'price', defaultValue: '399 zł' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Cennik usług' },
+      { name: 'service1', label: 'Usługa 1', type: 'text', placeholder: 'Strzyżenie damskie' },
+      { name: 'price1', label: 'Cena 1', type: 'price', placeholder: '120' },
+      { name: 'service2', label: 'Usługa 2', type: 'text', placeholder: 'Koloryzacja' },
+      { name: 'price2', label: 'Cena 2', type: 'price', placeholder: '250' },
+      { name: 'service3', label: 'Usługa 3', type: 'text', placeholder: 'Stylizacja' },
+      { name: 'price3', label: 'Cena 3', type: 'price', placeholder: '80' },
     ],
   },
-  // 8. Quote Inspiration (1:1)
   {
     id: 'quote-inspiration',
-    name: 'Inspirujący Cytat',
-    description: 'Motywacyjny cytat z eleganckim tłem',
-    category: 'testimonial',
+    name: 'Cytat',
+    description: 'Inspirujący cytat',
+    category: 'brand',
     aspectRatio: '1:1',
-    width: 1080,
-    height: 1080,
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie tła', type: 'image' },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'quote', label: 'Cytat', type: 'text', defaultValue: 'Piękno zaczyna się od chwili, gdy zdecydujesz się być sobą' },
-      { id: 'author', label: 'Autor', type: 'text', defaultValue: 'Coco Chanel' },
+      { name: 'image', label: 'Zdjęcie tła', type: 'image' },
+      { name: 'quote', label: 'Cytat', type: 'text', placeholder: 'Piękno zaczyna się od decyzji bycia sobą' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
     ],
   },
-  // 9. Holiday Special (4:5)
   {
     id: 'holiday-special',
-    name: 'Świąteczna Oferta',
-    description: 'Elegancka promocja świąteczna',
+    name: 'Voucher',
+    description: 'Bon prezentowy',
     category: 'seasonal',
-    aspectRatio: '4:5',
-    width: 1080,
-    height: 1350,
+    aspectRatio: '1:1',
+    width: 540,
+    height: 540,
     fields: [
-      { id: 'image', label: 'Zdjęcie', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'headline', label: 'Nagłówek', type: 'text', defaultValue: 'Świąteczna Magia' },
-      { id: 'subheadline', label: 'Podtytuł', type: 'text', defaultValue: 'Przygotuj się na święta!' },
-      { id: 'discount', label: 'Rabat', type: 'percentage', defaultValue: '-25%' },
-      { id: 'cta', label: 'CTA', type: 'text', defaultValue: 'Zarezerwuj' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'occasion', label: 'Okazja', type: 'text', placeholder: 'Oferta specjalna' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Voucher prezentowy' },
+      { name: 'value', label: 'Wartość', type: 'price', placeholder: '500' },
     ],
   },
-  // 10. VIP Treatment (9:16)
   {
     id: 'vip-treatment',
-    name: 'Zabieg VIP',
-    description: 'Luksusowa prezentacja usługi premium',
-    category: 'service',
-    aspectRatio: '9:16',
-    width: 1080,
-    height: 1920,
+    name: 'Premium',
+    description: 'Ekskluzywna oferta',
+    category: 'promo',
+    aspectRatio: '4:5',
+    width: 540,
+    height: 675,
     fields: [
-      { id: 'image', label: 'Zdjęcie', type: 'image', required: true },
-      { id: 'salon', label: 'Nazwa salonu', type: 'text', defaultValue: 'Beauty Studio' },
-      { id: 'badge', label: 'Badge', type: 'text', defaultValue: 'PREMIUM' },
-      { id: 'service', label: 'Nazwa zabiegu', type: 'text', defaultValue: 'Luxury Hair Spa' },
-      { id: 'description', label: 'Opis', type: 'text', defaultValue: 'Kompleksowa regeneracja włosów z użyciem ekskluzywnych składników' },
-      { id: 'price', label: 'Cena', type: 'price', defaultValue: '599 zł' },
-      { id: 'cta', label: 'CTA', type: 'text', defaultValue: 'Umów wizytę' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Ekskluzywny zabieg' },
+      { name: 'description', label: 'Opis', type: 'text', placeholder: 'Doświadcz luksusu i profesjonalnej pielęgnacji' },
+      { name: 'price', label: 'Cena od', type: 'price', placeholder: '399' },
+    ],
+  },
+  {
+    id: 'testimonial',
+    name: 'Opinia',
+    description: 'Opinia klientki',
+    category: 'brand',
+    aspectRatio: '1:1',
+    width: 540,
+    height: 540,
+    fields: [
+      { name: 'image', label: 'Zdjęcie tła', type: 'image' },
+      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'review', label: 'Opinia', type: 'text', placeholder: 'Najlepszy salon w mieście. Profesjonalna obsługa i wspaniałe efekty.' },
+      { name: 'clientName', label: 'Imię klientki', type: 'text', placeholder: 'Anna K.' },
     ],
   },
 ];
 
-export const getTemplateById = (id: string): TemplateConfig | undefined => {
-  return TEMPLATES.find(t => t.id === id);
-};
-
-export const getTemplatesByCategory = (category: TemplateCategory): TemplateConfig[] => {
-  return TEMPLATES.filter(t => t.category === category);
-};
+export { ElegantPromo } from './ElegantPromo';
+export { BeforeAfter } from './BeforeAfter';
+export { TestimonialCard } from './TestimonialCard';
+export { ServiceHighlight } from './ServiceHighlight';
+export { FlashSale } from './FlashSale';
+export { NewLook } from './NewLook';
+export { PriceList } from './PriceList';
+export { QuoteInspiration } from './QuoteInspiration';
+export { HolidaySpecial } from './HolidaySpecial';
+export { VipTreatment } from './VipTreatment';
