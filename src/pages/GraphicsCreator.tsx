@@ -9,7 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { Download, RotateCcw, Upload, X, Loader2, ZoomIn, ZoomOut, Image as ImageIcon, Square, RectangleVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { templates, ServicePromo, BeforeAfter, Discount, NewService, Result, LimitedOffer, Treatment, Booking, Seasonal, Brand } from '@/components/graphics/templates';
+import { templates, ServicePromo, BeforeAfter, Discount, NewService, Result, LimitedOffer, Treatment, Booking, Seasonal, Brand, PhotoAd } from '@/components/graphics/templates';
 
 const ASPECT_ICONS = {
   '1:1': Square,
@@ -76,6 +76,7 @@ export default function GraphicsCreator() {
       case 'booking': return <Booking data={formData} />;
       case 'seasonal': return <Seasonal data={formData} />;
       case 'brand': return <Brand data={formData} />;
+      case 'photo-ad': return <PhotoAd data={formData} />;
       default: return null;
     }
   };
