@@ -735,54 +735,54 @@ export default function Leads() {
 
   return (
     <AppLayout>
-      <div className="p-6 space-y-6 animate-fade-in">
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 lg:space-y-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">Leady</h1>
-            <p className="text-muted-foreground text-sm">Sekwencja: Cold Mail → SMS (2 dni) → Email #1 (4 dni) → Email #2 (4 dni)</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="flex items-center border border-zinc-700 rounded-lg overflow-hidden z-10">
-              <Button
-                size="sm"
-                variant={viewMode === 'cards' ? 'default' : 'outline'}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('cards'); }}
-                className={`rounded-none border-0 ${viewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
-                title="Kafelki"
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'kanban' ? 'default' : 'outline'}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('kanban'); }}
-                className={`rounded-none border-0 ${viewMode === 'kanban' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
-                title="Kanban"
-              >
-                <Columns3 className="w-4 h-4" />
-              </Button>
-              <Button
-                size="sm"
-                variant={viewMode === 'list' ? 'default' : 'outline'}
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('list'); }}
-                className={`rounded-none border-0 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
-                title="Lista"
-              >
-                <List className="w-4 h-4" />
-              </Button>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">Leady</h1>
+              <p className="text-muted-foreground text-xs sm:text-sm hidden sm:block">Sekwencja: Cold Mail → SMS (2 dni) → Email #1 (4 dni) → Email #2 (4 dni)</p>
             </div>
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) resetForm();
-            }}>
-              <DialogTrigger asChild>
-                <Button className="bg-primary hover:bg-primary/90">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Dodaj lead
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <div className="flex items-center border border-zinc-700 rounded-lg overflow-hidden z-10">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'cards' ? 'default' : 'outline'}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('cards'); }}
+                  className={`rounded-none border-0 h-9 w-9 sm:h-9 sm:w-auto sm:px-3 ${viewMode === 'cards' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                  title="Kafelki"
+                >
+                  <LayoutGrid className="w-4 h-4" />
                 </Button>
-              </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'kanban' ? 'default' : 'outline'}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('kanban'); }}
+                  className={`rounded-none border-0 h-9 w-9 sm:h-9 sm:w-auto sm:px-3 ${viewMode === 'kanban' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                  title="Kanban"
+                >
+                  <Columns3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'list' ? 'default' : 'outline'}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setViewMode('list'); }}
+                  className={`rounded-none border-0 h-9 w-9 sm:h-9 sm:w-auto sm:px-3 ${viewMode === 'list' ? 'bg-primary text-primary-foreground' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+                  title="Lista"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
+              <Dialog open={isDialogOpen} onOpenChange={(open) => {
+                setIsDialogOpen(open);
+                if (!open) resetForm();
+              }}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary hover:bg-primary/90 flex-1 sm:flex-none" size="sm">
+                    <Plus className="w-4 h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Dodaj lead</span>
+                  </Button>
+                </DialogTrigger>
+            <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[85vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingLead ? 'Edytuj lead' : 'Nowy lead'}</DialogTitle>
               </DialogHeader>
