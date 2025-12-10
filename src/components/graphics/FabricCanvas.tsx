@@ -1,4 +1,4 @@
-import { useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
+import { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { Canvas as FabricCanvas, Rect, Textbox, FabricImage, Gradient, Circle } from 'fabric';
 
 export interface TemplateData {
@@ -17,7 +17,6 @@ export interface TemplateElement {
 export interface FabricCanvasRef {
   canvas: FabricCanvas | null;
   exportImage: () => Promise<string | null>;
-  loadImage: (name: string, imageUrl: string) => Promise<void>;
 }
 
 interface FabricCanvasProps {
@@ -29,57 +28,6 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
   ({ template, formData }, ref) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fabricRef = useRef<FabricCanvas | null>(null);
-    const placeholdersRef = useRef<Map<string, { left: number; top: number; width: number; height: number }>>(new Map());
-    const loadedImagesRef = useRef<Map<string, FabricImage>>(new Map());
-
-    const loadImage = useCallback(async (name: string, imageUrl: string) => {
-      const canvas = fabricRef.current;
-      const placeholder = placeholdersRef.current.get(name);
-      if (!canvas || !placeholder) {
-        console.error('Canvas or placeholder not found for:', name);
-        return;
-      }
-
-      try {
-        // Remove old image if exists
-        const oldImg = loadedImagesRef.current.get(name);
-        if (oldImg) {
-          canvas.remove(oldImg);
-        }
-
-        // Create HTML image element first
-        const imgElement = document.createElement('img');
-        imgElement.crossOrigin = 'anonymous';
-        
-        await new Promise<void>((resolve, reject) => {
-          imgElement.onload = () => resolve();
-          imgElement.onerror = () => reject(new Error('Failed to load image'));
-          imgElement.src = imageUrl;
-        });
-
-        // Create fabric image from the loaded element
-        const fabricImg = new FabricImage(imgElement, {
-          left: placeholder.left,
-          top: placeholder.top,
-          selectable: false,
-          evented: false,
-        });
-
-        // Scale to fit placeholder
-        const scaleX = placeholder.width / (fabricImg.width || 1);
-        const scaleY = placeholder.height / (fabricImg.height || 1);
-        fabricImg.set({ scaleX, scaleY });
-
-        canvas.add(fabricImg);
-        canvas.sendObjectToBack(fabricImg);
-        loadedImagesRef.current.set(name, fabricImg);
-        canvas.renderAll();
-        
-        console.log('Image loaded successfully:', name);
-      } catch (e) {
-        console.error('Failed to load image:', name, e);
-      }
-    }, []);
 
     useImperativeHandle(ref, () => ({
       canvas: fabricRef.current,
@@ -91,12 +39,16 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
           multiplier: 2,
         });
       },
-      loadImage,
     }));
 
-    // Build canvas when template changes
+    // Build canvas when template or formData changes
     useEffect(() => {
       if (!canvasRef.current) return;
+
+      // Dispose previous canvas
+      if (fabricRef.current) {
+        fabricRef.current.dispose();
+      }
 
       const canvas = new FabricCanvas(canvasRef.current, {
         width: template.width,
@@ -106,11 +58,12 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
       });
 
       fabricRef.current = canvas;
-      placeholdersRef.current.clear();
-      loadedImagesRef.current.clear();
+
+      // Track image placeholders for loading
+      const imagePlaceholders: Map<string, { left: number; top: number; width: number; height: number; index: number }> = new Map();
 
       // Build template elements
-      template.elements.forEach((el) => {
+      template.elements.forEach((el, index) => {
         let fabricObj: any = null;
 
         switch (el.type) {
@@ -168,12 +121,13 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
             break;
           }
           case 'image': {
-            // Store placeholder info for later image loading
-            placeholdersRef.current.set(el.props.name, {
+            // Store placeholder info
+            imagePlaceholders.set(el.props.name, {
               left: el.props.left,
               top: el.props.top,
               width: el.props.width,
               height: el.props.height,
+              index,
             });
             // Create dark placeholder rect
             fabricObj = new Rect({
@@ -196,23 +150,39 @@ const FabricCanvasComponent = forwardRef<FabricCanvasRef, FabricCanvasProps>(
 
       canvas.renderAll();
 
+      // Now load images if we have them in formData
+      imagePlaceholders.forEach((placeholder, name) => {
+        const imageUrl = formData[name];
+        if (imageUrl) {
+          // Load image
+          const imgElement = document.createElement('img');
+          imgElement.crossOrigin = 'anonymous';
+          imgElement.onload = () => {
+            const fabricImg = new FabricImage(imgElement, {
+              left: placeholder.left,
+              top: placeholder.top,
+              selectable: false,
+              evented: false,
+            });
+
+            // Scale to fit placeholder
+            const scaleX = placeholder.width / (fabricImg.width || 1);
+            const scaleY = placeholder.height / (fabricImg.height || 1);
+            fabricImg.set({ scaleX, scaleY });
+
+            canvas.add(fabricImg);
+            // Move to correct z-index (back, under other elements)
+            canvas.sendObjectToBack(fabricImg);
+            canvas.renderAll();
+          };
+          imgElement.src = imageUrl;
+        }
+      });
+
       return () => {
         canvas.dispose();
       };
     }, [template, formData]);
-
-    // Load images when formData changes
-    useEffect(() => {
-      if (!fabricRef.current) return;
-
-      const imageNames = Array.from(placeholdersRef.current.keys());
-      imageNames.forEach(name => {
-        const imageUrl = formData[name];
-        if (imageUrl) {
-          loadImage(name, imageUrl);
-        }
-      });
-    }, [formData, loadImage]);
 
     return (
       <div style={{ width: template.width, height: template.height }}>
