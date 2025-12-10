@@ -7,40 +7,31 @@ import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Download, RotateCcw, Upload, X, Loader2, ZoomIn, ZoomOut, Image as ImageIcon, Square, RectangleVertical, Smartphone } from 'lucide-react';
+import { Download, RotateCcw, Upload, X, Loader2, ZoomIn, ZoomOut, Image as ImageIcon, Square, RectangleVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TEMPLATES, CATEGORY_LABELS, type TemplateConfig, type TemplateCategory } from '@/components/graphics/templates';
-import { ElegantPromo } from '@/components/graphics/templates/ElegantPromo';
-import { BeforeAfter } from '@/components/graphics/templates/BeforeAfter';
-import { TestimonialCard } from '@/components/graphics/templates/TestimonialCard';
-import { ServiceHighlight } from '@/components/graphics/templates/ServiceHighlight';
-import { FlashSale } from '@/components/graphics/templates/FlashSale';
-import { NewLook } from '@/components/graphics/templates/NewLook';
-import { PriceList } from '@/components/graphics/templates/PriceList';
-import { QuoteInspiration } from '@/components/graphics/templates/QuoteInspiration';
-import { HolidaySpecial } from '@/components/graphics/templates/HolidaySpecial';
-import { VipTreatment } from '@/components/graphics/templates/VipTreatment';
+import { templates, type Template, ElegantPromo, BeforeAfter, TestimonialCard, ServiceHighlight, FlashSale, NewLook, PriceList, QuoteInspiration, HolidaySpecial, VipTreatment } from '@/components/graphics/templates';
 
 const ASPECT_ICONS = {
   '1:1': Square,
   '4:5': RectangleVertical,
-  '9:16': Smartphone,
 };
+
+type CategoryFilter = 'all' | 'promo' | 'result' | 'price' | 'seasonal' | 'brand';
 
 export default function GraphicsCreator() {
   const [selectedTemplate, setSelectedTemplate] = useState<string>('elegant-promo');
-  const [categoryFilter, setCategoryFilter] = useState<TemplateCategory | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>('all');
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewScale, setPreviewScale] = useState(0.5);
   const previewRef = useRef<HTMLDivElement>(null);
 
-  const currentTemplate = TEMPLATES.find(t => t.id === selectedTemplate);
+  const currentTemplate = templates.find(t => t.id === selectedTemplate);
   const filteredTemplates = categoryFilter === 'all' 
-    ? TEMPLATES 
-    : TEMPLATES.filter(t => t.category === categoryFilter);
+    ? templates 
+    : templates.filter(t => t.category === categoryFilter);
 
-  const handleImageUpload = (fieldId: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (fieldName: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (file.size > 10 * 1024 * 1024) {
@@ -48,12 +39,12 @@ export default function GraphicsCreator() {
       return;
     }
     const reader = new FileReader();
-    reader.onload = (ev) => setFormData(prev => ({ ...prev, [fieldId]: ev.target?.result as string }));
+    reader.onload = (ev) => setFormData(prev => ({ ...prev, [fieldName]: ev.target?.result as string }));
     reader.readAsDataURL(file);
   };
 
-  const handleFieldChange = (fieldId: string, value: string) => {
-    setFormData(prev => ({ ...prev, [fieldId]: value }));
+  const handleFieldChange = (fieldName: string, value: string) => {
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
   };
 
   const handleDownload = async () => {
@@ -83,7 +74,7 @@ export default function GraphicsCreator() {
     switch (selectedTemplate) {
       case 'elegant-promo': return <ElegantPromo data={data} />;
       case 'before-after': return <BeforeAfter data={data} />;
-      case 'testimonial-card': return <TestimonialCard data={data} />;
+      case 'testimonial': return <TestimonialCard data={data} />;
       case 'service-highlight': return <ServiceHighlight data={data} />;
       case 'flash-sale': return <FlashSale data={data} />;
       case 'new-look': return <NewLook data={data} />;
@@ -102,21 +93,21 @@ export default function GraphicsCreator() {
         <div className="w-[420px] border-r border-border bg-card/50 flex flex-col">
           <div className="p-6 border-b border-border">
             <h1 className="text-2xl font-bold text-foreground mb-1">Kreator Grafik</h1>
-            <p className="text-sm text-muted-foreground">10 profesjonalnych szablonów</p>
+            <p className="text-sm text-muted-foreground">10 minimalistycznych szablonów</p>
           </div>
 
           <ScrollArea className="flex-1">
             <div className="p-6 space-y-6">
               {/* Category Filter */}
-              <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as any)}>
+              <Tabs value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as CategoryFilter)}>
                 <TabsList className="grid grid-cols-3 w-full">
                   <TabsTrigger value="all" className="text-xs">Wszystkie</TabsTrigger>
-                  <TabsTrigger value="promotion" className="text-xs">Promocje</TabsTrigger>
-                  <TabsTrigger value="service" className="text-xs">Usługi</TabsTrigger>
+                  <TabsTrigger value="promo" className="text-xs">Promocje</TabsTrigger>
+                  <TabsTrigger value="result" className="text-xs">Efekty</TabsTrigger>
                 </TabsList>
                 <TabsList className="grid grid-cols-3 w-full mt-2">
-                  <TabsTrigger value="metamorphosis" className="text-xs">Metamorfozy</TabsTrigger>
-                  <TabsTrigger value="testimonial" className="text-xs">Opinie</TabsTrigger>
+                  <TabsTrigger value="price" className="text-xs">Cennik</TabsTrigger>
+                  <TabsTrigger value="brand" className="text-xs">Marka</TabsTrigger>
                   <TabsTrigger value="seasonal" className="text-xs">Sezonowe</TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -154,18 +145,18 @@ export default function GraphicsCreator() {
                 <div className="space-y-4">
                   <Label className="text-sm font-medium">Personalizacja</Label>
                   {currentTemplate.fields.map((field) => (
-                    <div key={field.id}>
+                    <div key={field.name}>
                       <label className="text-xs text-muted-foreground mb-1 block">{field.label}</label>
                       {field.type === 'image' ? (
                         <div className={cn(
                           "relative aspect-video rounded-lg border-2 border-dashed overflow-hidden",
-                          formData[field.id] ? "border-primary/50" : "border-border hover:border-primary/30"
+                          formData[field.name] ? "border-primary/50" : "border-border hover:border-primary/30"
                         )}>
-                          {formData[field.id] ? (
+                          {formData[field.name] ? (
                             <>
-                              <img src={formData[field.id]} alt="" className="w-full h-full object-cover" />
+                              <img src={formData[field.name]} alt="" className="w-full h-full object-cover" />
                               <button
-                                onClick={() => setFormData(prev => { const n = {...prev}; delete n[field.id]; return n; })}
+                                onClick={() => setFormData(prev => { const n = {...prev}; delete n[field.name]; return n; })}
                                 className="absolute top-2 right-2 w-6 h-6 bg-background/80 rounded-full flex items-center justify-center hover:bg-destructive hover:text-white"
                               >
                                 <X className="w-3 h-3" />
@@ -175,14 +166,14 @@ export default function GraphicsCreator() {
                             <label className="flex flex-col items-center justify-center h-full cursor-pointer hover:bg-secondary/50">
                               <Upload className="w-6 h-6 text-muted-foreground mb-1" />
                               <span className="text-xs text-muted-foreground">Dodaj zdjęcie</span>
-                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload(field.id)} />
+                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload(field.name)} />
                             </label>
                           )}
                         </div>
                       ) : (
                         <Input
-                          value={formData[field.id] || field.defaultValue || ''}
-                          onChange={(e) => handleFieldChange(field.id, e.target.value)}
+                          value={formData[field.name] || ''}
+                          onChange={(e) => handleFieldChange(field.name, e.target.value)}
                           placeholder={field.placeholder}
                           className="bg-secondary/50 border-border h-9"
                         />

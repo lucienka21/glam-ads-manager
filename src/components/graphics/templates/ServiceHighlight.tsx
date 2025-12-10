@@ -1,5 +1,3 @@
-import { Sparkles } from 'lucide-react';
-
 interface ServiceHighlightProps {
   data: Record<string, string>;
 }
@@ -21,86 +19,55 @@ export function ServiceHighlight({ data }: ServiceHighlightProps) {
           src={data.image || placeholderImage} 
           alt="" 
           className="w-full h-full object-cover"
-          style={{ filter: 'brightness(0.35) saturate(0.8)' }}
+          style={{ filter: 'brightness(0.35)' }}
         />
       </div>
       
-      {/* Gradient overlays */}
+      {/* Gradient overlay */}
       <div 
         className="absolute inset-0"
         style={{ 
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.4) 40%, rgba(0,0,0,0.9) 100%)'
+          background: 'linear-gradient(135deg, rgba(0,0,0,0.6) 0%, transparent 50%, rgba(0,0,0,0.8) 100%)'
         }}
       />
       
-      {/* Pink accent */}
-      <div 
-        className="absolute top-20 left-20 w-40 h-40 opacity-30 blur-3xl"
-        style={{ background: 'hsl(330 100% 60%)' }}
-      />
-      
       {/* Content */}
-      <div className="absolute inset-0 p-10 flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-auto">
+      <div className="absolute inset-0 p-12 flex flex-col justify-between">
+        <div>
           <p 
             className="text-xs tracking-[0.4em] uppercase font-medium"
             style={{ color: 'hsl(330 100% 65%)' }}
           >
             {data.salon || 'Beauty Studio'}
           </p>
-          <Sparkles 
-            className="w-5 h-5"
-            style={{ color: 'hsl(330 100% 65%)' }}
-          />
         </div>
         
-        {/* Main content */}
-        <div className="mt-auto">
-          <p 
-            className="text-xs tracking-[0.3em] uppercase mb-3"
-            style={{ color: 'rgba(255,255,255,0.5)' }}
-          >
-            Polecany zabieg
-          </p>
-          
+        <div>
           <h2 
-            className="text-4xl font-bold text-white mb-4 leading-tight"
+            className="text-3xl font-light text-white mb-4 leading-tight max-w-xs"
+            style={{ letterSpacing: '-0.01em' }}
           >
             {data.service || 'Luksusowy zabieg na twarz'}
           </h2>
           
-          {/* Decorative line */}
-          <div 
-            className="h-1 w-16 mb-6 rounded-full"
-            style={{ background: 'linear-gradient(90deg, hsl(330 100% 60%), hsl(340 100% 50%))' }}
-          />
-          
-          <p className="text-white/70 mb-8 leading-relaxed max-w-sm">
-            {data.description || 'Odkryj głęboko nawilżający zabieg, który odmieni Twoją skórę.'}
-          </p>
-          
-          {/* Price */}
           <div className="flex items-baseline gap-3">
             <span 
-              className="text-3xl font-bold"
-              style={{ color: 'hsl(330 100% 65%)' }}
+              className="text-2xl font-light"
+              style={{ color: 'hsl(330 100% 70%)' }}
             >
               {data.price || '299'} zł
             </span>
-            {data.oldPrice && (
-              <span className="text-lg text-white/40 line-through">
-                {data.oldPrice} zł
-              </span>
-            )}
           </div>
         </div>
       </div>
       
-      {/* Bottom accent line */}
+      {/* Corner accent */}
       <div 
-        className="absolute bottom-0 left-0 right-0 h-1"
-        style={{ background: 'linear-gradient(90deg, hsl(330 100% 60%), hsl(340 100% 50%), hsl(330 100% 60%))' }}
+        className="absolute top-12 right-12 w-12 h-12"
+        style={{ 
+          borderRight: '1px solid hsl(330 100% 60% / 0.4)',
+          borderTop: '1px solid hsl(330 100% 60% / 0.4)'
+        }}
       />
     </div>
   );
