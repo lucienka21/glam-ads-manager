@@ -2,7 +2,7 @@
 <html lang="pl" class="dark">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Aurine Document Generator</title>
     <meta name="description" content="Profesjonalne narzędzia do generowania dokumentów dla agencji marketingowej specjalizującej się w Facebook Ads dla branży beauty" />
     <meta name="author" content="Aurine Agency" />
@@ -13,9 +13,15 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Aurine Docs" />
+    <meta name="apple-mobile-web-app-title" content="Aurine" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <link rel="manifest" href="/manifest.json" />
+    
+    <!-- iOS Splash Screens -->
+    <meta name="apple-touch-fullscreen" content="yes" />
+    
+    <!-- Prevent phone number detection -->
+    <meta name="format-detection" content="telephone=no" />
 
     <meta property="og:title" content="Aurine Document Generator" />
     <meta property="og:description" content="Profesjonalne narzędzia do generowania dokumentów dla branży beauty" />
@@ -25,6 +31,31 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@AurineAgency" />
     <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    
+    <style>
+      /* Critical CSS for loading state */
+      html, body, #root {
+        height: 100%;
+        height: 100dvh;
+        margin: 0;
+        padding: 0;
+        background: #0a0a0a;
+        color: #fafafa;
+      }
+      
+      /* Prevent rubber-banding on iOS */
+      body {
+        overscroll-behavior: none;
+        position: fixed;
+        width: 100%;
+        overflow: hidden;
+      }
+      
+      #root {
+        overflow: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+    </style>
   </head>
 
   <body>
