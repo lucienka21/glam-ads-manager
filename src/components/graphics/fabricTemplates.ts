@@ -111,6 +111,10 @@ export const fabricTemplates: TemplateData[] = [
     elements: [
       // Gradient tło
       { type: 'gradient-rect', props: { left: 0, top: 0, width: 1080, height: 1080, gradientColors: ['#0a0a0a', '#0f0f0f', '#0a0a0a'], gradientDirection: 'diagonal' } },
+      // Zdjęcie po prawej stronie
+      { type: 'image', props: { name: 'mainImage', left: 500, top: 0, width: 580, height: 1080 } },
+      // Gradient na zdjęciu od lewej
+      { type: 'gradient-rect', props: { left: 0, top: 0, width: 700, height: 1080, gradientColors: ['#0a0a0a', 'rgba(10,10,10,0)'], gradientDirection: 'horizontal' } },
       // Dekoracyjne złote linie
       { type: 'rect', props: { left: 0, top: 0, width: 4, height: 1080, fill: '#D4AF37' } },
       { type: 'rect', props: { left: 1076, top: 0, width: 4, height: 1080, fill: '#D4AF37' } },
@@ -118,7 +122,7 @@ export const fabricTemplates: TemplateData[] = [
       { type: 'rect', props: { left: 60, top: 80, width: 220, height: 45, fill: '#D4AF37' } },
       { type: 'text', props: { text: 'TYLKO TERAZ', left: 70, top: 90, width: 200, fontSize: 22, fontFamily: 'Arial', fontWeight: 'bold', fill: '#000000', textAlign: 'center' } },
       // Nazwa oferty
-      { type: 'text', props: { name: 'offerName', text: 'MAKIJAŻ\nPERMANENTNY', left: 60, top: 200, width: 960, fontSize: 90, fontFamily: 'Arial', fontWeight: 'bold', fill: '#ffffff', lineHeight: 0.95 } },
+      { type: 'text', props: { name: 'offerName', text: 'MAKIJAŻ\nPERMANENTNY', left: 60, top: 200, width: 500, fontSize: 90, fontFamily: 'Arial', fontWeight: 'bold', fill: '#ffffff', lineHeight: 0.95 } },
       // Stara cena przekreślona
       { type: 'text', props: { name: 'oldPrice', text: '799 zł', left: 60, top: 480, width: 200, fontSize: 36, fontFamily: 'Arial', fill: '#666666', textDecoration: 'line-through' } },
       // Nowa cena
