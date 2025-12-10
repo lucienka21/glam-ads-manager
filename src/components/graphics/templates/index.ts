@@ -8,8 +8,7 @@ export interface TemplateField {
 export interface Template {
   id: string;
   name: string;
-  description: string;
-  category: 'promo' | 'result' | 'price' | 'seasonal' | 'brand';
+  category: 'promo' | 'result' | 'offer';
   aspectRatio: '1:1' | '4:5';
   width: number;
   height: number;
@@ -18,170 +17,154 @@ export interface Template {
 
 export const templates: Template[] = [
   {
-    id: 'elegant-promo',
-    name: 'Promo',
-    description: 'Minimalistyczna promocja',
+    id: 'service-promo',
+    name: 'Usługa',
     category: 'promo',
     aspectRatio: '1:1',
     width: 540,
     height: 540,
     fields: [
       { name: 'image', label: 'Zdjęcie', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Twoja metamorfoza' },
-      { name: 'subtitle', label: 'Podtytuł', type: 'text', placeholder: 'Umów wizytę już dziś' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Usługa', type: 'text', placeholder: 'Mezoterapia igłowa' },
+      { name: 'price', label: 'Cena', type: 'price', placeholder: '299' },
     ],
   },
   {
     id: 'before-after',
     name: 'Przed / Po',
-    description: 'Porównanie efektów',
     category: 'result',
     aspectRatio: '1:1',
     width: 540,
     height: 540,
     fields: [
-      { name: 'beforeImage', label: 'Zdjęcie przed', type: 'image' },
-      { name: 'afterImage', label: 'Zdjęcie po', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'service', label: 'Nazwa zabiegu', type: 'text', placeholder: 'Profesjonalna metamorfoza' },
+      { name: 'beforeImage', label: 'Przed', type: 'image' },
+      { name: 'afterImage', label: 'Po', type: 'image' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Zabieg', type: 'text', placeholder: 'Lifting twarzy' },
     ],
   },
   {
-    id: 'service-highlight',
-    name: 'Usługa',
-    description: 'Prezentacja zabiegu z ceną',
-    category: 'promo',
-    aspectRatio: '1:1',
-    width: 540,
-    height: 540,
-    fields: [
-      { name: 'image', label: 'Zdjęcie', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'service', label: 'Nazwa usługi', type: 'text', placeholder: 'Luksusowy zabieg na twarz' },
-      { name: 'price', label: 'Cena', type: 'price', placeholder: '299' },
-    ],
-  },
-  {
-    id: 'flash-sale',
+    id: 'discount',
     name: 'Rabat',
-    description: 'Promocja procentowa',
+    category: 'offer',
+    aspectRatio: '1:1',
+    width: 540,
+    height: 540,
+    fields: [
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'discount', label: 'Rabat', type: 'percentage', placeholder: '30' },
+      { name: 'service', label: 'Na co', type: 'text', placeholder: 'Zabiegi na twarz' },
+    ],
+  },
+  {
+    id: 'new-service',
+    name: 'Nowość',
     category: 'promo',
     aspectRatio: '1:1',
     width: 540,
     height: 540,
     fields: [
-      { name: 'image', label: 'Zdjęcie tła', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'discount', label: 'Rabat (%)', type: 'percentage', placeholder: '30' },
-      { name: 'service', label: 'Na co', type: 'text', placeholder: 'Na wszystkie zabiegi' },
-      { name: 'validUntil', label: 'Ważność', type: 'text', placeholder: 'Tylko do końca tygodnia' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Nowa usługa', type: 'text', placeholder: 'Hydrafacial' },
+      { name: 'price', label: 'Cena', type: 'price', placeholder: '349' },
     ],
   },
   {
-    id: 'new-look',
+    id: 'result',
     name: 'Efekt',
-    description: 'Prezentacja metamorfozy',
     category: 'result',
     aspectRatio: '4:5',
     width: 540,
     height: 675,
     fields: [
       { name: 'image', label: 'Zdjęcie', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Nowy wymiar piękna' },
-      { name: 'service', label: 'Usługa', type: 'text', placeholder: 'Profesjonalna stylizacja' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Zabieg', type: 'text', placeholder: 'Keratynowe prostowanie' },
     ],
   },
   {
-    id: 'price-list',
-    name: 'Cennik',
-    description: 'Lista usług z cenami',
-    category: 'price',
-    aspectRatio: '1:1',
-    width: 540,
-    height: 540,
-    fields: [
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Cennik usług' },
-      { name: 'service1', label: 'Usługa 1', type: 'text', placeholder: 'Strzyżenie damskie' },
-      { name: 'price1', label: 'Cena 1', type: 'price', placeholder: '120' },
-      { name: 'service2', label: 'Usługa 2', type: 'text', placeholder: 'Koloryzacja' },
-      { name: 'price2', label: 'Cena 2', type: 'price', placeholder: '250' },
-      { name: 'service3', label: 'Usługa 3', type: 'text', placeholder: 'Stylizacja' },
-      { name: 'price3', label: 'Cena 3', type: 'price', placeholder: '80' },
-    ],
-  },
-  {
-    id: 'quote-inspiration',
-    name: 'Cytat',
-    description: 'Inspirujący cytat',
-    category: 'brand',
-    aspectRatio: '1:1',
-    width: 540,
-    height: 540,
-    fields: [
-      { name: 'image', label: 'Zdjęcie tła', type: 'image' },
-      { name: 'quote', label: 'Cytat', type: 'text', placeholder: 'Piękno zaczyna się od decyzji bycia sobą' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-    ],
-  },
-  {
-    id: 'holiday-special',
-    name: 'Voucher',
-    description: 'Bon prezentowy',
-    category: 'seasonal',
+    id: 'limited-offer',
+    name: 'Oferta',
+    category: 'offer',
     aspectRatio: '1:1',
     width: 540,
     height: 540,
     fields: [
       { name: 'image', label: 'Zdjęcie', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'occasion', label: 'Okazja', type: 'text', placeholder: 'Oferta specjalna' },
-      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Voucher prezentowy' },
-      { name: 'value', label: 'Wartość', type: 'price', placeholder: '500' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Usługa', type: 'text', placeholder: 'Makijaż permanentny' },
+      { name: 'price', label: 'Cena', type: 'price', placeholder: '499' },
+      { name: 'oldPrice', label: 'Stara cena', type: 'price', placeholder: '699' },
     ],
   },
   {
-    id: 'vip-treatment',
-    name: 'Premium',
-    description: 'Ekskluzywna oferta',
+    id: 'treatment',
+    name: 'Zabieg',
     category: 'promo',
     aspectRatio: '4:5',
     width: 540,
     height: 675,
     fields: [
       { name: 'image', label: 'Zdjęcie', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Ekskluzywny zabieg' },
-      { name: 'description', label: 'Opis', type: 'text', placeholder: 'Doświadcz luksusu i profesjonalnej pielęgnacji' },
-      { name: 'price', label: 'Cena od', type: 'price', placeholder: '399' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'service', label: 'Zabieg', type: 'text', placeholder: 'Peeling kawitacyjny' },
+      { name: 'description', label: 'Opis', type: 'text', placeholder: 'Głębokie oczyszczanie skóry' },
+      { name: 'price', label: 'Cena', type: 'price', placeholder: '199' },
     ],
   },
   {
-    id: 'testimonial',
-    name: 'Opinia',
-    description: 'Opinia klientki',
-    category: 'brand',
+    id: 'booking',
+    name: 'Rezerwacja',
+    category: 'promo',
     aspectRatio: '1:1',
     width: 540,
     height: 540,
     fields: [
-      { name: 'image', label: 'Zdjęcie tła', type: 'image' },
-      { name: 'salon', label: 'Nazwa salonu', type: 'text', placeholder: 'Beauty Studio' },
-      { name: 'review', label: 'Opinia', type: 'text', placeholder: 'Najlepszy salon w mieście. Profesjonalna obsługa i wspaniałe efekty.' },
-      { name: 'clientName', label: 'Imię klientki', type: 'text', placeholder: 'Anna K.' },
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Umów wizytę' },
+      { name: 'subtitle', label: 'Podtytuł', type: 'text', placeholder: 'Wolne terminy w tym tygodniu' },
+    ],
+  },
+  {
+    id: 'seasonal',
+    name: 'Sezon',
+    category: 'offer',
+    aspectRatio: '1:1',
+    width: 540,
+    height: 540,
+    fields: [
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'title', label: 'Tytuł', type: 'text', placeholder: 'Letnia promocja' },
+      { name: 'discount', label: 'Rabat', type: 'percentage', placeholder: '25' },
+    ],
+  },
+  {
+    id: 'brand',
+    name: 'Marka',
+    category: 'promo',
+    aspectRatio: '1:1',
+    width: 540,
+    height: 540,
+    fields: [
+      { name: 'image', label: 'Zdjęcie', type: 'image' },
+      { name: 'salon', label: 'Salon', type: 'text', placeholder: 'Beauty Studio' },
+      { name: 'tagline', label: 'Hasło', type: 'text', placeholder: 'Twoja metamorfoza' },
     ],
   },
 ];
 
-export { ElegantPromo } from './ElegantPromo';
+export { ServicePromo } from './ServicePromo';
 export { BeforeAfter } from './BeforeAfter';
-export { TestimonialCard } from './TestimonialCard';
-export { ServiceHighlight } from './ServiceHighlight';
-export { FlashSale } from './FlashSale';
-export { NewLook } from './NewLook';
-export { PriceList } from './PriceList';
-export { QuoteInspiration } from './QuoteInspiration';
-export { HolidaySpecial } from './HolidaySpecial';
-export { VipTreatment } from './VipTreatment';
+export { Discount } from './Discount';
+export { NewService } from './NewService';
+export { Result } from './Result';
+export { LimitedOffer } from './LimitedOffer';
+export { Treatment } from './Treatment';
+export { Booking } from './Booking';
+export { Seasonal } from './Seasonal';
+export { Brand } from './Brand';
