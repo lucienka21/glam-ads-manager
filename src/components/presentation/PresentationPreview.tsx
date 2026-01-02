@@ -522,7 +522,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
           </p>
         </div>
 
-        {/* Problems - left side, more human */}
+        {/* Problems - left side */}
         <div className="flex-1 max-w-[55%] grid grid-cols-1 gap-3">
           <div className="bg-gradient-to-br from-zinc-900/90 to-zinc-900/70 rounded-2xl px-5 py-4 border border-pink-500/25">
             <div className="flex items-start gap-4">
@@ -532,8 +532,8 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               <div>
                 <h3 className="text-lg font-bold text-white mb-1.5">Post <span className="text-pink-400">≠</span> reklama</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Niestety w małych miastach wciąż panuje przekonanie, że dodawanie postów na Facebooka czy Instagrama to marketing, który zapewni klientki. 
-                  <span className="text-pink-400 font-semibold"> To mit.</span> Posty organiczne widzi tylko <span className="text-pink-400 font-semibold">5-10%</span> losowych obserwujących, stąd pod postami jest tylko kilka reakcji.
+                  Wrzucasz piękne zdjęcia zabiegów, ale algorytm pokazuje je tylko <span className="text-pink-400 font-semibold">5-10%</span> Twoich obserwujących. 
+                  Cała reszta nawet nie wie, że coś publikujesz.
                 </p>
               </div>
             </div>
@@ -545,10 +545,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <TrendingUp className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Polecenia i Google to za mało</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Organiczne zasięgi to przeszłość</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Liczysz na polecenia i że klientki same Cię znajdą w Google? Problem w tym, że w Google widzą <span className="text-pink-400 font-semibold">całą Twoją konkurencję</span> obok.
-                  Z reklam na Facebooku wciąż korzysta niewiele salonów, te które zaczną pierwsze, zdominują lokalny rynek.
+                  Kiedyś wystarczyło regularnie postować. Dziś zasięgi organiczne <span className="text-pink-400 font-semibold">spadły o 80%</span>. 
+                  Bez płatnej promocji trudno dotrzeć do nowych osób.
                 </p>
               </div>
             </div>
@@ -560,10 +560,10 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <Clock className="w-6 h-6 text-pink-400" />
               </div>
               <div>
-                <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy</h3>
+                <h3 className="text-lg font-bold text-white mb-1.5">Brak czasu i wiedzy technicznej</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  Między zabiegami, zamówieniami i grafikiem nie ma czasu na naukę Menedżera reklam. A kliknięcie <span className="text-pink-400 font-semibold">"Promuj post"</span> to często przepalone pieniądze, 
-                  bo bez strategii i targetowania reklama trafia do przypadkowych osób.
+                  Między zabiegami, zamówieniami i grafikiem nie ma czasu na naukę Menedżera reklam. 
+                  A kliknięcie <span className="text-pink-400 font-semibold">"Promuj post"</span> to często przepalone pieniądze.
                 </p>
               </div>
             </div>
@@ -597,15 +597,15 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
       </div>
 
       <div className="relative z-10 h-full flex flex-col px-16 py-10">
-        <Header subtitle="Twoje korzyści" />
+        <Header subtitle="Jak możemy Ci pomóc" />
 
         {/* Title */}
         <div className="mb-5">
           <h2 className="text-4xl font-black text-white mb-2">
-            Co z nami <span className="text-pink-400">zyskujesz?</span>
+            Reklamy, które <span className="text-pink-400">naprawdę działają</span>
           </h2>
           <p className="text-lg text-zinc-300">
-            Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na <span className="text-pink-300">dbaniu o klientki</span>
+            Zajmujemy się Twoimi reklamami od A do Z. Ty możesz skupić się na dbaniu o klientki
           </p>
         </div>
 
@@ -617,28 +617,28 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
               { 
                 icon: Target, 
                 title: "Precyzyjne dotarcie", 
-                desc: "Tworzymy profesjonalne kampanie reklamowe na Facebooku i Instagramie. Reklamy trafiają do kobiet w Twojej okolicy, które szukają usług beauty i zamieniają się w nowe klientki.",
+                desc: "Reklamy trafiają do kobiet 25-45 lat, zainteresowanych urodą, w promieniu 15 km od Ciebie",
                 color: "from-pink-500/30 to-rose-500/20",
                 borderColor: "border-pink-500/30"
               },
               { 
                 icon: Eye, 
                 title: "Tysiące wyświetleń", 
-                desc: "Twoje posty na Instagramie docierają do 50-100 osób. Dzięki reklamom Twoją ofertę zobaczy nawet kilka tysięcy potencjalnych klientek z Twojej okolicy.",
+                desc: "Zamiast 50 osób, Twoją reklamę zobaczy nawet kilka tysięcy potencjalnych klientek",
                 color: "from-blue-500/30 to-indigo-500/20",
                 borderColor: "border-blue-500/30"
               },
               { 
                 icon: Sparkles, 
                 title: "Piękne kreacje", 
-                desc: "Projektujemy profesjonalne grafiki reklamowe i piszemy teksty, które przyciągają uwagę. Wszystko dopasowane do stylu Twojego salonu.",
+                desc: "Projektujemy grafiki i teksty zgodne z estetyką Twojego salonu",
                 color: "from-fuchsia-500/30 to-purple-500/20",
                 borderColor: "border-fuchsia-500/30"
               },
               { 
                 icon: BarChart3, 
                 title: "Przejrzyste raporty", 
-                desc: "Co miesiąc otrzymujesz czytelny raport z wynikami kampanii. Wiesz dokładnie ile wydajesz, ile osób zobaczyło reklamy i ile klientek się zgłosiło.",
+                desc: "Co miesiąc jasny raport: zasięgi, kliknięcia, koszty. Zero zagadek",
                 color: "from-emerald-500/30 to-teal-500/20",
                 borderColor: "border-emerald-500/30"
               },
@@ -664,7 +664,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                 <div className="w-full h-full bg-black rounded-[30px] overflow-hidden relative">
                   <div className="bg-gradient-to-r from-pink-600/20 to-fuchsia-600/20 px-3 py-2 flex items-center justify-between border-b border-pink-500/20">
                     <Instagram className="w-4 h-4 text-pink-400" />
-                    <span className="text-xs font-semibold text-white truncate max-w-[100px]">{data.salonName || 'Twój Salon'}</span>
+                    <span className="text-xs font-semibold text-white truncate max-w-[100px]">{data.salonName || "beauty studio"}</span>
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 rounded-full bg-emerald-400" />
                     </div>
@@ -675,7 +675,7 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
                         <Flower2 className="w-3.5 h-3.5 text-white" />
                       </div>
-                      <span className="text-xs text-white font-medium">{data.salonName || 'Salon'}</span>
+                      <span className="text-xs text-white font-medium">{data.salonName || "beauty studio"}</span>
                     </div>
                     <span className="text-[10px] text-pink-400 font-medium">Sponsorowane</span>
                   </div>
@@ -742,25 +742,25 @@ export const PresentationPreview = ({ data, currentSlide }: PresentationPreviewP
             
             {[
               {
-                name: "Magdalena W.",
-                salon: "Gabinet kosmetyczny",
-                city: "Marki",
-                text: "Serdecznie polecam. Pan Przemek ma super podejście, nawet trudne rzeczy wyjaśniał w prosty sposób.",
+                name: "Magda",
+                salon: "Studio Urody Magda",
+                city: "Nowy Sącz",
+                text: "Po 2 miesiącach współpracy mam pełny grafik! Polecam każdej właścicielce salonu.",
                 avatar: "M"
               },
               {
-                name: "Karolina Ł.",
-                salon: "Salon fryzjerski",
+                name: "Karolina",
+                salon: "Beauty by Karo",
                 city: "Tarnów",
-                text: "Pełen profesjonalizm od samego początku. Cała współpraca przebiegała krok po kroku, świetny kontakt i bardzo przyjemne rozmowy z Przemkiem. Z czystym sumieniem polecam! :)",
+                text: "Wreszcie ktoś, kto rozumie branżę beauty. Reklamy są piękne i skuteczne!",
                 avatar: "K"
               },
               {
-                name: "Joanna B.",
-                salon: "Studio stylizacji",
-                city: "Kobyłka",
-                text: "Współpracuję z Aurine już od kilku miesięcy i z pełnym przekonaniem mogę polecić Przemka i cały zespół. Naprawdę wiedzą, jak robić marketing lokalny i przyciągać klientów. Chętnie dzielą się wiedzą, tłumaczą wszystko krok po kroku i cierpliwie pomagają.",
-                avatar: "J"
+                name: "Anna",
+                salon: "Salon Piękności Anna",
+                city: "Gorlice",
+                text: "Bałam się płatnych reklam, ale ekipa Aurine wszystko wytłumaczyła. Teraz co tydzień mam nowe klientki.",
+                avatar: "A"
               }
             ].map((testimonial, idx) => (
               <div key={idx} className="bg-gradient-to-br from-zinc-900/95 to-zinc-900/80 rounded-xl p-4 border border-pink-500/15">
