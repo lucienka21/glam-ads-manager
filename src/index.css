@@ -150,10 +150,18 @@ body {
   flex-direction: column;
 }
 
-/* Force all elements to respect container width */
+/* Force all elements to respect container sizing WITHOUT breaking fixed-size canvases/previews */
 *, *::before, *::after {
   box-sizing: border-box;
+}
+
+/* Make media responsive by default */
+img, video, canvas, svg {
   max-width: 100%;
+}
+
+img, video {
+  height: auto;
 }
 
 /* Dark theme always */
