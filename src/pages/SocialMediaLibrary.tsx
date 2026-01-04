@@ -1,12 +1,7 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { useUserRole } from "@/hooks/useUserRole";
+import { useState, useRef } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -14,34 +9,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
-  Plus,
   Download,
-  Search,
   Filter,
-  Trash2,
-  Image,
-  Square,
-  Columns,
-  Smartphone,
-  Film,
   GraduationCap,
   Building2,
   TrendingUp,
   Camera,
   Percent,
   Quote,
+  ZoomIn,
+  ZoomOut,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toPng } from "html-to-image";
+import agencyLogo from "@/assets/agency-logo.png";
 
 const CATEGORIES = [
   { value: "edukacyjne", label: "Edukacyjne", icon: GraduationCap },
@@ -52,172 +36,291 @@ const CATEGORIES = [
   { value: "cytaty", label: "Cytaty", icon: Quote },
 ] as const;
 
-const FORMATS = [
-  { value: "square", label: "Kwadrat (1:1)", icon: Square },
-  { value: "carousel", label: "Karuzela", icon: Columns },
-  { value: "story", label: "Story (9:16)", icon: Smartphone },
-  { value: "reel-cover", label: "Reel cover", icon: Film },
-] as const;
-
-type Category = typeof CATEGORIES[number]["value"];
-type Format = typeof FORMATS[number]["value"];
-
-interface SocialMediaPost {
+interface SocialPost {
   id: string;
-  title: string;
-  description: string | null;
   category: string;
-  format: string;
-  file_url: string;
-  thumbnail_url: string | null;
-  created_at: string;
+  title: string;
+  subtitle?: string;
+  content?: string;
+  accent?: string;
+  variant: "gradient" | "dark" | "light" | "quote";
 }
 
-export default function SocialMediaLibrary() {
-  const { isSzef } = useUserRole();
-  const queryClient = useQueryClient();
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
-  const [selectedFormat, setSelectedFormat] = useState<string>("all");
+const POSTS: SocialPost[] = [
+  // EDUKACYJNE
+  {
+    id: "edu-1",
+    category: "edukacyjne",
+    title: "Post ≠ Reklama",
+    subtitle: "Organiczne zasięgi to przeszłość",
+    content: "Tylko 2-5% Twoich obserwujących widzi Twoje posty. Reklamy docierają do tysięcy nowych klientek.",
+    variant: "gradient",
+  },
+  {
+    id: "edu-2",
+    category: "edukacyjne",
+    title: "Ile kosztuje klientka z reklamy?",
+    subtitle: "Prawdziwe liczby",
+    content: "Średnio 15-30 zł za rezerwację. Przy usługach za 200+ zł to zwrot x7.",
+    variant: "dark",
+  },
+  {
+    id: "edu-3",
+    category: "edukacyjne",
+    title: "3 błędy w reklamach beauty",
+    subtitle: "Których unikniesz z nami",
+    content: "1. Brak targetowania\n2. Słabe kreacje\n3. Brak remarketingu",
+    variant: "light",
+  },
+  // O AGENCJI
+  {
+    id: "agency-1",
+    category: "o-agencji",
+    title: "Aurine",
+    subtitle: "Agencja dla salonów beauty",
+    content: "Specjalizujemy się wyłącznie w branży beauty. Znamy Twoje wyzwania.",
+    variant: "gradient",
+  },
+  {
+    id: "agency-2",
+    category: "o-agencji",
+    title: "Dlaczego my?",
+    subtitle: "To nas wyróżnia",
+    content: "✓ Tylko branża beauty\n✓ Przejrzyste raporty\n✓ Brak długich umów",
+    variant: "dark",
+  },
+  {
+    id: "agency-3",
+    category: "o-agencji",
+    title: "Współpraca bez ryzyka",
+    subtitle: "Elastyczne warunki",
+    content: "Współpracujemy tak długo, jak jesteś zadowolona z efektów.",
+    variant: "light",
+  },
+  // CASE STUDIES
+  {
+    id: "case-1",
+    category: "case-studies",
+    title: "+156%",
+    subtitle: "wzrost rezerwacji",
+    content: "Salon kosmetyczny w Toruniu. 3 miesiące współpracy.",
+    accent: "rezerwacji",
+    variant: "gradient",
+  },
+  {
+    id: "case-2",
+    category: "case-studies",
+    title: "47 nowych klientek",
+    subtitle: "w pierwszym miesiącu",
+    content: "Studio stylizacji rzęs. Budżet: 1500 zł/mies.",
+    variant: "dark",
+  },
+  {
+    id: "case-3",
+    category: "case-studies",
+    title: "ROAS 8.2x",
+    subtitle: "zwrot z inwestycji",
+    content: "Salon fryzjerski premium. Każda złotówka zwróciła się 8-krotnie.",
+    variant: "light",
+  },
+  // BEHIND THE SCENES
+  {
+    id: "bts-1",
+    category: "behind-the-scenes",
+    title: "Jak tworzymy kreacje?",
+    subtitle: "Zakulisowy proces",
+    content: "Badamy Twoją konkurencję, analizujemy grupę docelową, projektujemy grafiki, które konwertują.",
+    variant: "gradient",
+  },
+  {
+    id: "bts-2",
+    category: "behind-the-scenes",
+    title: "Codziennie monitorujemy",
+    subtitle: "Twoje kampanie",
+    content: "Optymalizujemy budżet, testujemy kreacje, reagujemy na zmiany.",
+    variant: "dark",
+  },
+  {
+    id: "bts-3",
+    category: "behind-the-scenes",
+    title: "Raport co miesiąc",
+    subtitle: "Pełna przejrzystość",
+    content: "Dokładne dane: ile wydane, ile klientek, jaki koszt. Bez ukrytych kosztów.",
+    variant: "light",
+  },
+  // PROMOCJE
+  {
+    id: "promo-1",
+    category: "promocje",
+    title: "Darmowy audyt",
+    subtitle: "Sprawdź potencjał swojego salonu",
+    content: "Bezpłatna analiza Twojego profilu i konkurencji. Bez zobowiązań.",
+    variant: "gradient",
+  },
+  {
+    id: "promo-2",
+    category: "promocje",
+    title: "Tydzień próbny",
+    subtitle: "Dla pierwszych 2 salonów w mieście",
+    content: "Przetestuj nasze reklamy przez tydzień za darmo.",
+    variant: "dark",
+  },
+  {
+    id: "promo-3",
+    category: "promocje",
+    title: "-20% na start",
+    subtitle: "Dla nowych klientek",
+    content: "Pierwszy miesiąc współpracy ze zniżką. Oferta limitowana.",
+    variant: "light",
+  },
+  // CYTATY
+  {
+    id: "quote-1",
+    category: "cytaty",
+    title: '"Klientki same do nas trafiają"',
+    subtitle: "— Magda, salon w Poznaniu",
+    variant: "quote",
+  },
+  {
+    id: "quote-2",
+    category: "cytaty",
+    title: '"Wreszcie mam czas na zabiegi, nie na szukanie klientek"',
+    subtitle: "— Karolina Ł., Toruń",
+    variant: "quote",
+  },
+  {
+    id: "quote-3",
+    category: "cytaty",
+    title: '"Reklamy zwracają się już w pierwszym tygodniu"',
+    subtitle: "— Anna, studio rzęs",
+    variant: "quote",
+  },
+];
 
-  // Form state
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [uploadTitle, setUploadTitle] = useState("");
-  const [uploadDescription, setUploadDescription] = useState("");
-  const [uploadCategory, setUploadCategory] = useState<Category>("edukacyjne");
-  const [uploadFormat, setUploadFormat] = useState<Format>("square");
-  const [isUploading, setIsUploading] = useState(false);
+function PostCard({ post, onDownload }: { post: SocialPost; onDownload: () => void }) {
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["social-media-posts"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("social_media_posts")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as SocialMediaPost[];
-    },
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: async () => {
-      if (!uploadFile) throw new Error("Brak pliku");
-
-      setIsUploading(true);
-
-      // Upload file to storage
-      const fileExt = uploadFile.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `posts/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("social-media")
-        .upload(filePath, uploadFile);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: urlData } = supabase.storage
-        .from("social-media")
-        .getPublicUrl(filePath);
-
-      // Create database record
-      const { error: insertError } = await supabase
-        .from("social_media_posts")
-        .insert({
-          title: uploadTitle,
-          description: uploadDescription || null,
-          category: uploadCategory,
-          format: uploadFormat,
-          file_url: urlData.publicUrl,
-          thumbnail_url: urlData.publicUrl,
-        });
-
-      if (insertError) throw insertError;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["social-media-posts"] });
-      toast.success("Post dodany!");
-      resetForm();
-      setIsUploadOpen(false);
-    },
-    onError: (error) => {
-      toast.error("Błąd: " + (error as Error).message);
-    },
-    onSettled: () => {
-      setIsUploading(false);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (post: SocialMediaPost) => {
-      // Extract file path from URL
-      const urlParts = post.file_url.split("/social-media/");
-      if (urlParts[1]) {
-        await supabase.storage.from("social-media").remove([urlParts[1]]);
-      }
-
-      const { error } = await supabase
-        .from("social_media_posts")
-        .delete()
-        .eq("id", post.id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["social-media-posts"] });
-      toast.success("Post usunięty");
-    },
-    onError: () => {
-      toast.error("Błąd podczas usuwania");
-    },
-  });
-
-  const resetForm = () => {
-    setUploadFile(null);
-    setUploadTitle("");
-    setUploadDescription("");
-    setUploadCategory("edukacyjne");
-    setUploadFormat("square");
-  };
-
-  const handleDownload = async (post: SocialMediaPost) => {
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
     try {
-      const response = await fetch(post.file_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const dataUrl = await toPng(cardRef.current, {
+        pixelRatio: 3,
+        cacheBust: true,
+      });
       const link = document.createElement("a");
-      link.href = url;
-      link.download = `${post.title}.${post.file_url.split(".").pop()}`;
-      document.body.appendChild(link);
+      link.download = `aurine-${post.id}.png`;
+      link.href = dataUrl;
       link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
       toast.success("Pobrano!");
     } catch {
       toast.error("Błąd pobierania");
     }
   };
 
-  const filteredPosts = posts.filter((post) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      post.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "all" || post.category === selectedCategory;
-    const matchesFormat =
-      selectedFormat === "all" || post.format === selectedFormat;
-    return matchesSearch && matchesCategory && matchesFormat;
-  });
+  return (
+    <div className="group relative">
+      {/* Actual card for export */}
+      <div
+        ref={cardRef}
+        className={cn(
+          "aspect-square w-full rounded-2xl p-6 flex flex-col justify-between overflow-hidden relative",
+          post.variant === "gradient" && "bg-gradient-to-br from-[#FF6B9D] via-[#C44569] to-[#8B2F4F] text-white",
+          post.variant === "dark" && "bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f0f23] text-white",
+          post.variant === "light" && "bg-gradient-to-br from-[#fff5f7] via-[#ffe4ec] to-[#ffd1dc] text-[#8B2F4F]",
+          post.variant === "quote" && "bg-gradient-to-br from-[#2d1f3d] via-[#1a1a2e] to-[#0f0f23] text-white"
+        )}
+      >
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+
+        {/* Logo */}
+        <div className="flex items-center gap-2 relative z-10">
+          <div className={cn(
+            "w-8 h-8 rounded-lg flex items-center justify-center",
+            post.variant === "light" ? "bg-[#C44569]/10" : "bg-white/10"
+          )}>
+            <img src={agencyLogo} alt="Aurine" className="w-5 h-5" />
+          </div>
+          <span className={cn(
+            "text-sm font-semibold",
+            post.variant === "light" ? "text-[#C44569]" : "text-white/80"
+          )}>
+            Aurine
+          </span>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 flex flex-col justify-center relative z-10 py-4">
+          {post.variant === "quote" ? (
+            <>
+              <p className="text-xl md:text-2xl font-medium leading-snug mb-4" style={{ fontFamily: "'Playfair Display', serif" }}>
+                {post.title}
+              </p>
+              {post.subtitle && (
+                <p className="text-sm text-white/60">{post.subtitle}</p>
+              )}
+            </>
+          ) : (
+            <>
+              <h3 className={cn(
+                "text-2xl md:text-3xl font-bold mb-2 leading-tight",
+                post.variant === "light" && "text-[#8B2F4F]"
+              )} style={{ fontFamily: "'Playfair Display', serif" }}>
+                {post.title}
+              </h3>
+              {post.subtitle && (
+                <p className={cn(
+                  "text-sm md:text-base font-medium mb-3",
+                  post.variant === "light" ? "text-[#C44569]" : "text-white/80"
+                )}>
+                  {post.subtitle}
+                </p>
+              )}
+              {post.content && (
+                <p className={cn(
+                  "text-xs md:text-sm leading-relaxed whitespace-pre-line",
+                  post.variant === "light" ? "text-[#8B2F4F]/80" : "text-white/70"
+                )}>
+                  {post.content}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Bottom accent */}
+        <div className={cn(
+          "h-1 w-16 rounded-full relative z-10",
+          post.variant === "light" ? "bg-[#C44569]" : "bg-white/30"
+        )} />
+      </div>
+
+      {/* Hover overlay */}
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl flex items-center justify-center">
+        <Button
+          variant="secondary"
+          className="gap-2"
+          onClick={handleDownload}
+        >
+          <Download className="w-4 h-4" />
+          Pobierz PNG
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function SocialMediaLibrary() {
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [previewPost, setPreviewPost] = useState<SocialPost | null>(null);
+
+  const filteredPosts = selectedCategory === "all"
+    ? POSTS
+    : POSTS.filter((p) => p.category === selectedCategory);
 
   const getCategoryLabel = (value: string) =>
     CATEGORIES.find((c) => c.value === value)?.label || value;
-  const getFormatLabel = (value: string) =>
-    FORMATS.find((f) => f.value === value)?.label || value;
 
   return (
     <AppLayout>
@@ -227,220 +330,56 @@ export default function SocialMediaLibrary() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Social Media</h1>
             <p className="text-sm text-muted-foreground">
-              Gotowe posty do pobrania i publikacji
+              18 gotowych postów w stylu Aurine • Pobierz i publikuj
             </p>
           </div>
-          {isSzef && (
-            <Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Dodaj post
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Dodaj nowy post</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label>Plik graficzny</Label>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Tytuł</Label>
-                    <Input
-                      value={uploadTitle}
-                      onChange={(e) => setUploadTitle(e.target.value)}
-                      placeholder="np. Post edukacyjny o reklamach"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Opis (opcjonalnie)</Label>
-                    <Textarea
-                      value={uploadDescription}
-                      onChange={(e) => setUploadDescription(e.target.value)}
-                      placeholder="Krótki opis posta..."
-                      rows={2}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>Kategoria</Label>
-                      <Select
-                        value={uploadCategory}
-                        onValueChange={(v) => setUploadCategory(v as Category)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CATEGORIES.map((cat) => (
-                            <SelectItem key={cat.value} value={cat.value}>
-                              {cat.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Format</Label>
-                      <Select
-                        value={uploadFormat}
-                        onValueChange={(v) => setUploadFormat(v as Format)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {FORMATS.map((fmt) => (
-                            <SelectItem key={fmt.value} value={fmt.value}>
-                              {fmt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <Button
-                    className="w-full"
-                    disabled={!uploadFile || !uploadTitle || isUploading}
-                    onClick={() => uploadMutation.mutate()}
-                  >
-                    {isUploading ? "Przesyłanie..." : "Dodaj post"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          )}
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Szukaj..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-44">
-              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Kategoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Wszystkie kategorie</SelectItem>
-              {CATEGORIES.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedFormat} onValueChange={setSelectedFormat}>
-            <SelectTrigger className="w-full sm:w-40">
-              <Image className="w-4 h-4 mr-2 text-muted-foreground" />
-              <SelectValue placeholder="Format" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Wszystkie formaty</SelectItem>
-              {FORMATS.map((fmt) => (
-                <SelectItem key={fmt.value} value={fmt.value}>
-                  {fmt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant={selectedCategory === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategory("all")}
+          >
+            Wszystkie ({POSTS.length})
+          </Button>
+          {CATEGORIES.map((cat) => {
+            const count = POSTS.filter((p) => p.category === cat.value).length;
+            const Icon = cat.icon;
+            return (
+              <Button
+                key={cat.value}
+                variant={selectedCategory === cat.value ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategory(cat.value)}
+                className="gap-1.5"
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {cat.label} ({count})
+              </Button>
+            );
+          })}
         </div>
 
         {/* Grid */}
-        {isLoading ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {[...Array(8)].map((_, i) => (
-              <div
-                key={i}
-                className="aspect-square bg-muted animate-pulse rounded-xl"
-              />
-            ))}
-          </div>
-        ) : filteredPosts.length === 0 ? (
-          <div className="text-center py-16 text-muted-foreground">
-            <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            <p>Brak postów do wyświetlenia</p>
-            {isSzef && (
-              <p className="text-sm mt-1">Dodaj pierwszy post klikając przycisk powyżej</p>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {filteredPosts.map((post) => (
-              <div
-                key={post.id}
-                className="group relative bg-card border border-border rounded-xl overflow-hidden hover:shadow-lg transition-all"
-              >
-                {/* Image */}
-                <div
-                  className={cn(
-                    "relative bg-muted overflow-hidden",
-                    post.format === "story" || post.format === "reel-cover"
-                      ? "aspect-[9/16]"
-                      : post.format === "carousel"
-                      ? "aspect-[4/5]"
-                      : "aspect-square"
-                  )}
-                >
-                  <img
-                    src={post.thumbnail_url || post.file_url}
-                    alt={post.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Hover overlay */}
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleDownload(post)}
-                      className="gap-1.5"
-                    >
-                      <Download className="w-4 h-4" />
-                      Pobierz
-                    </Button>
-                    {isSzef && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => deleteMutation.mutate(post)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-                {/* Info */}
-                <div className="p-3 space-y-2">
-                  <h3 className="font-medium text-sm text-foreground truncate">
-                    {post.title}
-                  </h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="secondary" className="text-[10px]">
-                      {getCategoryLabel(post.category)}
-                    </Badge>
-                    <Badge variant="outline" className="text-[10px]">
-                      {getFormatLabel(post.format)}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+          {filteredPosts.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              onDownload={() => {}}
+            />
+          ))}
+        </div>
+
+        {/* Info */}
+        <div className="bg-muted/50 rounded-xl p-4 text-sm text-muted-foreground">
+          <p>
+            <strong>Wskazówka:</strong> Najedź na post i kliknij "Pobierz PNG" aby zapisać grafikę w wysokiej rozdzielczości (1080x1080px).
+            Posty są zoptymalizowane pod Instagram i Facebook.
+          </p>
+        </div>
       </div>
     </AppLayout>
   );
