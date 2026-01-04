@@ -7,7 +7,7 @@ import {
   LayoutDashboard, FileText, Receipt, FileSignature, Presentation,
   History, Users, UserPlus, LogOut, User, Shield, Crown,
   Target, Mail, CheckSquare, TrendingDown, Bell, UsersRound, Calendar,
-  Settings, Zap, X, MailCheck, Sparkles, Gift, Megaphone, Wand2,
+  Settings, Zap, X, MailCheck, Sparkles, Gift, Megaphone, Wand2, Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -161,6 +161,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
     { title: "Kampanie", url: "/campaigns", icon: Target },
     { title: "Auto Follow-up", url: "/auto-followups", icon: MailCheck, badge: pendingFollowUps || undefined },
     { title: "Obsługa klienta", url: "/client-service", icon: Sparkles },
+    { title: "Social Media", url: "/social-media", icon: Share2 },
     { title: "Szablony", url: "/templates", icon: Mail },
   ];
 
