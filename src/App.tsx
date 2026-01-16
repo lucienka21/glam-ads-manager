@@ -39,6 +39,7 @@ import AutoFollowUps from "./pages/AutoFollowUps";
 import ClientService from "./pages/ClientService";
 import WelcomePackGenerator from "./pages/WelcomePackGenerator";
 import SocialMediaLibrary from "./pages/SocialMediaLibrary";
+import ClientAppManagement from "./pages/ClientAppManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ function AppContent() {
           <Route path="/client-service" element={<ProtectedRoute><ClientService /></ProtectedRoute>} />
           <Route path="/welcome-pack-generator" element={<ProtectedRoute><WelcomePackGenerator /></ProtectedRoute>} />
           <Route path="/social-media" element={<ProtectedRoute><SocialMediaLibrary /></ProtectedRoute>} />
+          <Route path="/client-app" element={<ProtectedRoute><ClientAppManagement /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppErrorBoundary>

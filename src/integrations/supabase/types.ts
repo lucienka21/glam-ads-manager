@@ -305,6 +305,136 @@ export type Database = {
           },
         ]
       }
+      client_app_activity: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          event_data: Json | null
+          event_type: string
+          id: string
+          subscription_code: string | null
+          user_email: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type: string
+          id?: string
+          subscription_code?: string | null
+          user_email?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          event_data?: Json | null
+          event_type?: string
+          id?: string
+          subscription_code?: string | null
+          user_email?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_app_activity_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      client_app_content: {
+        Row: {
+          content: Json | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_published: boolean
+          order_index: number
+          thumbnail_url: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          thumbnail_url?: string | null
+          title: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean
+          order_index?: number
+          thumbnail_url?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      client_app_notifications: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_sent: boolean
+          link_id: string | null
+          link_type: string | null
+          message: string
+          notification_type: string
+          sent_at: string | null
+          title: string
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_sent?: boolean
+          link_id?: string | null
+          link_type?: string | null
+          message: string
+          notification_type?: string
+          sent_at?: string | null
+          title: string
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_sent?: boolean
+          link_id?: string | null
+          link_type?: string | null
+          message?: string
+          notification_type?: string
+          sent_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_app_notifications_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           assigned_to: string | null
@@ -874,6 +1004,56 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_codes: {
+        Row: {
+          client_id: string | null
+          code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          is_active: boolean
+          updated_at: string
+          used_at: string | null
+          used_by_email: string | null
+          valid_from: string
+          valid_until: string
+        }
+        Insert: {
+          client_id?: string | null
+          code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          used_at?: string | null
+          used_by_email?: string | null
+          valid_from?: string
+          valid_until: string
+        }
+        Update: {
+          client_id?: string | null
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_active?: boolean
+          updated_at?: string
+          used_at?: string | null
+          used_by_email?: string | null
+          valid_from?: string
+          valid_until?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_codes_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_comments: {
         Row: {
           comment: string
@@ -1076,6 +1256,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_subscription_code: { Args: never; Returns: string }
       has_permission: {
         Args: {
           _permission: Database["public"]["Enums"]["app_permission"]
