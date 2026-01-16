@@ -1,7 +1,7 @@
 {
-  "name": "Aurine Document Generator",
+  "name": "Aurine",
   "short_name": "Aurine",
-  "description": "Profesjonalne narzędzia do generowania dokumentów dla branży beauty",
+  "description": "Panel zarządzania agencją beauty - CRM, dokumenty, kampanie",
   "theme_color": "#09090b",
   "background_color": "#09090b",
   "display": "standalone",
