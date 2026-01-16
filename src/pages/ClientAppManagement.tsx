@@ -443,8 +443,8 @@ export default function ClientAppManagement() {
               <Smartphone className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Aplikacja kliencka</h1>
-              <p className="text-muted-foreground">Zarządzaj dostępem i treściami w aplikacji dla klientek</p>
+              <h1 className="text-2xl font-bold">Aurine Academy</h1>
+              <p className="text-muted-foreground">Zarządzaj dostępem i treściami w aplikacji edukacyjnej dla klientek</p>
             </div>
           </div>
         </div>

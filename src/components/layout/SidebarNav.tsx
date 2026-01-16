@@ -161,7 +161,7 @@ export function SidebarNav({ onNavigate, showCloseButton, onClose }: SidebarNavP
     { title: "Kalendarz", url: "/calendar", icon: Calendar },
     { title: "Kampanie", url: "/campaigns", icon: Target },
     { title: "Auto Follow-up", url: "/auto-followups", icon: MailCheck, badge: pendingFollowUps || undefined },
-    { title: "Aplikacja kliencka", url: "/client-app", icon: Smartphone },
+    { title: "Aurine Academy", url: "/client-app", icon: Smartphone },
     { title: "Obsługa klienta", url: "/client-service", icon: Sparkles },
     { title: "Social Media", url: "/social-media", icon: Share2 },
     { title: "Szablony", url: "/templates", icon: Mail },

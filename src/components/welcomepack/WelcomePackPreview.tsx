@@ -632,7 +632,7 @@ export const WelcomePackPreview = ({ data, currentSlide, subscriptionCode }: Wel
                   <Smartphone className="w-7 h-7 text-white" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-amber-400/80 text-xs uppercase tracking-wider font-medium mb-1">Dostęp do aplikacji klientki</p>
+                  <p className="text-amber-400/80 text-xs uppercase tracking-wider font-medium mb-1">Dostęp do Aurine Academy</p>
                   <div className="flex items-center gap-2">
                     <Key className="w-4 h-4 text-amber-300" />
                     <span className="text-white font-bold text-xl tracking-widest">{subscriptionCode}</span>
