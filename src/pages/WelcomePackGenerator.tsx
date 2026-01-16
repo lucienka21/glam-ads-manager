@@ -56,6 +56,7 @@ const WelcomePackGenerator = () => {
     managerPhone: "",
     managerEmail: "",
   });
+  const [subscriptionCode, setSubscriptionCode] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchClients = async () => {
@@ -150,17 +151,73 @@ const WelcomePackGenerator = () => {
     }
   };
 
+  // Generate subscription code for client
+  const generateSubscriptionCode = async (clientId: string): Promise<string | null> => {
+    try {
+      // Check if client already has an active code
+      const { data: existingCodes } = await supabase
+        .from('subscription_codes')
+        .select('code')
+        .eq('client_id', clientId)
+        .eq('is_active', true)
+        .gte('valid_until', new Date().toISOString().split('T')[0])
+        .limit(1);
+
+      if (existingCodes && existingCodes.length > 0) {
+        return existingCodes[0].code;
+      }
+
+      // Generate new code
+      const { data: newCode, error } = await supabase.rpc('generate_subscription_code');
+      if (error) throw error;
+
+      // Calculate validity (1 year from now)
+      const validUntil = new Date();
+      validUntil.setFullYear(validUntil.getFullYear() + 1);
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Insert code
+      const { error: insertError } = await supabase
+        .from('subscription_codes')
+        .insert({
+          client_id: clientId,
+          code: newCode,
+          valid_until: validUntil.toISOString().split('T')[0],
+          created_by: user?.id,
+        });
+
+      if (insertError) throw insertError;
+
+      return newCode;
+    } catch (error) {
+      console.error('Error generating subscription code:', error);
+      return null;
+    }
+  };
+
   const handleSave = async () => {
     if (!hasRequiredFields) {
       toast.error("Uzupełnij wszystkie wymagane pola");
       return;
     }
 
+    // Generate subscription code if client is selected
+    let generatedCode: string | null = null;
+    if (selectedClientId) {
+      generatedCode = await generateSubscriptionCode(selectedClientId);
+      if (generatedCode) {
+        setSubscriptionCode(generatedCode);
+        toast.success(`Wygenerowano kod dostępu: ${generatedCode}`);
+      }
+    }
+
     const docId = await saveDocument(
       "welcomepack",
       formData.salonName,
       `Welcome Pack dla ${formData.ownerName}`,
-      formData,
+      { ...formData, subscriptionCode: generatedCode },
       selectedClientId || undefined,
       undefined,
       undefined
@@ -193,13 +250,22 @@ const WelcomePackGenerator = () => {
     setIsGenerating(true);
     
     try {
+      // Generate subscription code if not already generated and client is selected
+      let generatedCode = subscriptionCode;
+      if (!generatedCode && selectedClientId) {
+        generatedCode = await generateSubscriptionCode(selectedClientId);
+        if (generatedCode) {
+          setSubscriptionCode(generatedCode);
+        }
+      }
+
       let docId = currentDocId;
       if (!docId) {
         docId = await saveDocument(
           "welcomepack",
           formData.salonName,
           `Welcome Pack dla ${formData.ownerName}`,
-          formData,
+          { ...formData, subscriptionCode: generatedCode },
           selectedClientId || undefined,
           undefined,
           undefined
@@ -218,6 +284,11 @@ const WelcomePackGenerator = () => {
           });
           if (thumbnail) await updateThumbnail(docId, thumbnail);
         }
+      }
+
+      // Wait a bit for the subscription code to render in the slides
+      if (generatedCode && !subscriptionCode) {
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       const pdf = new jsPDF({
@@ -478,7 +549,7 @@ const WelcomePackGenerator = () => {
                   height: '900px',
                 }}
               >
-                <WelcomePackPreview data={formData} currentSlide={currentSlide} />
+                <WelcomePackPreview data={formData} currentSlide={currentSlide} subscriptionCode={subscriptionCode} />
               </div>
             </div>
           </div>
@@ -509,7 +580,7 @@ const WelcomePackGenerator = () => {
                 overflow: 'hidden',
               }}
             >
-              <WelcomePackPreview data={formData} currentSlide={slideNum} />
+              <WelcomePackPreview data={formData} currentSlide={slideNum} subscriptionCode={subscriptionCode} />
             </div>
           ))}
         </div>

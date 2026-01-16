@@ -4,7 +4,7 @@ import {
   Settings, Camera, FileText, Clock,
   ArrowRight, Sparkles, Star, Zap, Target, TrendingUp,
   MessageCircle, Gift, Award, Crown, HelpCircle, Globe,
-  Briefcase, Shield, Palette, BarChart3, MessageSquare
+  Briefcase, Shield, Palette, BarChart3, MessageSquare, Smartphone, Key
 } from "lucide-react";
 import agencyLogo from "@/assets/agency-logo.png";
 import { getDiminutiveName } from "@/lib/polishDiminutives";
@@ -22,6 +22,7 @@ interface WelcomePackData {
 interface WelcomePackPreviewProps {
   data: WelcomePackData;
   currentSlide: number;
+  subscriptionCode?: string | null;
 }
 
 const formatDate = (dateStr: string): string => {
@@ -75,7 +76,7 @@ const DecorativeLines = () => (
   </>
 );
 
-export const WelcomePackPreview = ({ data, currentSlide }: WelcomePackPreviewProps) => {
+export const WelcomePackPreview = ({ data, currentSlide, subscriptionCode }: WelcomePackPreviewProps) => {
   const totalSlides = 6;
 
   // Footer component
@@ -621,6 +622,25 @@ export const WelcomePackPreview = ({ data, currentSlide }: WelcomePackPreviewPro
               </div>
             </div>
           </div>
+
+          {/* Subscription Code - App Access */}
+          {subscriptionCode && (
+            <div className="group relative w-full max-w-md mb-6">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl blur opacity-40 group-hover:opacity-60 transition-opacity" />
+              <div className="relative flex items-center gap-4 p-5 bg-zinc-900 border border-amber-500/30 rounded-xl">
+                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                  <Smartphone className="w-7 h-7 text-white" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-amber-400/80 text-xs uppercase tracking-wider font-medium mb-1">Dostęp do aplikacji klientki</p>
+                  <div className="flex items-center gap-2">
+                    <Key className="w-4 h-4 text-amber-300" />
+                    <span className="text-white font-bold text-xl tracking-widest">{subscriptionCode}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Website */}
           <div className="flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-pink-500/15 to-fuchsia-500/15 border border-pink-500/30 rounded-xl backdrop-blur-sm">
